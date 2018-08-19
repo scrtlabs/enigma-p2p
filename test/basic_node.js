@@ -47,7 +47,7 @@ it('Should echo+discovery 2 nodes',function(done){
                     conn,
                     pull.collect((err,data)=>{
                         assert.equal(null,err);
-                        console.log('got echo: ' , data.toString());
+                        assert.equal('hey',data.toString());
                         //stop
                         nodeDialer.stop((err)=>{
                             assert.equal(null,err);
