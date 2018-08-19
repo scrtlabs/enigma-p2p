@@ -148,14 +148,16 @@ class EnigmaNode extends EventEmitter {
     }
     /**
      * Start the node.
-     * @param {Function} empty callback once started.
+     * @param {Function} callback is a function with the following function (err) {} signature,
+     * where err is an Error in case starting the node fails.
      */
     start(callback){
         this.node.start(callback);
     }
     /**
      * Stop the node.
-     * @param {Function} empty callback once stopped.
+     * @param {Function} callback is a function with the following function (err) {} signature,
+     * where err is an Error in case starting the node fails.
      */
     stop(callback){
         this.node.stop(callback);
