@@ -5,11 +5,11 @@ const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
 
-
-it('hello world', function(done) {
-    assert(true,true)
-    setImmediate(done);
-});
+/**
+ * Test Description:
+ * The test spawns 2 nodes Dialer and Listener.
+ * The test uses the Discovery algorithm of libp2p to help the Dialer find the Listener
+ * The Dialer sends a message the Listener then responds.*/
 
 it('Should echo+discovery 2 nodes',function(done){
     let portListener = '0';
