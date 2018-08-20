@@ -36,23 +36,23 @@ it('Should echo+discovery 2 nodes',function(done){
             });
         },
     ],(err)=>{
-        assert.equal(err,null);
+        assert.equal(null,err, "Some error at the end of the waterfall");
         nodeDialer.start(()=>{
             nodeDialer.addHandlers(protocols,NaiveHandle);
             nodeDialer.dialProtocol(nodeListener.node.peerInfo,'/echo',(err,conn)=>{
-                assert.equal(null,err);
+                assert.equal(null,err, "Some error at Dialer.dialProtocol");
                 // send the echo to the listener
                 pull(
                     pull.values(['hey']),
                     conn,
                     pull.collect((err,data)=>{
-                        assert.equal(null,err);
+                        assert.equal(null,err, "Some error collection the echo response from the Listener");
                         assert.equal('hey',data.toString());
                         //stop
                         nodeDialer.stop((err)=>{
-                            assert.equal(null,err);
+                            assert.equal(null,err, "Some error while Dialer stopped");
                             nodeListener.stop((err)=>{
-                                assert.equal(null,err);
+                                assert.equal(null,err,"Some error while listener stopped.");
                                 setImmediate(done);
                             });
                         });

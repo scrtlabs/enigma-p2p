@@ -162,10 +162,15 @@ class EnigmaNode extends EventEmitter {
     stop(callback){
         this.node.stop(callback);
     }
+    /**
+     * Dial at some protocol and delegate the handling of that connection
+     * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
+     * @param {String} protocolName , the protocl name /echo/1.0.1
+     * @param {Function} onConnection recieves (protocol,connection) =>{}
+     */
     dialProtocol(peerInfo,protocolName, onConnection){
         this.node.dialProtocol(peerInfo,protocolName,onConnection);
     }
-
 }
 
 
