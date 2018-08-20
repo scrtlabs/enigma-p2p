@@ -110,6 +110,20 @@ class EnigmaNode extends EventEmitter {
         this.node.pubsub.publish(topic,content,oncePublishedCallback);
     }
     /**
+     * Broadcast some message about a specific topic in a LOOP
+     * @param {String} topic, topic name
+     * @param {Integer} interval , rate in milli of broadcasting
+     * @param {Buffer} content, Buffer.from('some msg')
+     * @param {Function} oncePublishedCallback, no params callback notifying that the message was published
+     * @returns {Integer} intervalID , the ID of the interval to be shutdown in another context
+     */
+    broadcastLoop(topic, interval, content,oncePublishedCallback){
+        let intervalID = setInterval(()=>{
+            this.broadcast(topic,content,oncePublishedCallback)
+        },interval);
+        return intervalID;
+    }
+    /**
      * Get a string array of full multiaddresses of the Node.
      * @returns {Array} str_addrs, array of multi-addresses in str format
      */

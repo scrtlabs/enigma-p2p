@@ -14,7 +14,7 @@ module.exports.buildWorker = function(port,listenerPort,ListenerId){
         let doDiscovery = true;
         let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes);
         return worker;
-}
+};
 
 let NaiveHandlers = {
     'peer:discovery' : (node,peer)=>{node.dial(peer,()=>{});},
@@ -25,3 +25,7 @@ let NaiveHandlers = {
 };
 
 module.exports.NaiveHandlers = NaiveHandlers;
+
+module.exports.sleep = function(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+};
