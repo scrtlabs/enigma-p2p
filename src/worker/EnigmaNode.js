@@ -7,15 +7,18 @@ const pull = require('pull-stream');
 const series = require('async/series');
 const PeerBundle = require('./libp2p-bundle');
 const Pushable = require('pull-pushable');
-
-
+const PeerManager = require('./PeerManager');
+const PROTOCOLS = require('../common/constants').PROTOCOLS;
+const Policy = require('../policy/policy');
 class EnigmaNode extends EventEmitter {
     constructor(multiAddrs,isDiscover, dnsNodes){
         super();
         this.node = null;
+        this.peerManager = null;
         this.multiAddrs = multiAddrs;
         this.isDiscover = isDiscover;
         this.dnsNodes = dnsNodes;
+        this.policy = new Policy();
     }
 
     /**
@@ -78,6 +81,10 @@ class EnigmaNode extends EventEmitter {
      * @param {Array} protocols, different protocols to listen and support
      */
     addHandlers(protocols,handler){
+        // TODO:: currently ignore for testing.
+        if(!this.policy.validateProtocols(protocols) && false){
+            throw Error('not all protocols are satisfied, check constants.js for more info.');
+        }
         this.node.on('peer:discovery', (peer) => {
             handler('peer:discovery',this.node,{peer:peer});
         });
@@ -130,7 +137,7 @@ class EnigmaNode extends EventEmitter {
     getListeningAddrs(){
         let str_addrs = [];
         this.node.peerInfo.multiaddrs.forEach(addr=>{
-            str_addrs.push(addr.toString() + '/ipfs' + this.node.peerInfo.id.toB58String());
+            str_addrs.push(addr.toString() + '/enigma' + this.node.peerInfo.id.toB58String());
         });
         return str_addrs;
     }
@@ -139,6 +146,7 @@ class EnigmaNode extends EventEmitter {
      * @returns {PeerInfo} peerInfo
      */
     getSelfPeerInfo(){
+        //return this.peerManager.getSelfPeerInfo();
         return this.node.peerInfo;
     }
     /**
@@ -166,7 +174,10 @@ class EnigmaNode extends EventEmitter {
      * where err is an Error in case starting the node fails.
      */
     start(callback){
-        this.node.start(callback);
+        this.node.start((err)=>{
+            this.peerManager = new PeerManager(this.node);
+            callback();
+        });
     }
     /**
      * Stop the node.
@@ -184,6 +195,19 @@ class EnigmaNode extends EventEmitter {
      */
     dialProtocol(peerInfo,protocolName, onConnection){
         this.node.dialProtocol(peerInfo,protocolName,onConnection);
+    }
+    /**
+     * Get some peers PeerBook
+     * @param {PeerInfo} peerInfo, the target peer
+     * @param {Function} onResult signature (err,PeerBook) =>{}
+     */
+    getPeersPeerBook(peerInfo,onResult){
+        this.dialProtocol(peerInfo,PROTOCOLS.PEERS_PEER_BOOK, (protocol,connection)=>{
+            let peersPeerBook = '';
+            let err = null;
+            //TODO:: extract the PeerBook from the stream.
+            onResult(err,peersPeerBook);
+        });
     }
 }
 

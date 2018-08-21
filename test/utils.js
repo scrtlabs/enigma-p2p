@@ -10,7 +10,7 @@ const Pushable = require('pull-pushable');
 
 module.exports.buildWorker = function(port,listenerPort,ListenerId){
         let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
-        let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/ipfs/'+ListenerId];
+        let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/enigma/'+ListenerId];
         let doDiscovery = true;
         let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes);
         return worker;
