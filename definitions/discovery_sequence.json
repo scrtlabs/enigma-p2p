@@ -91,6 +91,17 @@
 // Headers - contain meta-info about the body (epoch transactions) 
 // msg #1 - headers sync
 
+// Enigma smart contract stores in some way or another: 
++--------------------+----------------+-----------+---------+------+
+| secret-contracts   | deployed code  | delta 1   | delta 2 | ...  |
+| address            | + payload hash | delta 1   | delta 2 | ...  |
++--------------------+----------------+-----------+---------+------+
+| 0x01...            | asd..          | h(d1)     | h(d2)   | ...  |
+| 0x02...            | bk2..          | h(d1)     | h(d2)   | ...  |
+| 0x03...            | sg3..          | h(d1)     | h(d2)   | ...  |
+| 0x04...            | 4fh..          | h(d1)     | h(d2)   | ...  |
+| 0x05... 			 | sgf.. 		  | h(d1)     | h(d2)   | ...  |
++--------------------+----------------+-----------+---------+------+
 
 
 
