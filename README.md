@@ -1,8 +1,15 @@
 # enigma-p2p
 
-[WIP] The Enigma Worker p2p package written in Node.js based on libp2p-js [WIP]
+[WIP] The Enigma Worker P2P package written in Node.js based on libp2p-js [WIP]
 
 ## License
 
-The Enigma Worker P2P is provided under the GNU Affero General Public License v3.0 (AGPLv3). Please refer to the [License file](LICENSE.txt) for details.
+The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+
+You should have received a [copy](LICENSE) of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
+
 
