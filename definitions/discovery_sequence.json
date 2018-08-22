@@ -65,31 +65,34 @@
 // At that point the Worker starts to look for peers activley 
 // repeating the same concept of ping-pong messages 
 
-/** Synchronize sequence **/
+* Synchronize sequence *
 
-// This sequence describes on how a new Worker gets in sync with the network state 
-// it does not aim to desgribe state-transitions of the network which will happen every epoch
-// and will be described later at a sequence called 'Passing the torch'
-// The sync process will refer to epoch number as the logical sequence of time. 
-// Same as block number in a blockchain. 
-// The Worker's goal is to be in sync till the current epoch state. 
-// Each epoch contains a the state of : 
-// 1. Deployed secret-contracts 
-// 2. Computation requests (?) 
-// 3. Computation results which are equal to state changes 
-// Worker who sync without previous history will start from epoch #0 
-// otherwise, Worker would load from persistent storage 
-// the previous epoch info they have and begin from that epoch #.
-// The messages are split into 2 - headers and body. 
-// During the sync sequence there are couple of security risks. 
-// The first is not real data but valid otherwise (the hashes match)
-// The second is false data completley.
-// To mitigate those attacks (similar to bitcoin) the worker will  
-// chose to sync headers first and validate their order/content 
-// Then it will start the syncing of the epoch blocks body.
-// Each sync sequence is limited to 500 blocks(? define blocks).
-// Headers - contain meta-info about the body (epoch transactions) 
-// msg #1 - headers sync
+This sequence describes on how a new Worker gets in sync with the network state 
+it does not aim to desgribe state-transitions of the network which will happen every epoch
+and will be described later at a sequence called 'Passing the torch'
+The sync process will refer to epoch number as the logical sequence of time. 
+Same as block number in a blockchain. 
+The Worker's goal is to be in sync till the current epoch state. 
+
+Each epoch contains a the state of : 
+1. Deployed secret-contracts 
+2. Computation requests (?) 
+3. Computation results which are equal to state changes 
+
+Worker who sync without previous history will start from epoch #0 
+otherwise, Worker would load from persistent storage 
+the previous epoch info they have and begin from that epoch #.
+The messages are split into 2 - headers and body. 
+During the sync sequence there are couple of security risks. 
+The first is not real data but valid otherwise (the hashes match)
+The second is false data completley.
+To mitigate those attacks (similar to bitcoin) the worker will  
+chose to sync headers first and validate their order/content 
+Then it will start the syncing of the epoch blocks body.
+Each sync sequence is limited to 500 blocks(? define blocks).
+
+Headers - contain meta-info about the body (epoch transactions) 
+msg #1 - headers sync
 
 // Enigma smart contract stores in some way or another: 
 +--------------------+----------------+-----------+---------+------+
