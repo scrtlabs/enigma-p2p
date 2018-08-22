@@ -82,7 +82,7 @@ The synchronization of secret-contracts will include:
 // Enigma smart contract stores in some way or another: 
 +--------------------+----------------+-----------+---------+------+
 | secret-contracts   | deployed code  | delta 1   | delta 2 | ...  |
-| address            | + payload hash | delta 1   | delta 2 | ...  |
+| address            | + payload hash | hash      | hash    | ...  |
 +--------------------+----------------+-----------+---------+------+
 | 0x01...            | asd..          | h(d1)     | h(d2)   | ...  |
 | 0x02...            | bk2..          | h(d1)     | h(d2)   | ...  |
