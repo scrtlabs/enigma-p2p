@@ -137,6 +137,59 @@ it('Should discovery+pub+sub event',function(done){
     });
 });
 
+/**
+ * Test Description - /getpeerbook
+ * This test connects 2 peers to a boostrap node and test /getpeerbook
+ * naming convention: DNS, peer, requester
+ */
+
+
+it('Should discovery+pub+sub event',function(done){
+    let nodeDns, nodePeer, nodeRequester;
+    let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
+    let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
+    let protocols = ['/getpeerbook'];
+
+    waterfall([
+        // DNS
+        cb =>{
+            nodeDns = utils.buildWorker(portDialer,portDns,idDns);
+            nodeDns.loadNode(pathDns, ()=>{
+                nodeDns.start(()=>{
+                    nodeDns.addHandlers(protocols,NaiveHandle);
+                    setTimeout(cb,100);
+                });
+            });
+        },
+        // Peer
+        cb =>{
+            nodePeer = utils.buildWorker(portDialer,portDns,idDns);
+            nodePeer.createNode(err=>{
+                assert.equal(null,err,"error creating peer node.");
+                nodePeer.start(()=>{
+                    nodePeer.addHandlers(protocols,NaiveHandle);
+                    setTimeout(cb,100);
+                });
+            });
+        },
+        // Requester
+        cb =>{
+            nodeRequester = utils.buildWorker(portDialer,portDns,idDns);
+            nodeRequester.createNode(err=>{
+                assert.equal(null,err,"error creating requester node.");
+                nodeRequester.start(()=>{
+                    nodeRequester.addHandlers(protocols,NaiveHandle);
+                    setTimeout(cb,100);
+                });
+            });
+        }
+    ],err=>{
+        assert.equal(null,err, "error in the waterfall() pipe");
+        // request the peer from from the DNS and the result should be 1 result.
+
+    });
+});
+
 
 /* helper functions */
 
@@ -150,6 +203,9 @@ function NaiveHandle(type,peer,params) {
             break;
         case "/echo":
             utils.NaiveHandlers['/echo'](params.protocol,params.connection);
+            break;
+        case "/getpeerbook":
+            utils.NaiveHandlers['/getpeerbook']();
             break;
     }
 }

@@ -21,6 +21,11 @@ let NaiveHandlers = {
     'peer:connect' : (node,peer)=>{console.log('[Connection established] from : ' + peer.id.toB58String());},
     '/echo' : (protocol,conn) =>{
         pull(conn,conn);
+    },
+    '/getpeerbook' : (worker,node,peer, protocol,connection) =>{
+        let peerInfo = worker.getSelfPeerInfo();
+        // worker is EnigmaNode, Node - the libp2p bundle
+        // stream peerInfo > connection 
     }
 };
 

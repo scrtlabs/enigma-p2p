@@ -48,22 +48,35 @@ msg #2 Boostrap node to the Worker
 
 // seeds : list of A DNS records (potential peers)
 
-// the request object - the ping message : 
+// to : node_id : the requester_id 
 
-// node_id : the requester_id 
-// nonce : the ping request nonce 
-// signature : the signature that was passed or it's hash. 
+
 {
 	"jsonrpc" : "2.0",
 	"method" : "pong",
-	"params" : [{"response":{"status":"", "nonce":"","seeds" : [], "signature" : ""},
-		"request" : {"node_id":"","nonce" : "", "signature" : ""}}],
+	"result" :{
+		"response" : {
+			"to" : "",
+			"status" : "",
+			"nocne" : "",
+			"seeds" : []
+			"signature" : ""
+		}
+	},
 	"id" : "", 
 }
 
+
+
 // handshaking with A DNS seed 
 // At that point the Worker starts to look for peers activley 
-// repeating the same concept of ping-pong messages 
+// repeating the same concept of ping-pong messages with heart-beats
+
+# heart-beat 
+{
+	"jsonrpc" : "2.0", 
+	"jsonrpc" : "", 
+}
 
 * Synchronize sequence *
 

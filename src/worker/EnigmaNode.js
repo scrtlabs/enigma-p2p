@@ -94,7 +94,7 @@ class EnigmaNode extends EventEmitter {
         });
         protocols.forEach(protocolName=>{
             this.node.handle(protocolName,(protocol,conn)=>{
-                handler(protocolName,this.node,{protocol:protocol,connection:conn});
+                handler(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
             });
         });
     }
