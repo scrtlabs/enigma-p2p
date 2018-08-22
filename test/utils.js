@@ -25,7 +25,7 @@ let NaiveHandlers = {
     '/getpeerbook' : (worker,node,peer, protocol,connection) =>{
         let peerInfo = worker.getSelfPeerInfo();
         // worker is EnigmaNode, Node - the libp2p bundle
-        // stream peerInfo > connection 
+        // stream peerInfo > connection
     }
 };
 
