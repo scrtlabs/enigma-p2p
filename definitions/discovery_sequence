@@ -1,0 +1,120 @@
+/** Discovery sequence **/
+
+// This part describes the initial discovery process of a new Worker in the network. 
+// The network refers to the local node and peers are remote Workers. 
+// The discovery sequence seperates between 2 parts: 
+// New Worker in the network - don't have peers info in the persistent storage. 
+// Previously logged Worker - Have some stored peers info. 
+// All the messages are in JSONRPC 2.0 format 
+
+// New Worker in the network: 
+// The worker has hardcoded addresses of bootstraping nodes and they would be 
+// the first connection to the network. Their goal is to be a gateway to
+// the network and returns DNS Seeds. Incase they are offline the Worker could
+// find other workers IP's on the internet and add them manualy using the CLI. 
+
+// msg #1 Worker to a boostrap node - ping 
+
+// id : The Server MUST reply with the same value in the Response object if included. This member is used to correlate the context between the two objects.
+// An identifier established by the Client that MUST contain a value  
+
+// node_id : a param holding base58 of the nodes public key (PeerInfo)
+
+// signature : hash(nonce || node_id) 
+// the signature is used for distinction between messages and veryfing nodes ID.
+
+// findpeers : boolean indicating if a peer list should be returned 
+
+// ? Possibly the Ethereum signing key 
+
+{
+	"jsonrpc" : "2.0",
+	"method" : "ping",
+	"params" : [{"node_id":"","nonce" : "", "signature" : "", "findpeers" : ""}],
+	"id" : "", 
+}
+
+// msg #2 Boostrap node to the Worker  
+
+// the response object : 
+
+// status : 200 ok, otherwise error 
+
+// nonce : new generated nonce 
+
+// seeds : list of PeerInfo 
+
+// signature : hash(nonce || require_signature || request_nonce)
+
+// seeds : list of A DNS records (potential peers)
+
+// the request object - the ping message : 
+
+// node_id : the requester_id 
+// nonce : the ping request nonce 
+// signature : the signature that was passed or it's hash. 
+{
+	"jsonrpc" : "2.0",
+	"method" : "pong",
+	"params" : [{"response":{"status":"", "nonce":"","seeds" : [], "signature" : ""},
+		"request" : {"node_id":"","nonce" : "", "signature" : ""}}],
+	"id" : "", 
+}
+
+// handshaking with A DNS seed 
+// At that point the Worker starts to look for peers activley 
+// repeating the same concept of ping-pong messages 
+
+* Synchronize sequence *
+
+This sequence describes on how a new Worker gets in sync with the network state 
+it does not aim to desgribe state-transitions of the network which will happen every epoch
+and will be described later at a sequence called 'Passing the torch'
+The sync process will refer to epoch number as the logical sequence of time. 
+Same as block number in a blockchain. 
+The Worker's goal is to be in sync till the current epoch state. 
+
+Each epoch contains a the state of : 
+1. Deployed secret-contracts 
+2. Computation requests (?) 
+3. Computation results which are equal to state changes 
+
+Worker who sync without previous history will start from epoch #0 
+otherwise, Worker would load from persistent storage 
+the previous epoch info they have and begin from that epoch #.
+The messages are split into 2 - headers and body. 
+During the sync sequence there are couple of security risks. 
+The first is not real data but valid otherwise (the hashes match)
+The second is false data completley.
+To mitigate those attacks (similar to bitcoin) the worker will  
+chose to sync headers first and validate their order/content 
+Then it will start the syncing of the epoch blocks body.
+Each sync sequence is limited to 500 blocks(? define blocks).
+
+Headers - contain meta-info about the body (epoch transactions) 
+msg #1 - headers sync
+
+// Enigma smart contract stores in some way or another: 
++--------------------+----------------+-----------+---------+------+
+| secret-contracts   | deployed code  | delta 1   | delta 2 | ...  |
+| address            | + payload hash | delta 1   | delta 2 | ...  |
++--------------------+----------------+-----------+---------+------+
+| 0x01...            | asd..          | h(d1)     | h(d2)   | ...  |
+| 0x02...            | bk2..          | h(d1)     | h(d2)   | ...  |
+| 0x03...            | sg3..          | h(d1)     | h(d2)   | ...  |
+| 0x04...            | 4fh..          | h(d1)     | h(d2)   | ...  |
++--------------------+----------------+-----------+---------+------+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
