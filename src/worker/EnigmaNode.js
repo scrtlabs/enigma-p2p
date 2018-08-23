@@ -98,6 +98,7 @@ class EnigmaNode extends EventEmitter {
             });
         });
     }
+
     /**
      * Subscribe to events with handlers and final handlers.
      * @param {Array} subscriptions, [{topic:name,topic_handler:Function,final_handler:Function}]
@@ -203,12 +204,21 @@ class EnigmaNode extends EventEmitter {
      */
     getPeersPeerBook(peerInfo,onResult){
         this.dialProtocol(peerInfo,PROTOCOLS.PEERS_PEER_BOOK, (protocol,connection)=>{
-            let peersPeerBook = '';
+            let peersPeerBook = null;
             let err = null;
-            //TODO:: extract the PeerBook from the stream.
-            onResult(err,peersPeerBook);
+            pull(
+                connection,
+                pull.map((data) => {
+                    peersPeerBook = data.toString('utf8').replace('\n', '');
+                    peersPeerBook = JSON.parse(peersPeerBook);
+                    onResult(err,peersPeerBook);
+                    return peersPeerBook;
+                }),
+               pull.drain()
+            );
         });
     }
+
 }
 
 

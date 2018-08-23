@@ -4,7 +4,7 @@
   "description": "Enigma P2P library based on NodeJS and libp2p-js ",
   "main": "main.js",
   "scripts": {
-    "test": "mocha --timeout 10000"
+    "test": "mocha --timeout 50000"
   },
   "author": "isan rivkin",
   "license": "ISC",

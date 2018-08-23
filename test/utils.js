@@ -6,7 +6,7 @@ const pull = require('pull-stream');
 const series = require('async/series');
 const NodeBundle = require('../src/worker/libp2p-bundle');
 const EngNode = require('../src/worker/EnigmaNode');
-const Pushable = require('pull-pushable');
+
 
 module.exports.buildWorker = function(port,listenerPort,ListenerId){
         let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
@@ -18,14 +18,19 @@ module.exports.buildWorker = function(port,listenerPort,ListenerId){
 
 let NaiveHandlers = {
     'peer:discovery' : (node,peer)=>{node.dial(peer,()=>{});},
-    'peer:connect' : (node,peer)=>{console.log('[Connection established] from : ' + peer.id.toB58String());},
+    'peer:connect' : (node,peer)=>{console.log('[Connection with '+ node.peerInfo.id.toB58String()+'] from : ' + peer.id.toB58String());},
     '/echo' : (protocol,conn) =>{
         pull(conn,conn);
     },
-    '/getpeerbook' : (worker,node,peer, protocol,connection) =>{
-        let peerInfo = worker.getSelfPeerInfo();
-        // worker is EnigmaNode, Node - the libp2p bundle
-        // stream peerInfo > connection
+    '/getpeerbook' : (selfBundleInstance, params) =>{
+        let selfNode = params.worker;
+        let peers = selfNode.getAllPeersInfo();
+        // stream back the connection
+        pull(
+            pull.values([JSON.stringify({"from" : selfNode.getSelfPeerInfo().id.toString(),"peers" : peers})]),
+            params.connection
+        );
+
     }
 };
 
