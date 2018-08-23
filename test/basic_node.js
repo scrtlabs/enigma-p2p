@@ -188,15 +188,7 @@ it('Should discovery+pub+sub event',function(done){
         // request the peer from from the DNS and the result should be 1 result.
         nodeRequester.getPeersPeerBook(nodeDns.node.peerInfo,(err,peerBook)=>{
             setTimeout(()=>{
-                console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
                 console.log(JSON.stringify(peerBook));
-                console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-                let p = peerBook.peers[0].multiaddrs._multiaddrs;
-                p.forEach(pp =>{
-                    let shit = pp.toString();
-                    console.log(JSON.stringify(shit));
-                })
-                console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
                 assert.equal(2,peerBook.peers.length);
                 shutdown_test2(nodeDns, nodeRequester, nodePeer,null,done);
             },100);

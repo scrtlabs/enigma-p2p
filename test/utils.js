@@ -6,7 +6,7 @@ const pull = require('pull-stream');
 const series = require('async/series');
 const NodeBundle = require('../src/worker/libp2p-bundle');
 const EngNode = require('../src/worker/EnigmaNode');
-
+const nodeUtils = require('../src/common/utils');
 
 module.exports.buildWorker = function(port,listenerPort,ListenerId){
         let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
@@ -25,9 +25,10 @@ let NaiveHandlers = {
     '/getpeerbook' : (selfBundleInstance, params) =>{
         let selfNode = params.worker;
         let peers = selfNode.getAllPeersInfo();
+        let parsed = nodeUtils.parsePeerBook(peers);
         // stream back the connection
         pull(
-            pull.values([JSON.stringify({"from" : selfNode.getSelfPeerInfo().id.toString(),"peers" : peers})]),
+            pull.values([JSON.stringify({"from" : selfNode.getSelfPeerInfo().id.toJSON(),"peers" : parsed})]),
             params.connection
         );
 
