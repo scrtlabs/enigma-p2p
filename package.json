@@ -1,8 +1,8 @@
 {
   "name": "enigma-p2p",
   "version": "0.1.0",
-  "description": "Enigma P2P library based on NodeJS and libp2p-js ",
-  "main": "main.js",
+  "description": "Enigma P2P library based on libp2p-js ",
+  "main": "index.js",
   "scripts": {
     "test": "mocha --timeout 50000"
   },
