@@ -218,7 +218,39 @@ class EnigmaNode extends EventEmitter {
             );
         });
     }
+    /**{
+    * - interval - every interval : check if satisfied, if not, look for new peers
+    * - valid peer policy fn  : a fn that takes PeerInfo object and returns Boolean if it's valid
+    * - max size of peers  : always optimize for that number
+    * - heartbeat interval : every hb interval : check if other nodes are alive
+    * }
+     * */
+    runConsistentDiscovery(config){
+        let intervalId = setInterval(()=>{
+            let peersInfo = this.getAllPeersInfo();
+            let jobs = [];
 
+            peersInfo.forEach(peer=>{
+                jobs.push((cb)=>{
+                        this.getPeersPeerBook(peer,cb);
+                });
+            });
+
+            parallel(jobs,(err,otherPeerBooks)=>{
+                console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+                console.log('I got other peer books', otherPeerBooks.length);
+                otherPeerBooks.forEach(pb=>{
+                    console.log('pb '+ pb.from.id +' has ' + pb.peers.length);
+                    console.log('connected to : ');
+                    console.log(pb.peers[0].peerId.id)
+                    console.log(pb.peers[1].peerId.id)
+                });
+                console.log('my ID = ' + this.getSelfPeerInfo().id.toJSON().id.toString())
+                console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+            });
+        }, config.interval);
+        return intervalId;
+    }
 }
 
 

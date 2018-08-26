@@ -28,6 +28,9 @@ class PeerManager extends EventEmitter{
     getPeersConnections(peerInfo,onConnection){
         this.node.dialProtocol(peerInfo,"proto name", onConnection);
     }
+
 }
 
 module.exports = PeerManager;
+
+
