@@ -243,6 +243,12 @@ it('Should do a group dial to all peers',function(done){
                 setTimeout(()=>{
                     nodeRequester.groupDial('/groupdial',(protoco,connection)=>{
                         console.log("dialing to someone now.");
+                        // write message to peer
+                        pull(
+                            pull.values(['Hi I am the dialing!']),
+                            connection,
+                        );
+                        // read response
                         pull(
                             connection,
                             pull.map((data)=>{
@@ -252,11 +258,9 @@ it('Should do a group dial to all peers',function(done){
                             }),
                             pull.drain(console.log)
                         );
-                        pull(
-                            pull.values(['Hi I am the dialing!']),
-                            connection,
-                        );
+
                         setTimeout(()=>{
+                            // validate that 2 msgs were send AND finish.
                             if(!isDone && resNum == 2){
                                 isDone = true;
                                 cb();
@@ -265,17 +269,20 @@ it('Should do a group dial to all peers',function(done){
                     });
                 },SEC);
             },
-            cb=>{
-                
-            }
         ],err=>{
-                shutdown_test2(nodeDns, nodeRequester, nodePeer,null,done);
-
+                assert.equal(null,err,'some error in the waterfall()');
+                assert.equal(2,resNum, 'wrong responses number');
+                setTimeout(()=>{
+                    shutdown_test2(nodeDns, nodeRequester, nodePeer,null,done);
+                },SEC*0.5);
         });
 
     });
 });
 
+it('Should test /mailbox/v1 protocol',function(done){
+    module.exports.startNode = function(type,protocols,handler,callback){}
+});
 /** test consistent discovery
  * */
 // it('Should perform consistent discovery',function(done){

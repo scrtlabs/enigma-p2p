@@ -58,3 +58,34 @@ function miniId(id){
 };
 
 
+module.exports.startNode = function(type,protocols,handler,callback){
+    let nodeDns, nodePeer;
+    let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
+    let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
+    switch(type){
+        case 'dns' :
+            nodeDns = utils.buildWorker(portDialer,portDns,idDns);
+            nodeDns.loadNode(pathDns,()=>{
+                nodeDns.start(()=>{
+                    nodeDns.addHandlers(protocols,handler);
+                    setTimeout(()=>{
+                        callback(nodeDns);
+                    },100);
+                });
+            });
+            break;
+        case 'worker' :
+            nodePeer = utils.buildWorker(portDialer,portDns,idDns);
+            nodePeer.createNode(err=>{
+                assert.equal(null,err,"error creating peer node.");
+                nodePeer.start(()=>{
+                    nodePeer.addHandlers(protocols,handler);
+                    setTimeout(()=>{
+                        callback(nodePeer);
+                    },100);
+                });
+            });
+            break;
+    }
+};
+
