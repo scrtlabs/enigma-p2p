@@ -36,3 +36,4 @@ function _parsePeerInfo(rawPeerInfo){
         multiAddrs : multiAddrs};
     return parsedPeerInfo;
 };
+

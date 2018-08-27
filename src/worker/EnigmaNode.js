@@ -164,8 +164,13 @@ class EnigmaNode extends EventEmitter {
     getAllPeersInfo(){
         let peers = this.getAllPeersIds();
         let result = [];
+        // get peers info by id
         peers.forEach(peer=>{
-            result.push(this.node.peerBook.get(peer));
+            try{
+                result.push(this.node.peerBook.get(peer));
+            }catch(err){
+                console.log('[-] Error finding peer',err);
+            }
         });
         return result;
     }
@@ -176,7 +181,7 @@ class EnigmaNode extends EventEmitter {
      */
     start(callback){
         this.node.start((err)=>{
-            this.peerManager = new PeerManager(this.node);
+            //this.peerManager = new PeerManager(this.node);
             callback();
         });
     }
@@ -218,7 +223,38 @@ class EnigmaNode extends EventEmitter {
             );
         });
     }
-    /**{
+    /**TEMPORARY method
+     * @params {String} protocolName
+     * @params {Function} onEachResponse , (protocol,connection)
+     * dial to all peers on the list and for each connection activate onResponse callback with (protocol,connection) params
+     * */
+    groupDial(protocolName, onEachResponse){
+        let peersInfo = this.getAllPeersInfo();
+        peersInfo.forEach(peer=>{
+            this.dialProtocol(peer,protocolName,onEachResponse);
+        });
+    }
+    /**TEMPORARY method
+     * @params {String} protocolName
+     * @params {Function} onAllConnections , (err,[{protocol,connection}])
+     * dial to all peers on the list and for each connection activate onResponse callback with (protocol,connection) params
+     * */
+    groupDialBatch(protocolName, onAllConnections){
+        let peersInfo = this.getAllPeersInfo();
+        let jobs = [];
+        peersInfo.forEach(peer=>{
+            jobs.push((cb)=>{
+                this.dialProtocol(peer,protocolName,(protocol,conn)=>{
+                    cb({'protocol':protocol,'connection':conn});
+                });
+            })
+        });
+        parallel(jobs,(err,connections)=>{
+            onAllConnections(connections);
+        });
+    }
+    /** TODO::WIP - consider this if it's event needed
+     * {
     * - interval - every interval : check if satisfied, if not, look for new peers
     * - valid peer policy fn  : a fn that takes PeerInfo object and returns Boolean if it's valid
     * - max size of peers  : always optimize for that number

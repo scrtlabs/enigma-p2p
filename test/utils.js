@@ -18,7 +18,7 @@ module.exports.buildWorker = function(port,listenerPort,ListenerId){
 
 let NaiveHandlers = {
     'peer:discovery' : (node,peer)=>{node.dial(peer,()=>{});},
-    'peer:connect' : (node,peer)=>{console.log('[Connection with '+ node.peerInfo.id.toB58String()+'] from : ' + peer.id.toB58String());},
+    'peer:connect' : (node,peer)=>{console.log('[Connection with '+ miniId(node.peerInfo.id.toB58String())+'] from : ' + miniId(peer.id.toB58String()));},
     '/echo' : (protocol,conn) =>{
         pull(conn,conn);
     },
@@ -28,10 +28,19 @@ let NaiveHandlers = {
         let parsed = nodeUtils.parsePeerBook(peers);
         // stream back the connection
         pull(
-            pull.values([JSON.stringify({"from" : selfNode.getSelfPeerInfo().id.toJSON(),"peers" : parsed})]),
+            pull.values([JSON.stringify({"from" : miniId(selfNode.getSelfPeerInfo().id.toJSON()),"peers" : parsed})]),
             params.connection
         );
-
+    },
+    '/groupdial' : (selfNodeNundle, params)=>{
+        let connection = params.connection;
+        let selfWorker = params.worker;
+        // handle the message recieved from the dialing peer.
+        console.log(miniId(selfWorker.getSelfPeerInfo().id.toB58String()) +  ' => got a groupdial from : ');
+        pull(
+            connection,
+            connection
+        );
     }
 };
 
@@ -40,3 +49,12 @@ module.exports.NaiveHandlers = NaiveHandlers;
 module.exports.sleep = function(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 };
+
+function miniId(id){
+    if(typeof id == typeof "string")
+        return id.substring(0,2) + id.substring(id.length-2,id.length);
+    else
+        return id;
+};
+
+
