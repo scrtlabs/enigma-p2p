@@ -280,9 +280,9 @@ it('Should do a group dial to all peers',function(done){
     });
 });
 
-it('Should test /mailbox/v1 protocol',function(done){
-    module.exports.startNode = function(type,protocols,handler,callback){}
-});
+// it('Should test /mailbox/v1 protocol',function(done){
+//     module.exports.startNode = function(type,protocols,handler,callback){}
+// });
 /** test consistent discovery
  * */
 // it('Should perform consistent discovery',function(done){

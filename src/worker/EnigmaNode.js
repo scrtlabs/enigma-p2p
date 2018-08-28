@@ -10,9 +10,12 @@ const Pushable = require('pull-pushable');
 const PeerManager = require('./PeerManager');
 const PROTOCOLS = require('../common/constants').PROTOCOLS;
 const Policy = require('../policy/policy');
+
+
 class EnigmaNode extends EventEmitter {
     constructor(multiAddrs,isDiscover, dnsNodes){
         super();
+        this.started = false;
         this.node = null;
         this.peerManager = null;
         this.multiAddrs = multiAddrs;
@@ -75,6 +78,29 @@ class EnigmaNode extends EventEmitter {
             }
         ], (err) => callback(err));
     }
+    /** Promise
+     * Create a random peerInfo and initialize a node instance
+     * @returns {Promise}
+     */
+    syncCreateNode(){
+        return new Promise((res,rej)=>{
+            this.createNode(err=>{
+                if(err) rej(err);
+                res(this);
+            })
+        });
+    }
+    /** Promise
+     * Load PeerID and create the peerInfo
+     * @returns {Promise}
+     */
+    syncLoadNode(path){
+        return new Promise((res,rej)=>{
+            this.loadNode(path, ()=>{
+                res(this);
+            });
+        });
+    }
     /**
      * Define event handlers for the node with external delegation
      * @param {Function} handler
@@ -82,7 +108,7 @@ class EnigmaNode extends EventEmitter {
      */
     addHandlers(protocols,handler){
         // TODO:: currently ignore for testing.
-        if(!this.policy.validateProtocols(protocols) && false){
+        if((!this.policy.validateProtocols(protocols) || !this.started )&& false){
             throw Error('not all protocols are satisfied, check constants.js for more info.');
         }
         this.node.on('peer:discovery', (peer) => {
@@ -104,6 +130,9 @@ class EnigmaNode extends EventEmitter {
      * @param {Array} subscriptions, [{topic:name,topic_handler:Function,final_handler:Function}]
      */
     subscribe(subscriptions){
+        if(!this.started){
+            throw Error('Please start the Worker before subscribing');
+        }
         subscriptions.forEach(sub=>{
             this.node.pubsub.subscribe(sub.topic,sub.topic_handler,sub.final_handler);
         });
@@ -181,9 +210,33 @@ class EnigmaNode extends EventEmitter {
      */
     start(callback){
         this.node.start((err)=>{
-            //this.peerManager = new PeerManager(this.node);
+            this.started = true;
             callback();
         });
+    }
+    /**
+     * Sync Start the node.
+     * where err is an Error in case starting the node fails.
+     * @returns {Promise}
+     */
+    syncStart(){
+        return new Promise((res,rej)=>{
+            this.start(()=>{
+                res(this);
+            });
+        });
+    }
+    /** Init the node - either load the id from a file or create a new random one
+     * This function should be called after the new EnigmaNode()
+     * @param {String} , path to node id, default null -> create a new random id s
+     * @returns {Promise} promise
+     **/
+    syncInit(path = null){
+        if(path){
+            return this.syncLoadNode(path);
+        }else{
+            return this.syncCreateNode();
+        }
     }
     /**
      * Stop the node.

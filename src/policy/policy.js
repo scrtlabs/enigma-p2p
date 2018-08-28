@@ -33,6 +33,14 @@ class Policy extends EventEmitter{
         });
         return !missingValue;
     }
+    validJsonRpc(msg){
+        let keys = Object.keys(msg);
+        return "jsonrpc" in keys &&
+            "method" in keys &&
+            ("params" in keys  || "result" in keys) &&
+            "id" in keys;
+    }
+
 }
 
 module.exports = Policy;

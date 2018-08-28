@@ -7,15 +7,20 @@ const series = require('async/series');
 const NodeBundle = require('../src/worker/libp2p-bundle');
 const EngNode = require('../src/worker/EnigmaNode');
 const nodeUtils = require('../src/common/utils');
+const Pushable = require('pull-pushable')
+
 
 module.exports.buildWorker = function(port,listenerPort,ListenerId){
-        let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
-        let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/enigma/'+ListenerId];
-        let doDiscovery = true;
-        let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes);
-        return worker;
+    return _buildWorker(port,listenerPort,ListenerId);
 };
-
+function _buildWorker(port,listenerPort,ListenerId){
+    let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
+    let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/enigma/'+ListenerId];
+    let doDiscovery = true;
+    let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes);
+    return worker;
+}
+const pushStream = Pushable()
 let NaiveHandlers = {
     'peer:discovery' : (node,peer)=>{node.dial(peer,()=>{});},
     'peer:connect' : (node,peer)=>{console.log('[Connection with '+ miniId(node.peerInfo.id.toB58String())+'] from : ' + miniId(peer.id.toB58String()));},
@@ -40,6 +45,28 @@ let NaiveHandlers = {
         pull(
             connection,
             connection
+        );
+    },
+    '/mailbox' : (selfNodeBundle, params)=>{
+        // both send and recieve
+        let connection = params.connection;
+        // from self to remote
+        pull(
+            pushStream,
+            connection
+        );
+        process.stdin.setEncoding('utf8');
+        process.openStdin().on('data', (chunk)=>{
+            var data = chunk.toString();
+            pushStream.push(data);
+        });
+        // from remote to self
+        pull(
+          connection,
+          pull.map((data)=>{
+              return data.toString('utf8').replace('\n', '')
+          }),
+            pull.drain(console.log)
         );
     }
 };
@@ -86,6 +113,21 @@ module.exports.startNode = function(type,protocols,handler,callback){
                 });
             });
             break;
+    }
+};
+
+// quickly setup a worker
+module.exports.quickWorker = function(isDns) {
+    let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
+    let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
+    let protocols = ['/groupdial'];
+
+    let multiAddrs = ['/ip4/0.0.0.0/tcp/'+portDns];
+    let dnsNodes = ['/ip4/0.0.0.0/tcp/'+portDns +'/enigma/'+idDns];
+    if(isDns){
+        return _buildWorker(portDialer,portDns,idDns);
+    }else{
+        return _buildWorker(portDns,portDns,idDns);
     }
 };
 
