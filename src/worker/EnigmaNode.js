@@ -254,6 +254,19 @@ class EnigmaNode extends EventEmitter {
         this.node.stop(callback);
     }
     /**
+     * Sync Stop the node.
+     * where err is an Error in case stopping the node fails.
+     * @returns {Promise}
+     */
+    syncStop(){
+        return new Promise((res,rej)=>{
+            this.stop((err)=>{
+                if(err) rej(err);
+                res(this);
+            });
+        });
+    }
+    /**
      * Dial at some protocol and delegate the handling of that connection
      * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
      * @param {String} protocolName , the protocl name /echo/1.0.1

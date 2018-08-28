@@ -5,12 +5,13 @@ const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
 const SEC = 1000;
+const TEST_TREE = require('./test_tree').TEST_TREE;
 /**
  * Test Description:
  * The test spawns 2 nodes Dialer and Listener.
  * The test uses the Discovery algorithm of libp2p to help the Dialer find the Listener
  * The Dialer sends a message the Listener then responds.*/
-
+if(TEST_TREE['basic_node']['all'])
 it('Should echo+discovery 2 nodes',function(done){
     let portListener = '0';
     let portDialer = '10333';
@@ -68,7 +69,7 @@ it('Should echo+discovery 2 nodes',function(done){
  * This test should load 1 Listener(DNS like), 1 subscriber, 1 publisher
  * perform a broadcast (pub/sub)
  * Both the DNS(listener) and the subscriber */
-
+if(TEST_TREE['basic_node']['all'])
 it('Should discovery+pub+sub event',function(done){
     let validatedMsgs = 0, duringShutdown = false;
     let nodeDns, nodeSubscriber, nodePublisher;
@@ -141,6 +142,7 @@ it('Should discovery+pub+sub event',function(done){
  * This test connects 2 peers to a boostrap node and test /getpeerbook
  * naming convention: DNS, peer, requester
  */
+if(TEST_TREE['basic_node']['all'])
 it('Should /getpeerbook from other peer',function(done){
     let nodeDns, nodePeer, nodeRequester;
     let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
@@ -194,6 +196,7 @@ it('Should /getpeerbook from other peer',function(done){
 
 /**Group dial to all connected peers
  * */
+if(TEST_TREE['basic_node']['all'])
 it('Should do a group dial to all peers',function(done){
     let nodeDns, nodePeer, nodeRequester;
     let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';

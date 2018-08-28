@@ -3,7 +3,7 @@ const parallel = require('async/parallel');
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
-const Policy = require('./policy');
+const Policy = require('../../policy/policy');
 const nodeUtils = require('../../common/utils');
 const EventEmitter = require('events').EventEmitter
 const constants = require('../../common/constants');
@@ -15,6 +15,7 @@ class ProtocolHandler extends EventEmitter{
 
     constructor(){
         super();
+
         this.fallback = this.tempFallback;
         this.policy = new Policy();
 
@@ -30,7 +31,7 @@ class ProtocolHandler extends EventEmitter{
         if(!this.policy.isValidProtocol(protocolName)){
             this.fallback(protocolName, nodeNundle,params);
         }
-        this.handlers(protocolName)(nodeNundle,params);
+        this.handlers[protocolName](nodeNundle,params);
     }
 
     tempFallback(protocolName){
@@ -114,3 +115,4 @@ class ProtocolHandler extends EventEmitter{
     }
 }
 
+module.exports = ProtocolHandler;
