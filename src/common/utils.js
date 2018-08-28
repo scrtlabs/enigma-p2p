@@ -1,7 +1,7 @@
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const constants = require('./constants');
-
+var randomize = require('randomatic');
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
@@ -37,3 +37,6 @@ function _parsePeerInfo(rawPeerInfo){
     return parsedPeerInfo;
 };
 
+module.exports.randId = function(){
+    return randomize('Aa0',12);
+}

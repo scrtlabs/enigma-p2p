@@ -10,7 +10,7 @@ const Pushable = require('pull-pushable');
 const PeerManager = require('./PeerManager');
 const PROTOCOLS = require('../common/constants').PROTOCOLS;
 const Policy = require('../policy/policy');
-
+const Messages = require('../policy/messages');
 
 class EnigmaNode extends EventEmitter {
     constructor(multiAddrs,isDiscover, dnsNodes){
@@ -112,7 +112,7 @@ class EnigmaNode extends EventEmitter {
             throw Error('not all protocols are satisfied, check constants.js for more info.');
         }
         this.node.on('peer:discovery', (peer) => {
-            handler('peer:discovery',this.node,{peer:peer});
+            handler('peer:discovery',this.node,{peer:peer,worker:this});
         });
 
         this.node.on('peer:connect', (peer) => {
@@ -178,6 +178,13 @@ class EnigmaNode extends EventEmitter {
     getSelfPeerInfo(){
         //return this.peerManager.getSelfPeerInfo();
         return this.node.peerInfo;
+    }
+    /**
+     * Get id in format of base58 str
+     * @returns {String} peer-id
+     */
+    getSelfIdB58Str(){
+        return this.getSelfPeerInfo().id.toJSON().id;
     }
     /**
      * Get All current peers String ID
@@ -254,6 +261,26 @@ class EnigmaNode extends EventEmitter {
      */
     dialProtocol(peerInfo,protocolName, onConnection){
         this.node.dialProtocol(peerInfo,protocolName,onConnection);
+    }
+    /** Ping 0x1 message in the handshake process.
+     * */
+    handshake(peerInfo,withPeerList){
+        this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
+            let selfId = this.getSelfIdB58Str();
+            let ping = new Messages.PingMsg({"from": selfId, "findpeers":withPeerList});
+            pull(
+                ping,
+                connection
+            );
+            pull(
+                connection,
+                pull.map((data)=>{
+                    return data.toString('utf8').replace('\n', '');
+                }),
+                // TODO:: get the pong message response. if valid keep connection otherwise drop.
+                pull.drain(console.log)
+            );
+        });
     }
     /**
      * Get some peers PeerBook
