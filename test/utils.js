@@ -43,10 +43,10 @@ let NaiveHandlers = {
         // handle the message recieved from the dialing peer.
         console.log(miniId(selfWorker.getSelfPeerInfo().id.toB58String()) +  ' => got a groupdial from : ');
         //TODO:: got a dial from remote peer
-        // pull(
-        //     connection,
-        //     connection
-        // );
+        pull(
+            connection,
+            connection
+        );
     },
     '/mailbox' : (selfNodeBundle, params)=>{
         // both send and recieve

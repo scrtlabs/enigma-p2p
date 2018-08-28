@@ -3,7 +3,7 @@ module.exports.namespace = 'enigma';
 module.exports.PROTOCOLS = {
     'PEERS_PEER_BOOK' : '/getpeerbook',
     'HANDSHAKE' :'/handshake/0.1',
-    'GROUP_DIAL' : '/groupdial/0.1',
+    'GROUP_DIAL' : '/groupdial',
     'PEER_DISCOVERY' : 'peer:discovery',
     'PEER_CONNECT' : 'peer:connect',
 };

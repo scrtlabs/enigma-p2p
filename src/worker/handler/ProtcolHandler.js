@@ -10,6 +10,7 @@ const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.STATUS;
 const Messages = require('../../policy/messages');
+
 class ProtocolHandler extends EventEmitter{
 
     constructor(){
@@ -48,12 +49,14 @@ class ProtocolHandler extends EventEmitter{
         );
     }
     onPeerDiscovery(nodeBunle, params){
+        let worker = params.worker;
+        let withPeerList = true;
+
         nodeBundle.dial(params.peer,()=>{
             // perform handshake
-            let worker = params.worker;
-            let withPeerList = true;
             worker.handshake(params.peer, withPeerList);
         });
+
     }
     /**This event is triggerd uppon a handshake request
      * Meaning, a ping message is attached
@@ -88,6 +91,7 @@ class ProtocolHandler extends EventEmitter{
                     }
                 }else{
                     // TODO:: drop connection and return err
+                    return null;
                 }
             }),
             pull.drain(conn)
@@ -99,14 +103,14 @@ class ProtocolHandler extends EventEmitter{
         // do stuff after connection (?)
     }
     onGroupDial(nodeBundle,params){
-        let connection = params.connection;
-        let selfWorker = params.worker;
-        // handle the message recieved from the dialing peer.
-        console.log(selfWorker.getSelfPeerInfo().id.toB58String() +  ' => got a groupdial');
-        pull(
-            connection,
-            connection
-        );
+        // let connection = params.connection;
+        // let selfWorker = params.worker;
+        // // handle the message recieved from the dialing peer.
+        // console.log(selfWorker.getSelfPeerInfo().id.toB58String() +  ' => got a groupdial');
+        // pull(
+        //     connection,
+        //     connection
+        // );
     }
 }
 

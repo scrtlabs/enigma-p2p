@@ -242,7 +242,7 @@ it('Should do a group dial to all peers',function(done){
             cb =>{
                 setTimeout(()=>{
                     nodeRequester.groupDial('/groupdial',(protoco,connection)=>{
-                        console.log("dialing to someone now.");
+                        console.log("dialing.");
                         // write message to peer
                         pull(
                             pull.values(['Hi I am the dialing!']),
@@ -274,7 +274,7 @@ it('Should do a group dial to all peers',function(done){
                 assert.equal(2,resNum, 'wrong responses number');
                 setTimeout(()=>{
                     shutdown_test2(nodeDns, nodeRequester, nodePeer,null,done);
-                },SEC*0.5);
+                },SEC*2);
         });
 
     });
