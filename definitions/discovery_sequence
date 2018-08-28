@@ -18,10 +18,7 @@ msg #1 Worker to a boostrap node - ping
 // id : The Server MUST reply with the same value in the Response object if included. This member is used to correlate the context between the two objects.
 // An identifier established by the Client that MUST contain a value  
 
-// node_id : a param holding base58 of the nodes public key (PeerInfo)
-
-// signature : hash(nonce || node_id) 
-// the signature is used for distinction between messages and veryfing nodes ID.
+// from : a param holding base58 of the nodes public key (PeerInfo)
 
 // findpeers : boolean indicating if a peer list should be returned 
 
@@ -30,7 +27,7 @@ msg #1 Worker to a boostrap node - ping
 {
 	"jsonrpc" : "2.0",
 	"method" : "ping",
-	"params" : [{"node_id":"","nonce" : "", "signature" : "", "findpeers" : ""}],
+	"params" : [{"from":"", "findpeers" : ""}],
 	"id" : "", 
 }
 
@@ -40,11 +37,6 @@ msg #2 Boostrap node to the Worker
 
 // status : 200 ok, otherwise error 
 
-// nonce : new generated nonce 
-
-// seeds : list of PeerInfo 
-
-// signature : hash(nonce || require_signature || request_nonce)
 
 // seeds : list of A DNS records (potential peers)
 
@@ -56,11 +48,10 @@ msg #2 Boostrap node to the Worker
 	"method" : "pong",
 	"result" :{
 		"response" : {
+		    "from" : ""
 			"to" : "",
 			"status" : "",
-			"nocne" : "",
 			"seeds" : []
-			"signature" : ""
 		}
 	},
 	"id" : "", 
@@ -75,7 +66,9 @@ msg #2 Boostrap node to the Worker
 # heart-beat 
 {
 	"jsonrpc" : "2.0", 
-	"jsonrpc" : "", 
+	"method" : "heartbeat",
+	"params" : "",
+	"id" : ""
 }
 
 * Synchronize sequence *
