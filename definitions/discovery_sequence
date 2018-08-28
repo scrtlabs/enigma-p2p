@@ -48,7 +48,7 @@ msg #2 Boostrap node to the Worker
 	"method" : "pong",
 	"result" :{
 		"response" : {
-		    "from" : ""
+		    "from" : "",
 			"to" : "",
 			"status" : "",
 			"seeds" : []

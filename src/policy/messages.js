@@ -30,8 +30,7 @@ class PingMsg extends Msg{
     sender(){
         return this.params()[0];
     }
-
-
+    
 }
 
 class PongMsg extends Msg{
