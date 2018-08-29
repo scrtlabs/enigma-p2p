@@ -13,11 +13,12 @@ const Pushable = require('pull-pushable')
 module.exports.buildWorker = function(port,listenerPort,ListenerId){
     return _buildWorker(port,listenerPort,ListenerId);
 };
-function _buildWorker(port,listenerPort,ListenerId){
+function _buildWorker(port,listenerPort,ListenerId,nickname){
     let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
-    let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/enigma/'+ListenerId];
+    let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/ipfs/'+ListenerId];
     let doDiscovery = true;
-    let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes);
+    // if(port != '0') doDiscovery = false;
+    let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes,nickname);
     return worker;
 }
 const pushStream = Pushable()
@@ -118,17 +119,12 @@ module.exports.startNode = function(type,protocols,handler,callback){
 };
 
 // quickly setup a worker
-module.exports.quickWorker = function(isDns) {
+module.exports.quickWorker = function(isDns,nickname) {
     let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
-    let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
-    let protocols = ['/groupdial'];
-
-    let multiAddrs = ['/ip4/0.0.0.0/tcp/'+portDns];
-    let dnsNodes = ['/ip4/0.0.0.0/tcp/'+portDns +'/enigma/'+idDns];
     if(isDns){
-        return _buildWorker(portDialer,portDns,idDns);
+        return _buildWorker(portDialer,portDns,idDns,nickname);
     }else{
-        return _buildWorker(portDns,portDns,idDns);
+        return _buildWorker(portDns,portDns,idDns,nickname);
     }
 };
 

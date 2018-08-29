@@ -8,13 +8,16 @@ const series = require('async/series');
 const PeerBundle = require('./libp2p-bundle');
 const Pushable = require('pull-pushable');
 const PeerManager = require('./PeerManager');
-const PROTOCOLS = require('../common/constants').PROTOCOLS;
+const constants = require('../common/constants');
+const PROTOCOLS = constants.PROTOCOLS;
 const Policy = require('../policy/policy');
 const Messages = require('../policy/messages');
+const nodeUtils = require('../common/utils');
 
 class EnigmaNode extends EventEmitter {
-    constructor(multiAddrs,isDiscover, dnsNodes){
+    constructor(multiAddrs,isDiscover, dnsNodes,nickname){
         super();
+        this.nickname = nickname;
         this.started = false;
         this.node = null;
         this.peerManager = null;
@@ -23,7 +26,15 @@ class EnigmaNode extends EventEmitter {
         this.dnsNodes = dnsNodes;
         this.policy = new Policy();
     }
-
+    nickName(){
+        return this.nickname;
+    }
+    isBootstrapNode(id){
+        return this.dnsNodes.some(ma=>{
+            let bid = ma.substr(ma.length - constants.ID_LEN,ma.length);
+            return bid == id;
+        });
+    }
     /**
      * Loads a peer info JSON from a given path and creates a node instance
      * @param {String} path
@@ -107,22 +118,28 @@ class EnigmaNode extends EventEmitter {
      * @param {Array} protocols, different protocols to listen and support
      */
     addHandlers(protocols,handler){
+
+        this.handler = handler;
+
         // TODO:: currently ignore for testing.
         if((!this.policy.validateProtocols(protocols) || !this.started )&& false){
             throw Error('not all protocols are satisfied, check constants.js for more info.');
         }
         this.node.on('peer:discovery', (peer) => {
-            handler('peer:discovery',this.node,{peer:peer,worker:this});
+            console.log("got discovery => " + this.nickName());
+            this.handler.handle('peer:discovery',this.node,{peer:peer,worker:this});
         });
 
         this.node.on('peer:connect', (peer) => {
-            handler('peer:connect', this.node, {peer:peer});
+            this.handler.handle('peer:connect', this.node, {peer:peer,worker:this});
         });
+
         protocols.forEach(protocolName=>{
             this.node.handle(protocolName,(protocol,conn)=>{
-                handler(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
+                this.handler.handle(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
             });
         });
+
     }
 
     /**
@@ -167,7 +184,7 @@ class EnigmaNode extends EventEmitter {
     getListeningAddrs(){
         let str_addrs = [];
         this.node.peerInfo.multiaddrs.forEach(addr=>{
-            str_addrs.push(addr.toString() + '/enigma' + this.node.peerInfo.id.toB58String());
+            str_addrs.push(addr.toString() + '/ipfs' + this.node.peerInfo.id.toB58String());
         });
         return str_addrs;
     }
@@ -229,6 +246,7 @@ class EnigmaNode extends EventEmitter {
     syncStart(){
         return new Promise((res,rej)=>{
             this.start(()=>{
+                console.log(this.nickName() + " has started. id = " + this.getSelfIdB58Str());
                 res(this);
             });
         });
@@ -276,22 +294,29 @@ class EnigmaNode extends EventEmitter {
         this.node.dialProtocol(peerInfo,protocolName,onConnection);
     }
     /** Ping 0x1 message in the handshake process.
+     * @param {PeerInfo} peerInfo , the peer info to handshake with
+     * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
      * */
     handshake(peerInfo,withPeerList){
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
             let selfId = this.getSelfIdB58Str();
             let ping = new Messages.PingMsg({"from": selfId, "findpeers":withPeerList});
             pull(
-                ping,
-                connection
+                pull.values([ping.toNetworkStream()]),
+                connection,
             );
             pull(
                 connection,
                 pull.map((data)=>{
-                    return data.toString('utf8').replace('\n', '');
+                    let pongMsg = nodeUtils.toPongMsg(data);
+                    if(!pongMsg.isValidMsg()){
+                        // TODO:: handle invalid msg(?)
+                        console.log('[-] Err bad pong msg recieved.');
+                    }
+                    return pongMsg.toNetworkStream();
                 }),
                 // TODO:: get the pong message response. if valid keep connection otherwise drop.
-                pull.drain(console.log)
+                pull.drain()
             );
         });
     }

@@ -16,7 +16,7 @@ class PeerBundle extends libp2p {
                 transport: [ TCP,WS],
                 streamMuxer: [ Mplex,SPDY ],
                 connEncryption: [ SECIO ],
-                peerDiscovery: [ Bootstrap, MulticastDNS ],
+                peerDiscovery: [ Bootstrap ],
                 dht: KadDHT
             },
             config: {
@@ -36,8 +36,8 @@ class PeerBundle extends libp2p {
                 }
             }
         }
-
-        super(defaultsDeep(_options, defaults))
+        let finalConfigurations =defaultsDeep(_options, defaults);
+        super(finalConfigurations)
     }
 }
 

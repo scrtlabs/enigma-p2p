@@ -6,6 +6,10 @@ const PROTOCOLS = require('../common/constants').PROTOCOLS;
 class Policy extends EventEmitter{
     constructor(){
         super();
+        this.version = "0.1";
+    }
+    policyVersion(){
+        return this.version;
     }
     /** Validate peer
      * @param peerInfo the peer info
@@ -38,7 +42,11 @@ class Policy extends EventEmitter{
      * @returns {Boolean}, is valid protocol
      * */
     isValidProtocol(protocolName){
-        return protocolName in PROTOCOLS;
+        for (let key in PROTOCOLS){
+            if(PROTOCOLS[key] == protocolName)
+                return true;
+        }
+        return false;
     }
     /** Validate JSON RPC message type
      * @param {Json} msg, some json

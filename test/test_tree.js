@@ -3,6 +3,8 @@ module.exports.TEST_TREE = {
         'all' : false
     },
     'connectivity': {
-        'all' : true
+        'all': true,
+        '#1' : true,
+        '#2' : false
     }
 };

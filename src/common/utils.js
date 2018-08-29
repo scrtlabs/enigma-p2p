@@ -1,3 +1,4 @@
+const Messages = require('../policy/messages');
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const constants = require('./constants');
@@ -37,6 +38,30 @@ function _parsePeerInfo(rawPeerInfo){
     return parsedPeerInfo;
 };
 
+/**Generate a random id out of Aa0 in len 12
+ * for the JSONRPC id parameter.
+ * @returns {String} random
+ * */
 module.exports.randId = function(){
     return randomize('Aa0',12);
 }
+
+/**Map a connection stream to a Ping Message
+ * @param {Buffer} data, stream data
+ * @returns {PingMsg} ping
+ * */
+module.exports.toPingMsg = function(data){
+    let ping = data.toString('utf8').replace('\n', '');;
+    ping = JSON.parse(ping);
+    return new Messages.PingMsg(ping);
+};
+
+/**Map a connection stream to a Pong Message
+ * @param {Buffer} data, stream data
+ * @returns {PongMsg} pong
+ * */
+module.exports.toPongMsg = function(data){
+    let pong = data.toString('utf8').replace('\n', '');
+    return new Messages.PongMsg(pong);
+};
+

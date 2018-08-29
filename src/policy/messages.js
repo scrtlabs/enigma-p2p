@@ -22,6 +22,9 @@ class Msg {
 class PingMsg extends Msg{
     constructor(msgParams){
         let finalMsg;
+        if(typeof msgParams == 'string'){
+            msgParams = JSON.parse(msgParams);
+        }
         if("jsonrpc" in msgParams){
             finalMsg = msgParams;
         }else{
@@ -55,13 +58,18 @@ class PingMsg extends Msg{
         // TODO:: add extra checks.
         return this.isValidJsonRpc();
     }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
 }
 
 class PongMsg extends Msg{
 
     constructor(msgParams){
         let finalMsg;
-
+        if(typeof msgParams == 'string'){
+            msgParams = JSON.parse(msgParams);
+        }
         if("jsonrpc" in msgParams){
             finalMsg = msgParams;
         }else if("id" in msgParams &&
@@ -115,6 +123,21 @@ class PongMsg extends Msg{
     isValidMsg(){
         // TODO:: add extra checks.
         return this.isValidJsonRpc();
+    }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
+}
+
+//TODO:: Create a message structure for peer response to /getpeerbook
+//TODO:: /getpeerbook request is not needed since there's no content there.
+class GetPeerBookResonse extends Msg {
+    constructor(msgParams){
+        let finalMsg;
+        super(finalMsg);
+        if(new.target === PingMsg){
+            Object.freeze(this);
+        }
     }
 }
 

@@ -12,24 +12,27 @@ const STATUS = constants.STATUS;
 const Messages = require('../../policy/messages');
 
 class ProtocolHandler extends EventEmitter{
-
     constructor(){
         super();
-
         this.fallback = this.tempFallback;
         this.policy = new Policy();
-
         this.handlers = {};
         this.handlers[PROTOCOLS['PEER_DISCOVERY']] = this.onPeerDiscovery;
         this.handlers[PROTOCOLS['PEER_CONNECT']] = this.onPeerConnect;
         this.handlers[PROTOCOLS['PEERS_PEER_BOOK']] = this.onGetPeerBook;
         this.handlers[PROTOCOLS['GROUP_DIAL']] = this.onGroupDial;
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
+        this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
     }
-
+    /** Handle is a dispatching function
+     * It is triggerd everytime a EnigmaNode needs to dispatch some dialProtocol
+     * TODO:: maybe add more policy in here.
+     * TODO:: for example, drop messages incase of DOS attempt
+     * */
     handle(protocolName, nodeNundle, params){
-        if(!this.policy.isValidProtocol(protocolName)){
-            this.fallback(protocolName, nodeNundle,params);
+        if(!this.policy.isValidProtocol(protocolName)) {
+            this.fallback(protocolName, nodeNundle, params);
+            return;
         }
         this.handlers[protocolName](nodeNundle,params);
     }
@@ -37,6 +40,12 @@ class ProtocolHandler extends EventEmitter{
     tempFallback(protocolName){
         console.log('[-] Err invalid protocolName: ' + protocolName);
     }
+    /** /getpeekbook protocol
+     * response with workers peer book
+     * @param {PeerBundle} , nodeBundle libp2p bundle
+     * @param {Json} params, {connection, worker,peer,protocol}
+     * TODO:: Replace with a strongly typed "Message" class as a response.
+     * */
     onGetPeerBook(nodeBundle, params){
         let selfNode = params.worker;
         let peers = selfNode.getAllPeersInfo();
@@ -49,21 +58,48 @@ class ProtocolHandler extends EventEmitter{
             params.connection
         );
     }
-    onPeerDiscovery(nodeBunle, params){
-        let worker = params.worker;
-        let withPeerList = true;
-
-        nodeBundle.dial(params.peer,()=>{
-            // perform handshake
-            worker.handshake(params.peer, withPeerList);
+    /** This is NOT a connection establishment.
+     * This simply means that a given boostrap node string has turned into a PeerInfo
+     * and now the worker can dial to the peer.
+     * A connection is not made before actually dialing.
+     * @param {PeerBundle} , nodeBundle libp2p bundle
+     * @param {Json} params, {connection, worker,peer,protocol}
+     * */
+    onPeerDiscovery(nodeBundle, params){
+        if(params.worker.getSelfIdB58Str() == params.peer.id.toB58String()){
+            console.log("same id no discovery! " + params.worker.getSelfIdB58Str());
+            return;
+        }
+        nodeBundle.dial(params.peer,(err,conn)=>{
+            console.log("ondiscovery: " + params.worker.nickName());
+            if(err){
+                console.log("################");
+                console.log(err);
+                console.log("################");
+                //this.fallback(err);
+            }
+            // else if(!params.worker.isBootstrapNode(params.worker.getSelfIdB58Str()) || true){
+            //     console.log(params.worker.getSelfIdB58Str() +  " || -> || " + params.peer.id.toB58String());
+            //     let withPeerList = true;
+            //  //   params.worker.handshake(params.peer, withPeerList);
+            // }
         });
-
     }
-    /**This event is triggerd uppon a handshake request
+    /** Temporary for testing purposes.
+     * Takes a msg and responds with echo.
+     * kind of an "interactive ping"
+     **/
+    onEcho(nodeBundle,params){
+        pull(params.connection, params.connection);
+    }
+    /**This event is triggerd upon a handshake request
      * Meaning, a ping message is attached
      * Should check if findpeers is True and attach peer list
      * Compose a PongMsg and send back
      * TODO:: Should validate if connection is desired or not.
+     * TODO:: Place it somewhere smart.
+     * @param {PeerBundle} , nodeBundle libp2p bundle
+     * @param {Json} params, {connection, worker,peer,protocol}
      * */
     onHandshake(nodeBundle,params){
         let conn = params.connection;
@@ -71,38 +107,53 @@ class ProtocolHandler extends EventEmitter{
         pull(
             conn,
             pull.map((data) => {
-                ping = data.toString('utf8').replace('\n', '');
-                ping = JSON.parse(ping);
-                let pingMsg = new Messages.PingMsg(ping);
+                let pingMsg = nodeUtils.toPingMsg(data);
                 if(pingMsg.isValidMsg()){
                     // create pong msg
-                    if(ping.findPeers()){
+                    let parsed = [];
+                    if(pingMsg.findPeers()){
                         let seeds = worker.getAllPeersInfo();
-                        let parsed = nodeUtils.parsePeerBook(seeds);
+                        parsed = nodeUtils.parsePeerBook(seeds);
                     }
                     let pong = new Messages.PongMsg({
-                        "id" : ping.id(),
+                        "id" : pingMsg.id(),
                         "from":worker.getSelfIdB58Str(),
-                        "to":ping.from(),
-                        "status":STATUS['ok'],
+                        "to":pingMsg.from(),
+                        "status":STATUS['OK'],
                         "seeds":parsed});
                     // validate correctness
                     if(pong.isValidMsg()){
-                        return pong.toJSON();
+                        return pong.toNetworkStream();
                     }
                 }else{
-                    // TODO:: drop connection and return err
+                    // TODO:: return err and drop connection
                     return null;
                 }
             }),
-            pull.drain(conn)
+            conn,
+            pull.drain()
         );
     }
+    /** Triggers every time a new connection is established -
+     * When a remote peer dialed. (no protocol specification)
+     * @param {PeerBundle} nodeBundle , the libp2p bundle
+     * @param {Json} params , {worker,connection,peer,protocol}
+     * */
     onPeerConnect(nodeBundle,params){
-        console.log('[Connection with '+ node.peerInfo.id.toB58String()+
-            '] from : ' + peer.id.toB58String());
+        console.log('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
+            '] new peer : ' + params.peer.id.toB58String());
         // do stuff after connection (?)
+        // perform handshake
+        // if(params.worker.getSelfIdB58Str() != 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm'){
+        //     let withPeerList = true;
+        //     params.worker.handshake(params.peer, withPeerList);
+        // }
     }
+    /**Group dial is when the worker needs to send a message to all og his peers
+     * @param {PeerBundle} nodeBundle, libp2p bundle
+     * @param {Json} params , {worker,connection,peer,protocol}
+     * TODO:: improve : add the option to pass an array of peers to dial
+     * */
     onGroupDial(nodeBundle,params){
         // let connection = params.connection;
         // let selfWorker = params.worker;
