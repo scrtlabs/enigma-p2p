@@ -54,8 +54,7 @@ class Policy extends EventEmitter{
      * */
     validJsonRpc(msg){
         return  'jsonrpc' in msg &&
-                'method' in msg &&
-                ('params' in msg  || 'result' in msg) &&
+                (('method' in msg && 'params') || 'result' in msg ) &&
                 'id' in msg;
     }
 

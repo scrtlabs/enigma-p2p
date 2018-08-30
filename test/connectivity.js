@@ -4,10 +4,12 @@ const utils = require('./utils');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
-const TEST_TREE = require('./test_tree').TEST_TREE;
+const Policy = require('../src/policy/policy');
 const ProtocolHandler = require('../src/worker/handlers/ProtcolHandler');
+const ConnectionManager = require('../src/worker/handlers/ConnectionManager');
 const consts = require('../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
+const TEST_TREE = require('./test_tree').TEST_TREE;
 /**
  * Test Description:
  * The test spawns 2 nodes Dns and Worker.
@@ -164,5 +166,45 @@ it('#3 should test /getpeekbook', async function(){
         await p2.syncStop();
         await boostrap.syncStop();
         resolve();
+    });
+});
+
+
+it('#4 should test /heartbeat', async function(){
+
+    if(!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#4']){
+        this.skip();
+    }
+
+    return new Promise(async (res,rej)=>{
+        // configuration params
+        let isDns = true;
+        let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
+        let protocols = [PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'], PROTOCOLS['PEERS_PEER_BOOK'],PROTOCOLS['HEARTBEAT']];
+
+        let boostrap= utils.quickWorker(isDns, "DNS");
+        let peer = utils.quickWorker(!isDns, "peer");
+        // connection manager
+        let conManagerPeer = new ConnectionManager(peer,new Policy());
+        let conManagerBoot = new ConnectionManager(boostrap,new Policy());
+        // handlers
+        await boostrap.syncInit(pathDns);
+        await boostrap.syncStart();
+        boostrap.addHandlers(protocols,new ProtocolHandler());
+        await utils.sleep(1000);
+        // init workers
+        await peer.syncInit();
+        await peer.syncStart();
+        peer.addHandlers(protocols,new ProtocolHandler());
+        await utils.sleep(1000 * 4);
+        // send heart beat
+        let hbRes = await conManagerPeer.sendHeartBeat(boostrap.getSelfPeerInfo());
+        // compare
+        assert.equal(true,hbRes.isValidMsg(), "err hb response not valid");
+        assert.equal(peer.getSelfIdB58Str(), hbRes.to());
+        // stop the nodes
+        await peer.syncStop();
+        await boostrap.syncStop();
+        res();
     });
 });

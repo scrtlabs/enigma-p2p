@@ -143,7 +143,7 @@ class HeartBeatReqMsg extends Msg {
 
         } else if ("from" in msgParams && "to" in msgParams) {
 
-            finamMsg = {
+            finalMsg = {
                 "jsonrpc": "2.0",
                 "method": "heartbeat",
                 "params": [{
@@ -181,21 +181,19 @@ class HeartBeatResMsg extends Msg {
         if (utils.isString(msgParams)) {
             msgParams = JSON.parse(msgParams);
         }
-
-        if ("jsonrpc" in msgParams) {
+        if ("jsonrpc" in msgParams && "result" in msgParams) {
 
             finalMsg = msgParams;
 
         } else if ("from" in msgParams && "to" in msgParams && "id" in msgParams) {
 
-            finamMsg = {
+            finalMsg = {
                 "jsonrpc": "2.0",
-                "method": "heartbeat",
-                "result": [{
+                "result": {
                     "from": msgParams.from,
                     "to": msgParams.to,
                     "type" : "heartbeat"
-                }],
+                },
                 "id": msgParams.id
             };
         }
@@ -220,6 +218,18 @@ class HeartBeatResMsg extends Msg {
     isValidMsg(){
         // TODO:: add extra checks.
         return this.isValidJsonRpc();
+    }
+    isCompatibleWithMsg(heartBeatRequest){
+        // TODO:: add extra checks.
+        let validJsonRpc =  this.isValidJsonRpc();
+        let shouldId = heartBeatRequest.id();
+        let currentId = this.id();
+        let shouldTo = heartBeatRequest.from();
+        let currentTo = this.to();
+        if(shouldId === currentId && shouldTo === currentTo){
+            return validJsonRpc;
+        }
+        return false;
     }
 }
 //TODO:: Create a message structure for peer response to /getpeerbook

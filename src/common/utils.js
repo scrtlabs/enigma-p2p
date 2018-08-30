@@ -64,10 +64,23 @@ module.exports.toPongMsg = function(data){
     let pong = data.toString('utf8').replace('\n', '');
     return new Messages.PongMsg(pong);
 };
+/**Map a connection stream to a HeartBeat response Message
+ * @param {Buffer} data, stream data
+ * @returns {HeartBeatResMsg} hb response
+ * */
 module.exports.toHeartBeatResMsg = function(data){
     let hb = data.toString('utf8').replace('\n', '');
     return new Messages.HeartBeatResMsg(hb);
-}
+};
+/**Map a connection stream to a HeartBeat request Message
+ * @param {Buffer} data, stream data
+ * @returns {HeartBeatReqMsg} hb request
+ * */
+module.exports.toHeartBeatReqMsg = function(data){
+    let hb = data.toString('utf8').replace('\n', '');
+    return new Messages.HeartBeatReqMsg(hb);
+};
+
 
 module.exports.isString = function(x) {
     return Object.prototype.toString.call(x) === "[object String]"

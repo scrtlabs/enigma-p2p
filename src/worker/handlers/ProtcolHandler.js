@@ -23,6 +23,7 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['PEERS_PEER_BOOK']] = this.onGetPeerBook;
         this.handlers[PROTOCOLS['GROUP_DIAL']] = this.onGroupDial;
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
+        this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
     }
     /** Handle is a dispatching function
@@ -68,7 +69,6 @@ class ProtocolHandler extends EventEmitter{
      * */
     onPeerDiscovery(nodeBundle, params){
         if(params.worker.getSelfIdB58Str() == params.peer.id.toB58String()){
-            console.log("same id no discovery! " + params.worker.nickName());
             return;
         }
         nodeBundle.dial(params.peer,(err,conn)=>{
@@ -134,6 +134,35 @@ class ProtocolHandler extends EventEmitter{
             }),
             conn,
             pull.drain()
+        );
+    }
+    /** Response to a heart-beat request.
+     *@param {PeerBundle} nodeBundle , the libp2p bundle
+     *@param {Json} params , {worker,connection,peer,protocol}
+     **/
+    onHeartBeat(noBundle,params){
+        pull(
+            params.connection,
+            pull.map(data=>{
+                let hbReq = nodeUtils.toHeartBeatReqMsg(data);
+                if(!hbReq.isValidMsg()){
+                    //TODO:: Add log
+                    //TODO:: Handle error - possibly response with error to peer
+                    this.fallback("/heartbeat");
+                }else{
+                    let hbRes = new Messages.HeartBeatResMsg({
+                        "from" : params.worker.getSelfIdB58Str(),
+                        "to" : hbReq.from(),
+                        "id" : hbReq.id(),
+                    });
+                    if(!hbRes.isValidMsg()) {
+                        // TODO:: Handle error
+                        console.log("[-] Err generating a hb res");
+                    }
+                    return hbRes.toNetworkStream();
+                }
+            }),
+            params.connection
         );
     }
     /** Triggers every time a new connection is established -
