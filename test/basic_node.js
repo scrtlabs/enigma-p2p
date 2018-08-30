@@ -358,25 +358,28 @@ it('Should do a group dial to all peers',function(done){
 
 
 /* helper functions */
+class NaiveHandle {
 
-function NaiveHandle(type,peer,params) {
-    switch (type) {
-        case "peer:discovery":
-            utils.NaiveHandlers['peer:discovery'](peer, params.peer);
-            break;
-        case "peer:connect":
-            utils.NaiveHandlers['peer:connect'](peer, params.peer);
-            break;
-        case "/echo":
-            utils.NaiveHandlers['/echo'](params.protocol,params.connection);
-            break;
-        case "/getpeerbook":
-            utils.NaiveHandlers['/getpeerbook'](peer,params);
-            break;
-        case '/groupdial':
-            utils.NaiveHandlers['/groupdial'](peer,params);
-            break;
+    static handle(type, peer, params) {
+        switch (type) {
+            case "peer:discovery":
+                utils.NaiveHandlers['peer:discovery'](peer, params.peer);
+                break;
+            case "peer:connect":
+                utils.NaiveHandlers['peer:connect'](peer, params.peer);
+                break;
+            case "/echo":
+                utils.NaiveHandlers['/echo'](params.protocol, params.connection);
+                break;
+            case "/getpeerbook":
+                utils.NaiveHandlers['/getpeerbook'](peer, params);
+                break;
+            case '/groupdial':
+                utils.NaiveHandlers['/groupdial'](peer, params);
+                break;
+        }
     }
+
 }
 /* test#2 specific functions */
 
