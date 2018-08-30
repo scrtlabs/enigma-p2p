@@ -72,13 +72,12 @@ class ProtocolHandler extends EventEmitter{
             return;
         }
         nodeBundle.dial(params.peer,(err,conn)=>{
-            console.log("ondiscovery: " + params.worker.nickName());
             if(err){
-                console.log("################");
+                // TODO:: add logger
                 console.log(err);
-                console.log("################");
                 this.fallback(err);
             }else{
+                // TODO:: add logger
                 console.log("VVVV discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
             }
             // else if(!params.worker.isBootstrapNode(params.worker.getSelfIdB58Str()) || true){

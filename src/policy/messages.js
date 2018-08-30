@@ -22,7 +22,7 @@ class Msg {
 class PingMsg extends Msg{
     constructor(msgParams){
         let finalMsg;
-        if(typeof msgParams == 'string'){
+        if(utils.isString(msgParams)){
             msgParams = JSON.parse(msgParams);
         }
         if("jsonrpc" in msgParams){
@@ -67,7 +67,7 @@ class PongMsg extends Msg{
 
     constructor(msgParams){
         let finalMsg;
-        if(typeof msgParams == 'string'){
+        if(utils.isString(msgParams)){
             msgParams = JSON.parse(msgParams);
         }
         if("jsonrpc" in msgParams){
@@ -133,7 +133,7 @@ class HeartBeatReqMsg extends Msg {
     constructor(msgParams) {
         let finalMsg;
 
-        if (typeof msgParams == 'string') {
+        if (utils.isString(msgParams)) {
             msgParams = JSON.parse(msgParams);
         }
 
@@ -174,14 +174,58 @@ class HeartBeatReqMsg extends Msg {
     }
 }
 
-class HeartBeatReqMsg extends Msg {
-    constructor(msgParams){
+class HeartBeatResMsg extends Msg {
+    constructor(msgParams) {
+        let finalMsg;
 
+        if (utils.isString(msgParams)) {
+            msgParams = JSON.parse(msgParams);
+        }
+
+        if ("jsonrpc" in msgParams) {
+
+            finalMsg = msgParams;
+
+        } else if ("from" in msgParams && "to" in msgParams && "id" in msgParams) {
+
+            finamMsg = {
+                "jsonrpc": "2.0",
+                "method": "heartbeat",
+                "result": [{
+                    "from": msgParams.from,
+                    "to": msgParams.to,
+                    "type" : "heartbeat"
+                }],
+                "id": msgParams.id
+            };
+        }
+
+        super(finalMsg);
+        if(new.target === HeartBeatResMsg){
+            Object.freeze(this);
+        }
+    }
+    from(){
+        return this.rawMsg['result']['from'];
+    }
+    to(){
+        return this.rawMsg['result']['to'];
+    }
+    type(){
+        return this.rawMsg['result']['type'];
+    }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
+    isValidMsg(){
+        // TODO:: add extra checks.
+        return this.isValidJsonRpc();
     }
 }
 //TODO:: Create a message structure for peer response to /getpeerbook
 //TODO:: /getpeerbook request is not needed since there's no content there.
 class GetPeerBookResonseMsg extends Msg {
+
     constructor(msgParams){
         let finalMsg;
         super(finalMsg);
@@ -193,4 +237,6 @@ class GetPeerBookResonseMsg extends Msg {
 
 module.exports.PingMsg = PingMsg;
 module.exports.PongMsg = PongMsg;
+module.exports.HeartBeatReqMsg = HeartBeatReqMsg;
+module.exports.HeartBeatResMsg = HeartBeatResMsg;
 

@@ -64,4 +64,11 @@ module.exports.toPongMsg = function(data){
     let pong = data.toString('utf8').replace('\n', '');
     return new Messages.PongMsg(pong);
 };
+module.exports.toHeartBeatResMsg = function(data){
+    let hb = data.toString('utf8').replace('\n', '');
+    return new Messages.HeartBeatResMsg(hb);
+}
 
+module.exports.isString = function(x) {
+    return Object.prototype.toString.call(x) === "[object String]"
+};
