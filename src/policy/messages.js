@@ -129,29 +129,63 @@ class PongMsg extends Msg{
     }
 }
 
-class HearBeatReq extends Msg {
-    constructor(msgParams){
+class HeartBeatReqMsg extends Msg {
+    constructor(msgParams) {
         let finalMsg;
-        if(typeof msgParams == 'string'){
+
+        if (typeof msgParams == 'string') {
             msgParams = JSON.parse(msgParams);
         }
-        if("jsonrpc" in msgParams){
-            finalMsg = msgParams;
-        }else if("id" in msgParams &&
-        super(finalMsg);
-        if(new.target === PingMsg){
-            Object.freeze(this);
 
+        if ("jsonrpc" in msgParams) {
+
+            finalMsg = msgParams;
+
+        } else if ("from" in msgParams && "to" in msgParams) {
+
+            finamMsg = {
+                "jsonrpc": "2.0",
+                "method": "heartbeat",
+                "params": [{
+                    "from": msgParams.from,
+                    "to": msgParams.to,
+                }],
+                "id": utils.randId()
+            };
         }
+
+        super(finalMsg);
+        if(new.target === HeartBeatReqMsg){
+            Object.freeze(this);
+        }
+    }
+    from(){
+        return this.rawMsg["params"][0]["from"];
+    }
+    to(){
+        return this.rawMsg["params"][0]["to"];
+    }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
+    isValidMsg(){
+        // TODO:: add extra checks.
+        return this.isValidJsonRpc();
+    }
 }
 
+class HeartBeatReqMsg extends Msg {
+    constructor(msgParams){
+
+    }
+}
 //TODO:: Create a message structure for peer response to /getpeerbook
 //TODO:: /getpeerbook request is not needed since there's no content there.
-class GetPeerBookResonse extends Msg {
+class GetPeerBookResonseMsg extends Msg {
     constructor(msgParams){
         let finalMsg;
         super(finalMsg);
-        if(new.target === PingMsg){
+        if(new.target === GetPeerBookResonseMsg){
             Object.freeze(this);
         }
     }

@@ -63,11 +63,22 @@ msg #2 Boostrap node to the Worker
 // At that point the Worker starts to look for peers activley 
 // repeating the same concept of ping-pong messages with heart-beats
 
-# heart-beat 
+# heart-beat request
 {
 	"jsonrpc" : "2.0", 
 	"method" : "heartbeat",
 	"params" : [{"from","to"}],
+	"id" : ""
+}
+
+# heart-beat response
+{
+	"jsonrpc" : "2.0",
+	"result" : {
+	    "from" : ""
+	    "to" : ""
+	    "type" : "heartbeat"
+	},
 	"id" : ""
 }
 
