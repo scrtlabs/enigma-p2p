@@ -63,9 +63,11 @@ class ConnectionManager{
                             }else{
                                 //TODO:: The heartbeat message failed (weird) why? wrong id?
                                 //TODO:: anyway, drop the message and do something in response.
+                                //TODO:: maybe drop the peer (?)
                                 //TODO:: add Logger
                             }
                         }
+                        resolve();
                     })
                 );
             });
