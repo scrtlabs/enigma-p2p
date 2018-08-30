@@ -31,6 +31,8 @@ class ConnectionManager{
 
             if(nodeUtils.isString(peer)){
                 // TODO:: create PeerInfo from B58 id
+                throw {name : "NotImplementedError", message : "too lazy to implement"};
+
             }else{
                 // PeerInfo
                 peerInfo = peer;
