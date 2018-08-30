@@ -129,6 +129,22 @@ class PongMsg extends Msg{
     }
 }
 
+class HearBeatReq extends Msg {
+    constructor(msgParams){
+        let finalMsg;
+        if(typeof msgParams == 'string'){
+            msgParams = JSON.parse(msgParams);
+        }
+        if("jsonrpc" in msgParams){
+            finalMsg = msgParams;
+        }else if("id" in msgParams &&
+        super(finalMsg);
+        if(new.target === PingMsg){
+            Object.freeze(this);
+
+        }
+}
+
 //TODO:: Create a message structure for peer response to /getpeerbook
 //TODO:: /getpeerbook request is not needed since there's no content there.
 class GetPeerBookResonse extends Msg {

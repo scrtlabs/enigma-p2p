@@ -67,7 +67,7 @@ msg #2 Boostrap node to the Worker
 {
 	"jsonrpc" : "2.0", 
 	"method" : "heartbeat",
-	"params" : "",
+	"params" : [{"from","to"}],
 	"id" : ""
 }
 
