@@ -4,7 +4,7 @@ const utils = require('../../utils');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
-const ProtocolHandler = require('../../../src/worker/handler/ProtcolHandler');
+const ProtocolHandler = require('../../../src/worker/handlers/ProtcolHandler');
 
 async function run(){
     // configuration params

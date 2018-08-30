@@ -80,7 +80,7 @@ it('Should discovery+pub+sub event',function(done){
     let nodeDns, nodeSubscriber, nodePublisher;
     let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
     let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
-    // topic handler is the callback that will be triggerd uppon recieving an event
+    // topic handlers is the callback that will be triggerd uppon recieving an event
     // final_handler is the callback that will be triggerd ONCE subscribed.
     let subscriptions = [{'topic':'broadcast',
         'topic_handler':(msg)=>{
@@ -295,7 +295,7 @@ it('Should do a group dial to all peers',function(done){
 });
 
 // it('Should test /mailbox/v1 protocol',function(done){
-//     module.exports.startNode = function(type,protocols,handler,callback){}
+//     module.exports.startNode = function(type,protocols,handlers,callback){}
 // });
 /** test consistent discovery
  * */

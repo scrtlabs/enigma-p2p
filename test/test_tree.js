@@ -1,10 +1,11 @@
 module.exports.TEST_TREE = {
     'basic_node' : {
-        'all' : true
+        'all' : false
     },
     'connectivity': {
         'all': true,
-        '#1' : true,
-        '#2' : false
+        '#1' : false,
+        '#2' : false,
+        '#3' : true
     }
 };

@@ -1,0 +1,9 @@
+class ConnectionManager{
+
+    constructor(connectionPolicy){
+
+    }
+
+
+
+}

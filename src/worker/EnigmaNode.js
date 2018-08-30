@@ -122,18 +122,19 @@ class EnigmaNode extends EventEmitter {
         this.handler = handler;
 
         // TODO:: currently ignore for testing.
-        if((!this.policy.validateProtocols(protocols) || !this.started )&& false){
+        if((!this.policy.validateProtocols(protocols) || !this.started ) && false){
             throw Error('not all protocols are satisfied, check constants.js for more info.');
         }
-        this.node.on('peer:discovery', (peer) => {
-            console.log("got discovery => " + this.nickName());
-            this.handler.handle('peer:discovery',this.node,{peer:peer,worker:this});
+        this.node.on(PROTOCOLS['PEER_DISCOVERY'], (peer) => {
+            this.handler.handle(PROTOCOLS['PEER_DISCOVERY'],this.node,{peer:peer,worker:this});
         });
 
-        this.node.on('peer:connect', (peer) => {
-            this.handler.handle('peer:connect', this.node, {peer:peer,worker:this});
+        this.node.on(PROTOCOLS['PEER_CONNECT'], (peer) => {
+            this.handler.handle(PROTOCOLS['PEER_CONNECT'], this.node, {peer:peer,worker:this});
         });
-
+        this.node.on(PROTOCOLS['PEER_DISCONNECT'], (peer) => {
+            this.handler.handle(PROTOCOLS['PEER_DISCONNECT'], this.node, {peer:peer,worker:this});
+        });
         protocols.forEach(protocolName=>{
             this.node.handle(protocolName,(protocol,conn)=>{
                 this.handler.handle(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
@@ -144,7 +145,7 @@ class EnigmaNode extends EventEmitter {
 
     /**
      * Subscribe to events with handlers and final handlers.
-     * @param {Array} subscriptions, [{topic:name,topic_handler:Function,final_handler:Function}]
+     * @param {Array} subscriptions, [{topic:name,topic_handler:Function(msg)=>{},final_handler:Function()=>{}}]
      */
     subscribe(subscriptions){
         if(!this.started){
@@ -341,6 +342,21 @@ class EnigmaNode extends EventEmitter {
             );
         });
     }
+    /**
+     * Sync Get some peers PeerBook
+     * @param {PeerInfo} peerInfo, the target peer
+     * @param {Function} onResult signature (err,PeerBook) =>{}
+     * @returns {Promise}, peersbook || err
+     */
+    syncGetPeersPeerBook(peerInfo){
+        return new Promise((res,rej)=>{
+            this.getPeersPeerBook(peerInfo,(err,peerBook)=>{
+                if(err) rej(err);
+                res(peerBook);
+            });
+        });
+    }
+
     /**TEMPORARY method
      * @params {String} protocolName
      * @params {Function} onEachResponse , (protocol,connection)

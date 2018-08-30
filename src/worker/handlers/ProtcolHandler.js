@@ -19,6 +19,7 @@ class ProtocolHandler extends EventEmitter{
         this.handlers = {};
         this.handlers[PROTOCOLS['PEER_DISCOVERY']] = this.onPeerDiscovery;
         this.handlers[PROTOCOLS['PEER_CONNECT']] = this.onPeerConnect;
+        this.handlers[PROTOCOLS['PEER_DISCONNECT']] = this.onPeerDisconnect;
         this.handlers[PROTOCOLS['PEERS_PEER_BOOK']] = this.onGetPeerBook;
         this.handlers[PROTOCOLS['GROUP_DIAL']] = this.onGroupDial;
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
@@ -67,7 +68,7 @@ class ProtocolHandler extends EventEmitter{
      * */
     onPeerDiscovery(nodeBundle, params){
         if(params.worker.getSelfIdB58Str() == params.peer.id.toB58String()){
-            console.log("same id no discovery! " + params.worker.getSelfIdB58Str());
+            console.log("same id no discovery! " + params.worker.nickName());
             return;
         }
         nodeBundle.dial(params.peer,(err,conn)=>{
@@ -76,7 +77,9 @@ class ProtocolHandler extends EventEmitter{
                 console.log("################");
                 console.log(err);
                 console.log("################");
-                //this.fallback(err);
+                this.fallback(err);
+            }else{
+                console.log("VVVV discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
             }
             // else if(!params.worker.isBootstrapNode(params.worker.getSelfIdB58Str()) || true){
             //     console.log(params.worker.getSelfIdB58Str() +  " || -> || " + params.peer.id.toB58String());
@@ -163,6 +166,14 @@ class ProtocolHandler extends EventEmitter{
         //     connection,
         //     connection
         // );
+    }
+    /**On peer disconnect
+     * @param {PeerBundle} nodeBundle, libp2p bundle
+     * @param {Json} params , {worker,connection,peer,protocol}
+     * TODO:: Every disconnect check if should re-build table and add more peers.
+     * */
+    onPeerDisconnect(nodeBundle,params){
+        console.log("peer disconnected from " + params.peer.id.toB58String());
     }
 }
 

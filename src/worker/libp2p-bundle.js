@@ -15,8 +15,8 @@ class PeerBundle extends libp2p {
             modules: {
                 transport: [ TCP,WS],
                 streamMuxer: [ Mplex,SPDY ],
-                connEncryption: [ SECIO ],
-                peerDiscovery: [ Bootstrap, MulticastDNS ],
+                // connEncryption: [ SECIO ],
+                peerDiscovery: [ Bootstrap ],
                 dht: KadDHT
             },
             config: {

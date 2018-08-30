@@ -5,8 +5,9 @@ const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
 const TEST_TREE = require('./test_tree').TEST_TREE;
-const ProtocolHandler = require('../src/worker/handler/ProtcolHandler');
-const SEC = 1000;
+const ProtocolHandler = require('../src/worker/handlers/ProtcolHandler');
+const consts = require('../src/common/constants');
+const PROTOCOLS = consts.PROTOCOLS;
 /**
  * Test Description:
  * The test spawns 2 nodes Dns and Worker.
@@ -26,7 +27,7 @@ it('#1 Should connect to a boostrap node and perform echo', async function(){
         let worker = utils.quickWorker(!isDns);
         let dns = utils.quickWorker(isDns);
         // handlers
-        let protocols = ['/echo','/handshake/0.1'];
+        let protocols = [PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE']];
         let handlerDns = new ProtocolHandler();
         let handlerWorker = new ProtocolHandler();
         // init dns
@@ -42,7 +43,7 @@ it('#1 Should connect to a boostrap node and perform echo', async function(){
             //verify that the worker is connected
             assert.equal(1, worker.getAllPeersInfo().length,"error in peers len ");
             // send ehco
-            worker.dialProtocol(dns.getSelfPeerInfo(),'/echo',(p,con)=>{
+            worker.dialProtocol(dns.getSelfPeerInfo(),PROTOCOLS['ECHO'],(p,con)=>{
                 // send msg
                 pull(
                     pull.values([Buffer.from('42')]),
@@ -59,41 +60,109 @@ it('#1 Should connect to a boostrap node and perform echo', async function(){
                     })
                 );
             });
-        },1000);
+        },1000*3);
     });
 });
 
-
-
-it('#2 Should test pubsub = broadcast', async function(){
+it('#2 should test Boostrap and 5 peers initial discovery', async function(){
 
     if(!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#2']){
         this.skip();
     }
 
-    return new Promise(async resolve=>{
+    return new Promise(async (resolve)=>{
+            // configuration params
+            let isDns = true;
+            let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
+            let protocols = [PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE']];
+
+            let boostrap= utils.quickWorker(isDns, "DNS");
+            let p1 = utils.quickWorker(!isDns, "p1");
+            let p2 = utils.quickWorker(!isDns, "p2");
+            let p3 = utils.quickWorker(!isDns, "p3");
+            let p4 = utils.quickWorker(!isDns, "p4");
+            let p5 = utils.quickWorker(!isDns, "p5");
+            // handlers
+            await boostrap.syncInit(pathDns);
+            await boostrap.syncStart();
+            boostrap.addHandlers(protocols,new ProtocolHandler());
+            await utils.sleep(1000);
+            // init workers
+            await p1.syncInit();
+            await p2.syncInit();
+            await p3.syncInit();
+            await p4.syncInit();
+            await p5.syncInit();
+            // start workers
+            await p1.syncStart();
+            await p2.syncStart();
+            await p3.syncStart();
+            await p4.syncStart();
+            await p5.syncStart();
+            // add handlers
+            p1.addHandlers(protocols,new ProtocolHandler());
+            p2.addHandlers(protocols,new ProtocolHandler());
+            p3.addHandlers(protocols,new ProtocolHandler());
+            p4.addHandlers(protocols,new ProtocolHandler());
+            p5.addHandlers(protocols,new ProtocolHandler());
+            await utils.sleep(1000 * 6);
+            // verify connections
+            assert.equal(1,p1.getAllPeersInfo().length,"p1 wrong number of peers.");
+            assert.equal(1,p2.getAllPeersInfo().length,"p2 wrong number of peers.");
+            assert.equal(1,p3.getAllPeersInfo().length,"p3 wrong number of peers.");
+            assert.equal(1,p4.getAllPeersInfo().length,"p4 wrong number of peers.");
+            assert.equal(1,p5.getAllPeersInfo().length,"p5 wrong number of peers.");
+            assert.equal(5,boostrap.getAllPeersInfo().length,"boostrap wrong number of peers.");
+            // stop the nodes
+            await p1.syncStop();
+            await p2.syncStop();
+            await p3.syncStop();
+            await p4.syncStop();
+            await p5.syncStop();
+            await boostrap.syncStop();
+            resolve();
+    });
+});
+
+
+it('#3 should test /getpeekbook', async function(){
+
+    if(!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#3']){
+        this.skip();
+    }
+
+    return new Promise(async (resolve)=>{
+        // configuration params
         let isDns = true;
         let pathDns = '/home/wildermind/WebstormProjects/enigma-p2p/test/id-l';
-        let protocols = ['/echo','/handshake/0.1'];
+        let protocols = [PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'], PROTOCOLS['PEERS_PEER_BOOK']];
 
-        // initiate boostrap node
+        let boostrap= utils.quickWorker(isDns, "DNS");
+        let p1 = utils.quickWorker(!isDns, "p1");
+        let p2 = utils.quickWorker(!isDns, "p2");
 
-        let dns = utils.quickWorker(isDns);
-        let handlerDns = new ProtocolHandler();
-        await dns.syncInit(pathDns);
-        await dns.syncStart();
-        dns.addHandlers(protocols,handlerDns);
-
-        // initiate worker node
-
-        let worker = utils.quickWorker(!isDns);
-        let handlerWorker = new ProtocolHandler();
-        await worker.syncInit();
-        await worker.syncStart();
-        worker.addHandlers(protocols,handlerWorker);
-
-        // perform handshake
-
+        // handlers
+        await boostrap.syncInit(pathDns);
+        await boostrap.syncStart();
+        boostrap.addHandlers(protocols,new ProtocolHandler());
+        await utils.sleep(1000);
+        // init workers
+        await p1.syncInit();
+        await p2.syncInit();
+        // start workers
+        await p1.syncStart();
+        await p2.syncStart();
+        // add handlers
+        p1.addHandlers(protocols,new ProtocolHandler());
+        p2.addHandlers(protocols,new ProtocolHandler());
+        await utils.sleep(1000 * 4);
+        // verify 3 peers on boostrap node
+        let boostrapPeerBook = await p1.syncGetPeersPeerBook(boostrap.getSelfPeerInfo());
+        assert.equal(2,boostrapPeerBook.peers.length,'error in bootstrap peer book');
+        // stop the nodes
+        await p1.syncStop();
+        await p2.syncStop();
+        await boostrap.syncStop();
         resolve();
     });
 });

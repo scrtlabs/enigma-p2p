@@ -17,7 +17,9 @@ function _buildWorker(port,listenerPort,ListenerId,nickname){
     let multiAddrs = ['/ip4/0.0.0.0/tcp/'+port];
     let dnsNodes = ['/ip4/0.0.0.0/tcp/'+listenerPort+'/ipfs/'+ListenerId];
     let doDiscovery = true;
-    // if(port != '0') doDiscovery = false;
+    // if(port != '0'){
+    //     dnsNodes = [];
+    // }
     let worker = new EngNode(multiAddrs, doDiscovery, dnsNodes,nickname);
     return worker;
 }
@@ -121,7 +123,7 @@ module.exports.startNode = function(type,protocols,handler,callback){
 // quickly setup a worker
 module.exports.quickWorker = function(isDns,nickname) {
     let portDialer = '0', portDns = '10333', idDns = 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
-    if(isDns){
+    if(!isDns){
         return _buildWorker(portDialer,portDns,idDns,nickname);
     }else{
         return _buildWorker(portDns,portDns,idDns,nickname);
