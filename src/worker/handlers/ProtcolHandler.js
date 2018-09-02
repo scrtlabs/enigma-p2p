@@ -78,7 +78,7 @@ class ProtocolHandler extends EventEmitter{
                 this.fallback(err);
             }else{
                 // TODO:: add logger
-                console.log("[+] discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
+                //console.log("[+] discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
             }
         });
     }
