@@ -13,7 +13,12 @@ module.exports.PROTOCOLS = {
     'HEARTBEAT' : '/heartbeat/0.1'
 };
 
-module.exports.STATUS = {
+module.exports.DHT_STATUS = {
+    'CRITICAL_HIGH_DHT_SIZE' : 20 ,
+    'OPTIMAL_DHT_SIZE' : 8,
+    'CRITICAL_LOW_DHT_SIZE' : 3,
+};
+module.exports.MSG_STATUS = {
     'OK' : 0,
     'ERROR' : 1,
 };

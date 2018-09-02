@@ -202,6 +202,13 @@ it('#4 should test /heartbeat', async function(){
         // compare
         assert.equal(true,hbRes.isValidMsg(), "err hb response not valid");
         assert.equal(peer.getSelfIdB58Str(), hbRes.to());
+        /** */
+        console.log("########################################################3")
+        // test some stuff and delete
+        let closestPeers = await peer.dhtClosestPeers(peer.getSelfIdB58Str());
+        console.log("closest peers -> " + closestPeers);
+        console.log("########################################################3")
+        /** */
         // stop the nodes
         await peer.syncStop();
         await boostrap.syncStop();

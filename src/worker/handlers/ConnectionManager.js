@@ -6,7 +6,7 @@ const pull = require('pull-stream');
 const Policy = require('../../policy/policy');
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
-const STATUS = constants.STATUS;
+const STATUS = constants.MSG_STATUS;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
 
@@ -20,8 +20,29 @@ class ConnectionManager{
     isDiscovering(){
         return this._isDiscovering;
     }
+    /**
+     * analyze the peer book to see the dht status
+     * @returns {Json}  {status: "{STABLE}/{SYNC}/{CRITICAL_LOW}/{CRITICAL_HIGH/DISCONNECTED}", number: number of peers to add/ remove(?)}
+     * */
+    dhtStatus(){
+        return this._policy.getDhtStauts(this._enigmaNode.getSelfPeerBook());
+    }
+    /** Ping 0x1 message in the handshake process.
+     * @param {PeerInfo} peerInfo , the peer info to handshake with
+     * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
+     * @param {Function} onHandshake , (err,ping,pong)=>{}
+     * @returns {Promise}
+     * */
+    handshake(peerInfo, withPeerList){
+        return new Promise((resolve,reject)=>{
+            this._enigmaNode.handshake(peerInfo,withPeerList,(err,ping,pong)=>{
+                if(err) reject(err,ping,pong);
+                resolve(err,ping,pong);
+            });
+        });
+    }
     /**Send a heart-beat to some peer
-     * @params {PeerInfo} peer, could be string b58 id as well
+     * @params {PeerInfo} peer, could be string b58 id as well (not implemented error atm for string)
      * @returns {Promise} Heartbeat result
      * */
     sendHeartBeat(peer){
@@ -44,40 +65,16 @@ class ConnectionManager{
             });
             if(!heartBeatRequest.isValidMsg()){
                 // TODO:: Add logger.
-                console.log("[-] Err in HBReq msg ");
+                reject("[-] Err in HBReq msg ")
             }
             // send the request
-            this._enigmaNode.dialProtocol(peerInfo,PROTOCOLS['HEARTBEAT'],(protocol,conn)=>{
+            this._enigmaNode.sendHeartBeat(peerInfo,heartBeatRequest,(err,hbResponse)=>{
+                if(err) reject(err);
 
-                pull(
-                    pull.values([heartBeatRequest.toNetworkStream()]),
-                    conn,
-                    pull.collect((err,response)=>{
-                        if(err) {
-                            //TODO:: add Logger
-                            console.log("[-] Err in collecting HBRes msg",err);
-                            reject(err);
-                        }else{
-                            // validate HeartBeat Message response
-                            let heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
-                            if(heartBeatRes.isCompatibleWithMsg(heartBeatRequest)){
-                                // TODO:: validate ID equals in response, valid connection (possibly do nothing)
-                                // TODO:: Add to stats (?)
-                                resolve(heartBeatRes);
-                            }else{
-                                //TODO:: The heartbeat message failed (weird) why? wrong id?
-                                //TODO:: anyway, drop the message and do something in response.
-                                //TODO:: maybe drop the peer (?)
-                                //TODO:: add Logger
-                                reject(err);
-                            }
-                        }
-                    })
-                );
+                resolve(hbResponse);
             });
 
         });
-
     }
 
 }

@@ -7,7 +7,6 @@ const pull = require('pull-stream');
 const series = require('async/series');
 const PeerBundle = require('./libp2p-bundle');
 const Pushable = require('pull-pushable');
-const PeerManager = require('./PeerManager');
 const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const Policy = require('../policy/policy');
@@ -211,6 +210,12 @@ class EnigmaNode extends EventEmitter {
     getAllPeersIds(){
         return this.node.stats.peers();
     }
+    /** Get PeerBook
+     * @returns {PeerBook} , peerBook of the current EnigmaNode
+     * */
+    getSelfPeerBook(){
+        return this.node.peerBook;
+    }
     /**
      * Get All the Peer info from the peer book.
      * @returns {Array} [PeerInfo]
@@ -297,9 +302,11 @@ class EnigmaNode extends EventEmitter {
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
+     * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
-    handshake(peerInfo,withPeerList){
+    handshake(peerInfo,withPeerList,onHandshake){
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
+            let err = null;
             let selfId = this.getSelfIdB58Str();
             let ping = new Messages.PingMsg({"from": selfId, "findpeers":withPeerList});
             pull(
@@ -312,8 +319,9 @@ class EnigmaNode extends EventEmitter {
                     let pongMsg = nodeUtils.toPongMsg(data);
                     if(!pongMsg.isValidMsg()){
                         // TODO:: handle invalid msg(?)
-                        console.log('[-] Err bad pong msg recieved.');
+                        err = '[-] Err bad pong msg recieved.';
                     }
+                    onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
                 }),
                 // TODO:: get the pong message response. if valid keep connection otherwise drop.
@@ -368,6 +376,40 @@ class EnigmaNode extends EventEmitter {
             this.dialProtocol(peer,protocolName,onEachResponse);
         });
     }
+    /**Send a heart-beat to some peer
+     * @params {PeerInfo} peer, could be string b58 id as well
+     * @params {HeartBeatReq} heartBeatRequest , the request
+     * @returns {Promise} Heartbeat result
+     * */
+    sendHeartBeat(peerInfo,heartBeatRequest,onResult){
+        this.dialProtocol(peerInfo,PROTOCOLS['HEARTBEAT'],(protocol,conn)=>{
+            pull(
+                pull.values([heartBeatRequest.toNetworkStream()]),
+                conn,
+                pull.collect((err,response)=>{
+                    if(err) {
+                        //TODO:: add Logger
+                        console.log("[-] Err in collecting HBRes msg",err);
+                        onResult(err,null);
+                    }else{
+                        // validate HeartBeat Message response
+                        let heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
+                        if(heartBeatRes.isCompatibleWithMsg(heartBeatRequest)){
+                            // TODO:: validate ID equals in response, valid connection (possibly do nothing)
+                            // TODO:: Add to stats (?)
+                            onResult(null,heartBeatRes);
+                        }else{
+                            //TODO:: The heartbeat message failed (weird) why? wrong id?
+                            //TODO:: anyway, drop the message and do something in response.
+                            //TODO:: maybe drop the peer (?)
+                            //TODO:: add Logger
+                            onResult(err,null);
+                        }
+                    }
+                })
+            );
+        });
+    }
     /**TEMPORARY method
      * @params {String} protocolName
      * @params {Function} onAllConnections , (err,[{protocol,connection}])
@@ -387,40 +429,7 @@ class EnigmaNode extends EventEmitter {
             onAllConnections(connections);
         });
     }
-    /** TODO::WIP - consider this if it's event needed
-     * {
-    * - interval - every interval : check if satisfied, if not, look for new peers
-    * - valid peer policy fn  : a fn that takes PeerInfo object and returns Boolean if it's valid
-    * - max size of peers  : always optimize for that number
-    * - heartbeat interval : every hb interval : check if other nodes are alive
-    * }
-     * */
-    runConsistentDiscovery(config){
-        let intervalId = setInterval(()=>{
-            let peersInfo = this.getAllPeersInfo();
-            let jobs = [];
 
-            peersInfo.forEach(peer=>{
-                jobs.push((cb)=>{
-                        this.getPeersPeerBook(peer,cb);
-                });
-            });
-
-            parallel(jobs,(err,otherPeerBooks)=>{
-                console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-                console.log('I got other peer books', otherPeerBooks.length);
-                otherPeerBooks.forEach(pb=>{
-                    console.log('pb '+ pb.from.id +' has ' + pb.peers.length);
-                    console.log('connected to : ');
-                    console.log(pb.peers[0].peerId.id)
-                    console.log(pb.peers[1].peerId.id)
-                });
-                console.log('my ID = ' + this.getSelfPeerInfo().id.toJSON().id.toString())
-                console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
-            });
-        }, config.interval);
-        return intervalId;
-    }
 }
 
 

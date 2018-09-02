@@ -8,7 +8,7 @@ const nodeUtils = require('../../common/utils');
 const EventEmitter = require('events').EventEmitter
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
-const STATUS = constants.STATUS;
+const STATUS = constants.MSG_STATUS;
 const Messages = require('../../policy/messages');
 
 class ProtocolHandler extends EventEmitter{
@@ -78,13 +78,8 @@ class ProtocolHandler extends EventEmitter{
                 this.fallback(err);
             }else{
                 // TODO:: add logger
-                console.log("VVVV discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
+                console.log("[+] discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
             }
-            // else if(!params.worker.isBootstrapNode(params.worker.getSelfIdB58Str()) || true){
-            //     console.log(params.worker.getSelfIdB58Str() +  " || -> || " + params.peer.id.toB58String());
-            //     let withPeerList = true;
-            //  //   params.worker.handshake(params.peer, withPeerList);
-            // }
         });
     }
     /** Temporary for testing purposes.
