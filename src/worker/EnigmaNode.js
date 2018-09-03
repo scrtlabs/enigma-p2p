@@ -1,4 +1,4 @@
-const EventEmitter = require('events').EventEmitter
+const EventEmitter = require('events').EventEmitter;
 const waterfall = require('async/waterfall');
 const parallel = require('async/parallel');
 const PeerId = require('peer-id');
@@ -142,6 +142,26 @@ class EnigmaNode extends EventEmitter {
 
     }
 
+    /** isConnected to a peer
+     * This function uses try/catch because of the DHT implementation
+     * @param {String} strId, some peer ID;
+     * @returns {Boolean} found - true = connected false otherwise
+     * */
+    isConnected(strId){
+        let found = false;
+        if(strId == this.getSelfIdB58Str()){
+            return found;
+        }
+
+        try{
+            let peer = this.getSelfPeerBook().get(strId);
+            if (peer!= null)
+                found = true;
+        }catch(err){
+            found = false;
+        }
+        return found;
+    }
     /**
      * Subscribe to events with handlers and final handlers.
      * @param {Array} subscriptions, [{topic:name,topic_handler:Function(msg)=>{},final_handler:Function()=>{}}]
@@ -193,7 +213,6 @@ class EnigmaNode extends EventEmitter {
      * @returns {PeerInfo} peerInfo
      */
     getSelfPeerInfo(){
-        //return this.peerManager.getSelfPeerInfo();
         return this.node.peerInfo;
     }
     /**
@@ -214,6 +233,7 @@ class EnigmaNode extends EventEmitter {
      * @returns {PeerBook} , peerBook of the current EnigmaNode
      * */
     getSelfPeerBook(){
+
         return this.node.peerBook;
     }
     /**
@@ -308,7 +328,10 @@ class EnigmaNode extends EventEmitter {
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
             let err = null;
             let selfId = this.getSelfIdB58Str();
-            let ping = new Messages.PingMsg({"from": selfId, "findpeers":withPeerList});
+            let ping = new Messages.PingMsg({
+                "from": selfId,
+                "to" : peerInfo.id.toB58String(),
+                "findpeers":withPeerList});
             pull(
                 pull.values([ping.toNetworkStream()]),
                 connection,

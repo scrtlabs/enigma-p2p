@@ -32,7 +32,9 @@ class PingMsg extends Msg{
                 finalMsg = {
                     "jsonrpc" : "2.0",
                     "method" : "ping",
-                    "params" : [{'from': msgParams.from,'findpeers' : msgParams.findpeers}],
+                    "params" : [{'from': msgParams.from,
+                        'to' : msgParams.to,
+                        'findpeers' : msgParams.findpeers}],
                     "id" : utils.randId()
                 };
             }else{
@@ -50,6 +52,9 @@ class PingMsg extends Msg{
     }
     from(){
         return this.params()[0]['from'];
+    }
+    to(){
+        return this.params()[0]['to'];
     }
     findPeers(){
         return this.params()[0]['findpeers'];

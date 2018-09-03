@@ -29,7 +29,7 @@ class PeerBundle extends libp2p {
                 },
                 peerDiscovery: {
                     bootstrap: {
-                        interval: 2000,
+                        interval: 2000 ,
                         enabled: false,
                         list: []
                     }

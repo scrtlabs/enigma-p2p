@@ -5,7 +5,7 @@ const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
 const Policy = require('../../policy/policy');
 const nodeUtils = require('../../common/utils');
-const EventEmitter = require('events').EventEmitter
+const EventEmitter = require('events').EventEmitter;
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
@@ -68,19 +68,19 @@ class ProtocolHandler extends EventEmitter{
      * @param {Json} params, {connection, worker,peer,protocol}
      * */
     onPeerDiscovery(nodeBundle, params){
+        // incase a dns node "discoverd" himself
         if(params.worker.getSelfIdB58Str() == params.peer.id.toB58String()){
             return;
         }
-        nodeBundle.dial(params.peer,(err,conn)=>{
-            if(err){
-                // TODO:: add logger
-                console.log(err);
-                this.fallback(err);
-            }else{
-                // TODO:: add logger
-                //console.log("[+] discovery dial success from " + params.worker.nickName() + " to " + params.peer.id.toB58String());
-            }
-        });
+        if(!params.worker.isConnected(params.peer.id.toB58String())){
+            const withPeerList = true;
+            params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
+                //TODO:: store peer list
+                //TODO:: open question: if it's early connected peer to DNS then it would get 0
+                //TODO:: peers, in that case another query is required.
+                this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
+            });
+        }
     }
     /** Temporary for testing purposes.
      * Takes a msg and responds with echo.
@@ -120,6 +120,7 @@ class ProtocolHandler extends EventEmitter{
                         "seeds":parsed});
                     // validate correctness
                     if(pong.isValidMsg()){
+                        this.emit("res_handshaked",{err:null,ping:pingMsg,pong:pong});
                         return pong.toNetworkStream();
                     }
                 }else{
@@ -168,14 +169,8 @@ class ProtocolHandler extends EventEmitter{
     onPeerConnect(nodeBundle,params){
         console.log('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
             '] new peer : ' + params.peer.id.toB58String());
-        // do stuff after connection (?)
-        // perform handshake
-        // if(params.worker.getSelfIdB58Str() != 'QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm'){
-        //     let withPeerList = true;
-        //     params.worker.handshake(params.peer, withPeerList);
-        // }
     }
-    /**Group dial is when the worker needs to send a message to all og his peers
+    /**Group dial is when the worker needs to send a message to all of his peers
      * @param {PeerBundle} nodeBundle, libp2p bundle
      * @param {Json} params , {worker,connection,peer,protocol}
      * TODO:: improve : add the option to pass an array of peers to dial

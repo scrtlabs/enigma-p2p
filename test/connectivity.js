@@ -217,27 +217,26 @@ it('#5 should get A DNS Seeds', async function(){
     }
 
     return new Promise(async (res,rej)=>{
-        let env = await utils.loadInitialEnv();
-        console.log("in test scope...");
-        let peers = env.peers;
-        let b1 = env.b1;
-        let b2 =  env.b2;
-        let newWorker = env.newWorker;
+        let env = await utils.loadInitialEnv()
+            , peers = env.peers
+            , b1 = env.b1
+            , b2 =  env.b2
+            , newWorker = env.newWorker;
 
-        // TODO:: replace prints with assertions
-        console.log("b1 peers # " + b1.getAllPeersInfo().length);// assert 3
-        console.log("b2 peers # " + b2.getAllPeersInfo().length);// assert 3
-        console.log("newWorker peers # " + newWorker.getAllPeersInfo().length); // assert 2
+        // validate all connections are estavlished.
+        assert.equal(3,b1.getAllPeersInfo().length, "b1 not established peers");
+        assert.equal(3,b2.getAllPeersInfo().length, "b2 not established peers");
+        assert.equal(2,newWorker.getAllPeersInfo().length, "newWorker not established peers");
         for(let i =0; i<peers.length;++i){
-            console.log("p" +(i+1)+" peers #  " + peers[i].getAllPeersInfo().length); // assert 1
+            assert.equal(1,peers[i].getAllPeersInfo().length, "peer not established peers");
         }
 
-        // TODO:: Run the i test.
-        // TODO:: General : add handshake to each connection even now with the DNS and all the peers in the background.
+
         // TODO:: request peers from bootstrap nodes.
         // TODO:: assert the total amount of peers
         // TODO:: and DONE.
         // TODO:: test #6 should test handshake process
+
 
         // stop the env
         //TODO:: Change here the test to waterfall because each stop might finish after res() and fail the test !!!
