@@ -19,7 +19,6 @@ class EnigmaNode extends EventEmitter {
         this.nickname = nickname;
         this.started = false;
         this.node = null;
-        this.peerManager = null;
         this.multiAddrs = multiAddrs;
         this.isDiscover = isDiscover;
         this.dnsNodes = dnsNodes;

@@ -90,7 +90,6 @@ function NaiveHandle(type,peer,params) {
 }
 
 
-
 // WORKER FACTORY
 //
 // class WorkerFactory{

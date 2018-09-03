@@ -12,8 +12,9 @@ const STATUS = constants.MSG_STATUS;
 const Messages = require('../../policy/messages');
 
 class ProtocolHandler extends EventEmitter{
-    constructor(){
+    constructor(state){
         super();
+        this._state = state;
         this.fallback = this.tempFallback;
         this.policy = new Policy();
         this.handlers = {};
@@ -78,10 +79,20 @@ class ProtocolHandler extends EventEmitter{
                 //TODO:: store peer list
                 //TODO:: open question: if it's early connected peer to DNS then it would get 0
                 //TODO:: peers, in that case another query is required.
+                this._state.addPeer({
+                    'idB58' : params.peer.id.toB58String(),
+                    'isHandshaked' : true,
+                    'peerInfo' : params.peer.peerInfo,
+                    'peerId' : params.peer.id,
+                    'isBootstrapNode' : true
+                });
+
                 this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
             });
         }
     }
+    /** handle when all bootstrap nodes returned peers.
+     * */
     /** Temporary for testing purposes.
      * Takes a msg and responds with echo.
      * kind of an "interactive ping"

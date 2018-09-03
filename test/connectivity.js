@@ -231,12 +231,10 @@ it('#5 should get A DNS Seeds', async function(){
             assert.equal(1,peers[i].getAllPeersInfo().length, "peer not established peers");
         }
 
-
         // TODO:: request peers from bootstrap nodes.
         // TODO:: assert the total amount of peers
         // TODO:: and DONE.
         // TODO:: test #6 should test handshake process
-
 
         // stop the env
         //TODO:: Change here the test to waterfall because each stop might finish after res() and fail the test !!!
