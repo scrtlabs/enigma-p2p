@@ -356,11 +356,11 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
-        this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
+        this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(connectionErr,connection)=>{
             // TODO:: BUG BUG BUG BUG
             // TODO:: this small commented snippet below is interesting, prolly "protocol" is = err
-            if(protocol) {
-                onHandshake(protocol,null,null);;
+            if(connectionErr) {
+                onHandshake(connectionErr,null,null);;
                 return;
             }
             let err = null;
@@ -395,7 +395,11 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onResult signature (err,PeerBook) =>{}
      */
     getPeersPeerBook(peerInfo,onResult){
-        this.dialProtocol(peerInfo,PROTOCOLS.PEERS_PEER_BOOK, (protocol,connection)=>{
+        this.dialProtocol(peerInfo,PROTOCOLS.PEERS_PEER_BOOK, (connectionErr,connection)=>{
+            if(connectionErr){
+                console.log("[-] err connection to peer");
+                return onResult(connectionErr,null);
+            }
             let peersPeerBook = null;
             let err = null;
             pull(
@@ -480,8 +484,8 @@ class EnigmaNode extends EventEmitter {
         let jobs = [];
         peersInfo.forEach(peer=>{
             jobs.push((cb)=>{
-                this.dialProtocol(peer,protocolName,(protocol,conn)=>{
-                    cb({'protocol':protocol,'connection':conn});
+                this.dialProtocol(peer,protocolName,(connErr,conn)=>{
+                    cb({'error':conErr,'connection':conn});
                 });
             })
         });

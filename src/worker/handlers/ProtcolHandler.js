@@ -95,6 +95,7 @@ class ProtocolHandler extends EventEmitter{
                     //     'isBootstrapNode' : true
                     // });
                     //this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
+                    //this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
                 });
         }
     }

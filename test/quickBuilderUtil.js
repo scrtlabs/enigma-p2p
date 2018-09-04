@@ -97,7 +97,6 @@ module.exports.runNodesInOrder = function(nodes){
                 n.syncRun()
                     .then(()=>{
                         setTimeout(()=>{
-                            console.log("done calling shit from " + n.nickName())
                             cb();
                         },2000 * 2);
                     });
@@ -105,9 +104,7 @@ module.exports.runNodesInOrder = function(nodes){
         });
 
         waterfall(jobs,(err)=>{
-            console.log("EEEEEEEEEEEEEEEEEEEEE")
             console.log(err)
-            console.log("EEEEEEEEEEEEEEEEEEEEE")
             res();
         });
     });
