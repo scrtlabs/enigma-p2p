@@ -99,7 +99,7 @@ module.exports.runNodesInOrder = function(nodes){
                         setTimeout(()=>{
                             console.log("done calling shit from " + n.nickName())
                             cb();
-                        },2000);
+                        },2000 * 2);
                     });
             });
         });

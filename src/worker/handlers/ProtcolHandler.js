@@ -83,20 +83,19 @@ class ProtocolHandler extends EventEmitter{
         }
         if(!params.worker.isConnected(params.peer.id.toB58String())){
             const withPeerList = true;
-
-            params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
-                //TODO:: store peer list
-                //TODO:: open question: if it's early connected peer to DNS then it would get 0
-                //TODO:: peers, in that case another query is required.
-                // this._state.addPeer({
-                //     'idB58' : params.peer.id.toB58String(),
-                //     'isHandshaked' : true,
-                //     'peerInfo' : params.peer.peerInfo,
-                //     'peerId' : params.peer.id,
-                //     'isBootstrapNode' : true
-                // });
-                this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
-            });
+                params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
+                    //TODO:: store peer list
+                    //TODO:: open question: if it's early connected peer to DNS then it would get 0
+                    //TODO:: peers, in that case another query is required.
+                    // this._state.addPeer({
+                    //     'idB58' : params.peer.id.toB58String(),
+                    //     'isHandshaked' : true,
+                    //     'peerInfo' : params.peer.peerInfo,
+                    //     'peerId' : params.peer.id,
+                    //     'isBootstrapNode' : true
+                    // });
+                    //this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
+                });
         }
     }
     /** handle when all bootstrap nodes returned peers.

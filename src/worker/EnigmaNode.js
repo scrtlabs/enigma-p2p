@@ -356,9 +356,13 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
-        
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
-
+            // TODO:: BUG BUG BUG BUG
+            // TODO:: this small commented snippet below is interesting, prolly "protocol" is = err
+            if(protocol) {
+                onHandshake(protocol,null,null);;
+                return;
+            }
             let err = null;
             let selfId = this.getSelfIdB58Str();
             let ping = new Messages.PingMsg({
