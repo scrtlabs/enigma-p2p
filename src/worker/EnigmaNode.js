@@ -4,9 +4,7 @@ const parallel = require('async/parallel');
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
-const series = require('async/series');
 const PeerBundle = require('./libp2p-bundle');
-const Pushable = require('pull-pushable');
 const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const Policy = require('../policy/policy');
@@ -14,16 +12,33 @@ const Messages = require('../policy/messages');
 const nodeUtils = require('../common/utils');
 
 class EnigmaNode extends EventEmitter {
-    constructor(multiAddrs,isDiscover, dnsNodes,nickname){
+
+    constructor(config,controller,protocolHandler){
         super();
-        this.nickname = nickname;
+        this.nickname = config.nickname;
+        this.multiAddrs = config.multiAddrs;
+        this.isDiscover = config.isDiscover;
+        this.dnsNodes = config.dnsNodes;
+        this._pathPeerId = null;
+        if("pathPeerId" in config){
+            this._pathPeerId = config.pathPeerId;
+        }
         this.started = false;
         this.node = null;
-        this.multiAddrs = multiAddrs;
-        this.isDiscover = isDiscover;
-        this.dnsNodes = dnsNodes;
         this.policy = new Policy();
+        this._handler = protocolHandler;
+        this._controller = controller;
     }
+    // constructor(multiAddrs,isDiscover, dnsNodes,nickname){
+    //     super();
+    //     this.nickname = nickname;
+    //     this.started = false;
+    //     this.node = null;
+    //     this.multiAddrs = multiAddrs;
+    //     this.isDiscover = isDiscover;
+    //     this.dnsNodes = dnsNodes;
+    //     this.policy = new Policy();
+    // }
     nickName(){
         return this.nickname;
     }
@@ -115,27 +130,27 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} handler
      * @param {Array} protocols, different protocols to listen and support
      */
-    addHandlers(protocols,handler){
+    addHandlers(){
 
-        this.handler = handler;
+        let protocols = this._handler.getProtocolsList();
 
         // TODO:: currently ignore for testing.
         if((!this.policy.validateProtocols(protocols) || !this.started ) && false){
             throw Error('not all protocols are satisfied, check constants.js for more info.');
         }
         this.node.on(PROTOCOLS['PEER_DISCOVERY'], (peer) => {
-            this.handler.handle(PROTOCOLS['PEER_DISCOVERY'],this.node,{peer:peer,worker:this});
+            this._handler.handle(PROTOCOLS['PEER_DISCOVERY'],this.node,{peer:peer,worker:this});
         });
 
         this.node.on(PROTOCOLS['PEER_CONNECT'], (peer) => {
-            this.handler.handle(PROTOCOLS['PEER_CONNECT'], this.node, {peer:peer,worker:this});
+            this._handler.handle(PROTOCOLS['PEER_CONNECT'], this.node, {peer:peer,worker:this});
         });
         this.node.on(PROTOCOLS['PEER_DISCONNECT'], (peer) => {
-            this.handler.handle(PROTOCOLS['PEER_DISCONNECT'], this.node, {peer:peer,worker:this});
+            this._handler.handle(PROTOCOLS['PEER_DISCONNECT'], this.node, {peer:peer,worker:this});
         });
         protocols.forEach(protocolName=>{
             this.node.handle(protocolName,(protocol,conn)=>{
-                this.handler.handle(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
+                this._handler.handle(protocolName,this.node,{protocol:protocol,connection:conn, worker : this});
             });
         });
 
@@ -148,7 +163,7 @@ class EnigmaNode extends EventEmitter {
      * */
     isConnected(strId){
         let found = false;
-        if(strId == this.getSelfIdB58Str()){
+        if(strId === this.getSelfIdB58Str()){
             return found;
         }
 
@@ -263,6 +278,23 @@ class EnigmaNode extends EventEmitter {
             callback();
         });
     }
+
+    /** !! This is a high api function that should be used after new EnigmaNode(options)... just do node.run();
+     * run the node (build first)
+     * @returns {Promise}
+     * */
+    syncRun(){
+        return new Promise(async (resolve,reject)=>{
+            // load node
+            await this.syncInit(this._pathPeerId);
+            // start the node
+            await this.syncStart();
+            // add handlers
+            this.addHandlers();
+            // TODO:: add subscriptions
+            resolve(this);
+        });
+    }
     /**
      * Sync Start the node.
      * where err is an Error in case starting the node fails.
@@ -324,7 +356,9 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
+        
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(protocol,connection)=>{
+
             let err = null;
             let selfId = this.getSelfIdB58Str();
             let ping = new Messages.PingMsg({

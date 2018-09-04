@@ -12,9 +12,14 @@ const STATUS = constants.MSG_STATUS;
 const Messages = require('../../policy/messages');
 
 class ProtocolHandler extends EventEmitter{
-    constructor(state){
+    constructor(){
         super();
-        this._state = state;
+        this._protocols = [
+            PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'],
+            PROTOCOLS['PEERS_PEER_BOOK'],PROTOCOLS['HEARTBEAT'],
+            PROTOCOLS['GROUP_DIAL']];
+
+        //this._state = state;
         this.fallback = this.tempFallback;
         this.policy = new Policy();
         this.handlers = {};
@@ -26,6 +31,9 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
         this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
+    }
+    getProtocolsList(){
+        return this._protocols;
     }
     /** Handle is a dispatching function
      * It is triggerd everytime a EnigmaNode needs to dispatch some dialProtocol
@@ -75,18 +83,18 @@ class ProtocolHandler extends EventEmitter{
         }
         if(!params.worker.isConnected(params.peer.id.toB58String())){
             const withPeerList = true;
+
             params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
                 //TODO:: store peer list
                 //TODO:: open question: if it's early connected peer to DNS then it would get 0
                 //TODO:: peers, in that case another query is required.
-                this._state.addPeer({
-                    'idB58' : params.peer.id.toB58String(),
-                    'isHandshaked' : true,
-                    'peerInfo' : params.peer.peerInfo,
-                    'peerId' : params.peer.id,
-                    'isBootstrapNode' : true
-                });
-
+                // this._state.addPeer({
+                //     'idB58' : params.peer.id.toB58String(),
+                //     'isHandshaked' : true,
+                //     'peerInfo' : params.peer.peerInfo,
+                //     'peerId' : params.peer.id,
+                //     'isBootstrapNode' : true
+                // });
                 this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
             });
         }
@@ -115,6 +123,7 @@ class ProtocolHandler extends EventEmitter{
         pull(
             conn,
             pull.map((data) => {
+
                 let pingMsg = nodeUtils.toPingMsg(data);
                 if(pingMsg.isValidMsg()){
                     // create pong msg

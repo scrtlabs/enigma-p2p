@@ -1,6 +1,7 @@
 const parallel = require('async/parallel');
 const EnigmaNode = require('../src/worker/EnigmaNode');
 const utils = require('./utils');
+const quickBuilderUtil = require('./quickBuilderUtil');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
@@ -210,6 +211,51 @@ it('#4 should test /heartbeat', async function(){
 });
 
 
+// it('#5 should get A DNS Seeds', async function(){
+//
+//     if(!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#5']){
+//         this.skip();
+//     }
+//
+//     return new Promise(async (res,rej)=>{
+//         let envOptions = quickBuilderUtil.createEnvOptions()
+//             , nodes = quickBuilderUtil.createEnviornment(envOptions)
+//             , b1 = nodes[0]
+//             , b2 = nodes[1]
+//             , peers = nodes.slice(2,6)
+//             , newWorker = nodes[nodes.length-1]
+//
+//         // let env = await utils.loadInitialEnv()
+//         //     , peers = env.peers
+//         //     , b1 = env.b1
+//         //     , b2 =  env.b2
+//         //     , newWorker = env.newWorker;
+//
+//         // validate all connections are estavlished.
+//         assert.equal(3,b1.getAllPeersInfo().length, "b1 not established peers");
+//         assert.equal(3,b2.getAllPeersInfo().length, "b2 not established peers");
+//         assert.equal(2,newWorker.getAllPeersInfo().length, "newWorker not established peers");
+//         for(let i =0; i<peers.length;++i){
+//             assert.equal(1,peers[i].getAllPeersInfo().length, "peer not established peers");
+//         }
+//
+//         // TODO:: request peers from bootstrap nodes.
+//         // TODO:: assert the total amount of peers
+//         // TODO:: and DONE.
+//         // TODO:: test #6 should test handshake process
+//
+//         // stop the env
+//         //TODO:: Change here the test to waterfall because each stop might finish after res() and fail the test !!!
+//         await newWorker.syncStop();
+//         peers.forEach(async p=>{
+//             await p.syncStop();
+//         });
+//         await b1.syncStop();
+//         await b2.syncStop();
+//         res();
+//     });
+// });
+
 it('#5 should get A DNS Seeds', async function(){
 
     if(!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#5']){
@@ -217,12 +263,14 @@ it('#5 should get A DNS Seeds', async function(){
     }
 
     return new Promise(async (res,rej)=>{
-        let env = await utils.loadInitialEnv()
-            , peers = env.peers
-            , b1 = env.b1
-            , b2 =  env.b2
-            , newWorker = env.newWorker;
-
+        let envOptions = quickBuilderUtil.createEnvOptions()
+            , nodes = quickBuilderUtil.createEnviornment(envOptions)
+            , b1 = nodes[0]
+            , b2 = nodes[1]
+            , peers = nodes.slice(2,6)
+            , newWorker = nodes[nodes.length-1];
+        await quickBuilderUtil.runNodesInOrder(nodes);
+        await utils.sleep(2000);
         // validate all connections are estavlished.
         assert.equal(3,b1.getAllPeersInfo().length, "b1 not established peers");
         assert.equal(3,b2.getAllPeersInfo().length, "b2 not established peers");
@@ -247,3 +295,29 @@ it('#5 should get A DNS Seeds', async function(){
         res();
     });
 });
+
+
+it('#6 test refactoring', async function() {
+    if (!TEST_TREE['connectivity']['all'] || !TEST_TREE['connectivity']['#6']) {
+        this.skip();
+    }
+
+    return new Promise(async resolve=>{
+        let options = quickBuilderUtil.getDefaultOptions();
+        options.nickname = "peer";
+        let peer = quickBuilderUtil.quickWorker(options);
+        options.port = '10333';
+        options.nickname = "dns";
+        let bNode = quickBuilderUtil.quickWorker(options);
+        await bNode.syncRun();
+        await utils.sleep(1000);
+        await peer.syncRun();
+        await utils.sleep(1000 * 2);
+
+        await bNode.stop();
+        await peer.stop();
+        resolve();
+    });
+});
+
+
