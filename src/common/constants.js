@@ -2,6 +2,12 @@ module.exports.namespace = 'enigma';
 
 module.exports.ID_LEN = 46;
 
+module.exports.LOG_CONFIG = {
+    'level' :'debug',
+    'file' : 'peer.log',
+    'cli' : true,
+};
+
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
     'PEER_CONNECT' : 'peer:connect',
