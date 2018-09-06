@@ -104,7 +104,6 @@ module.exports.runNodesInOrder = function(nodes){
         });
 
         waterfall(jobs,(err)=>{
-            console.log(err)
             res();
         });
     });
