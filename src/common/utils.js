@@ -81,6 +81,13 @@ module.exports.toHeartBeatReqMsg = function(data){
     return new Messages.HeartBeatReqMsg(hb);
 };
 
+/** Extract the peer id B58 from a multiaddr (bootstrapNodes)
+ * @param {String} url
+ * @returns {String} id, base 58
+ * */
+module.exports.extractId = function(url){
+    return url.substring(url.length - 46,url.length);
+};
 
 module.exports.isString = function(x) {
     return Object.prototype.toString.call(x) === "[object String]"
