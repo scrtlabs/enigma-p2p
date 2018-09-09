@@ -1,6 +1,10 @@
 const EventEmitter = require('events').EventEmitter;
 const nodeUtils = require('../../common/utils');
 
+// TODO:: Better design required for the state object 
+// TODO:: should come from functionality and let it lead the way. 
+
+
 class State extends EventEmitter{
 
     constructor(bootstrapNodes){
