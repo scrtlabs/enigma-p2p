@@ -82,20 +82,16 @@ class ProtocolHandler extends EventEmitter{
             return;
         }
         if(!params.worker.isConnected(params.peer.id.toB58String())){
+            console.log("####################################");
             const withPeerList = true;
                 params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
+                    console.log("err? " + err );
+                    console.log("ping? " + ping);
+                    console.log("pong? " + pong);
                     //TODO:: store peer list
                     //TODO:: open question: if it's early connected peer to DNS then it would get 0
                     //TODO:: peers, in that case another query is required.
-                    // this._state.addPeer({
-                    //     'idB58' : params.peer.id.toB58String(),
-                    //     'isHandshaked' : true,
-                    //     'peerInfo' : params.peer.peerInfo,
-                    //     'peerId' : params.peer.id,
-                    //     'isBootstrapNode' : true
-                    // });
-                    //this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
-                    //this.emit("req_handshaked",{err:err,ping:ping,pong:pong});
+
                 });
         }
     }
@@ -123,7 +119,6 @@ class ProtocolHandler extends EventEmitter{
         pull(
             conn,
             pull.map((data) => {
-
                 let pingMsg = nodeUtils.toPingMsg(data);
                 if(pingMsg.isValidMsg()){
                     // create pong msg
@@ -140,7 +135,6 @@ class ProtocolHandler extends EventEmitter{
                         "seeds":parsed});
                     // validate correctness
                     if(pong.isValidMsg()){
-                        this.emit("res_handshaked",{err:null,ping:pingMsg,pong:pong});
                         return pong.toNetworkStream();
                     }
                 }else{
@@ -148,8 +142,7 @@ class ProtocolHandler extends EventEmitter{
                     return null;
                 }
             }),
-            conn,
-            pull.drain()
+            conn
         );
     }
     /** Response to a heart-beat request.

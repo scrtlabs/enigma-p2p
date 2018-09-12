@@ -1,3 +1,4 @@
+const EventEmitter = require('events').EventEmitter;
 const waterfall = require('async/waterfall');
 const parallel = require('async/parallel');
 const PeerId = require('peer-id');
@@ -10,9 +11,10 @@ const STATUS = constants.MSG_STATUS;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
 
-class ConnectionManager{
+class ConnectionManager extends EventEmitter{
 
     constructor(enigmaNode, policy){
+        super();
         this._enigmaNode = enigmaNode;
         this._isDiscovering = false;
         this._policy = policy;

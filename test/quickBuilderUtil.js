@@ -42,7 +42,7 @@ function _quickWorker(options){
     if (options.port =='0')
         options.pathPeerId = null;
 
-    let worker = new EngNode(options,new Controller(),new ProtocolHandler());
+    let worker = new EngNode(options,new ProtocolHandler());
     return worker;
 };
 

@@ -12,11 +12,14 @@ class NodeController{
     constructor(enigmaNode,connectionManager){
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
-    }
-    run(){
-        return new Promise(async resolve=>{
-            await this._engNode.syncRun();
+
+        this._engNode.on('notify', (params)=>{
+            console.log("UPDATE : " , params);
+        });
+        this._connectionManager.on('notify', (params)=>{
+            console.log("UPDATE : " , params);
         });
     }
+
 }
 module.exports = NodeController;

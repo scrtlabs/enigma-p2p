@@ -13,7 +13,7 @@ const nodeUtils = require('../common/utils');
 
 class EnigmaNode extends EventEmitter {
 
-    constructor(config,controller,protocolHandler){
+    constructor(config,protocolHandler){
         super();
         this.nickname = config.nickname;
         this.multiAddrs = config.multiAddrs;
@@ -27,7 +27,6 @@ class EnigmaNode extends EventEmitter {
         this.node = null;
         this.policy = new Policy();
         this._handler = protocolHandler;
-        this._controller = controller;
     }
     // constructor(multiAddrs,isDiscover, dnsNodes,nickname){
     //     super();
@@ -372,10 +371,12 @@ class EnigmaNode extends EventEmitter {
             pull(
                 pull.values([ping.toNetworkStream()]),
                 connection,
-            );
-            pull(
-                connection,
-                pull.map((data)=>{
+                pull.collect((err,response)=>{
+                    if(err){
+                        console.log("[-] Err " , err);
+                        throw err;
+                    }
+                    let data = response;
                     let pongMsg = nodeUtils.toPongMsg(data);
                     if(!pongMsg.isValidMsg()){
                         // TODO:: handle invalid msg(?)
@@ -383,12 +384,11 @@ class EnigmaNode extends EventEmitter {
                     }
                     onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
-                }),
-                // TODO:: get the pong message response. if valid keep connection otherwise drop.
-                pull.drain()
+                })
             );
         });
     }
+
     /**
      * Get some peers PeerBook
      * @param {PeerInfo} peerInfo, the target peer

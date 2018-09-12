@@ -303,19 +303,6 @@ it('#6 test refactoring', async function() {
     }
 
     return new Promise(async resolve=>{
-        let options = quickBuilderUtil.getDefaultOptions();
-        options.nickname = "peer";
-        let peer = quickBuilderUtil.quickWorker(options);
-        options.port = '10333';
-        options.nickname = "dns";
-        let bNode = quickBuilderUtil.quickWorker(options);
-        await bNode.syncRun();
-        await utils.sleep(1000);
-        await peer.syncRun();
-        await utils.sleep(1000 * 2);
-
-        await bNode.stop();
-        await peer.stop();
         resolve();
     });
 });
