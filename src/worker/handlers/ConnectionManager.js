@@ -43,17 +43,21 @@ class ConnectionManager extends EventEmitter{
         this._enigmaNode.handshake(peerInfo,withPeerList,(err,ping,pong)=>{
                 //TODO:: open question: if it's early connected peer to DNS then it would get 0
                 //TODO:: peers, in that case another query is required.
-                if(!err && pong.status() == STATUS['OK']) {
+                if(err){
+                    //TODO:: handle the error
+                    console.log("[-] Err performing handshake : " + err);
+                }
+                else if(!err && pong.status() == STATUS['OK']) {
                     this._peerBank.addPeers(pong.seeds());
                     this._handshakedDiscovery.push(pong);
+                    this.notify({
+                        'cmd' : CMD['HANDSHAKE_UPDATE'],
+                        'status' : pong.status(),
+                        'pong' : pong,
+                        'discoverd_num' : this._handshakedDiscovery.length,
+                        'who' : peerInfo
+                    });
                 }
-                this.notify({
-                    'cmd' : CMD['HANDSHAKE_UPDATE'],
-                    'status' : pong.status(),
-                    'pong' : pong,
-                    'discoverd_num' : this._handshakedDiscovery.length,
-                    'who' : peerInfo
-                });
                 if(nodeUtils.isFunction(onHandshake)){
                     onHandshake(err,ping,pong);
                 }

@@ -31,7 +31,7 @@ class NodeController{
         this._protocolHandler.on('notify',(params)=>{
             switch(params.cmd){
                 case CMD['DISCOVERED']:
-                    this._connectionManager.handshake(params.peer,true);
+                    this._connectionManager.handshake(params.params.peer,true);
                     break;
             }
         });
