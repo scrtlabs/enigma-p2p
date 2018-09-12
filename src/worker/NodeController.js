@@ -22,16 +22,24 @@ class NodeController{
             console.log("UPDATE : " , params);
         });
         this._connectionManager.on('notify', (params)=>{
-            switch(params.cmd){
+            let cmd = params.cmd;
+            params = params.params;
+            switch(cmd){
                 case CMD['HANDSHAKE_UPDATE']:
                     console.log("handshaked with someone");
+                    break;
+                case CMD['BOOTSTRAP_FINISH']:
+                    console.log("BOOTSTRAPPING WITH DNS IS DONE -> READY TO SEEDS");
+                    // start peerBank discovery
                     break;
             }
         });
         this._protocolHandler.on('notify',(params)=>{
-            switch(params.cmd){
+            let cmd = params.cmd;
+            params = params.params;
+            switch(cmd){
                 case CMD['DISCOVERED']:
-                    this._connectionManager.handshake(params.params.peer,true);
+                    this._connectionManager.handshake(params.peer,true);
                     break;
             }
         });

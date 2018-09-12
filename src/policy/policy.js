@@ -61,7 +61,14 @@ class Policy extends EventEmitter{
                 (('method' in msg && 'params') || 'result' in msg ) &&
                 'id' in msg;
     }
-
+    /** check if the number of connected bootstrap nodes is satiying
+     * @param {Integer} n, number of handshaked bootstrap nodes
+     * @returns {Boolean} bool, True => Enough, False => Otherwise */
+    isEnoughBNodes(n){
+        if(n>0){
+            return true;
+        }
+    }
     /** Policy on DHT peer status
      * takes the workers peer book and returns the number of connections needs to be added for optimal
      * also the status of the search required

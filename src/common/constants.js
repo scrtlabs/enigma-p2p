@@ -10,7 +10,8 @@ module.exports.LOG_CONFIG = {
 
 module.exports.NCMD = {
     'DISCOVERED' : 'discovered', // announcing that libp2p build a new PeerInfo from given address. (ready to be discovered) -> 'peer:discovery' event.
-    'HANDSHAKE_UPDATE' : 'handshake_update'
+    'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg
+    'BOOTSTRAP_FINISH' : 'b_update_finish', // update of the connection manager bootstrap finished state
 };
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',

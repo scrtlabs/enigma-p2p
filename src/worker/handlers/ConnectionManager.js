@@ -17,15 +17,16 @@ class ConnectionManager extends EventEmitter{
     constructor(enigmaNode, policy){
         super();
         this._enigmaNode = enigmaNode;
-        this._isDiscovering = false;
         this._policy = policy;
 
         // consistent discovery logic
         this._peerBank = new PeerBank();
         this._handshakedDiscovery = [];
-    }
-    isDiscovering(){
-        return this._isDiscovering;
+        // connection manager state
+        this._statesList = ['INITIAL','NOT_BOOTSTRAPPED','BOOTSTRAPPED'];
+        this.BOOTSTRAPPED = 'BOOTSTRAPPED';
+        this.NOT_BOOTSTRAPPED = 'NOTBOOTSTRAPPED';
+        this._state = this.NOT_BOOTSTRAPPED;
     }
     /**
      * analyze the peer book to see the dht status
@@ -33,6 +34,25 @@ class ConnectionManager extends EventEmitter{
      * */
     dhtStatus(){
         return this._policy.getDhtStauts(this._enigmaNode.getSelfPeerBook());
+    }
+    /**
+     * find peers to add to the peer bank
+     * Params required: optimalPeersNum,
+     * */
+    _startConsistentDiscovery(optimalPeersNum){
+        // assemble list of peers
+        // query X peers for findpeers : true
+        // update peer bank
+        // check if X+Current connections >= optimalPeersNum
+        // if true:
+        // - handshake with those peers with findpeers: false.
+        // - mark peer in peerBank
+        // - if Current connections >= optimalPeersNum:
+        // -- stop
+        // - else:
+        // -- query Current connections for findpeers : true
+        // recursive (?)
+
     }
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
@@ -47,7 +67,7 @@ class ConnectionManager extends EventEmitter{
                     //TODO:: handle the error
                     console.log("[-] Err performing handshake : " + err);
                 }
-                else if(!err && pong.status() == STATUS['OK']) {
+                else if(!err && pong != null && pong.status() == STATUS['OK']) {
                     this._peerBank.addPeers(pong.seeds());
                     this._handshakedDiscovery.push(pong);
                     this.notify({
@@ -57,11 +77,35 @@ class ConnectionManager extends EventEmitter{
                         'discoverd_num' : this._handshakedDiscovery.length,
                         'who' : peerInfo
                     });
+                    this._updateState();
                 }
                 if(nodeUtils.isFunction(onHandshake)){
                     onHandshake(err,ping,pong);
                 }
             });
+    }
+    /** check and set the ConnectionManager state
+     * State NOT_BOOTSTRAPPED - not boostrapped yet
+     * State BOOSTRAPPED - finished bootstrapping*/
+    _updateState(){
+        if(this._state === this.NOT_BOOTSTRAPPED){
+            // check if should be changed + notify
+            let currentNum = this._handshakedDiscovery.length;
+
+            if(this._policy.isEnoughBNodes(currentNum)){
+
+                this._state = this.BOOTSTRAPPED;
+
+                this.notify({
+                    'cmd' : CMD['BOOTSTRAP_FINISH'],
+                    'connectedNodes' : currentNum
+                });
+            }
+
+        }else if(this._state === this.BOOTSTRAPPED){
+            //TODO:: see what other states are needed if any.
+            // check if some node is missing?
+        }
     }
     /**
      * Notify observer (Some controller subscribed)
