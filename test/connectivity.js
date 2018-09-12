@@ -272,8 +272,8 @@ it('#5 should get A DNS Seeds', async function(){
         await quickBuilderUtil.runNodesInOrder(nodes);
         await utils.sleep(2000);
         // validate all connections are estavlished.
-        assert.equal(3,b1.getAllPeersInfo().length, "b1 not established peers");
-        assert.equal(3,b2.getAllPeersInfo().length, "b2 not established peers");
+        assert.equal(4,b1.getAllPeersInfo().length, "b1 not established peers");
+        assert.equal(4,b2.getAllPeersInfo().length, "b2 not established peers");
         assert.equal(2,newWorker.getAllPeersInfo().length, "newWorker not established peers");
         for(let i =0; i<peers.length;++i){
             assert.equal(1,peers[i].getAllPeersInfo().length, "peer not established peers");
