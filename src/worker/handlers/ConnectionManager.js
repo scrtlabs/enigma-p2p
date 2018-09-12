@@ -40,7 +40,7 @@ class ConnectionManager extends EventEmitter{
      * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
-        this._enigmaNode(peerInfo,withPeerList,(err,ping,pong)=>{
+        this._enigmaNode.handshake(peerInfo,withPeerList,(err,ping,pong)=>{
                 //TODO:: open question: if it's early connected peer to DNS then it would get 0
                 //TODO:: peers, in that case another query is required.
                 if(!err && pong.status() == STATUS['OK']) {

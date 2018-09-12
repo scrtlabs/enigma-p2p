@@ -33,7 +33,7 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
         this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
-        
+
     }
     getProtocolsList(){
         return this._protocols;
@@ -93,7 +93,7 @@ class ProtocolHandler extends EventEmitter{
         }
         // if currently not connected to discoverd peer
         if(!params.worker.isConnected(params.peer.id.toB58String())){
-            this.notify({'cmd':CMD['DISCOVERED'], 'params' : params});;
+            params.worker.getProtocolHandler().notify({'cmd':CMD['DISCOVERED'], 'params' : params});
         }
     }
     /** handle when all bootstrap nodes returned peers.
