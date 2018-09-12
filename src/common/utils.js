@@ -3,6 +3,7 @@ const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const constants = require('./constants');
 var randomize = require('randomatic');
+const defaultsDeep = require('@nodeutils/defaults-deep');
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
@@ -92,3 +93,26 @@ module.exports.extractId = function(url){
 module.exports.isString = function(x) {
     return Object.prototype.toString.call(x) === "[object String]"
 };
+
+module.exports.isFunction = function(functionToCheck) {
+    return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+}
+/** update the delta patch to a json object from a smaller json
+ * @param {Json} main
+ * @param {Json} patch
+ * @returns {Json} updated, the result with the patch
+ * */
+module.exports.applyDelta= function(main,patch){
+    let updated = defaultsDeep(patch, main);
+    return updated;
+};
+
+/** Turn a 1 level distionary to a list */
+module.exports.dictToList = function(dictionary){
+    let list = [];
+    for(let key in dictionary){
+        list.push(dictionary[key]);
+    }
+    return list;
+};
+

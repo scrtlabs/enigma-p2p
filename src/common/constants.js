@@ -8,6 +8,10 @@ module.exports.LOG_CONFIG = {
     'cli' : true,
 };
 
+module.exports.NCMD = {
+    'DISCOVERED' : 'discovered', // announcing that libp2p build a new PeerInfo from given address. (ready to be discovered) -> 'peer:discovery' event.
+    'HANDSHAKE_UPDATE' : 'handshake_update'
+};
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
     'PEER_CONNECT' : 'peer:connect',

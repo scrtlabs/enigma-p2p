@@ -42,6 +42,8 @@ msg #2 Boostrap node to the Worker
 
 // to : node_id : the requester_id 
 
+// PONG RESPONSE EXAMPLE
+https://paste.ubuntu.com/p/3Y7kQFBcYs/
 
 {
 	"jsonrpc" : "2.0",

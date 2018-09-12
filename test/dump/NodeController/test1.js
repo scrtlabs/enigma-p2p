@@ -23,7 +23,7 @@ async function test1(){
     let bNode = quickBuilderUtil.quickWorker(dnsOptions);
     // initialize the controller
     let pConMan = new ConnectionManager(peer,new Policy());
-    let peerController = new NodeController(peer,pConMan);
+    let peerController = new NodeController(peer,peer.getProtocolHandler(),pConMan);
     // run nodes
     await bNode.syncRun();
     await utils.sleep(1000*2);

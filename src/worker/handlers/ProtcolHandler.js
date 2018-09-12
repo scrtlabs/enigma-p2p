@@ -9,7 +9,9 @@ const EventEmitter = require('events').EventEmitter;
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
+const CMD = constants.NCMD;
 const Messages = require('../../policy/messages');
+const PeerBank = require('./PeerBank');
 
 class ProtocolHandler extends EventEmitter{
     constructor(){
@@ -31,9 +33,17 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
         this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
+        
     }
     getProtocolsList(){
         return this._protocols;
+    }
+    /**
+     * Notify observer (Some controller subscribed)
+     * @param {Json} params, MUTS CONTAIN cmd field
+     * */
+    notify(params){
+        this.emit('notify',params);
     }
     /** Handle is a dispatching function
      * It is triggerd everytime a EnigmaNode needs to dispatch some dialProtocol
@@ -81,18 +91,9 @@ class ProtocolHandler extends EventEmitter{
         if(params.worker.getSelfIdB58Str() == params.peer.id.toB58String()){
             return;
         }
+        // if currently not connected to discoverd peer
         if(!params.worker.isConnected(params.peer.id.toB58String())){
-            console.log("####################################");
-            const withPeerList = true;
-                params.worker.handshake(params.peer,withPeerList,(err,ping,pong)=>{
-                    console.log("err? " + err );
-                    console.log("ping? " + ping);
-                    console.log("pong? " + pong);
-                    //TODO:: store peer list
-                    //TODO:: open question: if it's early connected peer to DNS then it would get 0
-                    //TODO:: peers, in that case another query is required.
-
-                });
+            this.notify({'cmd':CMD['DISCOVERED'], 'params' : params});;
         }
     }
     /** handle when all bootstrap nodes returned peers.

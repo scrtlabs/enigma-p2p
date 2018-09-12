@@ -27,6 +27,7 @@
     "log": "^1.4.0",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
+    "pick-random": "^2.0.0",
     "randomatic": "^3.1.0"
   },
   "devDependencies": {

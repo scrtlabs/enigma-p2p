@@ -8,9 +8,10 @@ const Policy = require('../../policy/policy');
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
+const CMD = constants.NCMD;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
-
+const PeerBank = require('./PeerBank');
 class ConnectionManager extends EventEmitter{
 
     constructor(enigmaNode, policy){
@@ -18,6 +19,10 @@ class ConnectionManager extends EventEmitter{
         this._enigmaNode = enigmaNode;
         this._isDiscovering = false;
         this._policy = policy;
+
+        // consistent discovery logic
+        this._peerBank = new PeerBank();
+        this._handshakedDiscovery = [];
     }
     isDiscovering(){
         return this._isDiscovering;
@@ -33,9 +38,41 @@ class ConnectionManager extends EventEmitter{
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
      * @param {Function} onHandshake , (err,ping,pong)=>{}
+     * */
+    handshake(peerInfo,withPeerList,onHandshake){
+        this._enigmaNode(peerInfo,withPeerList,(err,ping,pong)=>{
+                //TODO:: open question: if it's early connected peer to DNS then it would get 0
+                //TODO:: peers, in that case another query is required.
+                if(!err && pong.status() == STATUS['OK']) {
+                    this._peerBank.addPeers(pong.seeds());
+                    this._handshakedDiscovery.push(pong);
+                }
+                this.notify({
+                    'cmd' : CMD['HANDSHAKE_UPDATE'],
+                    'status' : pong.status(),
+                    'pong' : pong,
+                    'discoverd_num' : this._handshakedDiscovery.length,
+                    'who' : peerInfo
+                });
+                if(nodeUtils.isFunction(onHandshake)){
+                    onHandshake(err,ping,pong);
+                }
+            });
+    }
+    /**
+     * Notify observer (Some controller subscribed)
+     * @param {Json} params, MUTS CONTAINT cmd field
+     * */
+    notify(params){
+        this.emit('notify',params);
+    }
+    /** Ping 0x1 message in the handshake process.
+     * @param {PeerInfo} peerInfo , the peer info to handshake with
+     * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
+     * @param {Function} onHandshake , (err,ping,pong)=>{}
      * @returns {Promise}
      * */
-    handshake(peerInfo, withPeerList){
+    sync_handshake(peerInfo, withPeerList){
         return new Promise((resolve,reject)=>{
             this._enigmaNode.handshake(peerInfo,withPeerList,(err,ping,pong)=>{
                 if(err) reject(err,ping,pong);
@@ -43,6 +80,7 @@ class ConnectionManager extends EventEmitter{
             });
         });
     }
+
     /**Send a heart-beat to some peer
      * @params {PeerInfo} peer, could be string b58 id as well (not implemented error atm for string)
      * @returns {Promise} Heartbeat result

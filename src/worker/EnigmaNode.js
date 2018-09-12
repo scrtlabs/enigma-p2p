@@ -28,18 +28,11 @@ class EnigmaNode extends EventEmitter {
         this.policy = new Policy();
         this._handler = protocolHandler;
     }
-    // constructor(multiAddrs,isDiscover, dnsNodes,nickname){
-    //     super();
-    //     this.nickname = nickname;
-    //     this.started = false;
-    //     this.node = null;
-    //     this.multiAddrs = multiAddrs;
-    //     this.isDiscover = isDiscover;
-    //     this.dnsNodes = dnsNodes;
-    //     this.policy = new Policy();
-    // }
     nickName(){
         return this.nickname;
+    }
+    getProtocolHandler(){
+        return this._handler;
     }
     isBootstrapNode(id){
         return this.dnsNodes.some(ma=>{
@@ -382,6 +375,7 @@ class EnigmaNode extends EventEmitter {
                         // TODO:: handle invalid msg(?)
                         err = '[-] Err bad pong msg recieved.';
                     }
+                    this.emit("notify",pongMsg.toNetworkStream());
                     onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
                 })
