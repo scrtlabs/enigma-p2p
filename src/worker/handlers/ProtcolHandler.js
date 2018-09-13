@@ -19,7 +19,7 @@ class ProtocolHandler extends EventEmitter{
         this._protocols = [
             PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'],
             PROTOCOLS['PEERS_PEER_BOOK'],PROTOCOLS['HEARTBEAT'],
-            PROTOCOLS['GROUP_DIAL']];
+            PROTOCOLS['GROUP_DIAL'], PROTOCOLS['FIND_PEERS']];
 
         //this._state = state;
         this.fallback = this.tempFallback;
@@ -66,8 +66,34 @@ class ProtocolHandler extends EventEmitter{
      * On a findpeers request msg
      * */
     onFindPeers(nodeBundle,params){
+        let selfNode = params.worker;
+        let peers = selfNode.getAllPeersInfo();
+        pull(
+            params.connection,
+            pull.map(data=>{
+                let findPeersRequestMsg = nodeUtils.toFindPeersReqMsg(data);
+                if(!findPeersRequestMsg.isValidMsg()){
+                    this.fallback('/findpeers/0.0 invalid findpeer request was sent to local node.');
+                    return;
+                }
 
-        
+                let maxPeers = findPeersRequestMsg.maxPeers();
+
+                if(Number.isInteger(maxPeers) && maxPeers > 0){
+                    // pick random peers as requested
+                    peers = nodeUtils.pickRandomFromList(peers,maxPeers);
+                }
+                let parsed = nodeUtils.parsePeerBook(peers);
+                let findPeersResponseMsg = new Messages.FindPeersResMsg({
+                    'from':selfNode.getSelfIdB58Str(),
+                    'to': findPeersRequestMsg.from(),
+                    'peers':parsed,
+                    'id' :findPeersRequestMsg.id()
+                });
+                return findPeersResponseMsg.toNetworkStream();
+            }),
+            params.connection
+        );
     }
 
     /** /getpeekbook protocol

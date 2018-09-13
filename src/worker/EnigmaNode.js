@@ -442,7 +442,7 @@ class EnigmaNode extends EventEmitter {
                         console.log("[-] err parsing findpeers response msg.");
                         return onResult(err,null);
                     }
-                    let findPeersResponseMsg = utils.toFindPeersResMsg(response);
+                    let findPeersResponseMsg = nodeUtils.toFindPeersResMsg(response);
                     // validate the msg (same id as request, structure etc)
                     if(!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)){
                         console.log("[-] err parsing findpeers response msg.");

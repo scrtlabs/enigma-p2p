@@ -291,7 +291,6 @@ class FindPeersReqMsg extends Msg {
 class FindPeersResMsg extends Msg {
     constructor(msgParams) {
         let finalMsg;
-
         if (utils.isString(msgParams)) {
             msgParams = JSON.parse(msgParams);
         }

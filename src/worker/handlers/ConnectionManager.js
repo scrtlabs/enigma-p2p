@@ -35,7 +35,13 @@ class ConnectionManager extends EventEmitter{
     dhtStatus(){
         return this._policy.getDhtStauts(this._enigmaNode.getSelfPeerBook());
     }
-
+    /** /findpeers/0.1
+     * */
+    findPeersRequest(peerInfo, maxPeers){
+        this._enigmaNode.findPeers(peerInfo,(err,fpReq,fpRes)=>{
+            console.log("got find peers request");
+        }, maxPeers);
+    }
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise

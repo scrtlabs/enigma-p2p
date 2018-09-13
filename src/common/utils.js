@@ -4,6 +4,7 @@ const PeerInfo = require('peer-info');
 const constants = require('./constants');
 var randomize = require('randomatic');
 const defaultsDeep = require('@nodeutils/defaults-deep');
+const pickRandom = require('pick-random');
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
@@ -82,10 +83,21 @@ module.exports.toHeartBeatReqMsg = function(data){
     return new Messages.HeartBeatReqMsg(hb);
 };
 
-/** */
+/** Map a connection stream to a findpeers request msg
+ * @param {Buffer} data ,
+ * @returns {HeartBeatReqMsg}*/
+module.exports.toFindPeersReqMsg = function(data){
+    let fp = data.toString('utf8').replace('\n', '');
+    return new Messages.FindPeersReqMsg(fp);
+};
+
+
+/** Map a connection stream to a findpeers response msg
+ * @param {Buffer} data ,
+ * @returns {FindPeersResMsg}*/
 module.exports.toFindPeersResMsg = function(data){
     let fp = data.toString('utf8').replace('\n', '');
-    return new Messages.HeartBeatResMsg(fp);
+    return new Messages.FindPeersResMsg(fp);
 };
 
 /** Extract the peer id B58 from a multiaddr (bootstrapNodes)
@@ -122,3 +134,13 @@ module.exports.dictToList = function(dictionary){
     return list;
 };
 
+
+/** pick a random number of elements from a list
+ * @param {Integer} num, if num =0 || num> list size return all list
+ * @param {Array} list , list of elements to chose from */
+module.exports.pickRandomFromList = function(list, num){
+    if(num <=0 || num >= list.length){
+        return list;
+    }
+    return pickRandom(list,{count:num});
+};
