@@ -19,6 +19,7 @@ module.exports.PROTOCOLS = {
     'PEER_DISCONNECT' : 'peer:disconnect',
     'ECHO' : '/echo',
     'PEERS_PEER_BOOK' : '/getpeerbook',
+    'FIND_PEERS' : '/findpeers/0.1',
     'HANDSHAKE' :'/handshake/0.1',
     'GROUP_DIAL' : '/groupdial',
     'HEARTBEAT' : '/heartbeat/0.1'

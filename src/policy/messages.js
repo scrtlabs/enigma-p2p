@@ -237,6 +237,116 @@ class HeartBeatResMsg extends Msg {
         return false;
     }
 }
+
+class FindPeersReqMsg extends Msg {
+    constructor(msgParams) {
+        let finalMsg;
+
+        if (utils.isString(msgParams)) {
+            msgParams = JSON.parse(msgParams);
+        }
+
+        if ("jsonrpc" in msgParams) {
+
+            finalMsg = msgParams;
+
+        } else if ("from" in msgParams && "to" in msgParams && "maxpeers" in msgParams) {
+
+            finalMsg = {
+                "jsonrpc": "2.0",
+                "method": "findpeers_req",
+                "params": [{
+                    "from": msgParams.from,
+                    "to": msgParams.to,
+                    "maxpeers" : msgParams.maxpeers
+                }],
+                "id": utils.randId()
+            };
+        }
+
+        super(finalMsg);
+
+        if(new.target === FindPeersReqMsg){
+            Object.freeze(this);
+        }
+    }
+    from(){
+        return this.rawMsg["params"][0]["from"];
+    }
+    to(){
+        return this.rawMsg["params"][0]["to"];
+    }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
+    isValidMsg(){
+        // TODO:: add extra checks.
+        return this.isValidJsonRpc();
+    }
+    maxPeers(){
+        return this.rawMsg["params"][0]["maxpeers"];
+    }
+}
+
+class FindPeersResMsg extends Msg {
+    constructor(msgParams) {
+        let finalMsg;
+
+        if (utils.isString(msgParams)) {
+            msgParams = JSON.parse(msgParams);
+        }
+        if ("jsonrpc" in msgParams && "result" in msgParams) {
+
+            finalMsg = msgParams;
+
+        } else if ("from" in msgParams && "to" in msgParams && "peers" in msgParams &&"id" in msgParams) {
+
+            finalMsg = {
+                "jsonrpc": "2.0",
+                "result": {
+                    "from": msgParams.from,
+                    "to": msgParams.to,
+                    "peers" : msgParams.peers,
+                },
+                "id": msgParams.id
+            };
+        }
+
+        super(finalMsg);
+
+        if(new.target === FindPeersResMsg){
+            Object.freeze(this);
+        }
+    }
+    from(){
+        return this.rawMsg['result']['from'];
+    }
+    to(){
+        return this.rawMsg['result']['to'];
+    }
+    peers(){
+        return this.rawMsg['result']['peers'];
+    }
+    toNetworkStream(){
+        return JSON.stringify(this);
+    }
+    isValidMsg(){
+        // TODO:: add extra checks.
+        return this.isValidJsonRpc();
+    }
+    isCompatibleWithMsg(findPeersRequest){
+        // TODO:: add extra checks.
+        let validJsonRpc =  this.isValidJsonRpc();
+        let shouldId = findPeersRequest.id();
+        let currentId = this.id();
+        let shouldTo = findPeersRequest.from();
+        let currentTo = this.to();
+        if(shouldId === currentId && shouldTo === currentTo){
+            return validJsonRpc;
+        }
+        return false;
+    }
+}
 //TODO:: Create a message structure for peer response to /getpeerbook
 //TODO:: /getpeerbook request is not needed since there's no content there.
 class GetPeerBookResonseMsg extends Msg {
@@ -254,4 +364,5 @@ module.exports.PingMsg = PingMsg;
 module.exports.PongMsg = PongMsg;
 module.exports.HeartBeatReqMsg = HeartBeatReqMsg;
 module.exports.HeartBeatResMsg = HeartBeatResMsg;
-
+module.exports.FindPeersReqMsg = FindPeersReqMsg;
+module.exports.FindPeersResMsg = FindPeersResMsg;

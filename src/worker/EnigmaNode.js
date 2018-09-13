@@ -367,7 +367,7 @@ class EnigmaNode extends EventEmitter {
                 pull.collect((err,response)=>{
                     if(err){
                         console.log("[-] Err " , err);
-                        throw err;
+                        return onHandshake(err,null,null);
                     }
                     let data = response;
                     let pongMsg = nodeUtils.toPongMsg(data);
@@ -406,6 +406,52 @@ class EnigmaNode extends EventEmitter {
                 }),
                pull.drain()
             );
+        });
+    }
+    /**
+     * Post a findpeers msg protocol request to another peer
+     * @param {PeerInfo} peerInfo, the target peer
+     * @param {Integer} maxPeers , maximal number of peers
+     * @param {Function} onResult signature (err,findPeersRequest, findPeersResponse) =>{}
+     */
+    findPeers(peerInfo,onResult,maxPeers){
+        this.dialProtocol(peerInfo,PROTOCOLS.FIND_PEERS, (connErr, connection)=>{
+
+            if(connErr){
+                console.log("[-] err connection to peer");
+                return onResult(connErr,null);
+            }
+
+            // create findpeers msg
+            let findPeersReq = new Messages.FindPeersReqMsg({
+                "from" : this.getSelfIdB58Str(),
+                "to" : peerInfo.id.toB58String(),
+                "maxpeers" : maxPeers
+            });
+
+            if(!findPeersReq.isValidMsg()){
+                console.log("[-] err creating findpeer request msg.");
+                return onResult(new Error("err creating findpeer request msg."),null);
+            }
+            // post msg
+            pull(
+                pull.values([findPeersReq.toNetworkStream()]),
+                connection,
+                pull.collect((err,response)=>{
+                    if(err){
+                        console.log("[-] err parsing findpeers response msg.");
+                        return onResult(err,null);
+                    }
+                    let findPeersResponseMsg = utils.toFindPeersResMsg(response);
+                    // validate the msg (same id as request, structure etc)
+                    if(!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)){
+                        console.log("[-] err parsing findpeers response msg.");
+                        return onResult(new Error("Invalid find peers response msg"),null);
+                    }
+                    onResult(null,findPeersReq,findPeersResponseMsg);
+                })
+            );
+
         });
     }
     /**

@@ -82,6 +82,12 @@ module.exports.toHeartBeatReqMsg = function(data){
     return new Messages.HeartBeatReqMsg(hb);
 };
 
+/** */
+module.exports.toFindPeersResMsg = function(data){
+    let fp = data.toString('utf8').replace('\n', '');
+    return new Messages.HeartBeatResMsg(fp);
+};
+
 /** Extract the peer id B58 from a multiaddr (bootstrapNodes)
  * @param {String} url
  * @returns {String} id, base 58

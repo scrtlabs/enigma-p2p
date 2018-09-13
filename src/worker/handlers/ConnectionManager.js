@@ -89,6 +89,7 @@ class ConnectionManager extends EventEmitter{
             // check if some node is missing?
         }
     }
+
     /**
      * Notify observer (Some controller subscribed)
      * @param {Json} params, MUTS CONTAINT cmd field

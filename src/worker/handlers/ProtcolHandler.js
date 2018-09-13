@@ -33,6 +33,7 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
         this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
+        this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
 
     }
     getProtocolsList(){
@@ -61,7 +62,16 @@ class ProtocolHandler extends EventEmitter{
     tempFallback(protocolName){
         console.log('[-] Err invalid protocolName: ' + protocolName);
     }
+    /** /findpeers/0.0
+     * On a findpeers request msg
+     * */
+    onFindPeers(nodeBundle,params){
+
+        
+    }
+
     /** /getpeekbook protocol
+     * !!! DEPRECATED !!
      * response with workers peer book
      * @param {PeerBundle} , nodeBundle libp2p bundle
      * @param {Json} params, {connection, worker,peer,protocol}
