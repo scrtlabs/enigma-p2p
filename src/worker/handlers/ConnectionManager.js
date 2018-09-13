@@ -40,6 +40,10 @@ class ConnectionManager extends EventEmitter{
     findPeersRequest(peerInfo, maxPeers){
         this._enigmaNode.findPeers(peerInfo,(err,fpReq,fpRes)=>{
             console.log("got find peers request");
+            // TODO:: Continue from here.
+            // TODO:: This is a helper function to get peers.
+            // TODO:: my real function is the one that will complete the dht to optimal using libp2p.findpeer and the PeerBank.
+
         }, maxPeers);
     }
     /** Ping 0x1 message in the handshake process.
