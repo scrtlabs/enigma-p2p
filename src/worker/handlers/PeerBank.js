@@ -5,6 +5,7 @@ class PeerBank{
 
     constructor(){
         this._peerBank = {};
+        this._markedPeers = {};
     }
     addPeer(peer){
         let peerId = peer.peerId.id;
@@ -44,6 +45,18 @@ class PeerBank{
             return pickRandom(list,{count:num});
         }
     };
+    /**
+     * Mark peers as searched previously - used for not repeating
+     * @param {String} peedIf, Base 58
+     * */
+    markPeer(peerId){
+        let marked = this._peerBank[peerId];
+        if(marked){
+            this.removePeer(peerId);
+            this._markedPeers[peerId] = marked;
+        }
+
+    }
     /** get all the peer bank dict
      * @param {Json} peerBank
      * */

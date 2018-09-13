@@ -35,25 +35,7 @@ class ConnectionManager extends EventEmitter{
     dhtStatus(){
         return this._policy.getDhtStauts(this._enigmaNode.getSelfPeerBook());
     }
-    /**
-     * find peers to add to the peer bank
-     * Params required: optimalPeersNum,
-     * */
-    _startConsistentDiscovery(optimalPeersNum){
-        // assemble list of peers
-        // query X peers for findpeers : true
-        // update peer bank
-        // check if X+Current connections >= optimalPeersNum
-        // if true:
-        // - handshake with those peers with findpeers: false.
-        // - mark peer in peerBank
-        // - if Current connections >= optimalPeersNum:
-        // -- stop
-        // - else:
-        // -- query Current connections for findpeers : true
-        // recursive (?)
 
-    }
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise

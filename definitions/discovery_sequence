@@ -84,6 +84,30 @@ https://paste.ubuntu.com/p/3Y7kQFBcYs/
 	"id" : ""
 }
 
+* findpeers msg *
+
+// A message requesting peers list from other peers
+
+# findpeers request
+{
+	"jsonrpc" : "2.0",
+	"method" : "findpeers_req",
+	"params" : [{"from","to", "maxpeers" :}],
+	"id" : ""
+}
+
+# findpeers response
+{
+	"jsonrpc" : "2.0",
+	"result" : {
+	    "from" : ""
+	    "to" : ""
+	    "peers" : []
+	},
+	"id" : ""
+}
+
+
 * Synchronize sequence *
 
 This sequence describes on how a new Worker gets in sync with the network state 
