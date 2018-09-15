@@ -13,14 +13,20 @@ const STATUS = constants.MSG_STATUS;
 const CMD = constants.NCMD;
 
 class NodeController{
+
     constructor(enigmaNode,protocolHandler,connectionManager){
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
         this._protocolHandler = protocolHandler;
 
-        this._engNode.on('notify', (params)=>{
-            console.log("UPDATE : " , params);
-        });
+        this._initController();
+    }
+    _initController(){
+        this._initEnigmaNode();
+        this._initConnectionManager();
+        this._initProtocolHandler();
+    }
+    _initConnectionManager(){
         this._connectionManager.on('notify', (params)=>{
             let cmd = params.cmd;
             params = params.params;
@@ -34,6 +40,13 @@ class NodeController{
                     break;
             }
         });
+    }
+    _initEnigmaNode(){
+        this._engNode.on('notify', (params)=>{
+            console.log("UPDATE : " , params);
+        });
+    }
+    _initProtocolHandler(){
         this._protocolHandler.on('notify',(params)=>{
             let cmd = params.cmd;
             params = params.params;
@@ -44,6 +57,5 @@ class NodeController{
             }
         });
     }
-
 }
 module.exports = NodeController;
