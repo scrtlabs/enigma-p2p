@@ -1,10 +1,10 @@
 const parallel = require('async/parallel');
-const EnigmaNode = require('../../../src/worker/EnigmaNode');
+const EnigmaNode = require('../../../../src/worker/EnigmaNode');
 const utils = require('../../utils');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
-const WorkerUtils = require('../../../src/common/utils');
+const WorkerUtils = require('../../../../src/common/utils');
 const Pushable = require('pull-pushable')
 const p = Pushable()
 

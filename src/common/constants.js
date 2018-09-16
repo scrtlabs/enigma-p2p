@@ -1,5 +1,5 @@
-module.exports.namespace = 'enigma';
-
+module.exports.namespace = 'ipfs';
+module.exports.configPath = '../../../configs/debug';
 module.exports.ID_LEN = 46;
 
 module.exports.LOG_CONFIG = {
@@ -10,7 +10,9 @@ module.exports.LOG_CONFIG = {
 
 module.exports.NCMD = {
     'DISCOVERED' : 'discovered', // announcing that libp2p build a new PeerInfo from given address. (ready to be discovered) -> 'peer:discovery' event.
-    'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg
+    'HANDSHAKE_OUTBOUND' :'hs_outbound', // performed handshake with some node as outbound operation, meaning, this is outbound connection.
+    'HANDSHAKE_INBOUND' :'hs_inbound', // performed answer to handshake // meaning responded to incoming request
+    'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
     'BOOTSTRAP_FINISH' : 'b_update_finish', // update of the connection manager bootstrap finished state
 };
 module.exports.PROTOCOLS = {

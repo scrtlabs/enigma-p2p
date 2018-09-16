@@ -1,17 +1,17 @@
 const parallel = require('async/parallel');
-const EnigmaNode = require('../../../src/worker/EnigmaNode');
+const EnigmaNode = require('../../../../src/worker/EnigmaNode');
 const utils = require('../../utils');
 const quickBuilderUtil = require('../../quickBuilderUtil');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
-const Policy = require('../../../src/policy/policy');
-const ProtocolHandler = require('../../../src/worker/handlers/ProtcolHandler');
-const ConnectionManager = require('../../../src/worker/handlers/ConnectionManager');
-const consts = require('../../../src/common/constants');
+const Policy = require('../../../../src/policy/policy');
+const ProtocolHandler = require('../../../../src/worker/handlers/ProtcolHandler');
+const ConnectionManager = require('../../../../src/worker/handlers/ConnectionManager');
+const consts = require('../../../../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
 const TEST_TREE = require('../../test_tree').TEST_TREE;
-const NodeController = require('../../../src/worker/NodeController');
+const NodeController = require('../../../../src/worker/NodeController');
 async function test1(){
     // configurations
     let peerOptions = quickBuilderUtil.getDefaultOptions();

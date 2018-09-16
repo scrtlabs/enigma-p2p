@@ -57,6 +57,14 @@ class PeerBank{
         }
 
     }
+    /** Mark list of peers
+     * @param {Array} peersId, list of b58 id's
+     * */
+    markPeers(peersId){
+        peersId.forEach(pid=>{
+            this.markPeer(pid);
+        });
+    }
     /** get all the peer bank dict
      * @param {Json} peerBank
      * */
@@ -66,6 +74,19 @@ class PeerBank{
 }
 
 module.exports = PeerBank;
+
+
+
+
+
+
+
+
+
+
+
+
+
 // let list = [
 //     {
 //         "peerId":{
@@ -92,5 +113,5 @@ module.exports = PeerBank;
 //
 // let p = new PeerBank();
 // p.addPeers(list);
-// let pList = p.getRandomPeers(1);
+// let pList = p.getRandomPeers(2);
 // console.log("size = > " + pList.length + " " + JSON.stringify(pList,null,2));

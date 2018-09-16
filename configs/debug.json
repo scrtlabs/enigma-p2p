@@ -1,59 +1,11 @@
-
-//// WORKER FACTORY
-////
-//// class WorkerFactory{
-////     constructor(){
-////         this.creators = {};
-////         this.creators['bootstrapCreator'] = this._createBootstrapNode;
-////         this.creators['workerCreator'] = this._createWorkerNode;
-////     }
-////     /**Create new node
-////      * @param {Json} options {
-////      *  'db' : {
-////      *      ???
-////      *  }
-////      *  'is_worker' : true,
-////      *  'is_bootstrap' : false,
-////      *  'bootstrap_nodes_list' : [],
-////      *  'port' : '0',
-////      *  'multiaddresses' : []
-////      *  'create_id' : '',
-////      *  'id_path' : '/some/path',
-////      *  'port' : '0',
-////      *  'handler' : ProtocolHandler,
-////      *  'connection_manager' : ConnectionManager,
-////      *  'polocy' : Policy
-////      *  'protocols' : [],
-////      *  'libp2p' : {
-////      *      'discovery' : 'true',
-////      *      'interval' : 2000,
-////      *      'k_bucket_size' : 20,
-////      *    }
-////      * }
-////      * */
-////     create(options){
-////         if(options['is_boostrap']){
-////             this.creators['bootstrapCreator'](options);
-////         }else if(options['is_boostrap']){
-////             this.creators['workerCreator'](options);
-////         }else{
-////             throw {"name" : "NoTypeDefined", "message" : "either boostrap or worker"};
-////         }
-////     }
-////     _createBootstrapNode(options){
-////
-////     }
-////     _createWorkerNode(options){
-////
-////     }
-//// }
-//{
-//  "p2p" : {
-//    "discovery":{
-//        "bootstrapNodes" : [],
-//        ""
-//    }
-//  },
-//  "coreIpc":{},
-//  "db":{}
-//}
+{
+  "bootstrapNodes" : ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm",
+                      "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"],
+  "optimalDht" : 4,
+  "port" : "0",
+  "nickname" : "peer",
+  "multiAddrs" : ["/ip4/0.0.0.0/tcp/"],
+  "namespace" : "ipfs",
+  "idPath" : null,
+  "isDiscover" : true
+}

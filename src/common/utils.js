@@ -5,6 +5,8 @@ const constants = require('./constants');
 var randomize = require('randomatic');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const pickRandom = require('pick-random');
+const mafmt = require('mafmt');
+const multiaddr = require('multiaddr')
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
@@ -143,4 +145,50 @@ module.exports.pickRandomFromList = function(list, num){
         return list;
     }
     return pickRandom(list,{count:num});
+};
+
+/** check if a connection string is an IPFS address
+ * @param {String} addr, /ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm
+ * @returns {Boolean} bool, true if isIpfs false otherwise.
+ * */
+module.exports.isIpfs = function(addr){
+    return _isIpfs(addr);
+};
+
+/**
+ * Connection string to PeerInfo
+ * @param {String} addr,/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm
+ * @param {Function} onResult , (err,PeerInfo)=>{}
+ * */
+module.exports.connectionStrToPeerInfo = function(addr,onResult){
+    _connectionStrToPeerInfo(addr,onResult);
+};
+
+
+function _isIpfs(addr) {
+    try {
+        return mafmt.IPFS.matches(addr);
+    } catch (e) {
+        return false;
+    }
+};
+
+
+function _connectionStrToPeerInfo(candidate,onResult){
+
+    if (!_isIpfs(candidate)) { onResult(new Error('Invalid multiaddr'), null); }
+
+    const ma = multiaddr(candidate);
+
+    const peerId = PeerId.createFromB58String(ma.getPeerId());
+
+    PeerInfo.create(peerId, (err, peerInfo) => {
+
+        if (err) {
+            onResult(err,null);
+        }else{
+            peerInfo.multiaddrs.add(ma);
+            onResult(err,peerInfo);
+        }
+    });
 };

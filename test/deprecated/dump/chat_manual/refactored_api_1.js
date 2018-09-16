@@ -1,10 +1,10 @@
 const parallel = require('async/parallel');
-const EnigmaNode = require('../../../src/worker/EnigmaNode');
+const EnigmaNode = require('../../../../src/worker/EnigmaNode');
 const utils = require('../../utils');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
-const ProtocolHandler = require('../../../src/worker/handlers/ProtcolHandler');
+const ProtocolHandler = require('../../../../src/worker/handlers/ProtcolHandler');
 
 async function run(){
     // configuration params

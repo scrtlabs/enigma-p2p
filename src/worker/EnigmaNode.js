@@ -20,7 +20,7 @@ class EnigmaNode extends EventEmitter {
         this.isDiscover = config.isDiscover;
         this.dnsNodes = config.dnsNodes;
         this._pathPeerId = null;
-        if("pathPeerId" in config){
+        if("pathPeerId" in config && config["pathPeerId"] != null && config["pathPeerId"] != undefined){
             this._pathPeerId = config.pathPeerId;
         }
         this.started = false;
@@ -375,12 +375,22 @@ class EnigmaNode extends EventEmitter {
                         // TODO:: handle invalid msg(?)
                         err = '[-] Err bad pong msg recieved.';
                     }
+
+                    // TODO:: REPLACE THAT with normal notify,
+                    //TODO:: The question is - where do i notify forall inbound/outbound handshakes see constats.js for HANDSHAKE_OUTBOUND/INBOUND commands.
                     this.emit("notify",pongMsg.toNetworkStream());
                     onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
                 })
             );
         });
+    }
+    /**
+     * Notify observer (Some controller subscribed)
+     * @param {Json} params, MUTS CONTAINT cmd field
+     * */
+    notify(params){
+        this.emit('notify',params);
     }
 
     /**

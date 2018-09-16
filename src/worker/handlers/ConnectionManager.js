@@ -12,6 +12,7 @@ const CMD = constants.NCMD;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
 const PeerBank = require('./PeerBank');
+
 class ConnectionManager extends EventEmitter{
 
     constructor(enigmaNode, policy){
@@ -38,18 +39,60 @@ class ConnectionManager extends EventEmitter{
     /** /findpeers/0.1
      * Singal request to a peer for findpeers
      * @param {PeerInfo} peerInfo , the target peer
+     * @param {Function} onResponse, callback (err,fpReq,fpRes)=>{}
      * @param {Integer} maxPeers, limit the amount of peers request
      * */
-    findPeersRequest(peerInfo, maxPeers){
+    findPeersRequest(peerInfo, onResponse, maxPeers){
         this._enigmaNode.findPeers(peerInfo,(err,fpReq,fpRes)=>{
             console.log("got find peers request");
             // TODO:: Continue from here.
             // TODO:: This is a helper function to get peers.
             // TODO:: my real function is the one that will complete the dht to optimal using libp2p.findpeer and the PeerBank.
-
+            onResponse(err,fpReq,fpRes);
         }, maxPeers);
     }
-
+    /** get k peers from the peer bank or if k is bigger than current peer bank
+     * return all existing potential peers.
+     * peers returned are NOT duplicated && NOT connected already => potential peers.
+     * */
+    _getShuffledKPotentialPeers(k){
+        let potential = this._peerBank.getRandomPeers(k);
+        let final = [];
+        potential.forEach(p=>{
+            let id = p.peerId.id;
+            if(!this._enigmaNode.isConnected(id)){
+                final.push(p);
+            }else{
+                this._peerBank.markPeer(id);
+            }
+        });
+        return final;
+    }
+    /**
+     * Send a batch of handshake requests and get all peers once done
+     * @param {Array<PeerInfo>} peersInfo, list of peers to handshake with
+     * @param {Boolean} withPeers , true => request seeds list, otherwise false.
+     * @param {Function} onAllHandshakes , (err,results)=>{}
+     * The results is == [{peerInfo,err,ping,pong},...]
+     * */
+    _sendParallelHandshakes(peersInfo, withPeers,onAllHandshakes){
+        let jobs = [];
+        peersInfo.forEach(pi=>{
+            jobs.push((cb)=>{
+                this._enigmaNode.handshake(pi,withPeers,(err,ping,pong)=>{
+                    let resultObject = {};
+                    resultObject.peerInfo = pi;
+                    resultObject.err = err;
+                    resultObject.ping = ping;
+                    resultObject.pong = pong;
+                    cb(null,resultObject);
+                });
+            });
+        });
+        parallel(jobs,(err,results)=>{
+            onAllHandshakes(err,results);
+        });
+    }
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
@@ -80,6 +123,7 @@ class ConnectionManager extends EventEmitter{
                 }
             });
     }
+
     /** check and set the ConnectionManager state
      * State NOT_BOOTSTRAPPED - not boostrapped yet
      * State BOOSTRAPPED - finished bootstrapping*/
@@ -165,3 +209,4 @@ class ConnectionManager extends EventEmitter{
 }
 
 module.exports = ConnectionManager;
+
