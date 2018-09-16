@@ -12,6 +12,7 @@ const consts = require('../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const WorkerBuilder = require('../src/worker/builder/WorkerBuilder');
+const NodeController = require('../src/worker/NodeController');
 
 const B1Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-l";
 const B1Port = "10300";
@@ -44,4 +45,41 @@ it('#1 Should test the worker builder', async function(){
 
     });
 });
+
+
+
+it('#1 Should test handshake with 1 node', async function(){
+    let tree = TEST_TREE['basic'];
+    if(!tree['all'] || !tree['#2']){
+        this.skip();
+    }
+
+    return new Promise(async (resolve)=>{
+
+        let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath" : B1Path, "nickname":"dns"});
+        let peerController = NodeController.initDefaultTemplate({"nickname":"peer"});
+
+        await dnsController._enigmaNode.syncRun();
+
+        await testUtils.sleep(1000);
+
+        await peerController._enigmaNode.syncRun();
+
+        await testUtils.sleep(1000);
+
+
+        resolve();
+    });
+});
+
+
+
+
+
+
+
+
+
+
+
 

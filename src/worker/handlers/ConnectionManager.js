@@ -15,10 +15,10 @@ const PeerBank = require('./PeerBank');
 
 class ConnectionManager extends EventEmitter{
 
-    constructor(enigmaNode, policy){
+    constructor(enigmaNode){
         super();
         this._enigmaNode = enigmaNode;
-        this._policy = policy;
+        this._policy = new Policy();
 
         // consistent discovery logic
         this._peerBank = new PeerBank();

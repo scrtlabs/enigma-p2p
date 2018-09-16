@@ -11,6 +11,10 @@
 const constants = require('../common/constants');
 const STATUS = constants.MSG_STATUS;
 const CMD = constants.NCMD;
+const EnigmaNode = require('./EnigmaNode');
+const ConnectionManager = require('./handlers/ConnectionManager');
+const WorkerBuilder = require('./builder/WorkerBuilder');
+const nodeUtils = require('../common/utils');
 
 class NodeController{
 
@@ -20,6 +24,31 @@ class NodeController{
         this._protocolHandler = protocolHandler;
 
         this._initController();
+    }
+    /**
+     * Static method a quick node builder to initiate the Controller with a template built in.
+     * Example:
+     *  let nodeController = NodeController.initDefaultTemplate({'port':'30103'},'/path/to/config.json')
+     *  nodeController.start();
+     * */
+    static initDefaultTemplate(options,configPath){
+
+        // create EnigmaNode
+        let path = null;
+
+        if(configPath)
+            path = configPath;
+
+        let config = WorkerBuilder.loadConfig(path);
+        let finalConfig = nodeUtils.applyDelta(config,options);
+        let enigmaNode = WorkerBuilder.build(finalConfig);
+
+        // create ConnectionManager
+        let connectionManager = new ConnectionManager(enigmaNode);
+
+        // create the controller instance
+        return new NodeController(enigmaNode,enigmaNode.getProtocolHandler(),connectionManager);
+
     }
     _initController(){
         this._initEnigmaNode();
