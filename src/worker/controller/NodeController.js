@@ -8,13 +8,13 @@
  * - ...TBD
  * */
 
-const constants = require('../common/constants');
+const constants = require('../../common/constants');
 const STATUS = constants.MSG_STATUS;
 const CMD = constants.NCMD;
-const EnigmaNode = require('./EnigmaNode');
-const ConnectionManager = require('./handlers/ConnectionManager');
-const WorkerBuilder = require('./builder/WorkerBuilder');
-const nodeUtils = require('../common/utils');
+const EnigmaNode = require('../EnigmaNode');
+const ConnectionManager = require('../handlers/ConnectionManager');
+const WorkerBuilder = require('../builder/WorkerBuilder');
+const nodeUtils = require('../../common/utils');
 
 class NodeController{
 
@@ -22,6 +22,8 @@ class NodeController{
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
         this._protocolHandler = protocolHandler;
+        // stats
+        this._handshaked = {};
 
         this._initController();
     }
@@ -58,10 +60,11 @@ class NodeController{
     _initConnectionManager(){
         this._connectionManager.on('notify', (params)=>{
             let cmd = params.cmd;
-            params = params.params;
+            let recieverPeerInfo = params.who;
             switch(cmd){
                 case CMD['HANDSHAKE_UPDATE']:
                     console.log("handshaked with someone");
+                    this._handshaked[recieverPeerInfo.id.toB58String()] = recieverPeerInfo;
                     break;
                 case CMD['BOOTSTRAP_FINISH']:
                     console.log("BOOTSTRAPPING WITH DNS IS DONE -> READY TO SEEDS");
@@ -85,6 +88,15 @@ class NodeController{
                     break;
             }
         });
+    }
+    engNode(){
+        return this._engNode;
+    }
+    isHandshaked(peerB58Id){
+        if(peerB58Id in this._handshaked){
+            return true;
+        }
+        return false;
     }
 }
 module.exports = NodeController;

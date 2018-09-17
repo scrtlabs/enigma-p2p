@@ -12,7 +12,7 @@ const consts = require('../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const WorkerBuilder = require('../src/worker/builder/WorkerBuilder');
-const NodeController = require('../src/worker/NodeController');
+const NodeController = require('../src/worker/controller/NodeController');
 
 const B1Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-l";
 const B1Port = "10300";
@@ -48,26 +48,30 @@ it('#1 Should test the worker builder', async function(){
 
 
 
-it('#1 Should test handshake with 1 node', async function(){
+it('#2 Should test handshake with 1 node', async function(){
     let tree = TEST_TREE['basic'];
     if(!tree['all'] || !tree['#2']){
         this.skip();
     }
-
     return new Promise(async (resolve)=>{
+        let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+        let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath" : B1Path, "nickname":"dns","bootstrapNodes":bootstrapNodes});
+        let peerController = NodeController.initDefaultTemplate({"nickname":"peer" , "bootstrapNodes":bootstrapNodes});
 
-        let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath" : B1Path, "nickname":"dns"});
-        let peerController = NodeController.initDefaultTemplate({"nickname":"peer"});
+        await dnsController.engNode().syncRun();
 
-        await dnsController._enigmaNode.syncRun();
+        await testUtils.sleep(2000);
 
-        await testUtils.sleep(1000);
+        await peerController.engNode().syncRun();
 
-        await peerController._enigmaNode.syncRun();
+        await testUtils.sleep(4000);
 
-        await testUtils.sleep(1000);
+        let peersLen = peerController.engNode().getAllPeersInfo().length;
 
+        assert.equal(1,peersLen, "error in peers len should be 1");
 
+        await dnsController.engNode().syncStop();
+        await peerController.engNode().syncStop();
         resolve();
     });
 });

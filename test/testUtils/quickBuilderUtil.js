@@ -11,4 +11,4 @@ const Pushable = require('pull-pushable')
 const consts = require('../../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
 const ProtocolHandler = require('../../src/worker/handlers/ProtcolHandler');
-const Controller = require('../../src/worker/NodeController');
+const Controller = require('../../src/worker/controller/NodeController');

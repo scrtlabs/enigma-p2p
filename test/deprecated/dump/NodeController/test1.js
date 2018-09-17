@@ -11,7 +11,7 @@ const ConnectionManager = require('../../../../src/worker/handlers/ConnectionMan
 const consts = require('../../../../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
 const TEST_TREE = require('../../test_tree').TEST_TREE;
-const NodeController = require('../../../../src/worker/NodeController');
+const NodeController = require('../../../../src/worker/controller/NodeController');
 async function test1(){
     // configurations
     let peerOptions = quickBuilderUtil.getDefaultOptions();
