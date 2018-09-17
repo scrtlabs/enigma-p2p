@@ -170,6 +170,16 @@ class ProtocolHandler extends EventEmitter{
                         "to":pingMsg.from(),
                         "status":STATUS['OK'],
                         "seeds":parsed});
+
+                    // notify
+                    //TODO:: Below commented code
+                    //TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
+                    // worker.getProtocolHandler().notify({
+                    //     'cmd' : CMD['HANDSHAKE_UPDATE'],
+                    //     'status' : pong.status(),
+                    //     'pong' : pong,
+                    //     'who' : params.peer,
+                    // });
                     // validate correctness
                     if(pong.isValidMsg()){
                         return pong.toNetworkStream();

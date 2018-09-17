@@ -7,6 +7,7 @@ const defaultsDeep = require('@nodeutils/defaults-deep');
 const pickRandom = require('pick-random');
 const mafmt = require('mafmt');
 const multiaddr = require('multiaddr')
+const timestamp = require('unix-timestamp');
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
@@ -127,6 +128,12 @@ module.exports.applyDelta= function(main,patch){
     return updated;
 };
 
+/** get current timestamp in unix format
+ * @returns {number} now e.g 1537191762.112
+ */
+module.exports.unixTimestamp = function(){
+    return timestamp.now();
+};
 /** Turn a 1 level distionary to a list */
 module.exports.dictToList = function(dictionary){
     let list = [];
@@ -192,3 +199,5 @@ function _connectionStrToPeerInfo(candidate,onResult){
         }
     });
 };
+
+

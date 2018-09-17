@@ -24,7 +24,6 @@ class ConnectionManager extends EventEmitter{
         this._peerBank = new PeerBank();
         this._handshakedDiscovery = [];
         // connection manager state
-        this._statesList = ['INITIAL','NOT_BOOTSTRAPPED','BOOTSTRAPPED'];
         this.BOOTSTRAPPED = 'BOOTSTRAPPED';
         this.NOT_BOOTSTRAPPED = 'NOTBOOTSTRAPPED';
         this._state = this.NOT_BOOTSTRAPPED;

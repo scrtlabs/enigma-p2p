@@ -28,7 +28,8 @@
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
     "pick-random": "^2.0.0",
-    "randomatic": "^3.1.0"
+    "randomatic": "^3.1.0",
+    "unix-timestamp": "^0.2.0"
   },
   "devDependencies": {
     "mocha": "^5.2.0"

@@ -11,21 +11,35 @@
 const constants = require('../../common/constants');
 const STATUS = constants.MSG_STATUS;
 const CMD = constants.NCMD;
+const STAT_TYPES = constants.STAT_TYPES;
 const EnigmaNode = require('../EnigmaNode');
 const ConnectionManager = require('../handlers/ConnectionManager');
 const WorkerBuilder = require('../builder/WorkerBuilder');
+const Stats = require('../Stats');
 const nodeUtils = require('../../common/utils');
+
+// commands
+const HandshakeUpdateCmd = require('./commands/HandshakeUpdateCmd');
 
 class NodeController{
 
     constructor(enigmaNode,protocolHandler,connectionManager){
+
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
         this._protocolHandler = protocolHandler;
-        // stats
-        this._handshaked = {};
 
+        // stats
+        this._stats = new Stats();
+
+        // init logic
         this._initController();
+
+        // commands
+        this._commands = {
+            [CMD['HANDSHAKE_UPDATE']] : new HandshakeUpdateCmd(this),
+        };
+
     }
     /**
      * Static method a quick node builder to initiate the Controller with a template built in.
@@ -63,8 +77,7 @@ class NodeController{
             let recieverPeerInfo = params.who;
             switch(cmd){
                 case CMD['HANDSHAKE_UPDATE']:
-                    console.log("handshaked with someone");
-                    this._handshaked[recieverPeerInfo.id.toB58String()] = recieverPeerInfo;
+                    this._commands[CMD['HANDSHAKE_UPDATE']].execute(params);
                     break;
                 case CMD['BOOTSTRAP_FINISH']:
                     console.log("BOOTSTRAPPING WITH DNS IS DONE -> READY TO SEEDS");
@@ -81,10 +94,13 @@ class NodeController{
     _initProtocolHandler(){
         this._protocolHandler.on('notify',(params)=>{
             let cmd = params.cmd;
-            params = params.params;
             switch(cmd){
                 case CMD['DISCOVERED']:
+                    params = params.params;
                     this._connectionManager.handshake(params.peer,true);
+                    break;
+                case CMD['HANDSHAKE_UPDATE']:
+                    this._commands[CMD['HANDSHAKE_UPDATE']].execute(params);
                     break;
             }
         });
@@ -92,11 +108,9 @@ class NodeController{
     engNode(){
         return this._engNode;
     }
-    isHandshaked(peerB58Id){
-        if(peerB58Id in this._handshaked){
-            return true;
-        }
-        return false;
+    stats(){
+        return this._stats;
     }
+
 }
 module.exports = NodeController;
