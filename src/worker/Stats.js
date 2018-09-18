@@ -60,6 +60,11 @@ class StatUpdate{
     isValid(){
         return this._valid;
     }
+    isHandshake(){
+        return (this._type === STAT_TYPES.HANDSHAKE_FAILURE) ||
+            (this._type === STAT_TYPES.HANDSHAKE_SUCCESS);
+    }
+
     static buildStatUpdate(type,params){
         let stat = null;
 
@@ -125,6 +130,8 @@ class Stats {
 
     constructor(){
         this._peerStats = {};
+        this._INBOUND = "inbound";
+        this._OUTBOUND = "outbound";
     }
     addStat(type,peerB58Id,params){
         let stat = StatUpdate.buildStatUpdate(type,params);
@@ -157,6 +164,50 @@ class Stats {
         }
 
         return handshaked;
+    }
+    /** get all the peers that asked to handshake => inbound
+     * @returns {Array} inBound, String idb58 each
+     * */
+    getAllInBoundHandshakes(){
+        return this._getAllBoundTypeHandshakes(this._INBOUND);
+    }
+    /** get all the peers that were ashed to handshake -> outbound
+     * @returns {Array} outBound, String idb58 each
+     * */
+    getAllOutBoundHandshakes(){
+        return this._getAllBoundTypeHandshakes(this._OUTBOUND);
+    }
+    /** internal - get all outbound,inbound connections
+     * @param {String} type, inbound,outbound
+     * @returns {Array} @returns {Array} boundPeers, String idb58 each
+     * */
+    _getAllBoundTypeHandshakes(type){
+        let hsPeers = this.getAllHandshakedPeers();
+        let boundPeers = [];
+        hsPeers.forEach(pid=>{
+            if(this.isConnectionTypeHSPeer(pid,type)){
+                boundPeers.push(pid);
+            }
+        });
+        return boundPeers;
+    }
+    /** check weather a peer is inbound/outbound connection or none.
+     * @param {String} peerId ,
+     * @param {String} type -inbound/outbound
+     * @returns {Boolean} true -> equal to type, false otherwise
+    */
+    isConnectionTypeHSPeer(peerIdb58, type){
+        let isBound = false;
+        let stats = this._peerStats[peerIdb58];
+        if(stats){
+            isBound = stats.some(s=>{
+                return (s.isHandshake() &&
+                    "connectionType" in s.getParams() &&
+                    s.getParams()["connectionType"] === type);
+            });
+            return isBound;
+        }
+        return isBound;
     }
     /** get all the id's of the peers that performed handshake
      *  @returns {Array} handshaked, array of Strings (b58Id's)

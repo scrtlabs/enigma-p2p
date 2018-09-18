@@ -11,12 +11,14 @@ class HandshakeUpdateAction{
     execute(params){
 
         let recieverPeerInfo = params.who;
+        let connectionType = params.connectionType;
         let status = params.status;
         let type = STAT_TYPES.HANDSHAKE_SUCCESS;
         if(status !== STATUS['OK']){
             type = STAT_TYPES.HANDSHAKE_FAILURE;
         }
-        this._controller.stats().addStat(type,recieverPeerInfo.id.toB58String(),{"peerInfo":recieverPeerInfo});
+        this._controller.stats().addStat(type,recieverPeerInfo.id.toB58String(),
+            {"peerInfo":recieverPeerInfo,'connectionType':connectionType});
     }
 }
 module.exports = HandshakeUpdateAction;

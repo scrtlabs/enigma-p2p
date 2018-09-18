@@ -132,6 +132,7 @@ class ConnectionManager extends EventEmitter{
                     this._handshakedDiscovery.push(pong);
                     this.notify({
                         'notification' : N_NOTIFICATION['HANDSHAKE_UPDATE'],
+                        'connectionType': 'outbound',
                         'status' : pong.status(),
                         'pong' : pong,
                         'discoverd_num' : this._handshakedDiscovery.length,

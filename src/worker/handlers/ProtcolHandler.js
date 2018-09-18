@@ -181,6 +181,7 @@ class ProtocolHandler extends EventEmitter{
                         }
                         worker.getProtocolHandler().notify({
                             'notification' : NOTIFICATION.HANDSHAKE_UPDATE,
+                            'connectionType': 'inbound',
                             'status' : pong.status(),
                             'pong' : pong,
                             'who' : peerInfo,
