@@ -151,6 +151,7 @@ class ProtocolHandler extends EventEmitter{
      * @param {Json} params, {connection, worker,peer,protocol}
      * */
     onHandshake(nodeBundle,params){
+
         let conn = params.connection;
         let worker = params.worker;
         pull(
@@ -170,16 +171,21 @@ class ProtocolHandler extends EventEmitter{
                         "to":pingMsg.from(),
                         "status":STATUS['OK'],
                         "seeds":parsed});
-
                     // notify
                     //TODO:: Below commented code
                     //TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
-                    // worker.getProtocolHandler().notify({
-                    //     'cmd' : CMD['HANDSHAKE_UPDATE'],
-                    //     'status' : pong.status(),
-                    //     'pong' : pong,
-                    //     'who' : params.peer,
-                    // });
+                    conn.getPeerInfo((err,peerInfo)=>{
+                        if(err){
+                            console.log('[-] err retrieving peer info from connection on handshake ', err);
+                            return;
+                        }
+                        worker.getProtocolHandler().notify({
+                            'cmd' : CMD.HANDSHAKE_UPDATE,
+                            'status' : pong.status(),
+                            'pong' : pong,
+                            'who' : peerInfo,
+                        });
+                    });
                     // validate correctness
                     if(pong.isValidMsg()){
                         return pong.toNetworkStream();

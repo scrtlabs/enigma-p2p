@@ -12,6 +12,10 @@ class Policy extends EventEmitter{
         this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS['OPTIMAL_DHT_SIZE'];
         this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS['CRITICAL_HIGH_DHT_SIZE'];
     }
+    /** get the optimal number of outbound connections */
+    getOptimalDhtSize(){
+        return this._OPTIMAL_DHT_SIZE;
+    }
     policyVersion(){
         return this._version;
     }

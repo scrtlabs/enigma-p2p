@@ -70,11 +70,18 @@ it('#2 Should test handshake with 1 node', async function(){
 
         assert.equal(1,peersLen, "error in peers len should be 1");
 
+        // validate handshake on the peer side
         let handshakedPeers = peerController.stats().getAllHandshakedPeers();
 
         assert.equal(1,handshakedPeers.length);
         assert.equal(dnsController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
 
+        // validate handshake on the dns side
+        handshakedPeers = dnsController.stats().getAllHandshakedPeers();
+
+        assert.equal(1,handshakedPeers.length);
+        assert.equal(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
+        
         await dnsController.engNode().syncStop();
         await peerController.engNode().syncStop();
         resolve();

@@ -10,14 +10,9 @@ class HandshakeUpdateCmd{
 
     execute(params){
 
-        console.log("handshaked with someone");
-
         let recieverPeerInfo = params.who;
-
         let status = params.status;
-
         let type = STAT_TYPES.HANDSHAKE_SUCCESS;
-
         if(status !== STATUS['OK']){
             type = STAT_TYPES.HANDSHAKE_FAILURE;
         }

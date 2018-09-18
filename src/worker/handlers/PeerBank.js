@@ -7,6 +7,9 @@ class PeerBank{
         this._peerBank = {};
         this._markedPeers = {};
     }
+    getPeerBankList(){
+        return nodeUtils.dictToList(this._peerBank);
+    }
     addPeer(peer){
         let peerId = peer.peerId.id;
         let final = peer;
