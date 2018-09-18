@@ -237,8 +237,60 @@ class Stats {
     isPeerExist(peerIdB58){
         return (peerIdB58 in this._peerStats);
     }
+    /** get all the active inbound connections with handshake
+     * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
+     * @returns {Array} peerIds
+     * */
+    getAllActiveInbound(activeConnectionsIds){
+        return this._getAllActiveBoundType(this._INBOUND, activeConnectionsIds);
+    }
+    /** get all the active outbound connections with handshake
+     * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
+     * @returns {Array} peerIds
+     * */
+    getAllActiveOutbound(activeConnectionsIds){
+        return this._getAllActiveBoundType(this._OUTBOUND, activeConnectionsIds);
+    }
+    _getAllActiveBoundType(type,activeConnectionsIds){
+
+        if(type !== this._INBOUND && type !== this._OUTBOUND)
+            return [];
+
+        let all = this._getAllBoundTypeHandshakes(type);
+
+        let intersection = all.filter(x => activeConnectionsIds.includes(x));
+
+        return intersection;
+    }
 }
 
 
 module.exports = Stats;
-
+//
+// let j = {
+//     "peerInfo" : {},
+//     "connectionType" : "outbound",
+// };
+//
+// let j2 = {
+//     "peerInfo" : {},
+//     "connectionType" : "inbound",
+// };
+// let s = new Stats();
+// s.addStat(STAT_TYPES.HANDSHAKE_SUCCESS, "isanid1", j);
+// s.addStat(STAT_TYPES.HANDSHAKE_SUCCESS, "isanid2", j2);
+//
+// let res = s.isConnectionTypeHSPeer("isanid1","outbound");
+//
+// console.log("res " + res);
+//
+// let ss = s.getAllInBoundHandshakes();
+// let ss2 = s.getAllOutBoundHandshakes();
+//
+// console.log(ss)
+// console.log(ss2)
+// console.log('00')
+// let rr = s.getAllActiveInbound([1,2,4,"isanid1", "isanid2"])
+// console.log(rr);
+// rr = s.getAllActiveOutbound([1,2,4,"isanid1", "isanid2"])
+// console.log(rr);
