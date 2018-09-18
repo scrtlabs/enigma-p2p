@@ -8,7 +8,7 @@ module.exports.LOG_CONFIG = {
     'cli' : true,
 };
 
-module.exports.NCMD = {
+module.exports.NODE_NOTIFICATIONS = {
     'DISCOVERED' : 'discovered', // announcing that libp2p build a new PeerInfo from given address. (ready to be discovered) -> 'peer:discovery' event.
     'HANDSHAKE_OUTBOUND' :'hs_outbound', // performed handshake with some node as outbound operation, meaning, this is outbound connection.
     'HANDSHAKE_INBOUND' :'hs_inbound', // performed answer to handshake // meaning responded to incoming request

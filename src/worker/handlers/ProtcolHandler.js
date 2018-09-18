@@ -9,7 +9,7 @@ const EventEmitter = require('events').EventEmitter;
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
-const CMD = constants.NCMD;
+const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const Messages = require('../../policy/messages');
 const PeerBank = require('./PeerBank');
 
@@ -41,7 +41,7 @@ class ProtocolHandler extends EventEmitter{
     }
     /**
      * Notify observer (Some controller subscribed)
-     * @param {Json} params, MUTS CONTAIN cmd field
+     * @param {Json} params, MUTS CONTAIN notification field
      * */
     notify(params){
         this.emit('notify',params);
@@ -129,7 +129,7 @@ class ProtocolHandler extends EventEmitter{
         }
         // if currently not connected to discoverd peer
         if(!params.worker.isConnected(params.peer.id.toB58String())){
-            params.worker.getProtocolHandler().notify({'cmd':CMD['DISCOVERED'], 'params' : params});
+            params.worker.getProtocolHandler().notify({'notification':NOTIFICATION['DISCOVERED'], 'params' : params});
         }
     }
     /** handle when all bootstrap nodes returned peers.
@@ -180,7 +180,7 @@ class ProtocolHandler extends EventEmitter{
                             return;
                         }
                         worker.getProtocolHandler().notify({
-                            'cmd' : CMD.HANDSHAKE_UPDATE,
+                            'notification' : NOTIFICATION.HANDSHAKE_UPDATE,
                             'status' : pong.status(),
                             'pong' : pong,
                             'who' : peerInfo,

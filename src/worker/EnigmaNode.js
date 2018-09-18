@@ -377,7 +377,7 @@ class EnigmaNode extends EventEmitter {
                     }
 
                     // TODO:: REPLACE THAT with normal notify,
-                    //TODO:: The question is - where do i notify forall inbound/outbound handshakes see constats.js for HANDSHAKE_OUTBOUND/INBOUND commands.
+                    //TODO:: The question is - where do i notify forall inbound/outbound handshakes see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
                     this.emit("notify",pongMsg.toNetworkStream());
                     onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
@@ -387,7 +387,7 @@ class EnigmaNode extends EventEmitter {
     }
     /**
      * Notify observer (Some controller subscribed)
-     * @param {Json} params, MUTS CONTAINT cmd field
+     * @param {Json} params, MUTS CONTAINT notification field
      * */
     notify(params){
         this.emit('notify',params);

@@ -81,7 +81,7 @@ it('#2 Should test handshake with 1 node', async function(){
 
         assert.equal(1,handshakedPeers.length);
         assert.equal(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
-        
+
         await dnsController.engNode().syncStop();
         await peerController.engNode().syncStop();
         resolve();

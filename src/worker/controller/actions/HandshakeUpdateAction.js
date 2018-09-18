@@ -2,7 +2,7 @@
 const constants = require('../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
-class HandshakeUpdateCmd{
+class HandshakeUpdateAction{
 
     constructor(controller){
         this._controller = controller;
@@ -19,4 +19,4 @@ class HandshakeUpdateCmd{
         this._controller.stats().addStat(type,recieverPeerInfo.id.toB58String(),{"peerInfo":recieverPeerInfo});
     }
 }
-module.exports = HandshakeUpdateCmd;
+module.exports = HandshakeUpdateAction;

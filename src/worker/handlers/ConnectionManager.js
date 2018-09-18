@@ -8,7 +8,7 @@ const Policy = require('../../policy/policy');
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
-const CMD = constants.NCMD;
+const N_NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
 const PeerBank = require('./PeerBank');
@@ -131,7 +131,7 @@ class ConnectionManager extends EventEmitter{
                     this._peerBank.addPeers(pong.seeds());
                     this._handshakedDiscovery.push(pong);
                     this.notify({
-                        'cmd' : CMD['HANDSHAKE_UPDATE'],
+                        'notification' : N_NOTIFICATION['HANDSHAKE_UPDATE'],
                         'status' : pong.status(),
                         'pong' : pong,
                         'discoverd_num' : this._handshakedDiscovery.length,
@@ -158,7 +158,7 @@ class ConnectionManager extends EventEmitter{
                 this._state = this.BOOTSTRAPPED;
 
                 this.notify({
-                    'cmd' : CMD['BOOTSTRAP_FINISH'],
+                    'notification' : N_NOTIFICATION['BOOTSTRAP_FINISH'],
                     'connectedNodes' : currentNum
                 });
             }
@@ -171,7 +171,7 @@ class ConnectionManager extends EventEmitter{
 
     /**
      * Notify observer (Some controller subscribed)
-     * @param {Json} params, MUTS CONTAINT cmd field
+     * @param {Json} params, MUTS CONTAINT notification field
      * */
     notify(params){
         this.emit('notify',params);

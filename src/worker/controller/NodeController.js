@@ -10,7 +10,7 @@
 
 const constants = require('../../common/constants');
 const STATUS = constants.MSG_STATUS;
-const CMD = constants.NCMD;
+const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const STAT_TYPES = constants.STAT_TYPES;
 const EnigmaNode = require('../EnigmaNode');
 const ConnectionManager = require('../handlers/ConnectionManager');
@@ -18,8 +18,8 @@ const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
 const nodeUtils = require('../../common/utils');
 
-// commands
-const HandshakeUpdateCmd = require('./commands/HandshakeUpdateCmd');
+// actions
+const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
 
 class NodeController{
 
@@ -35,9 +35,9 @@ class NodeController{
         // init logic
         this._initController();
 
-        // commands
-        this._commands = {
-            [CMD['HANDSHAKE_UPDATE']] : new HandshakeUpdateCmd(this),
+        // actions
+        this._actions = {
+            [NOTIFICATION['HANDSHAKE_UPDATE']] : new HandshakeUpdateAction(this),
         };
 
     }
@@ -73,13 +73,13 @@ class NodeController{
     }
     _initConnectionManager(){
         this._connectionManager.on('notify', (params)=>{
-            let cmd = params.cmd;
+            let notification = params.notification;
             let recieverPeerInfo = params.who;
-            switch(cmd){
-                case CMD['HANDSHAKE_UPDATE']:
-                    this._commands[CMD['HANDSHAKE_UPDATE']].execute(params);
+            switch(notification){
+                case NOTIFICATION['HANDSHAKE_UPDATE']:
+                    this._actions[NOTIFICATION['HANDSHAKE_UPDATE']].execute(params);
                     break;
-                case CMD['BOOTSTRAP_FINISH']:
+                case NOTIFICATION['BOOTSTRAP_FINISH']:
                     console.log("BOOTSTRAPPING WITH DNS IS DONE -> READY TO SEEDS");
                     // start peerBank discovery
                     break;
@@ -93,14 +93,14 @@ class NodeController{
     }
     _initProtocolHandler(){
         this._protocolHandler.on('notify',(params)=>{
-            let cmd = params.cmd;
-            switch(cmd){
-                case CMD['DISCOVERED']:
+            let notification = params.notification;
+            switch(notification){
+                case NOTIFICATION['DISCOVERED']:
                     params = params.params;
                     this._connectionManager.handshake(params.peer,true);
                     break;
-                case CMD['HANDSHAKE_UPDATE']:
-                    this._commands[CMD['HANDSHAKE_UPDATE']].execute(params);
+                case NOTIFICATION['HANDSHAKE_UPDATE']:
+                    this._actions[NOTIFICATION['HANDSHAKE_UPDATE']].execute(params);
                     break;
             }
         });
