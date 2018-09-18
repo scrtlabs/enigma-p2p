@@ -33,7 +33,7 @@ class ConnectionManager extends EventEmitter{
      * */
     // discover(){
     //     let optimalLen = this._policy.getOptimalDhtSize();
-    //     //TODO:: Change to !! getAllInboundPeersInfo() !!
+    //     //TODO:: Change to !! getAllInboundPeersInfo() !! already done in Stats class.
     //     let currentLen = this._enigmaNode.getAllPeersInfo().length;
     //     let delta = Math.abs(optimalLen - currentLen);
     //     let peerBankLen = this._peerBank.getPeerBankList().length;
