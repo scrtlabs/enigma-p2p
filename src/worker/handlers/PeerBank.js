@@ -21,6 +21,9 @@ class PeerBank{
         }
         this._peerBank[peerId] = final;
     }
+    /**
+     * @param {Array<PeerInfo>} peers
+     * */
     addPeers(peers){
         peers.forEach(p=>{
             this.addPeer(p);

@@ -62,10 +62,16 @@ class ConnectionManager extends EventEmitter{
             onResponse(err,results);
         });
     }
+    /** update the peer bank with new list - update duplicates
+     * @param {Array<PeersInfo>} peersInfo
+     * */
+    _updatePeerBank(peersInfo){
+        this._peerBank.addPeers(peersInfo);
+    }
     /** get all the handshaked peers
      * @returns {Array<PeerInfo>} handshaked peers.
      * */
-    getAllHandshakedPeers(){
+    _getAllHandshakedPeers(){
         let currentPeerIds = this._enigmaNode.getAllPeersIds();
 
         let handshakedIds = this._ctx.getAllActiveHandshakedPeers(currentPeerIds);
@@ -73,6 +79,80 @@ class ConnectionManager extends EventEmitter{
         let peersInfo = this._enigmaNode.getPeersInfoList(handshakedIds);
 
         return peersInfo;
+    }
+    /** get all the handshaked outbound peers
+     * @retuns {Array<PeerInfo> outbound handshaked peers }
+     * */
+    _getAllOutboundPeers(){
+        let currentPeerIds = this._enigmaNode.getAllPeersIds();
+
+        let handshakedIds = this._ctx.getAllActiveOutbound(currentPeerIds);
+
+        let peersInfo = this._enigmaNode.getPeersInfoList(handshakedIds);
+
+        return peersInfo;
+    }
+    // /** Try to connect to peers to get optimal number
+    //  * */
+    // tryDiscovery(){
+    //     let optimal = this._policy.getOptimalDhtSize();
+    //     let current = this._getAllOutboundPeers();
+    //     let delta = optimal - current;
+    //
+    //     // if delta<0 or not critical STOP
+    //     if(!this._isCriticalDhtSize()){
+    //         return;
+    //     }
+    //
+    //     // get potential peers - list of PeerInfo
+    //     let wishList = this._getShuffledKPotentialPeers(delta);
+    //
+    //     // required peers to explore
+    //     let peerGapSize = wishList.length - delta;
+    //
+    //     // fill the gap
+    //     if(peerGapSize > 0){
+    //         let all = this._enigmaNode.getAllPeersInfo();
+    //         this.groupFindPeersRequest(all,(err,results)=>{
+    //
+    //             if(err){
+    //                 // TODO:: do something
+    //                 return;
+    //             }
+    //             let newPeers = [];
+    //
+    //             results.forEach(result=>{
+    //                 if(result.err){
+    //                     //TODO:: do something
+    //                     return;
+    //                 }
+    //                 newPeers.push(result.fpRes.peers());
+    //             });
+    //
+    //             this._updatePeerBank(newPeers);
+    //
+    //             wishList = this._getShuffledKPotentialPeers(delta);
+    //
+    //             this._sendParallelHandshakes(wishList,true,(err,results)=>{
+    //
+    //             })
+    //         });
+    //     }
+    // }
+
+    /** if the dht size is critical (very low in policy)
+     * @returns {Boolean} true - critical, false otherwise
+     * */
+    _isCriticalDhtSize(){
+        let optimal = this._policy.getOptimalDhtSize();
+        let current = this._getAllOutboundPeers();
+        let delta = optimal - current;
+
+        if(delta<0){
+            return false;
+        }
+
+        return (this._policy.getCriticalLowDhtSize() >= delta);
     }
     /**
      * analyze the peer book to see the dht status
@@ -99,6 +179,7 @@ class ConnectionManager extends EventEmitter{
     /** get k peers from the peer bank or if k is bigger than current peer bank
      * return all existing potential peers.
      * peers returned are NOT duplicated && NOT connected already => potential peers.
+     * @returns {Array<PeerInfo>} final
      * */
     _getShuffledKPotentialPeers(k){
         let potential = this._peerBank.getRandomPeers(k);
