@@ -27,8 +27,36 @@ class ConnectionManager extends EventEmitter{
         this.BOOTSTRAPPED = 'BOOTSTRAPPED';
         this.NOT_BOOTSTRAPPED = 'NOTBOOTSTRAPPED';
         this._state = this.NOT_BOOTSTRAPPED;
+        // the state indicates that currently the connection manager is already in search for new peers
+        // to be added to the PeerBank (not establishing connection nesscearly)
+        this._searchState = false;
+
     }
-   
+    /** group parallel batched request to find peers form
+     * given list
+     * @param {Array<PeerInfo>} peersInfo
+     * @param {Function} onResponse (err,results)=>{}, 1 result ={err,fpRes,fpRes
+     * @param {Integer} maxPeers, add a limit to the peer request for the peer to respect.
+     * */
+    groupFindPeersRequest(peersInfo, onResponse , maxPeers){
+        let jobs = [];
+        peersInfo.forEach(pi=>{
+            jobs.push((cb)=>{
+                this.findPeersRequest(pi,(err,fpReq,fpRes)=>{
+
+                    let resObj = {};
+                    resObj.err = err;
+                    resObj.fpReq = fpReq;
+                    resObj.fpRes = fpRes;
+
+                    cb(null,resObj);
+                },maxPeers);
+            });
+        });
+        parallel(jobs,(err,results)=>{
+            onResponse(err,results);
+        });
+    }
     /**
      * analyze the peer book to see the dht status
      * @returns {Json}  {status: "{STABLE}/{SYNC}/{CRITICAL_LOW}/{CRITICAL_HIGH/DISCONNECTED}", number: number of peers to add/ remove(?)}
