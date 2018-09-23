@@ -19,7 +19,8 @@ class ConnectionManager extends EventEmitter{
         super();
         this._enigmaNode = enigmaNode;
         this._policy = new Policy();
-
+        // context (currently Stat class)
+        this._ctx = null;
         // consistent discovery logic
         this._peerBank = new PeerBank();
         this._handshakedDiscovery = [];
@@ -31,6 +32,10 @@ class ConnectionManager extends EventEmitter{
         // to be added to the PeerBank (not establishing connection nesscearly)
         this._searchState = false;
 
+    }
+    /** add context */
+    addNewContext(context){
+        this._ctx = context;
     }
     /** group parallel batched request to find peers form
      * given list
@@ -56,6 +61,18 @@ class ConnectionManager extends EventEmitter{
         parallel(jobs,(err,results)=>{
             onResponse(err,results);
         });
+    }
+    /** get all the handshaked peers
+     * @returns {Array<PeerInfo>} handshaked peers.
+     * */
+    getAllHandshakedPeers(){
+        let currentPeerIds = this._enigmaNode.getAllPeersIds();
+
+        let handshakedIds = this._ctx.getAllActiveHandshakedPeers(currentPeerIds);
+
+        let peersInfo = this._enigmaNode.getPeersInfoList(handshakedIds);
+
+        return peersInfo;
     }
     /**
      * analyze the peer book to see the dht status

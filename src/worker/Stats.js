@@ -221,6 +221,15 @@ class Stats {
         });
         return handshakedPeers;
     }
+    /** get all the id's of the peers that performed handshake and are currently connected
+     *  @param {Array<String>} activeConnectionsIds , b58 ids
+     *  @returns {Array} handshaked, array of Strings (b58Id's)
+     * */
+    getAllActiveHandshakedPeers(activeConnectionsIds){
+        let all = this.getAllHandshakedPeers();
+        let intersection = all.filter(p=> activeConnectionsIds.includes(p));
+        return intersection;
+    }
     getOrderdStatsByType(type,peerB58Id){
         let stats = this.getPeersStats(peerB58Id);
         if(stats){

@@ -72,6 +72,9 @@ class NodeController{
         this._initProtocolHandler();
     }
     _initConnectionManager(){
+
+        this._connectionManager.addNewContext(this._stats);
+
         this._connectionManager.on('notify', (params)=>{
             let notification = params.notification;
             let recieverPeerInfo = params.who;

@@ -259,6 +259,23 @@ class EnigmaNode extends EventEmitter {
         });
         return result;
     }
+    /** Get the peer info of a given list of id's
+     * @param {Array<String>} idsList , b58
+     * @returns {Array<PeerInfo>} peersInfo
+     * */
+    getPeersInfoList(idList){
+        let peers =idList;
+        let result = [];
+        // get peers info by id
+        peers.forEach(peer=>{
+            try{
+                result.push(this.node.peerBook.get(peer));
+            }catch(err){
+                console.log('[-] Error finding peer',err);
+            }
+        });
+        return result;
+    }
     /**
      * Start the node.
      * @param {Function} callback is a function with the following function (err) {} signature,
