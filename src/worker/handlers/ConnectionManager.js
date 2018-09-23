@@ -28,28 +28,7 @@ class ConnectionManager extends EventEmitter{
         this.NOT_BOOTSTRAPPED = 'NOTBOOTSTRAPPED';
         this._state = this.NOT_BOOTSTRAPPED;
     }
-    /**discovery - top level function to discover peers according to the persistent
-     * discovery spec
-     * */
-    // discover(){
-    //     let optimalLen = this._policy.getOptimalDhtSize();
-    //     //TODO:: Change to !! getAllInboundPeersInfo() !! already done in Stats class.
-    //     let currentLen = this._enigmaNode.getAllPeersInfo().length;
-    //     let delta = Math.abs(optimalLen - currentLen);
-    //     let peerBankLen = this._peerBank.getPeerBankList().length;
-    //
-    //     // if there are enough peers already (optimal dht)
-    //     if(currentLen >= optimalLen)
-    //         return;
-    //
-    //     if(delta >= peerBankLen){
-    //         let wishList = this._peerBank.getRandomPeers(delta);
-    //
-    //     }else{
-    //         // TODO:: searchPeers and re-call discover
-    //     }
-    //
-    // }
+   
     /**
      * analyze the peer book to see the dht status
      * @returns {Json}  {status: "{STABLE}/{SYNC}/{CRITICAL_LOW}/{CRITICAL_HIGH/DISCONNECTED}", number: number of peers to add/ remove(?)}
