@@ -36,9 +36,8 @@ class PeerBank{
      * @param {Array<PeerInfo>} peers
      * @param {Array<String>} activeConnections , b58 ids
      * */
-    addPeersNoActive(peers, activeConnections, selfId){
+    addPeersNoActive(peers, activeConnections){
         let filterd = peers.filter(p => !activeConnections.includes(p.peerId.id));
-        filterd = filterd.filter(p => p !== selfId);
         filterd.forEach(p=>{
             this.addPeer(p);
         });

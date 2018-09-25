@@ -63,10 +63,14 @@ class ConnectionManager extends EventEmitter{
         });
     }
     /** update the peer bank with new list - update duplicates
-     * @param {Array<PeersInfo>} peersInfo
+     * @param {PongResMsg} pong,
+     * @param {String} the new peer that was handshaked b58 id.
      * */
-    _updatePeerBank(peersInfo){
-        this._peerBank.addPeers(peersInfo);
+    _updateHandshakePeerBank(pong,newPeerId){
+        let notToAdd = this._enigmaNode.getAllPeersIds();
+        notToAdd.push(this._enigmaNode.getSelfIdB58Str());
+        this._peerBank.addPeersNoActive(pong.seeds(), notToAdd);
+        this._peerBank.markPeers([newPeerId]);
     }
     /** get all the handshaked peers
      * @returns {Array<PeerInfo>} handshaked peers.
@@ -237,9 +241,7 @@ class ConnectionManager extends EventEmitter{
                     console.log("[-] Err performing handshake : " + err);
                 }
                 else if(!err && pong != null && pong.status() == STATUS['OK']) {
-                    let notToAdd = this._enigmaNode.getAllPeersIds();
-                    this._peerBank.addPeersNoActive(pong.seeds(), notToAdd, this._enigmaNode.getSelfIdB58Str());
-                    this._peerBank.markPeers([peerInfo.id.toB58String()]);
+                    this._updateHandshakePeerBank(pong,peerInfo.id.toB58String());
                     this._handshakedDiscovery.push(pong);
                     this.notify({
                         'notification' : N_NOTIFICATION['HANDSHAKE_UPDATE'],
