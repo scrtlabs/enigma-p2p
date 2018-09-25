@@ -22,6 +22,7 @@ const nodeUtils = require('../../common/utils');
 const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
+const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
 
 class NodeController{
 
@@ -42,6 +43,7 @@ class NodeController{
             [NOTIFICATION['HANDSHAKE_UPDATE']] : new HandshakeUpdateAction(this),
             [NOTIFICATION['DISCOVERED']] : new DoHandshakeAction(this),
             [NOTIFICATION['BOOTSTRAP_FINISH']] : new BootstrapFinishAction(this),
+            [NOTIFICATION['CONSISTENT_DISCOVERY']] : new ConsistentDiscoveryAction(this),
         };
     }
     /**

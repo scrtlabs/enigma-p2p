@@ -14,6 +14,7 @@ module.exports.NODE_NOTIFICATIONS = {
     'HANDSHAKE_INBOUND' :'hs_inbound', // performed answer to handshake // meaning responded to incoming request
     'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
     'BOOTSTRAP_FINISH' : 'b_update_finish', // update of the connection manager bootstrap finished state
+    'CONSISTENT_DISCOVERY' : 'c_discover', // run consistent discovery mechanism
 
 };
 module.exports.PROTOCOLS = {
