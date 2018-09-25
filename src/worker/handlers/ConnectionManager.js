@@ -237,7 +237,9 @@ class ConnectionManager extends EventEmitter{
                     console.log("[-] Err performing handshake : " + err);
                 }
                 else if(!err && pong != null && pong.status() == STATUS['OK']) {
-                    this._peerBank.addPeers(pong.seeds());
+                    let notToAdd = this._enigmaNode.getAllPeersIds();
+                    this._peerBank.addPeersNoActive(pong.seeds(), notToAdd, this._enigmaNode.getSelfIdB58Str());
+                    this._peerBank.markPeers([peerInfo.id.toB58String()]);
                     this._handshakedDiscovery.push(pong);
                     this.notify({
                         'notification' : N_NOTIFICATION['HANDSHAKE_UPDATE'],

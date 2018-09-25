@@ -90,7 +90,7 @@ class NodeController{
     }
     _initEnigmaNode(){
         this._engNode.on('notify', (params)=>{
-            console.log("[+] handshake done with " + params.from() + " done, #" + params.seeds().length + " seeds." );
+            console.log("[+] handshake with " + params.from() + " done, #" + params.seeds().length + " seeds." );
         });
     }
     _initProtocolHandler(){

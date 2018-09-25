@@ -25,7 +25,21 @@ class PeerBank{
      * @param {Array<PeerInfo>} peers
      * */
     addPeers(peers){
-        peers.forEach(p=>{
+        throw Error("addPeers is deprecated, use addPeersNoActive instead.");
+        // peers.forEach(p=>{
+        //     this.addPeer(p);
+        // });
+    }
+    /**
+     * This add peers BUT with removal of active connections meaning,
+     * if A-> B and A->C, when  C->B then B will send A and we dont want it since we already connected to it.
+     * @param {Array<PeerInfo>} peers
+     * @param {Array<String>} activeConnections , b58 ids
+     * */
+    addPeersNoActive(peers, activeConnections, selfId){
+        let filterd = peers.filter(p => !activeConnections.includes(p.peerId.id));
+        filterd = filterd.filter(p => p !== selfId);
+        filterd.forEach(p=>{
             this.addPeer(p);
         });
     }
