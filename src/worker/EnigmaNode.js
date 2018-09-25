@@ -207,10 +207,11 @@ class EnigmaNode extends EventEmitter {
      * Get a string array of full multiaddresses of the Node.
      * @returns {Array} str_addrs, array of multi-addresses in str format
      */
+    //maStr = '/ip4/127.0.0.1/tcp/36601/ipfs/QmdvtnrtdzgXreTPRWfDbPguNsLC7vq4MK4AULKxfHU73F/';
     getListeningAddrs(){
         let str_addrs = [];
         this.node.peerInfo.multiaddrs.forEach(addr=>{
-            str_addrs.push(addr.toString() + '/ipfs' + this.node.peerInfo.id.toB58String());
+            str_addrs.push(addr.toString());
         });
         return str_addrs;
     }
@@ -395,7 +396,7 @@ class EnigmaNode extends EventEmitter {
 
                     // TODO:: REPLACE THAT with normal notify,
                     //TODO:: The question is - where do i notify forall inbound/outbound handshakes see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
-                    this.emit("notify",pongMsg.toNetworkStream());
+                    this.emit("notify",pongMsg);
                     onHandshake(err,ping,pongMsg);
                     return pongMsg.toNetworkStream();
                 })

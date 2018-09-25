@@ -92,54 +92,55 @@ class ConnectionManager extends EventEmitter{
 
         return peersInfo;
     }
-    // /** Try to connect to peers to get optimal number
-    //  * */
-    // tryDiscovery(){
-    //     let optimal = this._policy.getOptimalDhtSize();
-    //     let current = this._getAllOutboundPeers();
-    //     let delta = optimal - current;
-    //
-    //     // if delta<0 or not critical STOP
-    //     if(!this._isCriticalDhtSize()){
-    //         return;
-    //     }
-    //
-    //     // get potential peers - list of PeerInfo
-    //     let wishList = this._getShuffledKPotentialPeers(delta);
-    //
-    //     // required peers to explore
-    //     let peerGapSize = wishList.length - delta;
-    //
-    //     // fill the gap
-    //     if(peerGapSize > 0){
-    //         let all = this._enigmaNode.getAllPeersInfo();
-    //         this.groupFindPeersRequest(all,(err,results)=>{
-    //
-    //             if(err){
-    //                 // TODO:: do something
-    //                 return;
-    //             }
-    //             let newPeers = [];
-    //
-    //             results.forEach(result=>{
-    //                 if(result.err){
-    //                     //TODO:: do something
-    //                     return;
-    //                 }
-    //                 newPeers.push(result.fpRes.peers());
-    //             });
-    //
-    //             this._updatePeerBank(newPeers);
-    //
-    //             wishList = this._getShuffledKPotentialPeers(delta);
-    //
-    //             this._sendParallelHandshakes(wishList,true,(err,results)=>{
-    //
-    //             })
-    //         });
-    //     }
-    // }
+    tryConnect(onResult){
 
+        let current = this._getAllOutboundPeers();
+        let optimal = this._policy.getOptimalDhtSize();
+        let delta = optimal - current;
+
+        if(delta <= 0)
+            return;
+
+        let wishList = this._getShuffledKPotentialPeers(delta);
+
+        if(wishList.length > 0){
+
+            this._sendParallelHandshakes(wishList, true, onResult);
+
+        }else{
+            onResult("peer bank is empty", null);
+        }
+
+    }
+    expandPeerBank(onResult){
+        let hsPeers = this._getAllHandshakedPeers();
+
+        this.groupFindPeersRequest(hsPeers,(err,results)=>{
+
+            if(err){
+                onResult(err,results);
+            }
+
+            let newPeers = [];
+
+            results.forEach(res=>{
+                if(res.err){
+
+                }else{
+                    let p = res.fpRes.peers();
+                    newPeers.push.apply(newPeers,p);
+                }
+            });
+
+            this._peerBank.addPeers(newPeers);
+
+            onResult(null,{"type": "expanding"});
+        });
+    }
+
+    handleTryConnect(err,results){
+
+    }
     /** if the dht size is critical (very low in policy)
      * @returns {Boolean} true - critical, false otherwise
      * */
@@ -194,6 +195,9 @@ class ConnectionManager extends EventEmitter{
         });
         return final;
     }
+    getAllPeerBank(){
+        return this._peerBank.getAllPeerBank();
+    }
     /**
      * Send a batch of handshake requests and get all peers once done
      * @param {Array<PeerInfo>} peersInfo, list of peers to handshake with
@@ -205,7 +209,7 @@ class ConnectionManager extends EventEmitter{
         let jobs = [];
         peersInfo.forEach(pi=>{
             jobs.push((cb)=>{
-                this._enigmaNode.handshake(pi,withPeers,(err,ping,pong)=>{
+                this.handshake(pi,withPeers,(err,ping,pong)=>{
                     let resultObject = {};
                     resultObject.peerInfo = pi;
                     resultObject.err = err;

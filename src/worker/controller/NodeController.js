@@ -20,6 +20,8 @@ const nodeUtils = require('../../common/utils');
 
 // actions
 const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
+const DoHandshakeAction = require('./actions/DoHandshakeAction');
+const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
 
 class NodeController{
 
@@ -38,8 +40,9 @@ class NodeController{
         // actions
         this._actions = {
             [NOTIFICATION['HANDSHAKE_UPDATE']] : new HandshakeUpdateAction(this),
+            [NOTIFICATION['DISCOVERED']] : new DoHandshakeAction(this),
+            [NOTIFICATION['BOOTSTRAP_FINISH']] : new BootstrapFinishAction(this),
         };
-
     }
     /**
      * Static method a quick node builder to initiate the Controller with a template built in.
@@ -77,46 +80,82 @@ class NodeController{
 
         this._connectionManager.on('notify', (params)=>{
             let notification = params.notification;
-            let recieverPeerInfo = params.who;
-            switch(notification){
-                case NOTIFICATION['HANDSHAKE_UPDATE']:
-                    this._actions[NOTIFICATION['HANDSHAKE_UPDATE']].execute(params);
-                    break;
-                case NOTIFICATION['BOOTSTRAP_FINISH']:
-                    console.log("BOOTSTRAPPING WITH DNS IS DONE -> READY TO SEEDS");
-                    // start peerBank discovery
-                    break;
+
+            let action = this._actions[notification];
+
+            if(action !== undefined){
+                this._actions[notification].execute(params);
             }
         });
     }
     _initEnigmaNode(){
         this._engNode.on('notify', (params)=>{
-            console.log("UPDATE : " , params);
+            console.log("[+] handshake done with " + params.from() + " done, #" + params.seeds().length + " seeds." );
         });
     }
     _initProtocolHandler(){
         this._protocolHandler.on('notify',(params)=>{
             let notification = params.notification;
-            switch(notification){
-                case NOTIFICATION['DISCOVERED']:
-                    params = params.params;
-                    this._connectionManager.handshake(params.peer,true);
-                    break;
-                case NOTIFICATION['HANDSHAKE_UPDATE']:
-                    this._actions[NOTIFICATION['HANDSHAKE_UPDATE']].execute(params);
-                    break;
+            let action = this._actions[notification];
+
+            if(action !== undefined){
+                this._actions[notification].execute(params);
             }
+
         });
     }
     engNode(){
         return this._engNode;
+    }
+    connectionManager(){
+        return this._connectionManager;
     }
     stats(){
         return this._stats;
     }
 
     /******************* API Methods  *******************/
+    execCmd(cmd,params){
+        if(this._actions[cmd]){
+            this._actions[cmd].execute(params);
+        }
+    }
+    addPeer(maStr){
+        nodeUtils.connectionStrToPeerInfo(maStr,(err,peerInfo)=>{
+            let action = NOTIFICATION['DISCOVERED'];
+            if(err){
+                console.log("[-] Err: " , err);
+                return;
+            }else{
+                this.execCmd(action,{"params": {"peer" :peerInfo }});
+            }
+        });
+    }
+    getSelfAddrs(){
+        return this.engNode().getListeningAddrs();
+    }
+    getAllOutboundHandshakes(){
+        let currentPeerIds = this.engNode().getAllPeersIds();
 
+        let handshakedIds = this.stats().getAllActiveOutbound(currentPeerIds);
 
+        let peersInfo = this.engNode().getPeersInfoList(handshakedIds);
+        return peersInfo;
+    }
+    getAllInboundHandshakes(){
+        let currentPeerIds = this.engNode().getAllPeersIds();
+
+        let handshakedIds = this.stats().getAllActiveInbound(currentPeerIds);
+
+        let peersInfo = this.engNode().getPeersInfoList(handshakedIds);
+        return peersInfo;
+    }
+    getAllPeerBank(){
+        return this.connectionManager().getAllPeerBank();
+    }
 }
 module.exports = NodeController;
+
+
+
+
