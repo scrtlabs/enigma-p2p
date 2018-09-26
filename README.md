@@ -14,6 +14,16 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 
 ## Running the tests
 
+## How it works
+
+### Peer Discovery
+
+### Syncing a Worker
+
+### JSON RPC Querys to to the Worker
+
+
+
 ## Built With
 
 * [NodeJS](https://nodejs.org/en/)
