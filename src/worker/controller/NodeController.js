@@ -155,6 +155,13 @@ class NodeController{
     getAllPeerBank(){
         return this.connectionManager().getAllPeerBank();
     }
+    tryConsistentDiscovery(){
+        this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
+            "delay" : 1000,
+            "maxRetry" : 3,
+            "timeout" : 10000,
+        });
+    }
 }
 module.exports = NodeController;
 

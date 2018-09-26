@@ -37,6 +37,8 @@ module.exports.DHT_STATUS = {
 module.exports.MSG_STATUS = {
     'OK' : 0,
     'ERROR' : 1,
+    'ERR_EMPTY_PEER_BANK' : 2,
+    'ERR_SELF_DIAL' : 3,
 };
 
 /**

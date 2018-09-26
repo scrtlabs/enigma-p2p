@@ -7,6 +7,7 @@ const pull = require('pull-stream');
 const PeerBundle = require('./libp2p-bundle');
 const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
+const MSG_STATUS = constants.MSG_STATUS;
 const Policy = require('../policy/policy');
 const Messages = require('../policy/messages');
 const nodeUtils = require('../common/utils');
@@ -358,7 +359,12 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onConnection recieves (protocol,connection) =>{}
      */
     dialProtocol(peerInfo,protocolName, onConnection){
-        this.node.dialProtocol(peerInfo,protocolName,onConnection);
+        if(peerInfo.id.toB58String() === this.getSelfIdB58Str()){
+            console.log("[-] Error : " + MSG_STATUS.ERR_SELF_DIAL);
+            return;
+        }else{
+            this.node.dialProtocol(peerInfo,protocolName,onConnection);
+        }
     }
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
@@ -443,6 +449,9 @@ class EnigmaNode extends EventEmitter {
      * @param {Function} onResult signature (err,findPeersRequest, findPeersResponse) =>{}
      */
     findPeers(peerInfo,onResult,maxPeers){
+        if(peerInfo.id.toB58String() === this.getSelfIdB58Str()){
+            return onResult(MSG_STATUS.ERR_SELF_DIAL, null,null);
+        }
         this.dialProtocol(peerInfo,PROTOCOLS.FIND_PEERS, (connErr, connection)=>{
 
             if(connErr){

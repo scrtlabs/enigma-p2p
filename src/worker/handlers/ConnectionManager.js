@@ -72,6 +72,11 @@ class ConnectionManager extends EventEmitter{
         this._peerBank.addPeersNoActive(pong.seeds(), notToAdd);
         this._peerBank.markPeers([newPeerId]);
     }
+    _updatePeerBank(newPeers){
+        let notToAdd = this._enigmaNode.getAllPeersIds();
+        notToAdd.push(this._enigmaNode.getSelfIdB58Str());
+        this._peerBank.addPeersNoActive(newPeers, notToAdd);
+    }
     /** get all the handshaked peers
      * @returns {Array<PeerInfo>} handshaked peers.
      * */
@@ -103,7 +108,9 @@ class ConnectionManager extends EventEmitter{
         let delta = optimal - current;
 
         if(delta <= 0)
-            return;
+            return onResult(null,true);
+
+        // peers in wishList are marked in the peer bank
 
         let wishList = this._getShuffledKPotentialPeers(delta);
 
@@ -112,7 +119,7 @@ class ConnectionManager extends EventEmitter{
             this._sendParallelHandshakes(wishList, true, onResult);
 
         }else{
-            onResult("peer bank is empty", null);
+            onResult(STATUS.ERR_EMPTY_PEER_BANK, null);
         }
 
     }
@@ -129,22 +136,19 @@ class ConnectionManager extends EventEmitter{
 
             results.forEach(res=>{
                 if(res.err){
-
+                    //TODO:: handle
+                    console.log("[-] Err in groupFindPeerRequest " , res.err);
                 }else{
                     let p = res.fpRes.peers();
                     newPeers.push.apply(newPeers,p);
                 }
             });
 
-            this._peerBank.addPeers(newPeers);
-
+            this._updatePeerBank(newPeers);
             onResult(null,{"type": "expanding"});
         });
     }
 
-    handleTryConnect(err,results){
-
-    }
     /** if the dht size is critical (very low in policy)
      * @returns {Boolean} true - critical, false otherwise
      * */
@@ -158,6 +162,19 @@ class ConnectionManager extends EventEmitter{
         }
 
         return (this._policy.getCriticalLowDhtSize() >= delta);
+    }
+    /** is the dht size optimal or not
+     * @return {Boolean} true - optimal, false otherwise
+     * */
+    _isOptimalDht(){
+        let optimal = this._policy.getOptimalDhtSize();
+        let current = this._getAllOutboundPeers();
+        let delta = optimal - current;
+
+        if(delta <= 0)
+            return true;
+
+        return false;
     }
     /**
      * analyze the peer book to see the dht status
@@ -174,7 +191,6 @@ class ConnectionManager extends EventEmitter{
      * */
     findPeersRequest(peerInfo, onResponse, maxPeers){
         this._enigmaNode.findPeers(peerInfo,(err,fpReq,fpRes)=>{
-            console.log("got find peers request");
             // TODO:: Continue from here.
             // TODO:: This is a helper function to get peers.
             // TODO:: my real function is the one that will complete the dht to optimal using libp2p.findpeer and the PeerBank.

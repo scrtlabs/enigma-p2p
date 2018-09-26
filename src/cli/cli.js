@@ -125,6 +125,9 @@ let commands = {
         for(let k in peers){
             console.log(k);
         }
+    },
+    'discover' : () =>{
+        node.tryConsistentDiscovery();
     }
 };
 
