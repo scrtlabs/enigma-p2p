@@ -104,6 +104,7 @@ let commands = {
         let addrs = node.getSelfAddrs();
         console.log("---> self addrs : <---- ")
         console.log(addrs);
+        console.log(">------------------------<");
     },
     'getOutConnections' : ()=>{
         let cons = node.getAllOutboundHandshakes();
@@ -111,6 +112,7 @@ let commands = {
         cons.forEach(con=>{
             console.log(con.id.toB58String());
         });
+        console.log(">------------------------<");
     },
     'getInConnections' : ()=>{
         let cons = node.getAllInboundHandshakes();
@@ -118,6 +120,7 @@ let commands = {
         cons.forEach(con=>{
             console.log(con.id.toB58String());
         });
+        console.log(">------------------------<");
     },
     'peerBank' : () =>{
         let peers = node.getAllPeerBank();
@@ -125,6 +128,7 @@ let commands = {
         for(let k in peers){
             console.log(k);
         }
+        console.log(">------------------------<");
     },
     'discover' : () =>{
         node.tryConsistentDiscovery();
