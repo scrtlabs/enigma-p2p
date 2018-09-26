@@ -2,6 +2,25 @@
 
 [WIP] The Enigma Worker P2P package written in Node.js based on libp2p-js [WIP]
 
+The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
+
+## Getting Started
+
+### Prerequisites 
+
+### Installing
+
+## Running the Node
+
+## Running the tests
+
+## Built With
+
+* [NodeJS](https://nodejs.org/en/)
+* [Libp2p](https://libp2p.io/) - Networking library
+
+## Authors
+
 ## License
 
 The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
