@@ -1,5 +1,6 @@
 const nodeUtils = require('../../common/utils');
 const pickRandom = require('pick-random');
+const PeerInfo = require('peer-info');
 
 class PeerBank{
 

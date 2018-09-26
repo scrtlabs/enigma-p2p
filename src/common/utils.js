@@ -162,6 +162,35 @@ module.exports.isIpfs = function(addr){
     return _isIpfs(addr);
 };
 
+/** turn a seed from the peer bank into PeerInfo class*
+ * @param {Json} seed https://paste.ubuntu.com/p/YMq9dvHkkS/
+ * @param {Function} callback , (err,peerInfo)=>{}
+ */
+
+module.exports.peerBankSeedtoPeerInfo = function(seed,callback){
+    if(PeerInfo.isPeerInfo(seed)){
+        callback(null,seed);
+    }else{
+        PeerInfo.create(seed.peerId,(err,peerInfo)=>{
+
+            if(err){
+                callback(err,null);
+            }
+
+            let mas = [];
+
+            if(seed.multiAddrs){
+                seed.multiAddrs.forEach(ma=>{
+                    if(_isIpfs(ma)){
+                        peerInfo.multiaddrs.add(ma);
+                    }
+                });
+            }
+            callback(err,peerInfo);
+        });
+    }
+};
+
 /**
  * Connection string to PeerInfo
  * @param {String} addr,/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm

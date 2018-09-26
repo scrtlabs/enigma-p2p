@@ -103,7 +103,7 @@ class ConnectionManager extends EventEmitter{
     }
     tryConnect(onResult){
 
-        let current = this._getAllOutboundPeers();
+        let current = this._getAllOutboundPeers().length;
         let optimal = this._policy.getOptimalDhtSize();
         let delta = optimal - current;
 
@@ -113,6 +113,8 @@ class ConnectionManager extends EventEmitter{
         // peers in wishList are marked in the peer bank
 
         let wishList = this._getShuffledKPotentialPeers(delta);
+        console.log("wish list content : " , wishList);
+        console.log("got you length wishList => " + wishList.length + " delta = > " + delta);
 
         if(wishList.length > 0){
 
@@ -168,9 +170,9 @@ class ConnectionManager extends EventEmitter{
      * */
     _isOptimalDht(){
         let optimal = this._policy.getOptimalDhtSize();
-        let current = this._getAllOutboundPeers();
+        let current = this._getAllOutboundPeers().length;
         let delta = optimal - current;
-
+        console.log("optimal :( => optimal " + optimal  + " current " + current + " delta " + delta);
         if(delta <= 0)
             return true;
 
@@ -249,7 +251,7 @@ class ConnectionManager extends EventEmitter{
      * @param {Function} onHandshake , (err,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
-        this._enigmaNode.handshake(peerInfo,withPeerList,(err,ping,pong)=>{
+        this._enigmaNode.handshake(peerInfo,withPeerList,(err,dialedPeerInfo,ping,pong)=>{
                 //TODO:: open question: if it's early connected peer to DNS then it would get 0
                 //TODO:: peers, in that case another query is required.
                 if(err){
@@ -257,6 +259,7 @@ class ConnectionManager extends EventEmitter{
                     console.log("[-] Err performing handshake : " + err);
                 }
                 else if(!err && pong != null && pong.status() == STATUS['OK']) {
+                    peerInfo = dialedPeerInfo;
                     this._updateHandshakePeerBank(pong,peerInfo.id.toB58String());
                     this._handshakedDiscovery.push(pong);
                     this.notify({
@@ -360,4 +363,6 @@ class ConnectionManager extends EventEmitter{
 }
 
 module.exports = ConnectionManager;
+
+
 

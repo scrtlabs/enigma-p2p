@@ -39,13 +39,14 @@ class ConsistentDiscoveryAction{
             this._controller.connectionManager().tryConnect((err,results)=>{
                 if(err){
                     if(err === STATUS.ERR_EMPTY_PEER_BANK){
+                        console.log("EMPTY PEER BANK !!!!!!!!!!!!!!!!!!@@#$@!@$@#$%#@@#$%$$%");
                         // expand peer bank and retry
                         this._controller.connectionManager().expandPeerBank((err,info)=>{
                             if(err){
                                 // some fatal error
                                 stopper.done({"success" : false, "error" : err} , info);
                             }else{
-                                stopper.done({"success" : false, "error" : "retry"} , info);
+                                stopper.done({"success" : false, "error" : "retryExpand"} , info);
                             }
                         });
                     }else{
@@ -58,7 +59,7 @@ class ConsistentDiscoveryAction{
                         stopper.done({"success" : true} , {});
                     }else{
                         // repeat
-                        stopper.done({"success" : false, "error" : "retry"} , {});
+                        stopper.done({"success" : false, "error" : "retryMoreConnections"} , {});
                     }
                 }
             });
@@ -73,7 +74,6 @@ class ConsistentDiscoveryAction{
         let stopabbleTask = new StoppableTask(options,task,onFinish);
 
         stopabbleTask.start();
-
     }
 }
 module.exports = ConsistentDiscoveryAction;

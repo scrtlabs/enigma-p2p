@@ -369,14 +369,30 @@ class EnigmaNode extends EventEmitter {
     /** Ping 0x1 message in the handshake process.
      * @param {PeerInfo} peerInfo , the peer info to handshake with
      * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
-     * @param {Function} onHandshake , (err,ping,pong)=>{}
+     * @param {Function} onHandshake , (err,dialedPeerInfo,ping,pong)=>{}
      * */
     handshake(peerInfo,withPeerList,onHandshake){
+        if(!PeerInfo.isPeerInfo(peerInfo)){
+            nodeUtils.peerBankSeedtoPeerInfo(peerInfo,(err,parsedPeerInfo)=>{
+                if(err){
+                    onHandshake(err,null,null);
+                }else{
+                    this._afterParseHandshake(parsedPeerInfo,withPeerList,onHandshake)
+                }
+            });
+        }else{
+            this._afterParseHandshake(peerInfo,withPeerList,onHandshake);
+        }
+    }
+    /** Internal use
+     * this method is called by the handshake method, the top level method will verify and try parse the PeerInfo
+     * incase not valid.
+     * */
+    _afterParseHandshake(peerInfo,withPeerList,onHandshake){
+
         this.node.dialProtocol(peerInfo,PROTOCOLS['HANDSHAKE'],(connectionErr,connection)=>{
-            // TODO:: BUG BUG BUG BUG
-            // TODO:: this small commented snippet below is interesting, prolly "protocol" is = err
             if(connectionErr) {
-                onHandshake(connectionErr,null,null);;
+                onHandshake(connectionErr,null,null,null);;
                 return;
             }
             let err = null;
@@ -391,7 +407,7 @@ class EnigmaNode extends EventEmitter {
                 pull.collect((err,response)=>{
                     if(err){
                         console.log("[-] Err " , err);
-                        return onHandshake(err,null,null);
+                        return onHandshake(err,null,null,null);
                     }
                     let data = response;
                     let pongMsg = nodeUtils.toPongMsg(data);
@@ -403,7 +419,7 @@ class EnigmaNode extends EventEmitter {
                     // TODO:: REPLACE THAT with normal notify,
                     //TODO:: The question is - where do i notify forall inbound/outbound handshakes see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
                     this.emit("notify",pongMsg);
-                    onHandshake(err,ping,pongMsg);
+                    onHandshake(err,peerInfo,ping,pongMsg);
                     return pongMsg.toNetworkStream();
                 })
             );

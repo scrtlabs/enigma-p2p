@@ -157,9 +157,9 @@ class NodeController{
     }
     tryConsistentDiscovery(){
         this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
-            "delay" : 1000,
-            "maxRetry" : 3,
-            "timeout" : 10000,
+            "delay" : 500,
+            "maxRetry" : 10,
+            "timeout" : 100000,
         });
     }
 }
