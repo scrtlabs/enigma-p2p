@@ -5,23 +5,23 @@
 The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
 
 ## Getting Started
-
+* TBD
 ### Prerequisites 
-
+* TBD
 ### Installing
-
+* TBD
 ## Running the Node
-
+* TBD
 ## Running the tests
-
+* TBD
 ## How it works
-
+* TBD
 ### Peer Discovery
-
+* TBD
 ### Syncing a Worker
-
+* TBD
 ### JSON RPC Querys to to the Worker
-
+* TBD
 
 
 ## Built With
@@ -30,7 +30,7 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 * [Libp2p](https://libp2p.io/) - Networking library
 
 ## Authors
-
+* TBD
 ## License
 
 The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
