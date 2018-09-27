@@ -20,7 +20,7 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 * TBD
 ### Syncing a Worker
 * TBD
-### JSON RPC Querys to to the Worker
+### JSON RPC API
 * TBD
 
 

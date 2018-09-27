@@ -127,6 +127,8 @@ class ConnectionManager extends EventEmitter{
     }
     expandPeerBank(onResult){
         let hsPeers = this._getAllHandshakedPeers();
+        console.log("^^^^^^^^^^^^^^^^ START EXPAND PEER BANK FUNCTION ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        console.log("^^^^^^^^^^^^^^^^  this._getAllHandshakedPeers() =  " +  this._getAllHandshakedPeers().length);
 
         this.groupFindPeersRequest(hsPeers,(err,results)=>{
 
@@ -143,10 +145,12 @@ class ConnectionManager extends EventEmitter{
                 }else{
                     let p = res.fpRes.peers();
                     newPeers.push.apply(newPeers,p);
+                    console.log("^^^^^^^^^^^^^^^^  pushed " + p.length + " peers now total new peers -> " + newPeers.length );
                 }
             });
 
             this._updatePeerBank(newPeers);
+            console.log("^^^^^^^^^^^^^^^^ END EXPAND PEER BANK FUNCTION ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             onResult(null,{"type": "expanding"});
         });
     }
