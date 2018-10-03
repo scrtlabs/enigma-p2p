@@ -37,7 +37,6 @@ class NodeController{
             this._logger = new Logger({
                 "level" : "debug",
                 "cli" : true,
-                "file" : "node_controller.log"
             });
         }
 

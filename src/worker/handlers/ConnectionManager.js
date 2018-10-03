@@ -27,7 +27,6 @@ class ConnectionManager extends EventEmitter{
             this._logger = new Logger({
                "level" : "debug",
                "cli" : true,
-               "file" : "connection_manager.log"
             });
         }
         this._enigmaNode = enigmaNode;

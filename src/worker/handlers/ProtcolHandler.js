@@ -26,7 +26,6 @@ class ProtocolHandler extends EventEmitter{
                 this._logger = new Logger({
                     "level" : "debug",
                     "cli" : true,
-                    "file" : "protocol_handler.log"
                 });
             }
 
@@ -273,7 +272,7 @@ class ProtocolHandler extends EventEmitter{
      * TODO:: Every disconnect check if should re-build table and add more peers.
      * */
     onPeerDisconnect(nodeBundle,params){
-        params.worker.getProtocolHandler()._logger.error("peer disconnected from " + params.peer.id.toB58String());
+        params.worker.getProtocolHandler()._logger.info("peer disconnected from " + params.peer.id.toB58String());
     }
 }
 

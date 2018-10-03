@@ -26,7 +26,6 @@ class EnigmaNode extends EventEmitter {
             this._logger = new Logger({
                 "level" : "debug",
                 "cli" : true,
-                "file" : "enigma_node.log"
             });
         }
 
