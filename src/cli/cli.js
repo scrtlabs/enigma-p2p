@@ -23,7 +23,15 @@ let configObject = {
 let changedKeys = [];
 
 let node;
-
+let openner = "  ______       _                         _____ ___  _____  \n" +
+" |  ____|     (_)                       |  __ \\__ \\|  __ \\ \n" +
+" | |__   _ __  _  __ _ _ __ ___   __ _  | |__) | ) | |__) |\n" +
+" |  __| | '_ \\| |/ _` | '_ ` _ \\ / _` | |  ___/ / /|  ___/ \n" +
+" | |____| | | | | (_| | | | | | | (_| | | |    / /_| |     \n" +
+" |______|_| |_|_|\\__, |_| |_| |_|\\__,_| |_|   |____|_|     \n" +
+"                  __/ |                                    \n" +
+"                 |___/                                     ";
+console.log(openner);
 function list(val) {
     let parseVal =val.split(',');
     parseVal.forEach(ma=>{
@@ -79,7 +87,7 @@ function initInitialConfig(){
     program
         .version('0.1.0')
         .usage('[options] <file ...>')
-        .option('-s, --bnodes <items>', 'Bootstrap nodes', list)
+        .option('-b, --bnodes <items>', 'Bootstrap nodes', list)
         .option('-n, --nickname [value]', 'nickname',nickname)
         .option('-p, --port [value]', 'listening port', port)
         .option('-i, --path [value]', 'id path', idPath)
