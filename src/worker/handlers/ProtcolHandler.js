@@ -12,10 +12,24 @@ const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const Messages = require('../../policy/messages');
 const PeerBank = require('./PeerBank');
+const Logger = require('../../common/logger');
 
 class ProtocolHandler extends EventEmitter{
-    constructor(){
+    constructor(loggerOptions){
         super();
+
+            // initialize logger
+            if(loggerOptions){
+                this._logger = new Logger(loggerOptions);
+            }else{
+
+                this._logger = new Logger({
+                    "level" : "debug",
+                    "cli" : true,
+                    "file" : "protocol_handler.log"
+                });
+            }
+
         this._protocols = [
             PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'],
             PROTOCOLS['PEERS_PEER_BOOK'],PROTOCOLS['HEARTBEAT'],
@@ -60,7 +74,7 @@ class ProtocolHandler extends EventEmitter{
     }
 
     tempFallback(protocolName){
-        console.log('[-] Err invalid protocolName: ' + protocolName);
+        this._logger.error('[-] Err invalid protocolName: ' + protocolName);
     }
     /** /findpeers/0.0
      * On a findpeers request msg
@@ -176,7 +190,7 @@ class ProtocolHandler extends EventEmitter{
                     //TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
                     conn.getPeerInfo((err,peerInfo)=>{
                         if(err){
-                            console.log('[-] err retrieving peer info from connection on handshake ', err);
+                            this._logger('[-] err retrieving peer info from connection on handshake ' +  err);
                             return;
                         }
                         worker.getProtocolHandler().notify({
@@ -220,7 +234,7 @@ class ProtocolHandler extends EventEmitter{
                     });
                     if(!hbRes.isValidMsg()) {
                         // TODO:: Handle error
-                        console.log("[-] Err generating a hb res");
+                        this._logger.error("[-] Err generating a hb res");
                     }
                     return hbRes.toNetworkStream();
                 }
@@ -234,7 +248,8 @@ class ProtocolHandler extends EventEmitter{
      * @param {Json} params , {worker,connection,peer,protocol}
      * */
     onPeerConnect(nodeBundle,params){
-        console.log('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
+
+        params.worker.getProtocolHandler()._logger.debug('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
             '] new peer : ' + params.peer.id.toB58String());
     }
     /**Group dial is when the worker needs to send a message to all of his peers
@@ -258,7 +273,7 @@ class ProtocolHandler extends EventEmitter{
      * TODO:: Every disconnect check if should re-build table and add more peers.
      * */
     onPeerDisconnect(nodeBundle,params){
-        console.log("peer disconnected from " + params.peer.id.toB58String());
+        params.worker.getProtocolHandler()._logger.error("peer disconnected from " + params.peer.id.toB58String());
     }
 }
 

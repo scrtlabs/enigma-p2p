@@ -12,11 +12,24 @@ const N_NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const nodeUtils = require('../../common/utils');
 const Messages = require('../../policy/messages');
 const PeerBank = require('./PeerBank');
+const Logger = require('../../common/logger');
 
 class ConnectionManager extends EventEmitter{
 
-    constructor(enigmaNode){
+    constructor(enigmaNode,loggerOptions){
         super();
+
+        // initialize logger
+        if(loggerOptions){
+            this._logger = new Logger(loggerOptions);
+        }else{
+
+            this._logger = new Logger({
+               "level" : "debug",
+               "cli" : true,
+               "file" : "connection_manager.log"
+            });
+        }
         this._enigmaNode = enigmaNode;
         this._policy = new Policy();
         // context (currently Stat class)
@@ -113,9 +126,6 @@ class ConnectionManager extends EventEmitter{
         // peers in wishList are marked in the peer bank
 
         let wishList = this._getShuffledKPotentialPeers(delta);
-        console.log("wish list content : " , wishList);
-        console.log("got you length wishList => " + wishList.length + " delta = > " + delta);
-
         if(wishList.length > 0){
 
             this._sendParallelHandshakes(wishList, true, onResult);
@@ -127,9 +137,6 @@ class ConnectionManager extends EventEmitter{
     }
     expandPeerBank(onResult){
         let hsPeers = this._getAllHandshakedPeers();
-        console.log("^^^^^^^^^^^^^^^^ START EXPAND PEER BANK FUNCTION ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-        console.log("^^^^^^^^^^^^^^^^  this._getAllHandshakedPeers() =  " +  this._getAllHandshakedPeers().length);
-
         this.groupFindPeersRequest(hsPeers,(err,results)=>{
 
             if(err){
@@ -141,16 +148,14 @@ class ConnectionManager extends EventEmitter{
             results.forEach(res=>{
                 if(res.err){
                     //TODO:: handle
-                    console.log("[-] Err in groupFindPeerRequest " , res.err);
+                    this._logger.error("[-] Err in groupFindPeerRequest : " + JSON.stringify(res.err));
                 }else{
                     let p = res.fpRes.peers();
                     newPeers.push.apply(newPeers,p);
-                    console.log("^^^^^^^^^^^^^^^^  pushed " + p.length + " peers now total new peers -> " + newPeers.length );
                 }
             });
 
             this._updatePeerBank(newPeers);
-            console.log("^^^^^^^^^^^^^^^^ END EXPAND PEER BANK FUNCTION ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
             onResult(null,{"type": "expanding"});
         });
     }
@@ -176,7 +181,6 @@ class ConnectionManager extends EventEmitter{
         let optimal = this._policy.getOptimalDhtSize();
         let current = this._getAllOutboundPeers().length;
         let delta = optimal - current;
-        console.log("optimal :( => optimal " + optimal  + " current " + current + " delta " + delta);
         if(delta <= 0)
             return true;
 
@@ -260,7 +264,7 @@ class ConnectionManager extends EventEmitter{
                 //TODO:: peers, in that case another query is required.
                 if(err){
                     //TODO:: handle the error
-                    console.log("[-] Err performing handshake : " + err);
+                    this._logger.error("[-] Err performing handshake : " + err);
                 }
                 else if(!err && pong != null && pong.status() == STATUS['OK']) {
                     peerInfo = dialedPeerInfo;

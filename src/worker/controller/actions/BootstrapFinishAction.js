@@ -1,3 +1,4 @@
+const Logger = require('../../../common/logger');
 const constants = require('../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;

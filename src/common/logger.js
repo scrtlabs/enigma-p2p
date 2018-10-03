@@ -53,3 +53,16 @@ class Logger{
         this._log(content,'error');
     }
 }
+
+
+module.exports = Logger;
+
+//
+// let l = new Logger({
+//     "level" : "debug",
+//     "cli" : true
+// });
+//
+// l.debug("hello");
+// l.info("not hello");
+// l.error("bad bad ");

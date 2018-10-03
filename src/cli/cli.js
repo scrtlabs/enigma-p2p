@@ -132,6 +132,18 @@ let commands = {
     },
     'discover' : () =>{
         node.tryConsistentDiscovery();
+    },
+    'inCount' : () =>{
+        let cons = node.getAllInboundHandshakes();
+        console.log("---> inbound connections <---");
+        console.log(cons.length);
+        console.log(">------------------------<");
+    },
+    'outCount' : () =>{
+        let cons = node.getAllOutboundHandshakes();
+        console.log("---> outbound connections <---");
+        console.log(cons.length);
+        console.log(">------------------------<");
     }
 };
 

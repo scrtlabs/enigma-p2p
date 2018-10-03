@@ -11,11 +11,25 @@ const MSG_STATUS = constants.MSG_STATUS;
 const Policy = require('../policy/policy');
 const Messages = require('../policy/messages');
 const nodeUtils = require('../common/utils');
+const Logger = require('../common/logger');
 
 class EnigmaNode extends EventEmitter {
 
-    constructor(config,protocolHandler){
+    constructor(config,protocolHandler, loggerOptions){
         super();
+
+        // initialize logger
+        if(loggerOptions){
+            this._logger = new Logger(loggerOptions);
+        }else{
+
+            this._logger = new Logger({
+                "level" : "debug",
+                "cli" : true,
+                "file" : "enigma_node.log"
+            });
+        }
+
         this.nickname = config.nickname;
         this.multiAddrs = config.multiAddrs;
         this.isDiscover = config.isDiscover;
@@ -256,7 +270,7 @@ class EnigmaNode extends EventEmitter {
             try{
                 result.push(this.node.peerBook.get(peer));
             }catch(err){
-                console.log('[-] Error finding peer',err);
+                this._logger.error('[-] Error finding peer'  + err);
             }
         });
         return result;
@@ -273,7 +287,7 @@ class EnigmaNode extends EventEmitter {
             try{
                 result.push(this.node.peerBook.get(peer));
             }catch(err){
-                console.log('[-] Error finding peer',err);
+                this._logger.error('[-] Error finding peer ' + err);
             }
         });
         return result;
@@ -314,7 +328,7 @@ class EnigmaNode extends EventEmitter {
     syncStart(){
         return new Promise((res,rej)=>{
             this.start(()=>{
-                console.log(this.nickName() + " has started. id = " + this.getSelfIdB58Str());
+                this._logger.info(this.nickName() + " has started. id = " + this.getSelfIdB58Str());
                 res(this);
             });
         });
@@ -360,7 +374,7 @@ class EnigmaNode extends EventEmitter {
      */
     dialProtocol(peerInfo,protocolName, onConnection){
         if(peerInfo.id.toB58String() === this.getSelfIdB58Str()){
-            console.log("[-] Error : " + MSG_STATUS.ERR_SELF_DIAL);
+            this._logger.error("[-] Error : " + MSG_STATUS.ERR_SELF_DIAL);
             return;
         }else{
             this.node.dialProtocol(peerInfo,protocolName,onConnection);
@@ -406,7 +420,7 @@ class EnigmaNode extends EventEmitter {
                 connection,
                 pull.collect((err,response)=>{
                     if(err){
-                        console.log("[-] Err " , err);
+                        this._logger.error("[-] Err " + err);
                         return onHandshake(err,null,null,null);
                     }
                     let data = response;
@@ -441,7 +455,7 @@ class EnigmaNode extends EventEmitter {
     getPeersPeerBook(peerInfo,onResult){
         this.dialProtocol(peerInfo,PROTOCOLS.PEERS_PEER_BOOK, (connectionErr,connection)=>{
             if(connectionErr){
-                console.log("[-] err connection to peer");
+                this._logger.error("[-] err connection to peer");
                 return onResult(connectionErr,null);
             }
             let peersPeerBook = null;
@@ -471,7 +485,8 @@ class EnigmaNode extends EventEmitter {
         this.dialProtocol(peerInfo,PROTOCOLS.FIND_PEERS, (connErr, connection)=>{
 
             if(connErr){
-                console.log("[-] err connection to peer");
+
+                this._logger.error("[-] err connection to peer");
                 return onResult(connErr,null);
             }
 
@@ -483,7 +498,7 @@ class EnigmaNode extends EventEmitter {
             });
 
             if(!findPeersReq.isValidMsg()){
-                console.log("[-] err creating findpeer request msg.");
+                this._logger.error("[-] err creating findpeer request msg.");
                 return onResult(new Error("err creating findpeer request msg."),null);
             }
             // post msg
@@ -492,13 +507,14 @@ class EnigmaNode extends EventEmitter {
                 connection,
                 pull.collect((err,response)=>{
                     if(err){
-                        console.log("[-] err parsing findpeers response msg.");
+
+                        this._logger.error("[-] err parsing findpeers response msg.");
                         return onResult(err,null);
                     }
                     let findPeersResponseMsg = nodeUtils.toFindPeersResMsg(response);
                     // validate the msg (same id as request, structure etc)
                     if(!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)){
-                        console.log("[-] err parsing findpeers response msg.");
+                        this._logger.error("[-] err parsing findpeers response msg.");
                         return onResult(new Error("Invalid find peers response msg"),null);
                     }
                     onResult(null,findPeersReq,findPeersResponseMsg);
@@ -546,7 +562,7 @@ class EnigmaNode extends EventEmitter {
                 pull.collect((err,response)=>{
                     if(err) {
                         //TODO:: add Logger
-                        console.log("[-] Err in collecting HBRes msg",err);
+                        this._logger.error("[-] Err in collecting HBRes msg" + err);
                         onResult(err,null);
                     }else{
                         // validate HeartBeat Message response

@@ -17,6 +17,7 @@ const ConnectionManager = require('../handlers/ConnectionManager');
 const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
 const nodeUtils = require('../../common/utils');
+const Logger = require('../../common/logger');
 
 // actions
 const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
@@ -26,7 +27,19 @@ const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction')
 
 class NodeController{
 
-    constructor(enigmaNode,protocolHandler,connectionManager){
+    constructor(enigmaNode,protocolHandler,connectionManager, loggerOptions){
+
+        // initialize logger
+        if(loggerOptions){
+            this._logger = new Logger(loggerOptions);
+        }else{
+
+            this._logger = new Logger({
+                "level" : "debug",
+                "cli" : true,
+                "file" : "node_controller.log"
+            });
+        }
 
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
@@ -92,7 +105,7 @@ class NodeController{
     }
     _initEnigmaNode(){
         this._engNode.on('notify', (params)=>{
-            console.log("[+] handshake with " + params.from() + " done, #" + params.seeds().length + " seeds." );
+            this._logger.info("[+] handshake with " + params.from() + " done, #" + params.seeds().length + " seeds." );
         });
     }
     _initProtocolHandler(){
@@ -126,7 +139,7 @@ class NodeController{
         nodeUtils.connectionStrToPeerInfo(maStr,(err,peerInfo)=>{
             let action = NOTIFICATION['DISCOVERED'];
             if(err){
-                console.log("[-] Err: " , err);
+                this._logger.error("[-] Err: " + err);
                 return;
             }else{
                 this.execCmd(action,{"params": {"peer" :peerInfo }});
