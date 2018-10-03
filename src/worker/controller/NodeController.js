@@ -27,18 +27,10 @@ const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction')
 
 class NodeController{
 
-    constructor(enigmaNode,protocolHandler,connectionManager, loggerOptions){
+    constructor(enigmaNode,protocolHandler,connectionManager,logger){
 
         // initialize logger
-        if(loggerOptions){
-            this._logger = new Logger(loggerOptions);
-        }else{
-
-            this._logger = new Logger({
-                "level" : "debug",
-                "cli" : true,
-            });
-        }
+        this._logger = logger;
 
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
@@ -72,6 +64,10 @@ class NodeController{
         if(configPath)
             path = configPath;
 
+        // with default option (in constats.js)
+
+        let logger = new Logger();
+
         let config = WorkerBuilder.loadConfig(path);
         let finalConfig = nodeUtils.applyDelta(config,options);
         let enigmaNode = WorkerBuilder.build(finalConfig);
@@ -80,7 +76,7 @@ class NodeController{
         let connectionManager = new ConnectionManager(enigmaNode);
 
         // create the controller instance
-        return new NodeController(enigmaNode,enigmaNode.getProtocolHandler(),connectionManager);
+        return new NodeController(enigmaNode,enigmaNode.getProtocolHandler(),connectionManager, logger);
 
     }
     _initController(){

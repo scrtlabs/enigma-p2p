@@ -39,7 +39,7 @@ class ConsistentDiscoveryAction{
             this._controller.connectionManager().tryConnect((err,results)=>{
                 if(err){
                     if(err === STATUS.ERR_EMPTY_PEER_BANK){
-                        console.log("EMPTY PEER BANK !!!!!!!!!!!!!!!!!!@@#$@!@$@#$%#@@#$%$$%");
+                        console.log("[-] EMPTY PEER BANK");
                         // expand peer bank and retry
                         this._controller.connectionManager().expandPeerBank((err,info)=>{
                             if(err){

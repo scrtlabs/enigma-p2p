@@ -172,7 +172,7 @@ async function initializeNode(){
     console.log("----- starting node with config ----- ");
     let config = getFinalConfig();
     console.log(JSON.stringify(config, null,2));
-
+    console.log("--------------------------------------");
     node = NodeController.initDefaultTemplate(config);
 
     await node.engNode().syncRun();

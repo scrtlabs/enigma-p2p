@@ -4,23 +4,34 @@
 
 The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
 
-## Getting Started
+# Getting Started
 * TBD
-### Prerequisites 
+# Architechture
+
+## Core, Enigma-P2P and the outside world
+
+<img src="docs/overview1.jpg"
+     alt="Implementation 1" />
+
+## Enigma-P2P High level design
+
+<img src="docs/overview2.jpg"
+     alt="Implementation 2" />
+## Prerequisites 
 * TBD
-### Installing
+## Installing
 * TBD
-## Running the Node
+# Running the Node
 * TBD
-## Running the tests
+# Running the tests
 * TBD
-## How it works
+# How it works
 * TBD
-### Peer Discovery
+## Peer Discovery
 * TBD
-### Syncing a Worker
+## Syncing a Worker
 * TBD
-### JSON RPC API
+## JSON RPC API
 * TBD
 
 

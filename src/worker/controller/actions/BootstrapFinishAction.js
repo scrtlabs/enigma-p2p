@@ -10,7 +10,7 @@ class BootstrapFinishAction{
     }
 
     execute(params){
-        console.log("BOOTSTRAP WITH ALL DNS IS DONE.");
+        console.log("[+] BOOTSTRAP WITH ALL DNS - DONE.");
     }
 }
 module.exports = BootstrapFinishAction;
