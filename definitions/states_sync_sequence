@@ -1,0 +1,31 @@
+/** State sync sequence **/
+
+This part described the messages and their sequece of a node trying to synchronize its state.
+
+
+Assuming this data structure as a consensus mechanism on the Ethereum network
+
+// Enigma smart contract stores in some way or another:
++--------------------+----------------+-----------+---------+------+
+| secret-contracts   | deployed code  | delta 1   | delta 2 | ...  |
+| address            | + payload hash | hash      | hash    | ...  |
++--------------------+----------------+-----------+---------+------+
+| 0x01...            | asd..          | h(d1)     | h(d2)   | ...  |
+| 0x02...            | bk2..          | h(d1)     | h(d2)   | ...  |
+| 0x03...            | sg3..          | h(d1)     | h(d2)   | ...  |
+| 0x04...            | 4fh..          | h(d1)     | h(d2)   | ...  |
++--------------------+----------------+-----------+---------+------+
+
+### What does it mean for a worker to by synced ###:
+
+* CURRENT_ONCHAIN_CONTRACTS_NUM : The total number of contracts.
+* CURRENT_ONCHAIN_CONCTRACTS_ADDRS : List of all the contract addresses.
+* for each contract addr in CURRENT_ONCHAIN_CONCTRACTS_ADDRS:
+    * CONTRACT_CODE
+    * CURRENT_ONCHAIN_DELTAS : List of all the deltas hashes in a sequence order (delta 0 hash = initial state hash)
+
+
+
+### The flow of a new node in the network ####:
+
+
