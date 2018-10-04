@@ -2,6 +2,7 @@
 const EventEmitter = require('events').EventEmitter
 const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
+const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy extends EventEmitter{
     constructor(){
@@ -56,6 +57,19 @@ class Policy extends EventEmitter{
         for (let key in PROTOCOLS){
             if(PROTOCOLS[key] == protocolName)
                 return true;
+        }
+        return false;
+    }
+    /**
+     * is a valid topic name
+     * @param {String} topicName
+     * @returns {Boolean} , is valid topic
+     * */
+    isValidTopic(topicName){
+        for (let key in PUBSUB_TOPICS){
+            if(PUBSUB_TOPICS[key] === topicName){
+                return true;
+            }
         }
         return false;
     }

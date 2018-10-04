@@ -185,6 +185,8 @@ class EnigmaNode extends EventEmitter {
     /**
      * Subscribe to events with handlers and final handlers.
      * @param {Array} subscriptions, [{topic:name,topic_handler:Function(msg)=>{},final_handler:Function()=>{}}]
+     * - topic_handler -> what to do the message recieved from the publisher
+     * - final_handler -> only once when subscribed.
      */
     subscribe(subscriptions){
         if(!this.started){
@@ -192,6 +194,28 @@ class EnigmaNode extends EventEmitter {
         }
         subscriptions.forEach(sub=>{
             this.node.pubsub.subscribe(sub.topic,sub.topic_handler,sub.final_handler);
+        });
+    }
+    default_subscribe(){
+
+        if(!this.started){
+            throw Error('Please start the Worker before subscribing');
+        }
+
+        let subscriptions = this._handler.getSubscriptionsList();
+
+        subscriptions.forEach(topic=>{
+            this.node.pubsub.subscribe(topic, (message)=>{
+
+                let params = {
+                    'worker' : this,
+                };
+
+                this._handler.handle_topic(params,message);
+
+            }, ()=>{
+                this._logger.debug("subscribed " + topic);
+            });
         });
     }
     /**
@@ -315,7 +339,10 @@ class EnigmaNode extends EventEmitter {
             await this.syncStart();
             // add handlers
             this.addHandlers();
-            // TODO:: add subscriptions
+
+            // add subscriptions
+            this.default_subscribe();
+
             resolve(this);
         });
     }

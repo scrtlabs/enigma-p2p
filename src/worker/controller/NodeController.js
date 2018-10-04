@@ -9,6 +9,7 @@
  * */
 
 const constants = require('../../common/constants');
+const TOPICS = constants.PUBSUB_TOPICS;
 const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const STAT_TYPES = constants.STAT_TYPES;
@@ -18,16 +19,20 @@ const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
 const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
+const Policy = require('../../policy/policy');
 
 // actions
 const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
+const PubsubPublishAction = require('./actions/PubsubPublishAction');
 
 class NodeController{
 
     constructor(enigmaNode,protocolHandler,connectionManager,logger){
+
+        this._policy = new Policy();
 
         // initialize logger
         this._logger = logger;
@@ -44,10 +49,13 @@ class NodeController{
 
         // actions
         this._actions = {
+
             [NOTIFICATION['HANDSHAKE_UPDATE']] : new HandshakeUpdateAction(this),
             [NOTIFICATION['DISCOVERED']] : new DoHandshakeAction(this),
             [NOTIFICATION['BOOTSTRAP_FINISH']] : new BootstrapFinishAction(this),
             [NOTIFICATION['CONSISTENT_DISCOVERY']] : new ConsistentDiscoveryAction(this),
+            [NOTIFICATION['PUBSUB_PUB']] : new PubsubPublishAction(this),
+
         };
     }
     /**
@@ -123,7 +131,9 @@ class NodeController{
     stats(){
         return this._stats;
     }
-
+    policy(){
+        return this._policy;
+    }
     /******************* API Methods  *******************/
     execCmd(cmd,params){
         if(this._actions[cmd]){
@@ -170,6 +180,14 @@ class NodeController{
             "timeout" : 100000,
         });
     }
+    broadcast(content){
+
+        this._actions[NOTIFICATION['PUBSUB_PUB']].execute({
+            'topic' : TOPICS.BROADCAST,
+            'message' : content
+        });
+    }
+
 }
 module.exports = NodeController;
 

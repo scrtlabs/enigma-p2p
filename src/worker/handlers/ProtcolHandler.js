@@ -8,6 +8,7 @@ const nodeUtils = require('../../common/utils');
 const EventEmitter = require('events').EventEmitter;
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
+const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const Messages = require('../../policy/messages');
@@ -48,9 +49,20 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
         this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
 
+        // list of active subscriptions pubsub
+
+        this._subscriptions = [
+            PUBSUB_TOPICS.BROADCAST
+        ];
+        // pubsub handlers
+        this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
+
     }
     getProtocolsList(){
         return this._protocols;
+    }
+    getSubscriptionsList(){
+        return this._subscriptions;
     }
     /**
      * Notify observer (Some controller subscribed)
@@ -70,6 +82,19 @@ class ProtocolHandler extends EventEmitter{
             return;
         }
         this.handlers[protocolName](nodeNundle,params);
+    }
+    /** Handle subscriptions publish event
+     *  @param {Json} params {worker:EnigmaNode}
+     *  @param {Json} message (from and data fields)
+     * */
+
+    handle_topic(params, message){
+        let topicIDs = message.topicIDs;
+        if(topicIDs.length > 0 && params.worker.getProtocolHandler().policy.isValidTopic(topicIDs[0])){
+
+            this.handlers[topicIDs[0]](params,message);
+
+        }
     }
 
     tempFallback(protocolName){
@@ -274,6 +299,47 @@ class ProtocolHandler extends EventEmitter{
     onPeerDisconnect(nodeBundle,params){
         params.worker.getProtocolHandler()._logger.info("peer disconnected from " + params.peer.id.toB58String());
     }
+    /**
+     * This function is a response when subscribed to pubsub BROADCAST topic
+     * @param {Json} message (from and data fields)
+     * @param {Json} message, {from,data}
+     * */
+    onPubsubBroadcast(params, message){
+        let selfId = params.worker.getSelfIdB58Str();
+        let from = message.from;
+
+        if (from === selfId){
+            return;
+        }
+
+        let data = message.data.toString();
+        let topicIDs = message.topicIDs;
+        let out = JSON.stringify({"from" : from, "data" : data},null,2);
+        console.log("----------------------------------------------------");
+        params.worker.getProtocolHandler()._logger.info(out);
+        console.log("----------------------------------------------------");
+    }
 }
 
 module.exports = ProtocolHandler;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
