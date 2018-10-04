@@ -152,6 +152,10 @@ let commands = {
         console.log("---> outbound connections <---");
         console.log(cons.length);
         console.log(">------------------------<");
+    },
+    'broadcast' : (args) =>{
+        let msg = args[1];
+        node.broadcast(msg);
     }
 };
 
