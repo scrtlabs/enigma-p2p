@@ -15,7 +15,7 @@ module.exports.NODE_NOTIFICATIONS = {
     'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
     'BOOTSTRAP_FINISH' : 'b_update_finish', // update of the connection manager bootstrap finished state
     'CONSISTENT_DISCOVERY' : 'c_discover', // run consistent discovery mechanism
-
+    'PUBSUB_PUB' : 'publish' // publish notification that activates a publish action
 };
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
@@ -27,6 +27,10 @@ module.exports.PROTOCOLS = {
     'HANDSHAKE' :'/handshake/0.1',
     'GROUP_DIAL' : '/groupdial',
     'HEARTBEAT' : '/heartbeat/0.1'
+};
+
+module.exports.PUBSUB_TOPICS = {
+    'BROADCAST' : '/broadcast/0.1'
 };
 
 module.exports.DHT_STATUS = {
