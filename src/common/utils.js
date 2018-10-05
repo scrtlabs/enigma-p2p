@@ -1,4 +1,4 @@
-const Messages = require('../policy/messages');
+const Messages = require('../policy/p2p_messages/messages');
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const constants = require('./constants');

@@ -34,6 +34,7 @@ class EncoderUtil{
 }
 
 
+module.exports = EncoderUtil;
 /*** mini tests */
 
 // // take input from Core (encoded) and compare the output

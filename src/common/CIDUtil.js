@@ -1,7 +1,11 @@
 const CID = require('cids');
 const multihash = require('multihashes');
 
-class CIDUtil{
+class CIDUtil {
+    /** cast Ethereum keccack256 function into a CID
+     * @param {String} keccackHash, with 0x len 66, 64 without 0x, both inputs are fine
+     * @returns {CID} cid representing the input.
+     * */
     static createCID(ethHash){
 
         let h = CIDUtil.parseHashStr(ethHash);
@@ -13,6 +17,17 @@ class CIDUtil{
         return new CID(1,'eth-block',mh);
 
     }
+    static createCIDFromB58(b58CID){
+        let cid = new CID(b58CID);
+        if(CIDUtil.isValidCID(cid)){
+            return cid;
+        }
+        return null;
+    }
+    /** if remove 0x from the hash if existing
+     * @param {String} h, keccack256 hash
+     * @returns {String} hash without 0x or the same
+     * */
     static parseHashStr(h){
 
         let final = null;
