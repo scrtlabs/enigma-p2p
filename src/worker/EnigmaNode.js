@@ -9,7 +9,7 @@ const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const MSG_STATUS = constants.MSG_STATUS;
 const Policy = require('../policy/policy');
-const Messages = require('../policy/messages');
+const Messages = require('../policy/p2p_messages/messages');
 const nodeUtils = require('../common/utils');
 const Logger = require('../common/logger');
 

@@ -10,7 +10,7 @@ const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
 const N_NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const nodeUtils = require('../../common/utils');
-const Messages = require('../../policy/messages');
+const Messages = require('../../policy/p2p_messages/messages');
 const PeerBank = require('./PeerBank');
 const Logger = require('../../common/logger');
 

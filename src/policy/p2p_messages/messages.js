@@ -1,5 +1,5 @@
-const Policy = require('./policy');
-const utils = require('../common/utils');
+const Policy = require('../policy');
+const utils = require('../../common/utils');
 
 class Msg {
     constructor(msg){
