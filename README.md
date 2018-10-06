@@ -30,7 +30,50 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 ## Peer Discovery
 * TBD
 ## Syncing a Worker
-* TBD
+
+### Consensus 
+
+*WIP*
+
+The Enigma Contract on Ethereum is used as the consensus layer. Contianing a Mapping between:
+
+`Secret-Contract-Address` => `hash(WASM)`,`[hash(delta 0), ...hash(delta n)]`
+
+Synchronizing the State means: 
+
+    1) Having all the secret-contracts WASM code.
+    2) Having all the state deltas for each secret-contract.
+### Content Routing
+
+*WIP*
+
+The content routing is based on the libp2p implementation of IPFS using [CID](https://github.com/ipld/js-cid) to identify content and Kad-DHT for finding peers.
+
+### Database 
+
+*WIP*
+
+All the information is stored encrypted inside a level-db instance on the disk. For each contract delta the key is a byte array of  `ethereum-hash + index`.
+
+### Provide Content 
+
+*WIP*
+
+Providing Content is the process of announcing to the network a list of CID's.
+A node announces the content it provides after it's being synchronized with the Enigma Contract on Ethereum.
+
+### Find Content 
+
+*WIP*
+
+Finding content is the look up of certains CID's in the networking. 
+
+### Synchronize Content 
+
+*WIP*
+
+Once a provider is found starts the synchronization process. 
+
 ## JSON RPC API
 * TBD
 
