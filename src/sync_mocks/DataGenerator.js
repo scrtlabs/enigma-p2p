@@ -277,8 +277,8 @@ function loadDBState(){
 function saveDbStateToLevelDB(dbPath,dbState){
     var db = level(dbPath);
 
-    for(key in dbState){
-        db.put(key, dbState[key], (err)=>{
+    for(let key in dbState){
+        db.put(key, dbState[key].delta, (err)=>{
             if(err){
                 console.log("error storing -> " + err);
             }else{
@@ -303,9 +303,16 @@ function saveDbStateToLevelDB(dbPath,dbState){
 
 // save to level db
 let dbState = loadDBState();
-//let leveldbPath ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
-//saveDbStateToLevelDB(leveldbPath,dbState);
-// console.log(dictToList(dbState).length);
+
+// let k = [ 58, 227, 134, 208, 236, 124, 0, 243, 45, 135, 187, 239, 29, 77, 138, 170, 80, 7, 149, 63, 99, 210, 186, 74, 57, 46, 192, 206, 145, 126, 18, 48, 0, 0, 0, 1 ];
+// console.log("333333")
+// let val = dbState[k];
+// console.log(dbState[k]);
+// console.log("333333")
+
+// let leveldbPath ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
+// saveDbStateToLevelDB(leveldbPath,dbState);
+//console.log(dictToList(dbState).length);
 
 
 

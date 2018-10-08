@@ -1,6 +1,11 @@
+const Web3 = require('web3');
 
 class StateUtils {
 
+    static kecckak256Hash(value){
+        let w = new Web3();
+        return w.utils.keccak256(value);
+    }
     static toHexString(byteArray) {
         return Array.from(byteArray, function(byte) {
             return ('0' + (byte & 0xFF).toString(16)).slice(-2);
@@ -44,7 +49,7 @@ class StateUtils {
         let indexBytes = null;
 
         if(index >= 0){
-            indexBytes = StateUtil.intTo4BytesArr(index);
+            indexBytes = StateUtils.intTo4BytesArr(index);
         }
         let res = [];
         contractByteAddr.forEach(c=>{
