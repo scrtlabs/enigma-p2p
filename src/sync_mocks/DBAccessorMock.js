@@ -108,21 +108,39 @@ class DBAccessorMock{
         });
     }
 
+    /** onResult(err,key) =>{}
+     * error === true => end
+     * err !== true && err => error
+     */
+    readAllKeysStream(onResult){
+        this.db().createKeyStream()
+            .on('data', (key)=>{
+                key = DBAccessorMock.strToByteArray(key);
+                onResult(null,key);
+            })
+            .on('error' ,(err)=>{
+                onResult(err);
+            })
+            .on('end', ()=>{
+                onResult(true);
+            });
+    }
+
 }
 module.exports = DBAccessorMock;
 
-// let p ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
-// let db = new DBAccessorMock(p);
+let p ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
+let db = new DBAccessorMock(p);
 
-//
-// let h1 = "0xdced2aaa90baa8526b1759608af74b6d8d49ac26a78f6278bcf3a50ffd14bc7a";
-// let h2 = '0xc2d60d91af2e04abc299f6e0a4a10e948648c0ada43da0a7d3d721b81d62c0d1';
-// let h3 = '0xc59ae74876449fe5cd4fced420fedf86be624c6022781c36f333cd70708cc2b1';
-// let h4 ='0x3ae386d0ec7c00f32d87bbef1d4d8aaa5007953f63d2ba4a392ec0ce917e1230';
-// let h5 = '0x2ebed9df2dc65b8e56b266c06a8e6e2d0c72effa18c49bef6387218acba6579b';
-// let h6 = '0x8d4888cf8c6e3596b2538622297cb8a2b02effe99f838679604792a362533361';
-// let h7 ='0x2b04e957107ce02612fd8583f4eaa219697a4cdf98e680e0a68e86a858bc6d26';
-//
+
+let h1 = "0xdced2aaa90baa8526b1759608af74b6d8d49ac26a78f6278bcf3a50ffd14bc7a";
+let h2 = '0xc2d60d91af2e04abc299f6e0a4a10e948648c0ada43da0a7d3d721b81d62c0d1';
+let h3 = '0xc59ae74876449fe5cd4fced420fedf86be624c6022781c36f333cd70708cc2b1';
+let h4 ='0x3ae386d0ec7c00f32d87bbef1d4d8aaa5007953f63d2ba4a392ec0ce917e1230';
+let h5 = '0x2ebed9df2dc65b8e56b266c06a8e6e2d0c72effa18c49bef6387218acba6579b';
+let h6 = '0x8d4888cf8c6e3596b2538622297cb8a2b02effe99f838679604792a362533361';
+let h7 ='0x2b04e957107ce02612fd8583f4eaa219697a4cdf98e680e0a68e86a858bc6d26';
+
 // db.isExist(h4, 1 ,(err,value)=>{
 //
 //     if(err){
@@ -135,6 +153,16 @@ module.exports = DBAccessorMock;
 //     let sha = StateUtil.kecckak256Hash(value);
 //     console.log(sha);
 //
+// });
+
+// db.readAllKeysStream((err,key)=>{
+//     if(err && err !== true){
+//         console.log("[Err] ", err);
+//     }else if(err === true){
+//         console.log("end stream! ");
+//     }else{
+//
+//     }
 // });
 
 
