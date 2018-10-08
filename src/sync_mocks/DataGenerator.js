@@ -2,6 +2,8 @@ const pickRandom = require('pick-random');
 const Web3 = require('web3');
 const web3 = new Web3();
 const fs = require('fs');
+const level = require('level');
+
 
 function random(m, s) {
     let num = Math.round(m + 2.0 * s * (Math.random() + Math.random() + Math.random() - 1.5));
@@ -123,6 +125,15 @@ function generateEthereumState(){
     let path = "/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/ethereum_blockchain.json";
     save_ethereum_state_as_js(path,ethState);
 }
+
+module.exports.loadEthState = function(path){
+    let defaultPath = './ethereum_blockchain';
+    if(path){
+        defaultPath = path;
+    }
+    let dictionary = require(defaultPath);
+    return dictionary;
+};
 
 function loadEthereumState(){
     let dictionary = require('./ethereum_blockchain');
@@ -246,11 +257,36 @@ function save_db_state_as(path,dbState){
     });
 }
 
+
+module.exports.loadDb = function(path){
+
+    let defaultPath = './db_states';
+
+    if(path){
+        defaultPath = path;
+    }
+    let dictionary = require(defaultPath);
+    return dictionary;
+};
+
 function loadDBState(){
     let dictionary = require('./db_states');
     return dictionary;
 }
 
+function saveDbStateToLevelDB(dbPath,dbState){
+    var db = level(dbPath);
+
+    for(key in dbState){
+        db.put(key, dbState[key], (err)=>{
+            if(err){
+                console.log("error storing -> " + err);
+            }else{
+                console.log(".");
+            }
+        });
+    }
+}
 // generate ethereum state
 
 //generateEthereumState();
@@ -265,9 +301,15 @@ function loadDBState(){
 // let p ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/db_states.json';
 // save_db_state_as(p,db);
 
+// save to level db
 let dbState = loadDBState();
-console.log(dictToList(dbState).length);
+//let leveldbPath ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
+//saveDbStateToLevelDB(leveldbPath,dbState);
+// console.log(dictToList(dbState).length);
 
+
+
+/* verify stuff */
 
 //
 // let dbList = dictToList(db);
