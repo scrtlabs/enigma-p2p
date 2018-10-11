@@ -27,6 +27,8 @@ const DoHandshakeAction = require('./actions/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
+const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
+
 
 class NodeController{
 
@@ -50,12 +52,12 @@ class NodeController{
         // actions
         this._actions = {
 
-            [NOTIFICATION['HANDSHAKE_UPDATE']] : new HandshakeUpdateAction(this),
-            [NOTIFICATION['DISCOVERED']] : new DoHandshakeAction(this),
-            [NOTIFICATION['BOOTSTRAP_FINISH']] : new BootstrapFinishAction(this),
-            [NOTIFICATION['CONSISTENT_DISCOVERY']] : new ConsistentDiscoveryAction(this),
-            [NOTIFICATION['PUBSUB_PUB']] : new PubsubPublishAction(this),
-
+            [NOTIFICATION.HANDSHAKE_UPDATE] : new HandshakeUpdateAction(this),
+            [NOTIFICATION.DISCOVERED] : new DoHandshakeAction(this),
+            [NOTIFICATION.BOOTSTRAP_FINISH] : new BootstrapFinishAction(this),
+            [NOTIFICATION.CONSISTENT_DISCOVERY] : new ConsistentDiscoveryAction(this),
+            [NOTIFICATION.PUBSUB_PUB] : new PubsubPublishAction(this),
+            [NOTIFICATION.PERSISTENT_DISCOVERY_DONE] : new AfterOptimalDHTAction(this),
         };
     }
     /**
@@ -122,6 +124,7 @@ class NodeController{
 
         });
     }
+
     engNode(){
         return this._engNode;
     }

@@ -36,6 +36,8 @@ class ConsistentDiscoveryAction{
 
         let task = (stopper) =>{
 
+            this._controller.connectionManager().onStartPersistentDiscovery();
+
             this._controller.connectionManager().tryConnect((err,results)=>{
                 if(err){
                     if(err === STATUS.ERR_EMPTY_PEER_BANK){
@@ -69,6 +71,7 @@ class ConsistentDiscoveryAction{
             console.log("status => " , JSON.stringify(status,null,2));
             console.log("result => " , JSON.stringify(result,null,2));
             console.log("------------------- FINISHED STOPPABLE TASK ------------------");
+            this._controller.connectionManager().onDonePersistentDiscovery(status,result);
         };
 
         let stopabbleTask = new StoppableTask(options,task,onFinish);

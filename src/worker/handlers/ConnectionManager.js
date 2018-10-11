@@ -43,11 +43,48 @@ class ConnectionManager extends EventEmitter{
         // the state indicates that currently the connection manager is already in search for new peers
         // to be added to the PeerBank (not establishing connection nesscearly)
         this._searchState = false;
+        // flag that indicates wether the search state was true meaning, persistent discovery was already done in the past regardless of the result.
+        // this is to indicate if it's during boot time of the node or somewhere later in the future.
+        this._searchedBefore = false;
 
     }
     /** add context */
     addNewContext(context){
         this._ctx = context;
+    }
+    /**
+     * search state : if the node us currently during persistent discovery
+     */
+    setSearchState(boolState){
+        this._searchState = boolState;
+    }
+    /**
+     * change search state => true
+     */
+    onStartPersistentDiscovery(){
+        this.setSearchState(true);
+    }
+    /**
+     * When the persistent discovery is done, change search state => false
+     * and notify the controller (this._ctx)
+     * @param {Json} status , {"success" ; bool}
+     * @param {Json} result , {} CURRENTLY IGNORED. TODO:: Add result or delete
+     */
+    onDonePersistentDiscovery(status,result){
+
+        this.setSearchState(false);
+
+        // success is indicator if the peer table is optimal
+        let success = status.success;
+
+        let bootTime = !this._searchedBefore;
+        this.notify({
+            'notification' : N_NOTIFICATION.PERSISTENT_DISCOVERY_DONE,
+            'status' : success,
+            'bootTime' : bootTime
+        });
+
+        this._searchedBefore = true;
     }
     /** group parallel batched request to find peers form
      * given list

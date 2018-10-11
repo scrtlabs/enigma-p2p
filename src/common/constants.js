@@ -15,7 +15,8 @@ module.exports.NODE_NOTIFICATIONS = {
     'HANDSHAKE_UPDATE' : 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
     'BOOTSTRAP_FINISH' : 'b_update_finish', // update of the connection manager bootstrap finished state
     'CONSISTENT_DISCOVERY' : 'c_discover', // run consistent discovery mechanism
-    'PUBSUB_PUB' : 'publish' // publish notification that activates a publish action
+    'PUBSUB_PUB' : 'publish', // publish notification that activates a publish action
+    'PERSISTENT_DISCOVERY_DONE' : 'p_done' , // persistent discovery is done, this will happend at the end of every attempt to get optimal DHT
 };
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
