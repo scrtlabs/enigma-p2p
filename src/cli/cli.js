@@ -1,3 +1,4 @@
+const path = require('path')
 const NodeController = require('../worker/controller/NodeController');
 
 
@@ -6,12 +7,12 @@ var readline = require('readline');
 var program = require('commander');
 
 
-const B1Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-l";
+const B1Path = path.join(__dirname, "../../test/testUtils/id-l");
 const B1Port = "10300";
-const B2Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-d";
-const B2Port = "103001";
+const B2Path = path.join(__dirname, "../../test/testUtils/id-d");
+const B2Port = "10301";
 const B1Addr = '/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
-const B2Addr = '/ip4/0.0.0.0/tcp/103001/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP';
+const B2Addr = '/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP';
 
 let configObject = {
     'bootstrapNodes' : null,
