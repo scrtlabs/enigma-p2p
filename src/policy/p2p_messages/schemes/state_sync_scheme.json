@@ -1,0 +1,40 @@
+{
+  "header" : {
+    "id" : "/StateSyncHeader",
+    "type" : "object",
+    "properties" : {
+      "from" : {"type" : "string"},
+      "to"  : {"type" : "string"}
+    },
+    "required" : ["from","to"]
+  },
+  "range" : {
+    "id" : "/StateSyncRange",
+    "type" : "object",
+    "properties" : {
+      "fromIndex" : {"type" : "number"},
+      "toIndex" : {"type" : "number"},
+      "fromHash" : {"type" : "string"},
+      "toHash" : {"type" : "string"}
+    },
+    "required" : ["fromIndex", "toIndex", "fromHash" , "toHash"]
+  },
+  "request" : {
+    "id" : "/StateSyncReq",
+    "type" : "object",
+    "properties" : {
+      "header" : { "$ref" : "/StateSyncHeader"},
+      "body" : {
+        "type" : "object" ,
+        "properties" : {
+          "address" : {"type" : "string"},
+          "range" : {"$ref" : "/StateSyncRange"}
+        }
+      }
+    },
+    "required": ["header", "body"]
+  },
+  "response" : {
+
+  }
+}

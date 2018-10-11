@@ -27,7 +27,13 @@ module.exports.PROTOCOLS = {
     'FIND_PEERS' : '/findpeers/0.1',
     'HANDSHAKE' :'/handshake/0.1',
     'GROUP_DIAL' : '/groupdial',
-    'HEARTBEAT' : '/heartbeat/0.1'
+    'HEARTBEAT' : '/heartbeat/0.1',
+    'STATE_SYNC' : '/sync/0.1'
+};
+
+module.exports.P2P_MESSAGES = {
+    'STATE_SYNC_REQ' : 'ssyncreq',
+    'STATE_SYNC_RES' : 'ssyncres',
 };
 
 module.exports.PUBSUB_TOPICS = {

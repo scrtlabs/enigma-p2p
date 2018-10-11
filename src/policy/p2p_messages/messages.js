@@ -1,6 +1,9 @@
 const Policy = require('../policy');
 const utils = require('../../common/utils');
 const EncoderUtil = require('../../common/EncoderUtil');
+const constants = require('../../common/constants');
+const P2P_MSGS = constants.P2P_MESSAGES;
+
 
 class Msg {
     constructor(msg){
@@ -18,7 +21,10 @@ class Msg {
     id(){return this.rawMsg['id'];}
     isValidJsonRpc(){ return this.validJsonRpc;}
     toJSON(){return this.rawMsg;}
+
 }
+
+
 
 class PingMsg extends Msg{
     constructor(msgParams){
@@ -349,60 +355,8 @@ class FindPeersResMsg extends Msg {
 }
 
 
-class StateSyncReq{
-
-    constructor(parsedMsg){
-
-        this._bytecode = false;
-        this._deltaFromIndex = null;
-        this._deltaToIndex = null;
-        this._deltaFromHash = null;
-        this._deltaToHash = null;
 
 
-        if(new.target === StateSyncReq){
-            Object.freeze(this);
-        }
-    }
-    static to(rawMsg){
-
-    }
-    static from(rawMsg){
-
-    }
-
-}
-
-
-//
-// class PingMsg extends Msg{
-//     constructor(msgParams){
-//         let finalMsg;
-//         if(utils.isString(msgParams)){
-//             msgParams = JSON.parse(msgParams);
-//         }
-//         if("jsonrpc" in msgParams){
-//             finalMsg = msgParams;
-//         }else{
-//             if("findpeers" in msgParams && "from" in msgParams){
-//                 finalMsg = {
-//                     "jsonrpc" : "2.0",
-//                     "method" : "ping",
-//                     "params" : [{'from': msgParams.from,
-//                         'to' : msgParams.to,
-//                         'findpeers' : msgParams.findpeers}],
-//                     "id" : utils.randId()
-//                 };
-//             }else{
-//                 throw new Error("[-] error construction ping msg ");
-//             }
-//         }
-//
-//         super(finalMsg);
-//         if(new.target === PingMsg){
-//             Object.freeze(this);
-//         }
-//     }
 
 //TODO:: Create a message structure for peer response to /getpeerbook
 //TODO:: /getpeerbook request is not needed since there's no content there.
