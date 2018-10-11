@@ -8,8 +8,8 @@
     },
     "required" : ["from","to"]
   },
-  "range" : {
-    "id" : "/StateSyncRange",
+  "range_req" : {
+    "id" : "/StateSyncRangeReq",
     "type" : "object",
     "properties" : {
       "fromIndex" : {"type" : "number"},
@@ -28,13 +28,10 @@
         "type" : "object" ,
         "properties" : {
           "address" : {"type" : "string"},
-          "range" : {"$ref" : "/StateSyncRange"}
+          "range" : {"$ref" : "/StateSyncRangeReq"}
         }
       }
     },
     "required": ["header", "body"]
-  },
-  "response" : {
-
   }
 }

@@ -88,7 +88,23 @@ There are 2 type of responses: STATE_SYNC_RES_DELTA and STATE_SYNC_RES_CODE.
 
 
 
+### Stream Flow ###
 
+OnBoot:
+
+0) Bootstrap
+1) Load current state from local db
+2) get missing states from ethereum
+3) request states from peers using IPFS
+4) announce synched
+
+On Provide Request - Stream only flow :
+
+Requester -> LocalDB -> Requester -> repeat ?
+
+On Sync Request - Stream only flow :
+
+Missing state -> Provider Peer -> Sliding Window -> Validate Hashes -> repeat ?
 
 
 

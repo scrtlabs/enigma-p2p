@@ -3,8 +3,6 @@ const constants = require('../../../common/constants');
 const MsgTypes = constants.P2P_MESSAGES;
 const Validator = require('jsonschema').Validator;
 
-let v = new Validator();
-
 function loadScheme(path, callback){
     loadJsonFile(path).then(json => {
         callback(null,json);
@@ -13,6 +11,8 @@ function loadScheme(path, callback){
             callback(err);
     });
 }
+
+
 const schemeMap = {
     [MsgTypes.STATE_SYNC_REQ] : (testObj,callback)=>{
         loadScheme("./state_sync_scheme.json", (err,preScheme)=>{
@@ -21,11 +21,11 @@ const schemeMap = {
             }else{
                 let header = preScheme.header;
                 let request = preScheme.request;
-                let range = preScheme.range;
+                let range = preScheme.range_req;
                 let v = new Validator();
 
                 v.addSchema(header, "/StateSyncHeader");
-                v.addSchema(range, "/StateSyncRange");
+                v.addSchema(range, "/StateSyncRangeReq");
 
                 let isValid = v.validate(testObj,request).valid;
 
@@ -33,7 +33,29 @@ const schemeMap = {
             }
         })
     },
-    [MsgTypes.STATE_SYNC_RES] : {"path" : "./state_sync_scheme" , "type" : "response"},
+
+    [MsgTypes.STATE_SYNC_RES] : (testObj, callback)=>{
+        loadScheme("./state_sync_scheme.json", (err,preScheme)=>{
+            //TODO:: implement scheme. 
+            callback(err,true);
+            // if(err){
+            //     callback(err);
+            // }else{
+            //     let header = preScheme.header;
+            //     let response = preScheme.response;
+            //     let range = preScheme.range;
+            //
+            //     let v = new Validator();
+            //
+            //     v.addSchema(header, "/StateSyncHeader");
+            //     v.addSchema(range, "/StateSyncRange");
+            //
+            //     let isValid = v.validate(testObj, response).valid;
+            //
+            //     callback(null, isValid);
+            // }
+        });
+    },
 };
 
 function _validateScheme(testedObj, msgName, callback){
@@ -45,7 +67,7 @@ function _validateScheme(testedObj, msgName, callback){
     }
 };
 
-let obj = {
+let state_sync_req_obj = {
     "header":{
         "from" : "isan",
         "to" : "elichai"
@@ -60,7 +82,7 @@ let obj = {
         }
     }
 }
-_validateScheme(obj, MsgTypes.STATE_SYNC_REQ ,(err,isValid)=>{
+_validateScheme(state_sync_req_obj, MsgTypes.STATE_SYNC_REQ ,(err,isValid)=>{
     if(err){
         console.log(err);
     }else{
