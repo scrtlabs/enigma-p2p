@@ -78,14 +78,11 @@ There are 2 type of responses: STATE_SYNC_RES_DELTA and STATE_SYNC_RES_CODE.
     }
     "body" : { // alternative {address,code,hash}
         "address" : address
-        "index" : number,
-        "hash" : hash(delta)
-        "delta" : bytes
+        "range" : [{"index", "hash" , "delta"},...],
+        "code" : "", // only if code is sent
+        "code_hash" : "" // only if code is sent
     }
 }
-
-
-
 
 
 ### Stream Flow ###

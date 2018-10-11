@@ -36,7 +36,7 @@ const schemeMap = {
 
     [MsgTypes.STATE_SYNC_RES] : (testObj, callback)=>{
         loadScheme("./state_sync_scheme.json", (err,preScheme)=>{
-            //TODO:: implement scheme. 
+            //TODO:: implement scheme.
             callback(err,true);
             // if(err){
             //     callback(err);
