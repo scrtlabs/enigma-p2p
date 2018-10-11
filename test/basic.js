@@ -1,3 +1,4 @@
+const path = require('path')
 const parallel = require('async/parallel');
 const EnigmaNode = require('../src/worker/EnigmaNode');
 const quickBuilderUtils = require('./testUtils/quickBuilderUtil');
@@ -14,10 +15,11 @@ const TEST_TREE = require('./test_tree').TEST_TREE;
 const WorkerBuilder = require('../src/worker/builder/WorkerBuilder');
 const NodeController = require('../src/worker/controller/NodeController');
 
-const B1Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-l";
+const B1Path = path.join(__dirname,"testUtils/id-l");
 const B1Port = "10300";
-const B2Path = "/home/wildermind/WebstormProjects/enigma-p2p/test/testUtils/id-d";
-const B2Port = "103001";
+const B2Path = "../../test/testUtils/id-d";
+const B2Port = "10301";
+
 
 it('#1 Should test the worker builder', async function(){
     let tree = TEST_TREE['basic'];
@@ -55,7 +57,7 @@ it('#2 Should test handshake with 1 node', async function(){
     }
     return new Promise(async (resolve)=>{
         let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
-        let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath" : B1Path, "nickname":"dns","bootstrapNodes":bootstrapNodes});
+        let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath":B1Path, "nickname":"dns", "bootstrapNodes":bootstrapNodes});
         let peerController = NodeController.initDefaultTemplate({"nickname":"peer" , "bootstrapNodes":bootstrapNodes});
 
         await dnsController.engNode().syncRun();
