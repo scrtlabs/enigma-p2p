@@ -1,30 +1,8 @@
-class EnigmaContract{
-    constructor(){
+const Web3 = require('web3');
+
+class EnigmaContractAPI {
+
+    constructor(options, logger) {
 
     }
-    getContractsNum(){
-
-    }
-    getDeltasNum(contractAddr){
-
-    }
-    isSecretContract(addr){
-
-    }
-    isValidDelta(addr, deltaHash){
-
-    }
-    isValidDeltaRange(addr, deltaHashesList){
-
-    }
-    getSecretContractByteCodeHash(addr){
-
-    }
-    getDeltaAt(addr,deltaIndex){
-
-    }
-    getDeltasRange(addr, indexRange){
-
-    }
-
 }

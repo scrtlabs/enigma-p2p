@@ -40,7 +40,7 @@ it('#1 Should test the worker builder', async function(){
         await worker.syncRun();
 
         await testUtils.sleep(1000);
-        assert.equal(0, worker.getAllPeersInfo().length, "peer info don't match " );
+        assert.strictEqual(0, worker.getAllPeersInfo().length, "peer info don't match " );
         // stop the worker
         await worker.syncStop();
         resolve();
@@ -70,19 +70,19 @@ it('#2 Should test handshake with 1 node', async function(){
 
         let peersLen = peerController.engNode().getAllPeersInfo().length;
 
-        assert.equal(1,peersLen, "error in peers len should be 1");
+        assert.strictEqual(1,peersLen, "error in peers len should be 1");
 
         // validate handshake on the peer side
         let handshakedPeers = peerController.stats().getAllHandshakedPeers();
 
-        assert.equal(1,handshakedPeers.length);
-        assert.equal(dnsController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
+        assert.strictEqual(1,handshakedPeers.length);
+        assert.strictEqual(dnsController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
 
         // validate handshake on the dns side
         handshakedPeers = dnsController.stats().getAllHandshakedPeers();
 
-        assert.equal(1,handshakedPeers.length);
-        assert.equal(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
+        assert.strictEqual(1,handshakedPeers.length);
+        assert.strictEqual(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
 
         await dnsController.engNode().syncStop();
         await peerController.engNode().syncStop();
