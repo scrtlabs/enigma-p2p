@@ -21,7 +21,7 @@ class PeerBundle extends libp2p {
             },
             config: {
                 dht: {
-                    kBucketSize: 20
+                    kBucketSize: 2
                 },
                 EXPERIMENTAL: {
                     dht: true,
