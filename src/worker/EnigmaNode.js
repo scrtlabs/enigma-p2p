@@ -12,6 +12,10 @@ const Policy = require('../policy/policy');
 const Messages = require('../policy/p2p_messages/messages');
 const nodeUtils = require('../common/utils');
 const Logger = require('../common/logger');
+const EngCID = require('../common/EngCID');
+const CIDUtil = require('../common/CIDUtil');
+const CID = require('cids');
+
 
 class EnigmaNode extends EventEmitter {
 
@@ -549,6 +553,25 @@ class EnigmaNode extends EventEmitter {
 
         });
     }
+    /** provide content by declaring existing CID to the network
+     * @param {EngCID} engCid , content cid wrapped in Enigma cid
+     * @param {Function} callback - (err,engCid) =>{}
+     * */
+    provideContent(engCid,callback){
+
+        if(!this.started){
+            throw Error('Please start the Worker before providing content');
+        }
+
+        if(engCid){
+           let cid = engCid.getCID();
+
+           this.node.contentRouting.provide(cid, (err)=>{
+                callback(err, engCid);
+           });
+        }
+    }
+
     /**
      * Sync Get some peers PeerBook
      * @param {PeerInfo} peerInfo, the target peer

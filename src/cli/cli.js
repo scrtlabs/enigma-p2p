@@ -157,6 +157,13 @@ let commands = {
     'broadcast' : (args) =>{
         let msg = args[1];
         node.broadcast(msg);
+    },
+    'provide' : (args) =>{
+        node.provideContent();
+    },
+    'simpleCon' : (args)=>{
+        let id = args[1];
+        node.isSimpleConnected(id);
     }
 };
 

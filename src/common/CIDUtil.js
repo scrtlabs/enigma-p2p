@@ -1,7 +1,11 @@
 const CID = require('cids');
 const multihash = require('multihashes');
-
+const Web3 = require('web3');
 class CIDUtil {
+
+    static hashKeccack256(value){
+        return new Web3().utils.sha3(value);
+    }
     /** cast Ethereum keccack256 function into a CID
      * @param {String} keccackHash, with 0x len 66, 64 without 0x, both inputs are fine
      * @returns {CID} cid representing the input.
@@ -24,7 +28,7 @@ class CIDUtil {
         }
         return null;
     }
-    /** if remove 0x from the hash if existing
+    /** remove 0x from the hash if existing
      * @param {String} h, keccack256 hash
      * @returns {String} hash without 0x or the same
      * */

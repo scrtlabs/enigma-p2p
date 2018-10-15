@@ -14,6 +14,7 @@ const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const STAT_TYPES = constants.STAT_TYPES;
 const EnigmaNode = require('../EnigmaNode');
+const Provider = require('../../worker/state_sync/provider/Provider');
 const ConnectionManager = require('../handlers/ConnectionManager');
 const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
@@ -42,6 +43,9 @@ class NodeController{
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
         this._protocolHandler = protocolHandler;
+
+        // TODO:: take Provider form CTOR - currently uses _initContentProvider()
+        this._provider = null;
 
         // stats
         this._stats = new Stats();
@@ -93,6 +97,7 @@ class NodeController{
         this._initEnigmaNode();
         this._initConnectionManager();
         this._initProtocolHandler();
+        this._initContentProvider();
     }
     _initConnectionManager(){
 
@@ -124,7 +129,9 @@ class NodeController{
 
         });
     }
-
+    _initContentProvider(){
+        this._provider = new Provider(this._engNode, this._logger);
+    }
     engNode(){
         return this._engNode;
     }
@@ -133,6 +140,9 @@ class NodeController{
     }
     stats(){
         return this._stats;
+    }
+    provider(){
+        return this._provider;
     }
     policy(){
         return this._policy;
@@ -189,6 +199,25 @@ class NodeController{
             'topic' : TOPICS.BROADCAST,
             'message' : content
         });
+    }
+    /** temp */
+    provideContent(){
+        let descriptorsList = ["addr1" , "addr2" , "addr3"];
+
+        this.provider().provideContentsBatch(descriptorsList,(err,failedCids)=>{
+            if(err){
+                console.log("@@@ couldn't provide all........  err = > " , err);
+                console.log("@@@@ failed cids :::: " +  failedCids.length);
+            }else{
+                console.log("@@@ NO ERROR IN PROVIDE ");
+                console.log("FAILED CIDS LEN -= " + failedCids.length)
+            }
+        });
+    }
+    /** temp - is connection (no handshake related simple libp2p */
+    isSimpleConnected(nodeId){
+        let isConnected = this._engNode.isConnected(nodeId);
+        console.log("Connection test : " + nodeId + " ? " + isConnected);
     }
 
 }

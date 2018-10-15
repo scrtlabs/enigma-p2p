@@ -1,7 +1,7 @@
 const CID = require('cids');
 const multihash = require('multihashes');
-const CIDUtil = require('../../common/CIDUtil');
-const EncoderUtil = require('../../common/EncoderUtil');
+const CIDUtil = require('./CIDUtil');
+const EncoderUtil = require('./EncoderUtil');
 
 class EngCID{
 
