@@ -7,7 +7,33 @@
 The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
 
 # Getting Started
-* TBD
+
+## Quick CLI 
+
+First: 
+
+`cd ./src/cli`
+
+For help and list of flags: 
+
+`node cli.js -h`
+
+
+
+For launching the CLI with 1 bootstrap node type:
+
+`node cli.js -n dns -i B1 -b B1 -p B1`
+
+For the run-time commands the node can do: 
+
+**While already running type**  `help`
+
+To launch a worker(s) in a different terminal type:
+
+(The nickname is for debugging, pick and string i.e peer1)
+
+`node cli.js -b B1 -n <nickname>`
+
 # Architechture
 
 ## Core, Enigma-P2P and the outside world
