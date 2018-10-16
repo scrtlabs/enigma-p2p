@@ -241,3 +241,6 @@ typings/
 
 # Serverless directories
 .serverless
+
+# Codecov
+coverage.lcov
