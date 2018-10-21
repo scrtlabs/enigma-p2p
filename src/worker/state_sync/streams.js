@@ -5,25 +5,25 @@ const Verifier = require('./receiver/StateSyncReqVerifier');
  * from providerStream => verify (consensus)
  * */
 module.exports.verificationStream = (read)=>{
-    _verificationStream(read);
+    return _verificationStream(read);
 };
 
 /**
  * After verificationStream => into db
  * */
 module.exports.toDbStream = (read)=>{
-    _toDbStream(read);
+    return _toDbStream(read);
 };
 
 module.exports.fromDbStream = (read) =>{
-    _fromDbStream(read);
+    return _fromDbStream(read);
 };
 /**
  * parses the data from the requester into a format that core can read
  * this is preperation before loading the deltas from the db.
  * */
 module.exports.requestParserStream = (read) =>{
-    _requestParserStream(read);
+    return _requestParserStream(read);
 };
 
 /**
@@ -32,7 +32,7 @@ module.exports.requestParserStream = (read) =>{
  * */
 
 module.exports.toNetworkParser = (read) =>{
-    _toNetworkParser(read);
+    return _toNetworkParse(read);
 };
 
 
@@ -100,7 +100,6 @@ function _requestParserStream(read){
         if(data != null){
             _fakeRequestParser(data,(err,parsed)=>{
                 if(err){
-                    console.log("some fake error in fakeRequestParser");
                     cb(true,null);
                 }else{
                     cb(end,parsed);
@@ -118,13 +117,15 @@ function _requestParserStream(read){
 function fakeSaveToDb(data,callback){
     let status = true;
     console.log("[saveToDb] : " + data);
-    callback(ok);
+    callback(status);
 }
 function _toDbStream(read){
-    read(null,function next(end,data){
+    read(null, function next(end,data){
+
         if(end === true) return;
 
         if(end) throw end;
+
         //TODO:: placeholder - save states into db with core.
         fakeSaveToDb(data, (status)=>{
             if(!status){
@@ -137,6 +138,7 @@ function _toDbStream(read){
     });
 }
 function _verificationStream(read){
+
     return function readble(end,cb){
         read(end,(end,data)=>{
             if(data !=null){

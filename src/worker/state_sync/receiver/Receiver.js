@@ -5,6 +5,7 @@ const parallel = require('async/parallel');
 const constants = require('../../../common/constants');
 const Policy = require('../../../policy/policy');
 const FindProviderResult = require('./FindProviderResult');
+const pull = require('pull-stream');
 const streams = require('../streams');
 
 class Receiver extends EventEmitter{
@@ -89,7 +90,7 @@ class Receiver extends EventEmitter{
      * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
      * */
     startStateSyncRequest(peerInfo, stateSyncReqMsgs){
-        this._enigmaNode.startStateSyncRequest(peerInfo,(protocol,connectionStream)=>{
+        this._engNode.startStateSyncRequest(peerInfo,(protocol,connectionStream)=>{
             pull(
                 pull.values(stateSyncReqMsgs),
                 connectionStream,

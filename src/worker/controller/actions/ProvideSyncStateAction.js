@@ -11,7 +11,7 @@ class ProvideSyncStateAction{
 
     execute(params){
         let provider = this._controller.provider();
-        let connectionStream = params.connection;
+        let connectionStream = params.params.connection;
         provider.startStateSyncResponse(connectionStream);
     }
 }

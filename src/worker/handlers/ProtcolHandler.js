@@ -242,7 +242,7 @@ class ProtocolHandler extends EventEmitter{
      *@param {PeerBundle} nodeBundle , the libp2p bundle
      *@param {Json} params , {worker,connection,peer,protocol}
      **/
-    onHeartBeat(noBundle,params){
+    onHeartBeat(nodeBundle,params){
         pull(
             params.connection,
             pull.map(data=>{

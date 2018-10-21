@@ -249,6 +249,23 @@ class NodeController{
             console.log("---------------------- find providers ------------------------------ ");
         });
     }
+    /** temp */
+    findContentAndSync(){
+        let descriptorsList = ["addr1" , "addr2" , "addr3"];
+        this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
+            if(findProvidersResult.isErrors()){
+                throw "failed finding providers there is some error";
+            }else{
+                let map = findProvidersResult.getProvidersMap();
+                for(let key in map){
+                    let ecid = map[key].ecid;
+                    let providers = map[key].providers;
+                    this.receiver().startStateSyncRequest(providers[0],["addr1"]);
+                    break;
+                }
+            }
+        });
+    }
     /** temp - is connection (no handshake related simple libp2p */
     isSimpleConnected(nodeId){
         let isConnected = this._engNode.isConnected(nodeId);

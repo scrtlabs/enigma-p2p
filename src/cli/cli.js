@@ -164,6 +164,9 @@ let commands = {
     'receive' : ()=>{
         node.findContent();
     },
+    'sync' : () =>{
+        node.findContentAndSync();
+    },
     'simpleCon' : (args)=>{
         let id = args[1];
         node.isSimpleConnected(id);
