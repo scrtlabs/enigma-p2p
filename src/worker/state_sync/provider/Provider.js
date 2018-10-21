@@ -2,7 +2,8 @@ const EventEmitter = require('events').EventEmitter;
 const CIDUtil = require('../../../common/CIDUtil');
 const EngCID = require('../../../common/EngCID');
 const parallel = require('async/parallel');
-
+const pull = require('pull-stream');
+const streams = require('../streams');
 
 class Provider extends EventEmitter{
 
@@ -57,6 +58,17 @@ class Provider extends EventEmitter{
             callback(isError, failedCids);
         });
     }
+
+    startStateSyncResponse(connectionStream){
+        pull(
+            connectionStream,
+            streams.requestParserStream,
+            streams.fromDbStream,
+            streams.toNetworkParser,
+            connectionStream
+        );
+    }
+
 }
 
 module.exports = Provider;

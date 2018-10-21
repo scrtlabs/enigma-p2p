@@ -33,7 +33,8 @@ class ProtocolHandler extends EventEmitter{
         this._protocols = [
             PROTOCOLS['ECHO'],PROTOCOLS['HANDSHAKE'],
             PROTOCOLS['PEERS_PEER_BOOK'],PROTOCOLS['HEARTBEAT'],
-            PROTOCOLS['GROUP_DIAL'], PROTOCOLS['FIND_PEERS']];
+            PROTOCOLS['GROUP_DIAL'], PROTOCOLS['FIND_PEERS'],
+            PROTOCOLS.STATE_SYNC];
 
         //this._state = state;
         this.fallback = this.tempFallback;
@@ -48,7 +49,7 @@ class ProtocolHandler extends EventEmitter{
         this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
         this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
         this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
-
+        this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync;
         // list of active subscriptions pubsub
 
         this._subscriptions = [
@@ -298,6 +299,11 @@ class ProtocolHandler extends EventEmitter{
      * */
     onPeerDisconnect(nodeBundle,params){
         params.worker.getProtocolHandler()._logger.info("peer disconnected from " + params.peer.id.toB58String());
+    }
+
+    onStateSync(nodeBundle, params){
+        let self = params.worker.getProtocolHandler();
+        self.notify({'notification':NOTIFICATION.STATE_SYNC_REQ, 'params' : params});
     }
     /**
      * This function is a response when subscribed to pubsub BROADCAST topic
