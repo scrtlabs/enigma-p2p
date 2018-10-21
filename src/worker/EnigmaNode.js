@@ -598,7 +598,15 @@ class EnigmaNode extends EventEmitter {
             callback(err,providers);
         });
     }
-
+    /** start the channel  - STATE_SYNC_REQ
+     * @param {PeerInfo} , peerInfo
+     * @param {Function} connectionHandler (protocol,connection) =>{}
+     * */
+    startStateSyncRequest(peerInfo,connectionHandler){
+        this.dialProtocol(peerInfo,PROTOCOLS.STATE_SYNC , (protocol,connection)=>{
+            connectionHandler(protocol,connection);
+        });
+    }
     /**TEMPORARY method
      * @params {String} protocolName
      * @params {Function} onEachResponse , (protocol,connection)
