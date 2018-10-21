@@ -20,9 +20,10 @@ class Provider extends EventEmitter{
      * */
     provideContentsBatch(descriptorsList,callback){
 
-        let hashedList = descriptorsList.map((desc)=>{ return CIDUtil.hashKeccack256(desc)});
-
-        let engCIDs = hashedList.map(h=> {return EngCID.createFromKeccack256(h)});
+        let engCIDs = descriptorsList.map(desc=>{
+            let h = CIDUtil.hashKeccack256(desc);
+            return EngCID.createFromKeccack256(h);
+        });
 
 
         let jobs = [];

@@ -586,6 +586,18 @@ class EnigmaNode extends EventEmitter {
             });
         });
     }
+    /**
+     * Find provider for some CID
+     * @param {EngCID} engCid, the content cid
+     * @param {Integer} timeout, in milliseconds before returning an error
+     * @param {Function} callback, (err,providers)=>{} , providers is {PeerInfo}
+     * */
+    findContentProvider(engCid, timeout , callback){
+        let cid = engCid.getCID();
+        this.node.contentRouting.findProviders(cid,timeout,(err,providers)=>{
+            callback(err,providers);
+        });
+    }
 
     /**TEMPORARY method
      * @params {String} protocolName

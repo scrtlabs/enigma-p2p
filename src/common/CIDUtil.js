@@ -1,6 +1,8 @@
 const CID = require('cids');
 const multihash = require('multihashes');
 const Web3 = require('web3');
+const EngCID = require('./EngCID');
+
 class CIDUtil {
 
     static hashKeccack256(value){

@@ -15,6 +15,7 @@ const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const STAT_TYPES = constants.STAT_TYPES;
 const EnigmaNode = require('../EnigmaNode');
 const Provider = require('../../worker/state_sync/provider/Provider');
+const Receiver = require('../../worker/state_sync/receiver/Receiver');
 const ConnectionManager = require('../handlers/ConnectionManager');
 const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
@@ -46,6 +47,8 @@ class NodeController{
 
         // TODO:: take Provider form CTOR - currently uses _initContentProvider()
         this._provider = null;
+        // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
+        this._receiver = null;
 
         // stats
         this._stats = new Stats();
@@ -98,6 +101,7 @@ class NodeController{
         this._initConnectionManager();
         this._initProtocolHandler();
         this._initContentProvider();
+        this._initContentReceiver();
     }
     _initConnectionManager(){
 
@@ -132,6 +136,9 @@ class NodeController{
     _initContentProvider(){
         this._provider = new Provider(this._engNode, this._logger);
     }
+    _initContentReceiver(){
+        this._receiver = new Receiver(this._engNode, this._logger);
+    }
     engNode(){
         return this._engNode;
     }
@@ -143,6 +150,9 @@ class NodeController{
     }
     provider(){
         return this._provider;
+    }
+    receiver(){
+        return this._receiver;
     }
     policy(){
         return this._policy;
@@ -212,6 +222,30 @@ class NodeController{
                 console.log("@@@ NO ERROR IN PROVIDE ");
                 console.log("FAILED CIDS LEN -= " + failedCids.length)
             }
+        });
+    }
+    /** temp */
+    findContent(){
+        let descriptorsList = ["addr1" , "addr2" , "addr3"];
+        this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
+            console.log("---------------------- find providers ------------------------------ ");
+            console.log(" is complete error ? " + findProvidersResult.isCompleteError());
+            console.log(" is some error ? " + findProvidersResult.isErrors());
+            let map = findProvidersResult.getProvidersMap();
+            for(let key in map){
+                console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^");
+                console.log("cid " + key)
+                console.log("providers:" );
+                map[key].providers.forEach(p=>{
+                    let mas = [];
+                    p.multiaddrs.forEach(ma=>{
+                        mas.push(ma.toString());
+                    })
+                    console.log(mas);
+                });
+                console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^");
+            }
+            console.log("---------------------- find providers ------------------------------ ");
         });
     }
     /** temp - is connection (no handshake related simple libp2p */

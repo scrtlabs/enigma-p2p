@@ -161,6 +161,9 @@ let commands = {
     'provide' : (args) =>{
         node.provideContent();
     },
+    'receive' : ()=>{
+        node.findContent();
+    },
     'simpleCon' : (args)=>{
         let id = args[1];
         node.isSimpleConnected(id);
