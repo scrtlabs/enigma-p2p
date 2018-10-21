@@ -41,9 +41,10 @@ module.exports.PUBSUB_TOPICS = {
 };
 
 module.exports.DHT_STATUS = {
-    'CRITICAL_HIGH_DHT_SIZE' : 20 ,
+    'CRITICAL_HIGH_DHT_SIZE' : 20,
     'OPTIMAL_DHT_SIZE' : 8,
     'CRITICAL_LOW_DHT_SIZE' : 3,
+    'TIMEOUT_FIND_PROVIDER' : 180000 // 3 minutes
 };
 module.exports.MSG_STATUS = {
     'OK' : 0,

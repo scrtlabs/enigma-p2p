@@ -9,9 +9,10 @@ class Policy extends EventEmitter{
         super();
         this._version = "0.1";
         // TODO:: define from config
-        this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS['CRITICAL_LOW_DHT_SIZE'];
-        this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS['OPTIMAL_DHT_SIZE'];
-        this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS['CRITICAL_HIGH_DHT_SIZE'];
+        this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE;
+        this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS.OPTIMAL_DHT_SIZE;
+        this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS.CRITICAL_HIGH_DHT_SIZE;
+        this._TIMEOUT_FIND_PROVIDERS = constants.DHT_STATUS.TIMEOUT_FIND_PROVIDER;
     }
     /** get the optimal number of outbound connections */
     getOptimalDhtSize(){
@@ -19,6 +20,10 @@ class Policy extends EventEmitter{
     }
     getCriticalLowDhtSize(){
         return this._CRITICAL_LOW_DHT_SIZE;
+    }
+
+    getTimeoutFindProvider(){
+        return this._TIMEOUT_FIND_PROVIDERS;
     }
     policyVersion(){
         return this._version;
