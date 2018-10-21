@@ -177,7 +177,7 @@ let commands = {
         console.log("$outCount : number of outbound connections"); 
         console.log("$broadcast <message> : broadcast a message to the whole network"); 
         console.log("$provide : announce the network the content the node provides"); 
-        console.log("$simpleCon : number of total simple connections"); 
+        console.log("$simpleCon <multiaddr>: check if some addr is simple connected");
         console.log("$help : help"); 
         console.log(">------------------------<");
     }

@@ -41,19 +41,6 @@ class Provider extends EventEmitter{
             })
         });
 
-        // let jobs = engCIDs.map(ecid =>{
-        //     return function(cb){
-        //
-        //         this._enigmaNode.provideContent(ecid, (err,ecid)=>{
-        //             if(err){
-        //                 this._logger.error(" error providing : " + ecid.getKeccack256());
-        //             }else{
-        //                 this._logger.info(" success providing : " + ecid.getKeccack256());
-        //             }
-        //             cb(null,{error: err, ecid : ecid});
-        //         });
-        //     }
-        // });
 
         parallel(jobs, (err,results)=>{
 
