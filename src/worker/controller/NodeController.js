@@ -30,7 +30,7 @@ const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
 const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
-
+const ProvideStateSyncAction = require('./actions/ProvideSyncStateAction');
 
 class NodeController{
 
@@ -65,6 +65,7 @@ class NodeController{
             [NOTIFICATION.CONSISTENT_DISCOVERY] : new ConsistentDiscoveryAction(this),
             [NOTIFICATION.PUBSUB_PUB] : new PubsubPublishAction(this),
             [NOTIFICATION.PERSISTENT_DISCOVERY_DONE] : new AfterOptimalDHTAction(this),
+            [NOTIFICATION.STATE_SYNC_REQ] : new ProvideStateSyncAction(this),
         };
     }
     /**
