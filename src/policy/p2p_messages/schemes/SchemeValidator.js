@@ -67,26 +67,26 @@ function _validateScheme(testedObj, msgName, callback){
     }
 };
 
-let state_sync_req_obj = {
-    "header":{
-        "from" : "isan",
-        "to" : "elichai"
-    },
-    "body": {
-        "address" : "0x123",
-        "range" :{
-            "fromIndex" : 1234,
-            "toIndex" : 123,
-            "fromHash" : "",
-            "toHash" : "",
-        }
-    }
-}
-_validateScheme(state_sync_req_obj, MsgTypes.STATE_SYNC_REQ ,(err,isValid)=>{
-    if(err){
-        console.log(err);
-    }else{
-        console.log("is valid? " + isValid);
-    }
-});
-
+// let state_sync_req_obj = {
+//     "header":{
+//         "from" : "isan",
+//         "to" : "elichai"
+//     },
+//     "body": {
+//         "address" : "0x123",
+//         "range" :{
+//             "fromIndex" : 1234,
+//             "toIndex" : 123,
+//             "fromHash" : "",
+//             "toHash" : "",
+//         }
+//     }
+// }
+// _validateScheme(state_sync_req_obj, MsgTypes.STATE_SYNC_REQ ,(err,isValid)=>{
+//     if(err){
+//         console.log(err);
+//     }else{
+//         console.log("is valid? " + isValid);
+//     }
+// });
+//

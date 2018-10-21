@@ -17,6 +17,7 @@ module.exports.NODE_NOTIFICATIONS = {
     'CONSISTENT_DISCOVERY' : 'c_discover', // run consistent discovery mechanism
     'PUBSUB_PUB' : 'publish', // publish notification that activates a publish action
     'PERSISTENT_DISCOVERY_DONE' : 'p_done' , // persistent discovery is done, this will happend at the end of every attempt to get optimal DHT
+    'STATE_SYNC_REQ' : 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
 };
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
