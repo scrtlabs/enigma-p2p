@@ -18,8 +18,6 @@ For help and list of flags:
 
 `node cli.js -h`
 
-
-
 For launching the CLI with 1 bootstrap node type:
 
 `node cli.js -n dns -i B1 -b B1 -p B1`
@@ -30,7 +28,7 @@ For the run-time commands the node can do:
 
 To launch a worker(s) in a different terminal type:
 
-(The nickname is for debugging, pick and string i.e peer1)
+(The nickname is for debugging, pick any string i.e peer1)
 
 `node cli.js -b B1 -n <nickname>`
 

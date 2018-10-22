@@ -1,11 +1,8 @@
 const path = require('path')
 const NodeController = require('../worker/controller/NodeController');
 
-
-
 var readline = require('readline');
 var program = require('commander');
-
 
 const B1Path = path.join(__dirname, "../../test/testUtils/id-l");
 const B1Port = "10300";
@@ -24,7 +21,7 @@ let configObject = {
 let changedKeys = [];
 
 let node;
-let openner = "  ______       _                         _____ ___  _____  \n" +
+let opener = "  ______       _                         _____ ___  _____  \n" +
 " |  ____|     (_)                       |  __ \\__ \\|  __ \\ \n" +
 " | |__   _ __  _  __ _ _ __ ___   __ _  | |__) | ) | |__) |\n" +
 " |  __| | '_ \\| |/ _` | '_ ` _ \\ / _` | |  ___/ / /|  ___/ \n" +
@@ -32,7 +29,8 @@ let openner = "  ______       _                         _____ ___  _____  \n" +
 " |______|_| |_|_|\\__, |_| |_| |_|\\__,_| |_|   |____|_|     \n" +
 "                  __/ |                                    \n" +
 "                 |___/                                     ";
-console.log(openner);
+console.log(opener);
+
 function list(val) {
     let parseVal =val.split(',');
     parseVal.forEach(ma=>{
@@ -61,6 +59,7 @@ function nickname(val){
     changedKeys.push("nickname");
     return parsedVal;
 }
+
 function port(val){
     let parseVal =val.toString();
     if(parseVal === 'B1')
@@ -83,17 +82,15 @@ function idPath(val){
     return parsedVal;
 }
 
-
 function initInitialConfig(){
     program
         .version('0.1.0')
         .usage('[options] <file ...>')
         .option('-b, --bnodes <items>', 'Bootstrap nodes', list)
-        .option('-n, --nickname [value]', 'nickname',nickname)
+        .option('-n, --nickname [value]', 'nickname', nickname)
         .option('-p, --port [value]', 'listening port', port)
         .option('-i, --path [value]', 'id path', idPath)
         .parse(process.argv);
-
 }
 
 function getFinalConfig(){
@@ -197,6 +194,7 @@ function execCmd(cmd){
         console.log("XXX no such command XXX ");
     }
 };
+
 function initReadLine(){
 
     var rl = readline.createInterface({
