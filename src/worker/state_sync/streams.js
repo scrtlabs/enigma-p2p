@@ -39,7 +39,7 @@ module.exports.toNetworkParser = (read) =>{
 function _fakeParseFromDbToNetwork(dbResult, callback){
     let parsed = dbResult;
     let isError = null;
-    callback(isError, dbResult);
+    callback(isError, parsed);
 }
 // this takes result from the db (done by the provider) and
 // returns the result directly into the other peer stream (source)

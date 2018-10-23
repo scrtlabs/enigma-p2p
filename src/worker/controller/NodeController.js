@@ -67,6 +67,7 @@ class NodeController{
             [NOTIFICATION.PERSISTENT_DISCOVERY_DONE] : new AfterOptimalDHTAction(this),
             [NOTIFICATION.STATE_SYNC_REQ] : new ProvideStateSyncAction(this),
         };
+
     }
     /**
      * Static method a quick node builder to initiate the Controller with a template built in.
