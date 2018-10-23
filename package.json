@@ -33,6 +33,7 @@
     "load-json-file": "^5.1.0",
     "log": "^1.4.0",
     "msgpack-lite": "^0.1.26",
+    "opn": "^5.4.0",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
     "pick-random": "^2.0.0",

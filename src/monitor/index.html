@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+    <title>Network visualization</title>
+    <style media="screen">
+      body {font-family: sans-serif; margin:0}
+      svg {position: absolute; z-index: -1; top:0}
+      h1 {border-top:12px solid #f2f7f8; margin:0; transition: all 1s}
+      a {color: #27343d; text-decoration: none; padding: 1em; display: inline-block; font-size: 20px; font-size: 4vmax; font-weight: 100; transition: all .1s}
+      a:hover {color: #f4065f}
+      circle {cursor: pointer}
+    </style>
+  </head>
+<body>
+  <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  <script src="client-script.js"></script>
+
+<script>
+var source = new EventSource('http://localhost:3000/events');
+
+source.addEventListener('message', function(e) {
+  console.log(e.data);
+  addNode(e.data);
+}, false);
+
+source.addEventListener('open', function(e) {
+  // Connection was opened.
+}, false);
+
+source.addEventListener('error', function(e) {
+  if (e.readyState == EventSource.CLOSED) {
+    // Connection was closed.
+  }
+}, false);
+</script>
+</body>
+</html>
