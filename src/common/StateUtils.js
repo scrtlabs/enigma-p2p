@@ -6,6 +6,7 @@ class StateUtils {
         let w = new Web3();
         return w.utils.keccak256(value);
     }
+
     static toHexString(byteArray) {
         return Array.from(byteArray, function(byte) {
             return ('0' + (byte & 0xFF).toString(16)).slice(-2);
@@ -13,15 +14,13 @@ class StateUtils {
     }
 
     static hexToBytes(hex){
-
         if(hex.slice(0,2) === "0x"){
             hex = hex.slice(2,hex.length);
         }
-
         let b = Buffer.from(hex,"hex");
-
         return [...b];
     }
+
     static intTo4BytesArr (num) {
         let arr = new Uint8Array([
             (num & 0xff000000) >> 24,
@@ -38,24 +37,19 @@ class StateUtils {
     }
 
     static deltaKeyBytesToTuple(byteKey){
-        let addr = byteKey.slice(0,byteKey.length -4);
+        let addr = byteKey.slice(0, byteKey.length - 4);
         addr = StateUtils.toHexString(addr);
-        let index = byteKey.slice(byteKey.length-4, byteKey.length);
+        let index = byteKey.slice(byteKey.length - 4, byteKey.length);
         index = StateUtils.bytesArrToInt(index);
         return {'address' : addr, 'index' : index};
     }
     static toBytesKey(contractByteAddr, index){
-
-        let indexBytes = null;
-
-        if(index >= 0){
-            indexBytes = StateUtils.intTo4BytesArr(index);
-        }
         let res = [];
         contractByteAddr.forEach(c=>{
             res.push(c);
         });
-        if(indexBytes){
+        if(index >= 0){
+            let indexBytes = StateUtils.intTo4BytesArr(index);
             indexBytes.forEach(c=>{
                 res.push(c);
             });
@@ -64,4 +58,4 @@ class StateUtils {
     }
 }
 
-module.exports= StateUtils;
+module.exports = StateUtils;

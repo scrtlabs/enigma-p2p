@@ -14,14 +14,13 @@ class EngCID{
     static createFromKeccack256(keccack256Hash){
         let cid = CIDUtil.createCID(keccack256Hash);
         if(cid){
-
             let engCid = new EngCID();
             engCid._setCID(cid);
             return engCid
-
         }
         return null;
     }
+
     static createFromNetwork(encodedB58byteArray){
         let b58 = EncoderUtil.decodeFromNetwork(encodedB58byteArray);
         let cid = CIDUtil.createCIDFromB58(b58);
@@ -32,9 +31,11 @@ class EngCID{
         }
         return null;
     }
+
     getCID(){
         return this._cid;
     }
+
     /** get the keccack256 hash of a CID
      * @param {Boolean} with0x , if true then add 0x to the result
      * @returns {String} h, a keccak hash representation
@@ -46,33 +47,38 @@ class EngCID{
         }
         return h;
     }
+
     toBuffer(){
         return this._cid.buffer;
     }
+
     toB58String(){
         return this._cid.toBaseEncodedString();
     }
+
     /** Compare if this and other are equal
      * @param {CID} cid - other cid to test
      * @returns {Boolean} true - this.cid == cid , false otherwise*/
     equalCID(cid){
         return this._cid.equals(cid);
     }
+
     equalKeccack256(keccackHash){
 
         let cid = CIDUtil.createCID(keccackHash);
-
         if(cid){
             return this.equalCID(cid);
         }
         return false;
     }
+
     equalEngCID(engCID){
         if (engCID.constructor.name === 'EngCID'){
             return this.equalCID(engCID.getCID());
         }
         return false;
     }
+
     /** Encode the CID into a network stream.
      * Steps:
      * 1) b58Str = this.cid
@@ -84,6 +90,7 @@ class EngCID{
     encodeToNetwork(){
         return this._encoder.encodeToNetwork(this.toB58String());
     }
+
     _setCID(cid){
         this._cid = cid;
     }
