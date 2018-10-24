@@ -6,7 +6,8 @@
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 50000",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src"
   },
   "author": "isan rivkin",
   "license": "ISC",
