@@ -93,6 +93,7 @@ class Receiver extends EventEmitter{
         this._engNode.startStateSyncRequest(peerInfo,(protocol,connectionStream)=>{
             pull(
                 pull.values(stateSyncReqMsgs),
+                streams.toNetworkSyncReqParser,
                 connectionStream,
                 streams.verificationStream,
                 streams.toDbStream

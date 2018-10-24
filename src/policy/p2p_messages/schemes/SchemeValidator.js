@@ -15,7 +15,7 @@ function loadScheme(path, callback){
 
 const schemeMap = {
     [MsgTypes.STATE_SYNC_REQ] : (testObj,callback)=>{
-        loadScheme("./state_sync_scheme.json", (err,preScheme)=>{
+        loadScheme("./schemes/state_sync_scheme.json", (err,preScheme)=>{
             if(err){
                 callback(err);
             }else{
@@ -67,6 +67,22 @@ function _validateScheme(testedObj, msgName, callback){
     }
 };
 
+/** valida a scheme
+ * supported:
+ * - STATE_SYNC_REQ
+ * - STATE_SYNC_RES
+ * @param {Json} testedObj,
+ * @param {String} Msg name from  MsgTypes
+ * @param {Function} callback , (err,isValid)=>{
+ *  -err -> error , does not imply if the msg is ok or not
+ *  -isValid -> true = valid, false = invalid
+ * }
+ *
+ * */
+module.exports.validateScheme = (testedObj, msgName, callback)=>{
+    _validateScheme(testedObj,msgName,callback);
+};
+
 // let state_sync_req_obj = {
 //     "header":{
 //         "from" : "isan",
@@ -89,4 +105,4 @@ function _validateScheme(testedObj, msgName, callback){
 //         console.log("is valid? " + isValid);
 //     }
 // });
-//
+

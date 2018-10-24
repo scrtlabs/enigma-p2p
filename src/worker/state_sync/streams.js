@@ -35,7 +35,25 @@ module.exports.toNetworkParser = (read) =>{
     return _toNetworkParse(read);
 };
 
+/** Parse the request state sync msg from the reciever before passing the request to the provider stream
+ * msgpack serialize */
 
+module.exports.toNetworkSyncReqParser = (read)=>{
+    return _toNetworkSyncReqParser(read);
+};
+
+function _toNetworkSyncReqParser(read){
+    return function readble(end,cb){
+        read(end,(end,data)=>{
+            if(data != null){
+                // TODO:: parse the msg to msgpack serialization
+                cb(end,data);
+            }else{
+                cb(end,null);
+            }
+        });
+    }
+}
 function _fakeParseFromDbToNetwork(dbResult, callback){
     let parsed = dbResult;
     let isError = null;
