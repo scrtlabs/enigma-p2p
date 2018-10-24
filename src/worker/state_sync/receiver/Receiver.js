@@ -71,7 +71,7 @@ class Receiver extends EventEmitter{
                 findProviderResult.setCompleteError();
 
             }else{
-                let mapped = result.map(res=>{
+                result.forEach(res=>{
                     if(res.error){
                         this._logger.error('[-] error in findProvider specific CID ' + res.error);
                         findProviderResult.addErroredProviderResult(res.ecid, res.error);

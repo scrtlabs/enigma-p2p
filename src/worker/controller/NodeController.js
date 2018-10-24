@@ -23,6 +23,8 @@ const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 
+// api
+const P2PApi = require('./P2PApi');
 // actions
 const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/DoHandshakeAction');
@@ -49,6 +51,8 @@ class NodeController{
         this._provider = null;
         // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
         this._receiver = null;
+        // TODO:: take api from CTOR - currently uses _initP2PApi()
+        // this._p2pApi = new P2PApi();
 
         // stats
         this._stats = new Stats();
@@ -104,6 +108,7 @@ class NodeController{
         this._initProtocolHandler();
         this._initContentProvider();
         this._initContentReceiver();
+        // this._initP2PApi();
     }
     _initConnectionManager(){
 
@@ -140,6 +145,55 @@ class NodeController{
     }
     _initContentReceiver(){
         this._receiver = new Receiver(this._engNode, this._logger);
+    }
+    _initP2PApi(){
+        this._p2pApi.on('execCmd',(cmd,params)=>{
+            this.execCmd(cmd,params);
+        });
+        this._p2pApi.on('addPeer',(maStr)=>{
+            this.addPeer(maStr);
+        });
+        this._p2pApi.on('getSelfAddrs',(callback)=>{
+            let addrs = this.getSelfAddrs();
+            callback(addrs);
+        });
+        this._p2pApi.on('getAllOutboundHandshakes',(callback)=>{
+            let oHs = this.getAllOutboundHandshakes();
+            callback(oHs);
+        });
+        this._p2pApi.on('getAllInboundHandshakes',(callback)=>{
+            let iHs = this.getAllInboundHandshakes();
+            callback(iHs);
+        });
+        this._p2pApi.on('getAllPeerBank',(callback)=>{
+            let pb = this.getAllPeerBank();
+            callback(pb);
+        });
+        this._p2pApi.on('tryConsistentDiscovery',()=>{
+            this.tryConsistentDiscovery();
+        });
+        this._p2pApi.on('broadcast',(content)=>{
+            this.broadcast(content);
+        });
+        /** temp */
+        this._p2pApi.on('provideContent',()=>{
+            this.provideContent();
+        });
+        /** temp */
+        this._p2pApi.on('findContent',()=>{
+            this.findContent();
+        });
+        /** temp */
+        this._p2pApi.on('findContentAndSync',()=>{
+            this.findContentAndSync();
+        });
+        /** temp */
+        this._p2pApi.on('isSimpleConnected',(nodeId)=>{
+            this.isSimpleConnected(nodeId);
+        });
+    }
+    p2pApi(){
+        return this._p2pApi;
     }
     engNode(){
         return this._engNode;
