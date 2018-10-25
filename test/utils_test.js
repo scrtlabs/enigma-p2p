@@ -71,10 +71,10 @@ it('should create EngCID', async function() {
 
 it('should create EngCID from network', async function() {
   const en = e1.encodeToNetwork();
-  assert.deepStrictEqual(en, Buffer.from([217, 51, 122, 52, 51, 65, 97, 71, 69, 121,
+  assert.deepStrictEqual(en, [217, 51, 122, 52, 51, 65, 97, 71, 69, 121,
     57, 101, 88, 85, 83, 115, 78, 54, 49, 69, 53, 88, 84, 53, 87, 53, 66, 100,
     112, 90, 109, 86, 118, 120, 89, 115, 71, 74, 82, 84, 111, 86, 74, 51, 54,
-    102, 102, 52, 52, 70, 112, 121, 117]));
+    102, 102, 52, 52, 70, 112, 121, 117]);
   const e2 = EngCID.createFromNetwork(en);
   assert(e1.equalEngCID(e2));
 });
