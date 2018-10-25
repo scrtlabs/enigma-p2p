@@ -4,8 +4,8 @@
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "index.js",
   "scripts": {
-    "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 50000",
-    "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov"
+    "test": "find ./test -name '*_test.js' | nyc xargs mocha -R spec --timeout 50000",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && npx codecov"
   },
   "author": "isan rivkin",
   "license": "ISC",
@@ -43,6 +43,7 @@
   "devDependencies": {
     "codecov": "^3.1.0",
     "mocha": "^5.2.0",
-    "npx": "^10.2.0"
+    "npx": "^10.2.0",
+    "nyc": "^13.1.0"
   }
 }

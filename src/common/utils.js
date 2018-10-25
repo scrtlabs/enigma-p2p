@@ -11,6 +11,8 @@ const timestamp = require('unix-timestamp');
 
 /** turn peerbook into parsed obj */
 module.exports.parsePeerBook = function(rawPeerBook){
+    if (rawPeerBook == undefined || rawPeerBook == null)
+        return null;
     let parsed = [];
     rawPeerBook.forEach(rp=>{
         let pp = _parsePeerInfo(rp);
@@ -56,7 +58,7 @@ module.exports.randId = function(){
  * @returns {PingMsg} ping
  * */
 module.exports.toPingMsg = function(data){
-    let ping = data.toString('utf8').replace('\n', '');;
+    let ping = data.toString('utf8').replace('\n', '');
     ping = JSON.parse(ping);
     return new Messages.PingMsg(ping);
 };
@@ -108,7 +110,11 @@ module.exports.toFindPeersResMsg = function(data){
  * @returns {String} id, base 58
  * */
 module.exports.extractId = function(url){
-    return url.substring(url.length - 46,url.length);
+    if(!_isIpfs(url)){
+        return null;
+    } else {
+        return url.substring(url.length - 46,url.length);
+    }
 };
 
 module.exports.isString = function(x) {
@@ -228,5 +234,3 @@ function _connectionStrToPeerInfo(candidate,onResult){
         }
     });
 };
-
-
