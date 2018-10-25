@@ -94,7 +94,7 @@ SYNC_STATE_RES
 {
     msgType : 'SYNC_STATE_RES'
     contractAddress : '0x...' the address of the secret-contract,
-    states : [{index,hash}...] // the actual state deltas
+    states : [{index,hash,data}...] // the actual state deltas
 }
 
 
