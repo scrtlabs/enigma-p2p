@@ -1,3 +1,4 @@
+const path = require('path');
 const loadJsonFile = require('load-json-file');
 const constants = require('../../../common/constants');
 const MsgTypes = constants.P2P_MESSAGES;
@@ -12,10 +13,11 @@ function loadScheme(path, callback){
     });
 }
 
-
+//./schemes/state_sync_scheme.json
 const schemeMap = {
     [MsgTypes.STATE_SYNC_REQ] : (testObj,callback)=>{
-        loadScheme("./schemes/state_sync_scheme.json", (err,preScheme)=>{
+
+        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
             if(err){
                 callback(err);
             }else{
@@ -28,7 +30,6 @@ const schemeMap = {
                 v.addSchema(range, "/StateSyncRangeReq");
 
                 let isValid = v.validate(testObj,request).valid;
-
                 callback(null,isValid);
             }
         })

@@ -37,52 +37,67 @@ Assuming this data structure as a consensus mechanism on the Ethereum network
 
 ### State sync request  - STATE_SYNC_REQ/RES ###
 
+// get the most recent tip from a peer
+// helpful to verify the peer is holding the state-delta that we need.
+
+GET_TIP_REQ
+
+{
+    msgType : 'GET_TIP_REQ'
+    contractAddress : '0x...' // the contract address we want to query the last delta from
+}
+GET_TIP_RES
+
+{
+    msgType : 'GET_TIP_RES'
+    contractAddress : '0x...' // the response include the contract address as well for verification
+    tipIndex : '' // delta number
+    tipHash : '' // delta hash keccack256
+}
+
 The message exchange process during #3
 
+
+
 After finding the peer CID provider of a contract , request :
-
-{
-    "header" : {
-        "from" : "",
-        "to" : "",
-        "type" : "STATE_SYNC_REQ",
-        "timestamp" : "",
-    }
-    "body" : {
-        "address" : "",
-        "withBytecode" : bool,
-        "range" : {
-            "from" : {
-                "index" : number,
-                "hash" : hash
-            },
-            "to" : {
-                "index" : number,
-                "hash" : hash
-            }
-        }
-    }
-}
-
-
 The providing peer will respond with up to 500 deltas in each range request, each response is a chunk
 
-There are 2 type of responses: STATE_SYNC_RES_DELTA and STATE_SYNC_RES_CODE.
+
+
+SYNC_BCODE_REQ
 
 {
-    "header" : {
-        "from" : "",
-        "to" : "",
-        "type" : "STATE_SYNC_RES_DELTA", // alternative STATE_SYNC_RES_CODE
-        "timestamp" : "",
-    }
-    "body" : { // alternative {address,code,hash}
-        "address" : address
-        "range" : [{"index", "hash" , "delta"},...],
-        "code" : "", // only if code is sent
-        "code_hash" : "" // only if code is sent
-    }
+    msgType : 'SYNC_BCODE_REQ'
+    contractAddress : '0x...' the address of the secret-contract
 }
+SYNC_BCODE_RES
+{
+    msgType : 'SYNC_BCODE_RES'
+    contractAddress : '0x...' the address of the secret-contract
+    deployedByteCode : [] // byte array of the deployed byte code (does not include state[0])
+}
+
+
+SYNC_STATE_REQ
+
+{
+    msgType : 'SYNC_STATE_REQ'
+    contractAddress : '0x...' the address of the secret-contract,
+    fromIndex: '', // start index (include)
+    toIndex : '', // end index (include)
+    fromHash : '',
+    toHash : ''
+}
+
+SYNC_STATE_RES
+
+{
+    msgType : 'SYNC_STATE_RES'
+    contractAddress : '0x...' the address of the secret-contract,
+    states : [{index,hash}...] // the actual state deltas
+}
+
+
 
 
 ### Stream Flow ###
