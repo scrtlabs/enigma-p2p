@@ -1,5 +1,5 @@
 {
-  "ssyncreq" : {
+  "SYNC_STATE_REQ" : {
     "id" : "/SYNC_STATE_REQ",
     "type" : "object",
     "properties" :{
@@ -12,7 +12,7 @@
     },
     "required" : ["msgType","contractAddress","fromIndex", "toIndex", "fromHash" , "toHash"]
   },
-  "ssyncres" :{
+  "SYNC_STATE_RES" :{
     "id" : "/SYNC_STATE_RES",
     "type" : "object" ,
     "properties" :{

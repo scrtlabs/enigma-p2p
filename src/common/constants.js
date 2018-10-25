@@ -33,8 +33,8 @@ module.exports.PROTOCOLS = {
 };
 
 module.exports.P2P_MESSAGES = {
-    'SYNC_STATE_REQ' : 'ssyncreq',
-    'SYNC_STATE_RES' : 'ssyncres',
+    'SYNC_STATE_REQ' : 'SYNC_STATE_REQ',
+    'SYNC_STATE_RES' : 'SYNC_STATE_RES',
 };
 
 module.exports.PUBSUB_TOPICS = {

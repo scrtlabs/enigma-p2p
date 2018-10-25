@@ -4,56 +4,184 @@ const schemeValidator = require('./schemes/SchemeValidator');
 const nodeUtils = require('../../common/utils');
 const EncoderUtil = require('../../common/EncoderUtil');
 
-// class StateMsgBuilder{
+class SyncMsgBuilder {
+    static stateReqFromNetwork(networkMsg, callback){
+        let obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
+        if(obj){
+            SyncMsgBuilder.stateReqFromObj(obj,callback);
+        }else{
+            callback('error decoded network msg');
+        }
+    }
+    static stateResFromNetwork(networkMsg, callback){
+        let obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
+        if(obj){
+            SyncMsgBuilder.stateResFromObj(obj,callback);
+        }else{
+            callback('error decoded network msg');
+        }
+    }
+    static _parseFromNetwork(networkMsg){
+        let decoded = EncoderUtil.decodeFromNetwork(networkMsg);
+        let obj = JSON.parse(decoded);
+        return obj;
+    }
+    static stateReqFromObj(msgObj,callback){
+        msgObj.msgType = 'SYNC_STATE_REQ';
+        SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_REQ, msgObj, (err,message)=>{
+            callback(err,message);
+        });
+    }
+    static stateResFromObj(msgObj,callback){
+        msgObj.msgType = 'SYNC_STATE_RES';
+        SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_RES, msgObj, (err,message)=>{
+            callback(err,message);
+        });
+    }
+    static bCodeFromNetwork(){}
+    static bCodeFromObj(){}
+    static _isValidScheme(schemeType,testedObj,callback){
+        schemeValidator.validateScheme(testedObj, schemeType,callback);
+    }
+    static _buildMsg(msgType, msgObj, callback){
+        SyncMsgBuilder._isValidScheme(msgType,msgObj,(err,isValid)=>{
+            if(err){
+                callback(err);
+            }else{
+                if(isValid){
+                    switch(msgType){
+                        case MSG_TYPES.SYNC_STATE_REQ:
+                            callback(null,new SyncStateReqMsg(msgObj));
+                            break;
+                        case MSG_TYPES.SYNC_STATE_RES:
+                            callback(null,new SyncStateResMsg(msgObj));
+                            break;
+                    }
+                }else{
+                    callback('invalid scheme');
+                }
+            }
+        });
+    }
+}
+
+class SyncMsg {
+    constructor(rawMsg){
+        this._rawMsg = rawMsg;
+    }
+    toJSON(){
+        return JSON.stringify(this._rawMsg);
+    }
+    toPrettyJSON(){
+        return JSON.stringify(this._rawMsg,null,2);
+    }
+    toNetwork(){
+        let msg = this.toJSON();
+        let encoded = EncoderUtil.encodeToNetwork(msg);
+        return encoded;
+    }
+}
+
+class SyncStateReqMsg extends SyncMsg{
+    constructor(rawMsg){
+        super(rawMsg);
+    }
+    contractAddress(){
+        return this._rawMsg.contractAddress;
+    }
+    getRange(){
+        return {
+            fromIndex : this.fromIndex(),
+            fromHash : this.fromHash(),
+            toIndex: this.toIndex(),
+            toHash : this.toHash(),
+        };
+    }
+    fromIndex(){
+        return this._rawMsg.fromIndex;
+    }
+    fromHash(){
+        return this._rawMsg.fromHash;
+    }
+    toHash(){
+        return this._rawMsg.toHash;
+    }
+    toIndex(){
+        return this._rawMsg.toIndex;
+    }
+}
+
+
+class SyncStateResMsg extends SyncMsg{
+    constructor(rawMsg){
+        super(rawMsg);
+    }
+    contractAddress(){
+        return this._rawMsg.contractAddress;
+    }
+    states(){
+        return this._rawMsg.states;
+    }
+    state(index){
+        if(index < this.states().length){
+            return this.states()[index];
+        }
+    }
+    orderStates(){
+        this.states().sort((d1,d2)=>{
+            return d1.index - d2.index;
+        });
+        return this.states();
+    }
+}
+
+module.exports.SyncStateResMsg = SyncStateResMsg;
+module.exports.SyncStateReqMsg = SyncStateReqMsg;
+module.exports.SyncMsgBuilder = SyncMsgBuilder;
+/** mini tests */
 //
-//     static fromNetworkReq(networkReq,callback){
-//         let decoded = EncoderUtil.decodeFromNetwork(networkReq);
-//         decoded = JSON.parse(decoded);
-//         if(decoded != null) {
-//             StateMsgBuilder.flatBodyReq(decoded,callback);
-//         }else{
-//             callback("error decoding",null);
-//         }
-//     }
-//     static flatBodyReq(objReq,callback) {
-//         let header = StateMsgBuilder._createHeader(objReq.header);
-//         let body = objReq.body;
-//         callback(null, new StateSyncReqMsg(header, body));
-//     }
-// }
-
-
-
-/* mini test */
-
-// let rawMsg = {
-//     from : "QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm",
-//     to: "QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzd33m",
-//     address: "0xa6c1c67b760d7d6d71530cb20e5845fd213396c05967251807412243d38b6f35" , //addr1
-//     withBytecode: false,
-//     fromIndex : 0,
-//     fromHash : '0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8', //hello
-//     toIndex : 100,
-//     toHash : '0x6d91615c65c0e8f861b0fbfce2d9897fb942293e341eda10c91a6912c4f32668' //hello2
+// let state_sync_req_obj = {
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
 // };
 //
+// let state_sync_res_obj = {
+//     contractAddress : '0x...',
+//     states : [{index:4,hash : '0x1',data : [11,12,13]},{index:2,hash : '0x2',data : [311,122,133]},{index:3,hash : '0x3',data : [151,152,143]}]
+// };
+
+
+// SyncMsgBuilder.stateReqFromObj(state_sync_req_obj,(err,msg)=>{
+//     // console.log("err req ? " + err);
+//     // console.log(" req range : " + JSON.stringify(msg.getRange()));
+//     // console.log("raw "  + msg.toPrettyJSON());
 //
-// StateMsgBuilder.__fromObjReq(rawMsg,(err,msg)=>{
-//     if(err){
-//         console.log(err);
-//     }else{
-//         console.log(msg.toJSON());
-//     }
+//     let encoded = msg.toNetwork();
+//     console.log("encoded : " + encoded);
+//     SyncMsgBuilder.stateReqFromNetwork(encoded,(err,msg2)=>{
+//         console.log("raw " + msg2.toPrettyJSON());
+//     })
 // });
+
+
+
 //
-// StateMsgBuilder.fromObjReq(rawMsg,(err,msg)=>{
-//     let encoded = msg.toNetworkStream();
-//     console.log(msg.toPrettyJSON());
-//     console.log("valid ?  " + msg.isValidFields())
-//     StateMsgBuilder.fromNetworkReq(encoded, (err,msg2)=>{
-//         console.log(msg2.toPrettyJSON());
-//         console.log("valid ?  " + msg2.isValidFields())
-//     });
+//
+// SyncMsgBuilder.stateResFromObj(state_sync_res_obj, (err,msg)=>{
+//     // console.log("err res ? " + err);
+//     // console.log("stats orderd  : " + JSON.stringify(msg.orderStates()));
+//     // console.log("raw "  + msg.toPrettyJSON());
+//
+//     let encoded = msg.toNetwork();
+//     console.log("encoded:" + encoded);
+//     // SyncMsgBuilder.stateResFromNetwork(encoded, (err, msg2)=>{
+//     //     console.log("raw" + msg2.toPrettyJSON());
+//     //     msg2.orderStates();
+//     //     console.log("raw" + msg2.toPrettyJSON());
+//     // });
 // });
-//
+
 
