@@ -1,0 +1,34 @@
+{
+
+  "env": {
+    "browser": true,
+    "es6": true,
+    "node": true
+  },
+
+  "globals": {
+    "document": false,
+    "escape": false,
+    "navigator": false,
+    "unescape": false,
+    "window": false,
+    "describe": true,
+    "before": true,
+    "it": true,
+    "expect": true,
+    "sinon": true
+  },
+
+  "parser": "babel-eslint",
+
+  "plugins": [
+
+  ],
+
+  "extends":"google",
+
+  "rules": {
+    "camelcase": [2, { "properties": "always" }],
+    "max-len": [2, 120, 4]
+  }
+}

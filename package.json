@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 50000",
-    "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov"
+    "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
+    "lint": "eslint src",
+    "lint:fix": "eslint --fix src"
   },
   "author": "isan rivkin",
   "license": "ISC",
@@ -42,6 +44,9 @@
   },
   "devDependencies": {
     "codecov": "^3.1.0",
+    "babel-eslint": "^10.0.1",
+    "eslint": "^5.7.0",
+    "eslint-config-google": "^0.11.0",
     "mocha": "^5.2.0",
     "npx": "^10.2.0"
   }
