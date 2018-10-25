@@ -26,15 +26,15 @@ it('should hash keccack', async function() {
 it('should createCID', async function() {
   const r = '1b20' + hash.substring(2, 66);
   const c = CIDUtil.createCID(hash);
-  assert.deepEqual(c.multihash, Buffer.from(r, 'hex'));
+  assert.deepStrictEqual(c.multihash, Buffer.from(r, 'hex'));
   assert.ok(CIDUtil.isValidCID(c));
   const h = CIDUtil.getKeccak256FromCID(c);
-  assert.strictEqual(h, r);
+  assert.deepStrictEqual(h, r);
 });
 
 it('should createCID from b58', async function() {
   const c = CIDUtil.createCIDFromB58(b58);
-  assert.deepEqual(c.toBaseEncodedString(), b58);
+  assert.deepStrictEqual(c.toBaseEncodedString(), b58);
 });
 
 it('should fail in trying to createCID from b58', async function() {
@@ -49,12 +49,12 @@ it('should fail to hash keccack from CID', async function() {
 
 it('should decode from network', async function() {
   const msg = EncoderUtil.decodeFromNetwork(msgEncoded);
-  assert.deepEqual(msg, msgDecoded);
+  assert.deepStrictEqual(msg, msgDecoded);
 });
 
 it('should encode to network', async function() {
   const msg = EncoderUtil.encodeToNetwork(msgDecoded);
-  assert.deepEqual(msg, msgEncoded);
+  assert.deepStrictEqual(msg, msgEncoded);
 });
 
 it('should fail to decode', async function() {
@@ -66,12 +66,12 @@ const e1 = EngCID.createFromKeccack256(hash);
 
 it('should create EngCID', async function() {
   const r = '1b20' + hash.substring(2, 66);
-  assert.deepEqual(e1._cid.multihash, Buffer.from(r, 'hex'));
+  assert.deepStrictEqual(e1._cid.multihash, Buffer.from(r, 'hex'));
 });
 
 it('should create EngCID from network', async function() {
   const en = e1.encodeToNetwork();
-  assert.deepEqual(en, Buffer.from([217, 51, 122, 52, 51, 65, 97, 71, 69, 121,
+  assert.deepStrictEqual(en, Buffer.from([217, 51, 122, 52, 51, 65, 97, 71, 69, 121,
     57, 101, 88, 85, 83, 115, 78, 54, 49, 69, 53, 88, 84, 53, 87, 53, 66, 100,
     112, 90, 109, 86, 118, 120, 89, 115, 71, 74, 82, 84, 111, 86, 74, 51, 54,
     102, 102, 52, 52, 70, 112, 121, 117]));
@@ -90,7 +90,7 @@ it('should getCID', async function() {
 
 it('should engCID.toBuffer', async function() {
   const r = '1b20' + hash.substring(2, 66);
-  assert.deepEqual(e1.toBuffer(), Buffer.from('019001'+r, 'hex'));
+  assert.deepStrictEqual(e1.toBuffer(), Buffer.from('019001'+r, 'hex'));
 });
 
 it('should equalEngCID and equalKeccack256', async function() {
@@ -139,5 +139,5 @@ it('should int -> bytes -> int', async function() {
 it('should tuple -> key -> tuple', async function() {
   const a = hash.toLowerCase().substring(2, 66);
   const k = StateUtils.toBytesKey(StateUtils.hexToBytes(a), 7);
-  assert.deepEqual(StateUtils.deltaKeyBytesToTuple(k), {'address': a, 'index': 7});
+  assert.deepStrictEqual(StateUtils.deltaKeyBytesToTuple(k), {'address': a, 'index': 7});
 });

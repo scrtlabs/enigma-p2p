@@ -25,7 +25,7 @@ it('should parsePeerBook', function() {
   assert.strictEqual(nodeUtils.parsePeerBook(null), null);
   nodeUtils.connectionStrToPeerInfo(peerUrl, (e, p)=>{
     p.connect(peerUrl); // ToDo: there is no function in source code that will process `connectedMultiaddr`
-    assert.deepEqual(nodeUtils.parsePeerBook([p, p]), [peerDict2, peerDict2]);
+    assert.deepStrictEqual(nodeUtils.parsePeerBook([p, p]), [peerDict2, peerDict2]);
   });
 });
 
@@ -33,7 +33,7 @@ it('should parsePeerInfo', function() {
   assert.strictEqual(nodeUtils.parsePeerInfo(null), null);
   nodeUtils.connectionStrToPeerInfo(peerUrl, (e, p)=>{
     p.connect(peerUrl); // ToDo: there is no function in source code that will process `connectedMultiaddr`
-    assert.deepEqual(nodeUtils.parsePeerInfo(p), peerDict2);
+    assert.deepStrictEqual(nodeUtils.parsePeerInfo(p), peerDict2);
   });
 });
 
@@ -129,10 +129,10 @@ it('should check isFunction and isString', function() {
 });
 
 it('should applyDelta', function() {
-  assert.deepEqual(nodeUtils.applyDelta({a: 'c'}, {a: 'bb', d: 'c'}), {a: 'bb', d: 'c'});
-  assert.deepEqual(nodeUtils.applyDelta({a: null}, {a: 'c', d: 'c'}), {a: 'c', d: 'c'});
-  assert.deepEqual(nodeUtils.applyDelta({a: {b: 'c'}}, {a: {d: 'e'}}), {a: {b: 'c', d: 'e'}});
-  assert.deepEqual(nodeUtils.applyDelta(null), {});
+  assert.deepStrictEqual(nodeUtils.applyDelta({a: 'c'}, {a: 'bb', d: 'c'}), {a: 'bb', d: 'c'});
+  assert.deepStrictEqual(nodeUtils.applyDelta({a: null}, {a: 'c', d: 'c'}), {a: 'c', d: 'c'});
+  assert.deepStrictEqual(nodeUtils.applyDelta({a: {b: 'c'}}, {a: {d: 'e'}}), {a: {b: 'c', d: 'e'}});
+  assert.deepStrictEqual(nodeUtils.applyDelta(null), {});
 });
 
 it('should return unixTimestamp', function() {
@@ -141,13 +141,13 @@ it('should return unixTimestamp', function() {
 
 it('should dictToList', function() {
   const dict = {'bananas': 2, 'apples': 5, 'strawberries': 10};
-  assert.deepEqual(nodeUtils.dictToList(dict), [2, 5, 10]);
+  assert.deepStrictEqual(nodeUtils.dictToList(dict), [2, 5, 10]);
 });
 
 it('should pick random from list', function() {
   const list = [1, 2, 3, 4, 5, 6, 7, 8, 9, 0];
-  assert.deepEqual(nodeUtils.pickRandomFromList(list, 0), list);
-  assert.deepEqual(nodeUtils.pickRandomFromList(list, 20), list);
+  assert.deepStrictEqual(nodeUtils.pickRandomFromList(list, 0), list);
+  assert.deepStrictEqual(nodeUtils.pickRandomFromList(list, 20), list);
   nodeUtils.pickRandomFromList(list, 5).forEach(function(item) {
     assert(list.includes(item));
   });
@@ -173,7 +173,7 @@ it('should peerBankSeedtoPeerInfo', function() {
   nodeUtils.peerBankSeedtoPeerInfo(peerDict1, (e, i)=>{
     assert.strictEqual(e, null);
     assert.strictEqual(i.multiaddrs.size, 2);
-    assert.deepEqual(i.id.toJSON(), {'id': peerId, 'privKey': undefined, 'pubKey': undefined});
+    assert.deepStrictEqual(i.id.toJSON(), {'id': peerId, 'privKey': undefined, 'pubKey': undefined});
   });
 });
 
@@ -185,7 +185,7 @@ it('should connectionStrToPeerInfo', function() {
   nodeUtils.connectionStrToPeerInfo(peerUrl, (e, p)=>{
     assert(peerInfo.isPeerInfo(p));
     assert.strictEqual(e, null);
-    assert.deepEqual(p.id.toJSON(), {'id': peerId, 'privKey': undefined, 'pubKey': undefined});
+    assert.deepStrictEqual(p.id.toJSON(), {'id': peerId, 'privKey': undefined, 'pubKey': undefined});
     assert.strictEqual(p.multiaddrs.size, 1);
     assert(p.multiaddrs.has(multiaddr(peerUrl)));
   });
