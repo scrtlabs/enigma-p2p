@@ -1,37 +1,25 @@
 {
-  "header" : {
-    "id" : "/StateSyncHeader",
+  "ssyncreq" : {
+    "id" : "/SYNC_STATE_REQ",
     "type" : "object",
-    "properties" : {
-      "from" : {"type" : "string"},
-      "to"  : {"type" : "string"}
+    "properties" :{
+        "msgType" : {"type" : "string"},
+        "contractAddress" : {"type" : "string"},
+        "fromIndex" : {"type" : "number"},
+        "toIndex" : {"type" : "number"},
+        "fromHash" : {"type" : "string"},
+        "toHash" : {"type" : "string"}
     },
-    "required" : ["from","to"]
+    "required" : ["msgType","contractAddress","fromIndex", "toIndex", "fromHash" , "toHash"]
   },
-  "range_req" : {
-    "id" : "/StateSyncRangeReq",
-    "type" : "object",
-    "properties" : {
-      "fromIndex" : {"type" : "number"},
-      "toIndex" : {"type" : "number"},
-      "fromHash" : {"type" : "string"},
-      "toHash" : {"type" : "string"}
+  "ssyncres" :{
+    "id" : "/SYNC_STATE_RES",
+    "type" : "object" ,
+    "properties" :{
+      "msgType" : {"type" : "string"},
+      "contractAddress" : {"type" : "string"},
+      "states" : {"type" : "list"}
     },
-    "required" : ["fromIndex", "toIndex", "fromHash" , "toHash"]
-  },
-  "request" : {
-    "id" : "/StateSyncReq",
-    "type" : "object",
-    "properties" : {
-      "header" : { "$ref" : "/StateSyncHeader"},
-      "body" : {
-        "type" : "object" ,
-        "properties" : {
-          "address" : {"type" : "string"},
-          "range" : {"$ref" : "/StateSyncRangeReq"}
-        }
-      }
-    },
-    "required": ["header", "body"]
+    "required" : ["msgType","contractAddress","states"]
   }
 }

@@ -15,46 +15,30 @@ function loadScheme(path, callback){
 
 //./schemes/state_sync_scheme.json
 const schemeMap = {
-    [MsgTypes.STATE_SYNC_REQ] : (testObj,callback)=>{
+    [MsgTypes.SYNC_STATE_REQ] : (testObj, callback) =>{
 
+        loadScheme(path.join(__dirname,'/state_sync_scheme.json'),(err,preScheme)=>{
+            if(err){
+                callback(err);
+            }else{
+                let scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
+                let v = new Validator();
+                let isValid = v.validate(testObj,scheme).valid;
+                callback(null,isValid);
+            }
+        });
+    },
+
+    [MsgTypes.SYNC_STATE_RES] : (testObj, callback)=>{
         loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
             if(err){
                 callback(err);
             }else{
-                let header = preScheme.header;
-                let request = preScheme.request;
-                let range = preScheme.range_req;
+                let scheme = preScheme[MsgTypes.SYNC_STATE_RES];
                 let v = new Validator();
-
-                v.addSchema(header, "/StateSyncHeader");
-                v.addSchema(range, "/StateSyncRangeReq");
-
-                let isValid = v.validate(testObj,request).valid;
+                let isValid = v.validate(testObj,scheme).valid;
                 callback(null,isValid);
             }
-        })
-    },
-
-    [MsgTypes.STATE_SYNC_RES] : (testObj, callback)=>{
-        loadScheme("./state_sync_scheme.json", (err,preScheme)=>{
-            //TODO:: implement scheme.
-            callback(err,true);
-            // if(err){
-            //     callback(err);
-            // }else{
-            //     let header = preScheme.header;
-            //     let response = preScheme.response;
-            //     let range = preScheme.range;
-            //
-            //     let v = new Validator();
-            //
-            //     v.addSchema(header, "/StateSyncHeader");
-            //     v.addSchema(range, "/StateSyncRange");
-            //
-            //     let isValid = v.validate(testObj, response).valid;
-            //
-            //     callback(null, isValid);
-            // }
         });
     },
 };
@@ -84,26 +68,34 @@ module.exports.validateScheme = (testedObj, msgName, callback)=>{
     _validateScheme(testedObj,msgName,callback);
 };
 
+
 // let state_sync_req_obj = {
-//     "header":{
-//         "from" : "isan",
-//         "to" : "elichai"
-//     },
-//     "body": {
-//         "address" : "0x123",
-//         "range" :{
-//             "fromIndex" : 1234,
-//             "toIndex" : 123,
-//             "fromHash" : "",
-//             "toHash" : "",
-//         }
-//     }
-// }
-// _validateScheme(state_sync_req_obj, MsgTypes.STATE_SYNC_REQ ,(err,isValid)=>{
+//     msgType : 'SYNC_STATE_REQ',
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
+// };
+//
+// let state_sync_res_obj = {
+//     msgType :"SYNC_STATE_RES",
+//     contractAddress : '0x...',
+//     states : [{index:1,hash : '0x1',data : [11,12,13]},{index:2,hash : '0x2',data : [311,122,133]},{index:3,hash : '0x3',data : [151,152,143]}]
+// };
+//
+// _validateScheme(state_sync_res_obj , MsgTypes.SYNC_STATE_RES ,(err,isValid)=>{
 //     if(err){
 //         console.log(err);
 //     }else{
 //         console.log("is valid? " + isValid);
 //     }
 // });
+
+
+
+
+
+
+
 
