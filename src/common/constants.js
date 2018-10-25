@@ -35,6 +35,8 @@ module.exports.PROTOCOLS = {
 module.exports.P2P_MESSAGES = {
     'SYNC_STATE_REQ' : 'SYNC_STATE_REQ',
     'SYNC_STATE_RES' : 'SYNC_STATE_RES',
+    'SYNC_BCODE_REQ' : 'SYNC_BCODE_REQ',
+    'SYNC_BCODE_RES' : 'SYNC_BCODE_RES',
 };
 
 module.exports.PUBSUB_TOPICS = {

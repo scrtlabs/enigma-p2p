@@ -41,6 +41,30 @@ const schemeMap = {
             }
         });
     },
+    [MsgTypes.SYNC_BCODE_REQ] : (testObj, callback)=>{
+        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
+            if(err){
+                callback(err);
+            }else{
+                let scheme = preScheme[MsgTypes.SYNC_BCODE_REQ];
+                let v = new Validator();
+                let isValid = v.validate(testObj,scheme).valid;
+                callback(null,isValid);
+            }
+        });
+    },
+    [MsgTypes.SYNC_BCODE_RES] : (testObj,callback)=>{
+        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
+            if(err){
+                callback(err);
+            }else{
+                let scheme = preScheme[MsgTypes.SYNC_BCODE_RES];
+                let v = new Validator();
+                let isValid = v.validate(testObj,scheme).valid;
+                callback(null,isValid);
+            }
+        });
+    }
 };
 
 function _validateScheme(testedObj, msgName, callback){
@@ -54,8 +78,8 @@ function _validateScheme(testedObj, msgName, callback){
 
 /** valida a scheme
  * supported:
- * - STATE_SYNC_REQ
- * - STATE_SYNC_RES
+ * - SYNC_STATE_RES
+ * - SYNC_STATE_REQ
  * @param {Json} testedObj,
  * @param {String} Msg name from  MsgTypes
  * @param {Function} callback , (err,isValid)=>{
@@ -95,6 +119,37 @@ module.exports.validateScheme = (testedObj, msgName, callback)=>{
 
 
 
+/** byte code validation */
+
+// let state_bcode_req = {
+//     msgType : 'SYNC_BCODE_REQ',
+//     contractAddress : '0x1...',
+// };
+//
+//
+// _validateScheme(state_bcode_req, MsgTypes.SYNC_BCODE_REQ, (err,isValid)=>{
+//     if(err){
+//         console.log(err);
+//     }else{
+//         console.log("is valid ? " + isValid);
+//     }
+// });
+
+
+//
+// let state_bcode_res = {
+//     msgType : 'SYNC_BCODE_REQ',
+//     contractAddress : '0x1...',
+//     deployedByteCode : [11,12,13,15,16,13,111,133,662]
+// };
+//
+// _validateScheme(state_bcode_res, MsgTypes.SYNC_BCODE_RES, (err,isValid)=>{
+//     if(err){
+//         console.log(err);
+//     }else{
+//         console.log("is valid ? " + isValid);
+//     }
+// });
 
 
 

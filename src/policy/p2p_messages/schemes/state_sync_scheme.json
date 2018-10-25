@@ -21,5 +21,24 @@
       "states" : {"type" : "list"}
     },
     "required" : ["msgType","contractAddress","states"]
+  },
+  "SYNC_BCODE_REQ" : {
+    "id" : "/SYNC_BCODE_REQ",
+    "type" : "object",
+    "properties":{
+      "msgType" : {"type" : "string"},
+      "contractAddress" : {"type" : "string"}
+    },
+    "required" : ["msgType","contractAddress"]
+  },
+  "SYNC_BCODE_RES" :{
+    "id" : "/SYNC_BCODE_RES",
+    "type" : "object",
+    "properties":{
+      "msgType" : {"type" : "string"},
+      "contractAddress" : {"type" : "string"},
+      "deployedByteCode" : {"type" : "list"}
+    },
+    "required" : ["msgType","contractAddress", "deployedByteCode"]
   }
 }
