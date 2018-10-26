@@ -13,7 +13,9 @@ class PersistentStateCache {
    * @param {DbKey} dbKey
    * @param {String} value, the hash of the data to store
    */
-  store(dbKey,value,callback);
+  store(dbKey,value,callback){
+
+  }
 }
 
 module.exports = PersistentStateCache;

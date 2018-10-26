@@ -77,6 +77,7 @@ class LevelDbApi{
             callback("db closed");
         }
     }
+
     getAllStream(callback){
         if(this._isOpen()){
             this._db.createReadStream()
@@ -102,7 +103,7 @@ class LevelDbApi{
 module.exports = LevelDbApi;
 
 /** mini test * /
- * 
+ *
  */
 // let hexKey = '0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52944';
 // let byteKey = [208, 15, 178, 181, 150, 16, 193, 220, 152, 146, 158, 8, 145, 180, 239, 59, 186, 73, 61, 24, 227, 158, 109, 78, 185, 73, 200, 17, 204, 197, 41, 68];
@@ -118,5 +119,4 @@ module.exports = LevelDbApi;
 //         console.log(JSON.parse(value).deltas.length);
 //     })
 // });
-
 
