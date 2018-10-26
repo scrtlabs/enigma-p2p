@@ -136,6 +136,12 @@ it('should int -> bytes -> int', async function() {
   assert.strictEqual(StateUtils.bytesArrToInt(b), 47);
 });
 
+it('should int -> bytes -> int for max big int ', async function() {
+    let rustMaxU32 = 4294967295;
+    const b = StateUtils.intTo4BytesArr(rustMaxU32);
+    assert.strictEqual(StateUtils.bytesArrToInt(b), rustMaxU32);
+});
+
 it('should tuple -> key -> tuple', async function() {
   const a = hash.toLowerCase().substring(2, 66);
   const k = StateUtils.toBytesKey(StateUtils.hexToBytes(a), 7);
