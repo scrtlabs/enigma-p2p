@@ -156,7 +156,7 @@ let commands = {
         node.broadcast(msg);
     },
     'provide' : (args) =>{
-        node.provideContent();
+        node.announceContent();
     },
     'receive' : ()=>{
         node.findContent();

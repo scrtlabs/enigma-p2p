@@ -33,6 +33,9 @@ const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction')
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
 const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/ProvideSyncStateAction');
+const AnnounceContentAction = require('./actions/AnnounceContentAction');
+const FindContentProviderAction = require('./actions/FindContentProviderAction');
+
 
 class NodeController{
 
@@ -69,7 +72,9 @@ class NodeController{
             [NOTIFICATION.CONSISTENT_DISCOVERY] : new ConsistentDiscoveryAction(this),
             [NOTIFICATION.PUBSUB_PUB] : new PubsubPublishAction(this),
             [NOTIFICATION.PERSISTENT_DISCOVERY_DONE] : new AfterOptimalDHTAction(this),
-            [NOTIFICATION.STATE_SYNC_REQ] : new ProvideStateSyncAction(this),
+            [NOTIFICATION.STATE_SYNC_REQ] : new ProvideStateSyncAction(this), // respond to a content provide request
+            [NOTIFICATION.CONTENT_ANNOUNCEMENT] : new AnnounceContentAction(this), // tell the network what cids are available for sync
+            [NOTIFICATION.FIND_CONTENT_PROVIDER] : new FindContentProviderAction(this), // find providers of cids in the network
         };
 
     }
@@ -87,7 +92,7 @@ class NodeController{
         if(configPath)
             path = configPath;
 
-        // with default option (in constats.js)
+        // with default option (in constants.js)
 
         let logger = new Logger();
 
@@ -267,23 +272,17 @@ class NodeController{
         });
     }
     /** temp */
-    provideContent(){
+    announceContent(){
         let descriptorsList = ["addr1" , "addr2" , "addr3"];
 
-        this.provider().provideContentsBatch(descriptorsList,(err,failedCids)=>{
-            if(err){
-                console.log("@@@ couldn't provide all........  err = > " , err);
-                console.log("@@@@ failed cids :::: " +  failedCids.length);
-            }else{
-                console.log("@@@ NO ERROR IN PROVIDE ");
-                console.log("FAILED CIDS LEN -= " + failedCids.length)
-            }
+        this._actions[NOTIFICATION.CONTENT_ANNOUNCEMENT].execute({
+            descriptorsList : descriptorsList
         });
     }
     /** temp */
     findContent(){
         let descriptorsList = ["addr1" , "addr2" , "addr3"];
-        this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
+        let onResult = (findProvidersResult)=>{
             console.log("---------------------- find providers ------------------------------ ");
             console.log(" is complete error ? " + findProvidersResult.isCompleteError());
             console.log(" is some error ? " + findProvidersResult.isErrors());
@@ -302,7 +301,12 @@ class NodeController{
                 console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^");
             }
             console.log("---------------------- find providers ------------------------------ ");
+        };
+        this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
+            descriptorsList : descriptorsList,
+            next : onResult
         });
+
     }
     /** temp */
     findContentAndSync(){

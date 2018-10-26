@@ -300,7 +300,10 @@ class ProtocolHandler extends EventEmitter{
     onPeerDisconnect(nodeBundle,params){
         params.worker.getProtocolHandler()._logger.info("peer disconnected from " + params.peer.id.toB58String());
     }
-
+    /**
+     * Dispatching a a state sync request.
+     * The provider reacts and respondes to a STATE_SYNC protocol
+     * */
     onStateSync(nodeBundle, params){
         let self = params.worker.getProtocolHandler();
         self.notify({'notification':NOTIFICATION.STATE_SYNC_REQ, 'params' : params});
