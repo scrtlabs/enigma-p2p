@@ -9,6 +9,9 @@ class DbKey{
         if(idx){
             this._isContract = false;
         }
+        if(this._hexAddr && this._hexAddr.slice(0, 2) === '0x'){
+            this._hexAddr = this._hexAddr.slice(2)
+        }
 
     }
     /** key builder
