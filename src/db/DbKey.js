@@ -73,3 +73,5 @@ class DbKey{
     }
 
 }
+
+module.exports = DbKey;
