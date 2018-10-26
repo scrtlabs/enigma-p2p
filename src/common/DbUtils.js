@@ -22,6 +22,9 @@ class DbUtils {
     }
 
     static intTo4BytesArr (num) {
+        if(num > 4294967295){
+            throw "integer overflow";
+        }
         let arr = new Uint8Array([
             (num & 0xff000000) >> 24,
             (num & 0x00ff0000) >> 16,
@@ -33,7 +36,7 @@ class DbUtils {
 
     static bytesArrToInt(bytesArr){
         let buf = Buffer.from(bytesArr);
-        return buf.readInt32BE(0);
+        return buf.readUInt32BE(0);
     }
 
     static deltaKeyBytesToTuple(byteKey){
@@ -59,3 +62,4 @@ class DbUtils {
 }
 
 module.exports = DbUtils;
+
