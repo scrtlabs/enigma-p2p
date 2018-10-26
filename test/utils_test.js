@@ -2,7 +2,7 @@ const assert = require('assert');
 const CIDUtil = require('../src/common/CIDUtil');
 const EncoderUtil = require('../src/common/EncoderUtil');
 const EngCID = require('../src/common/EngCID');
-const StateUtils = require('../src/common/StateUtils');
+const StateUtils = require('../src/common/DbUtils');
 
 const address = '0123456789ABcdeF0123456789AbcDEF00000000';
 const hash = '0x5f8387c70ddbc27ab6cb2918ce879d8399b28300bf14fe604fe2e04f1ec9c640';

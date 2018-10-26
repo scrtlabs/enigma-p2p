@@ -1,5 +1,5 @@
 const dataGenerator = require('./DataGenerator');
-const StateUtil = require('../common/StateUtils');
+const StateUtil = require('../common/DbUtils');
 const level = require('level');
 
 

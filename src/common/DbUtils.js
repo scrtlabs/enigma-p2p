@@ -1,6 +1,6 @@
 const Web3 = require('web3');
 
-class StateUtils {
+class DbUtils {
 
     static kecckak256Hash(value){
         let w = new Web3();
@@ -38,9 +38,9 @@ class StateUtils {
 
     static deltaKeyBytesToTuple(byteKey){
         let addr = byteKey.slice(0, byteKey.length - 4);
-        addr = StateUtils.toHexString(addr);
+        addr = DbUtils.toHexString(addr);
         let index = byteKey.slice(byteKey.length - 4, byteKey.length);
-        index = StateUtils.bytesArrToInt(index);
+        index = DbUtils.bytesArrToInt(index);
         return {'address' : addr, 'index' : index};
     }
     static toBytesKey(contractByteAddr, index){
@@ -49,7 +49,7 @@ class StateUtils {
             res.push(c);
         });
         if(index >= 0){
-            let indexBytes = StateUtils.intTo4BytesArr(index);
+            let indexBytes = DbUtils.intTo4BytesArr(index);
             indexBytes.forEach(c=>{
                 res.push(c);
             });
@@ -58,4 +58,4 @@ class StateUtils {
     }
 }
 
-module.exports = StateUtils;
+module.exports = DbUtils;
