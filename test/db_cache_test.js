@@ -47,7 +47,15 @@ it('should create a DbKey from delta (byte array)', function(done) {
     done();
 });
 
+it('should compare 2 keys', function(done) {
 
+  let hexKey = '0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52944';
+  let byteKey = [208, 15, 178, 181, 150, 16, 193, 220, 152, 146, 158, 8, 145, 180, 239, 59, 186, 73, 61, 24, 227, 158, 109, 78, 185, 73, 200, 17, 204, 197, 41, 68];
+  let dbKey1 = DbKey.fromContractBytes(byteKey);
+  let dbKey2 = DbKey.fromContractAddr(hexKey);
 
+  assert.strictEqual(true, dbKey1.equals(dbKey2), " keys are not equal");
 
+  done();
+});
 
