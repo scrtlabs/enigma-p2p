@@ -164,24 +164,32 @@ let commands = {
     'sync' : () =>{
         node.findContentAndSync();
     },
+    'getAllHandshakedPeers' : () =>{
+        let hsPeers = node.getAllHandshakedPeers();
+        console.log(hsPeers);
+        //res == FindPeersResMsg inside messages.js
+        node.sendFindPeerRequest(hsPeers[0],(err,req,res)=>{
+            console.log("ok got response!!! " , res.peers().length);
+        });
+    },
     'simpleCon' : (args)=>{
         let id = args[1];
         node.isSimpleConnected(id);
     },
     'help' : (args)=>{
         console.log("---> Commands List <---");
-        console.log("$addPeer <address> : connect to a new peer manualy."); 
-        console.log("$getAddr : get the multiaddress of the node. "); 
-        console.log("$getOutConnections : get id list of the outbound connections "); 
-        console.log("$getInConnections : get list of the inbound connections "); 
-        console.log("$peerBank : get list of the potential (not connected) seeds"); 
-        console.log("$discover : perform persistent discovery to reach optimal DHT"); 
+        console.log("$addPeer <address> : connect to a new peer manualy.");
+        console.log("$getAddr : get the multiaddress of the node. ");
+        console.log("$getOutConnections : get id list of the outbound connections ");
+        console.log("$getInConnections : get list of the inbound connections ");
+        console.log("$peerBank : get list of the potential (not connected) seeds");
+        console.log("$discover : perform persistent discovery to reach optimal DHT");
         console.log("$inCount : number of inbound connections");
-        console.log("$outCount : number of outbound connections"); 
-        console.log("$broadcast <message> : broadcast a message to the whole network"); 
-        console.log("$provide : announce the network the content the node provides"); 
+        console.log("$outCount : number of outbound connections");
+        console.log("$broadcast <message> : broadcast a message to the whole network");
+        console.log("$provide : announce the network the content the node provides");
         console.log("$simpleCon <multiaddr>: check if some addr is simple connected");
-        console.log("$help : help"); 
+        console.log("$help : help");
         console.log(">------------------------<");
     }
 };
@@ -224,3 +232,4 @@ async function initializeNode(){
 initInitialConfig();
 initializeNode();
 initReadLine();
+

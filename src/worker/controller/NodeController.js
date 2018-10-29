@@ -35,7 +35,7 @@ const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/ProvideSyncStateAction');
 const AnnounceContentAction = require('./actions/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/FindContentProviderAction');
-
+const SendFindPeerRequestAction = require('./actions/SendFindPeerRequestAction');
 
 class NodeController{
 
@@ -65,7 +65,6 @@ class NodeController{
 
         // actions
         this._actions = {
-
             [NOTIFICATION.HANDSHAKE_UPDATE] : new HandshakeUpdateAction(this),
             [NOTIFICATION.DISCOVERED] : new DoHandshakeAction(this),
             [NOTIFICATION.BOOTSTRAP_FINISH] : new BootstrapFinishAction(this),
@@ -75,6 +74,7 @@ class NodeController{
             [NOTIFICATION.STATE_SYNC_REQ] : new ProvideStateSyncAction(this), // respond to a content provide request
             [NOTIFICATION.CONTENT_ANNOUNCEMENT] : new AnnounceContentAction(this), // tell the network what cids are available for sync
             [NOTIFICATION.FIND_CONTENT_PROVIDER] : new FindContentProviderAction(this), // find providers of cids in the network
+            [NOTIFICATION.FIND_PEERS_REQ] : new SendFindPeerRequestAction(this), // find peers request msg (same during handshake but isolated)
         };
 
     }
@@ -329,6 +329,22 @@ class NodeController{
     isSimpleConnected(nodeId){
         let isConnected = this._engNode.isConnected(nodeId);
         console.log("Connection test : " + nodeId + " ? " + isConnected);
+    }
+    /** get self Peer Book (All connected peers)*/
+    getAllHandshakedPeers(){
+      return this.engNode().getAllPeersInfo();
+    }
+    /** temp - findPeersRequest
+     *  @param {PeerInfo} peerInfo,
+     *  @param {Function} onResponse callback , (err,request, response)=>{}
+     *  @param {Integer} maxPeers, optional, if empty or 0 will query for all peers
+     * */
+    sendFindPeerRequest(peerInfo,onResponse,maxPeers){
+      this._actions[NOTIFICATION.FIND_PEERS_REQ].execute({
+          peerInfo : peerInfo,
+          onResponse : onResponse,
+          maxPeers : maxPeers,
+      });
     }
 
 }

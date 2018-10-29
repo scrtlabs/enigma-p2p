@@ -20,6 +20,7 @@ module.exports.NODE_NOTIFICATIONS = {
     'STATE_SYNC_REQ' : 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
     'CONTENT_ANNOUNCEMENT' : 'announce_content', // request to announce to the network the contents of cids
     'FIND_CONTENT_PROVIDER' : 'findcprovider', // given a list of descriptors find providers in the network
+    'FIND_PEERS_REQ' : 'findpeerreq', // send a find peer request message
 };
 module.exports.PROTOCOLS = {
     'PEER_DISCOVERY' : 'peer:discovery',
