@@ -1,6 +1,6 @@
 const path = require('path')
 const NodeController = require('../worker/controller/NodeController');
-
+const nodeUtils = require('../../src/common/utils');
 var readline = require('readline');
 var program = require('commander');
 
@@ -170,6 +170,20 @@ let commands = {
         //res == FindPeersResMsg inside messages.js
         node.sendFindPeerRequest(hsPeers[0],(err,req,res)=>{
             console.log("ok got response!!! " , res.peers().length);
+            nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err,peerInfo)=>{
+                if(err){
+                    console.log("ERR converting seed into peerInfo", err);
+                }else{
+                    node.sendFindPeerRequest(peerInfo , (err,req,res)=>{
+                        if(err){
+                            console.log("error connecting to the seed peer! ", err);
+                        }else{
+                            console.log("success connecting to the seed peer, his seeds len : " + res.peers().length);
+                        }
+                    });
+                }
+            });
+
         });
     },
     'simpleCon' : (args)=>{

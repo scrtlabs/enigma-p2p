@@ -94,6 +94,74 @@ it('#2 Should test handshake with 1 node', async function(){
 
 
 
+it('#3 Should test persistent discovery', async function() {
+  let tree = TEST_TREE['basic'];
+  if (!tree['all'] || !tree['#3']) {
+    this.skip();
+  }
+
+  return new Promise(async (resolve,reject)=>{
+    let nodesNum = 10;
+    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+    let bNode = NodeController.initDefaultTemplate({"port":B1Port, "idPath":B1Path, "nickname":"dns", "bootstrapNodes":bootstrapNodes});
+
+    let peers = [];
+
+    for(let i=0;i<nodesNum;i++){
+      let p = NodeController.initDefaultTemplate({"nickname":"peer" + i , "bootstrapNodes":bootstrapNodes});
+      peers.push(p);
+    }
+
+    // init bootstrap nodes
+    await bNode.engNode().syncRun();
+    await testUtils.sleep(2000);
+
+    // init peer nodes
+    for(let i=0;i<nodesNum;i++){
+      await peers[i].engNode().syncRun();
+      await testUtils.sleep(2000);
+    }
+
+    // pre-discover - validate connections state
+
+    let chosenPeer = peers[0];
+    assert.strictEqual(1,chosenPeer.getAllOutboundHandshakes().length);
+    assert.strictEqual(0,chosenPeer.getAllInboundHandshakes().length);
+    // validate bootstrap node connections
+    assert.strictEqual(0,bNode.getAllOutboundHandshakes().length);
+    assert.strictEqual(nodesNum,bNode.getAllInboundHandshakes().length, "error in inbound bootstrap connections");
+    // validate other peers
+    for(let i=1;i<nodesNum;++i){
+      assert.strictEqual(1,peers[i].getAllOutboundHandshakes().length);
+      assert.strictEqual(0,peers[i].getAllInboundHandshakes().length);
+    }
+    resolve();
+    // do the persistent discovery
+        
+    // chosenPeer.tryConsistentDiscovery((status,result)=>{
+    //     console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log(status);
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log(result)
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
+    //   resolve();
+    // });
+
+  });
+
+
+
+});
 
 
 

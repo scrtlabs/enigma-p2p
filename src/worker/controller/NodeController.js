@@ -257,11 +257,12 @@ class NodeController{
     getAllPeerBank(){
         return this.connectionManager().getAllPeerBank();
     }
-    tryConsistentDiscovery(){
+    tryConsistentDiscovery(callback){
         this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
             "delay" : 500,
             "maxRetry" : 10,
             "timeout" : 100000,
+            "callback" : callback
         });
     }
     broadcast(content){

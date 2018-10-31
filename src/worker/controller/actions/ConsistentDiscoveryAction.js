@@ -14,6 +14,7 @@ class ConsistentDiscoveryAction{
         let maxRetry = options.maxRetry;
         let delay = options.delay;
         let timeout = options.timeout;
+        let callback = options.callback;
 
         if(maxRetry){
             final.maxRetry = maxRetry;
@@ -26,6 +27,9 @@ class ConsistentDiscoveryAction{
         }
         if(taskInput){
             final.taskInput = taskInput;
+        }
+        if(callback){
+            final.callback = callback;
         }
         return final;
     }
@@ -71,6 +75,16 @@ class ConsistentDiscoveryAction{
             console.log("status => " , JSON.stringify(status,null,2));
             console.log("result => " , JSON.stringify(result,null,2));
             console.log("------------------- FINISHED STOPPABLE TASK ------------------");
+
+            if(options.callback){
+                callback(status,result);
+            }else{
+                console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
+              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
+              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
+              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
+            }
+
             this._controller.connectionManager().onDonePersistentDiscovery(status,result);
         };
 
