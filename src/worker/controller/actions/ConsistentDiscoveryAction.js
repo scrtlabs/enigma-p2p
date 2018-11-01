@@ -77,12 +77,7 @@ class ConsistentDiscoveryAction{
             console.log("------------------- FINISHED STOPPABLE TASK ------------------");
 
             if(options.callback){
-                callback(status,result);
-            }else{
-                console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
-              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
-              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
-              console.log(" NO CALLBACK !!!!!!!!!@#$%^&*(&*^$#$@!#@$#%$^&*(&^%$#@!#$%^&*(&^%$#@1");
+                options.callback(status,result);
             }
 
             this._controller.connectionManager().onDonePersistentDiscovery(status,result);

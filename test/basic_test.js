@@ -129,33 +129,38 @@ it('#3 Should test persistent discovery', async function() {
     assert.strictEqual(0,chosenPeer.getAllInboundHandshakes().length);
     // validate bootstrap node connections
     assert.strictEqual(0,bNode.getAllOutboundHandshakes().length);
+    await testUtils.sleep(3000);
     assert.strictEqual(nodesNum,bNode.getAllInboundHandshakes().length, "error in inbound bootstrap connections");
     // validate other peers
     for(let i=1;i<nodesNum;++i){
       assert.strictEqual(1,peers[i].getAllOutboundHandshakes().length);
       assert.strictEqual(0,peers[i].getAllInboundHandshakes().length);
     }
-    resolve();
     // do the persistent discovery
-        
-    // chosenPeer.tryConsistentDiscovery((status,result)=>{
-    //     console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log(status);
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log(result)
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@2");
-    //   resolve();
-    // });
+
+    chosenPeer.tryConsistentDiscovery(async (status,result)=>{
+      for(let i = 0; i<nodesNum;++i){
+        await peers[i].engNode().syncStop();
+        await testUtils.sleep(1000);
+      }
+
+      await bNode.engNode().syncStop();
+
+      await testUtils.sleep(1000);
+      // assert.strictEqual(true,status.success);
+      // assert.strictEqual(nodesNum,chosenPeer.getAllOutboundHandshakes(),"couldn't reach optimal DHT");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+
+      resolve();
+
+    });
 
   });
 
