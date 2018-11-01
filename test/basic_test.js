@@ -139,6 +139,12 @@ it('#3 Should test persistent discovery', async function() {
     // do the persistent discovery
 
     chosenPeer.tryConsistentDiscovery(async (status,result)=>{
+
+      assert.strictEqual(true,status.success);
+
+      let p = new Policy();
+      assert.strictEqual(p.getOptimalDhtSize(),chosenPeer.getAllOutboundHandshakes().length,"couldn't reach optimal DHT");
+
       for(let i = 0; i<nodesNum;++i){
         await peers[i].engNode().syncStop();
         await testUtils.sleep(1000);
@@ -146,18 +152,7 @@ it('#3 Should test persistent discovery', async function() {
 
       await bNode.engNode().syncStop();
 
-      await testUtils.sleep(1000);
-      // assert.strictEqual(true,status.success);
-      // assert.strictEqual(nodesNum,chosenPeer.getAllOutboundHandshakes(),"couldn't reach optimal DHT");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-
+      await testUtils.sleep(1000*2);
       resolve();
 
     });
