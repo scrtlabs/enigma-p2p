@@ -1,6 +1,16 @@
 const DbApi = require('./LevelDbApi');
 const DbKey = require('./DbKey');
 
+
+class StateCacheBuilder {
+    static getInMemoryCache(){
+
+    }
+    static getPersistentCache(){
+
+    }
+}
+
 /**
  * The cache database structure:
  * 1) address => Tip{index:,hash:}
@@ -26,4 +36,9 @@ class PersistentStateCache {
     // }
 }
 
+class InMemoryStateCache{
+    constructor(){
+
+    }
+}
 module.exports = PersistentStateCache;

@@ -1,7 +1,7 @@
 module.exports.TEST_TREE = {
     'basic' : {
         'all' : true,
-        '#1' : false,
+        '#1' : true,
         '#2' : true,
         '#3' : true,
     },
