@@ -13,7 +13,7 @@ before_install:
   - sudo apt-get install -y g++
 
 install:
-  - npm install package.json
+  - npm install ||  find /home/travis/.npm/_logs/*.log -exec cat {} \;
 
 script:
   - npm test
