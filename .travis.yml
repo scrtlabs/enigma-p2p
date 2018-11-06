@@ -1,5 +1,3 @@
-sudo: false
-
 language: node_js
 
 node_js:
@@ -13,7 +11,7 @@ before_install:
   - sudo apt-get install -y g++
 
 install:
-  - sudo npm i zmq -g
+  - npm install zmq -g
   - npm install ||  find /home/travis/.npm/_logs/*.log -exec cat {} \;
 
 script:
