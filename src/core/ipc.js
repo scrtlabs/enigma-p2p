@@ -29,13 +29,13 @@ class IpcClient{
 
 module.exports = IpcClient;
 
-/** mini test */
-const uri = 'tcp://127.0.0.1:5555';
-let client = new IpcClient(uri);
-client.setResponseHandler((msg)=>{
-  console.log("From Core %s", msg.s );
-});
-
-client.connect();
-client.sendJson({"yo":"susp??"});
-
+// /** mini test */
+// const uri = 'tcp://127.0.0.1:5555';
+// let client = new IpcClient(uri);
+// client.setResponseHandler((msg)=>{
+//   console.log("From Core %s", msg.s );
+// });
+//
+// client.connect();
+// client.sendJson({"yo":"susp??"});
+//
