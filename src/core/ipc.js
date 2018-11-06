@@ -1,4 +1,6 @@
+const nodeUtils = require('../common/utils');
 const zmq = require('zmq');
+
 class IpcClient{
 
   constructor(uri){
@@ -9,46 +11,31 @@ class IpcClient{
     this._socket.connect(this._uri);
     console.log("IPC connected to %s", this._uri );
   }
+  disconnect(){
+    this._socket.disconnect(this._uri);
+  }
   sendJson(msg){
+    if(!nodeUtils.isString(msg)){
+        msg = JSON.stringify(msg);
+    }
     this._socket.send(msg);
   }
   setResponseHandler(responseCallback){
     this._socket.on('message',(msg)=>{
-      responseCallback(msg);
+      responseCallback(JSON.parse(msg));
     });
   }
 }
-const uri = 'tcp://127.0.0.1:5555';
-let client = new IpcClient(uri);
-client.setResponseHandler((msg)=>{
-  console.log("From Core %s", msg );
-});
 
-client.connect();
+module.exports = IpcClient;
 
-client.sendJson(JSON.stringify({"yo":"sup??"}));
-//////////////////////////////////////////////////////////
-// let socket = zmq.socket('rep');
-// socket.on('message',(msg)=>{
-//   console.log("From Core %s", msg );
+/** mini test */
+// const uri = 'tcp://127.0.0.1:5555';
+// let client = new IpcClient(uri);
+// client.setResponseHandler((msg)=>{
+//   console.log("From Core %s", msg.s );
 // });
-// socket.connect('tcp://127.0.0.1:5555');
-// console.log('Client connected to port 5555');
-// // socket.send(JSON.stringify({"yo":"sup"}));
-// socket.send(JSON.stringify({"MSG" : "HELLO"}));
-//////////////////////////////////////////////////////////
 //
-// let socket = zmq.socket('req');
-// socket.on('message', (msg)=>{
-//   console.log("from server: " + msg.toString());
-// });
-// socket.connect('tcp://127.0.0.1:5555');
-// console.log('Client connected to port 5555');
-// socket.send(JSON.stringify({"MSG" : "HELLO"}));
-
-
-
-
-
-
-
+// client.connect();
+// client.sendJson({"yo":"susp??"});
+//
