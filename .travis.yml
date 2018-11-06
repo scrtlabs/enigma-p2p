@@ -1,11 +1,6 @@
 dist: xenial
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - libzmq3-dev
-
 language: node_js
 
 node_js:
