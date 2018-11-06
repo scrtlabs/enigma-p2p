@@ -3,16 +3,8 @@ language: node_js
 node_js:
   - "10.12"
 
-before_install:
-  - sudo add-apt-repository -y ppa:chris-lea/zeromq
-  - sudo add-apt-repository -y ppa:chris-lea/libpgm
-  - sudo apt-get update
-  - sudo apt-get install -y libzmq3-dev
-  - sudo apt-get install -y g++
-
 install:
-  - npm install zmq -g
-  - npm install ||  find /home/travis/.npm/_logs/*.log -exec cat {} \;
+  - npm install package.json
 
 script:
   - npm test
