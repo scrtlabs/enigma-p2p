@@ -6,9 +6,9 @@ node_js:
 before_install:
   - echo "deb http://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/ ./" >> /etc/apt/sources.list
   - wget https://download.opensuse.org/repositories/network:/messaging:/zeromq:/release-stable/Debian_9.0/Release.key -O- | sudo apt-key add
-  - sudo apt-get update
-  - sudo apt-get install -y libzmq5
-  - sudo apt-get install -y libzmq3-dev
+  - sudo apt-get update && sudo apt-get install -y libzmq-dev
+#  - sudo apt-get install -y libzmq5
+#  - sudo apt-get install -y libzmq3-dev
 
 install:
   - npm install
