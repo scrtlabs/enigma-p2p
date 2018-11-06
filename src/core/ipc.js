@@ -1,9 +1,11 @@
 const nodeUtils = require('../common/utils');
 const zmq = require('zeromq');
+const EventEmitter = require('events').EventEmitter;
 
-class IpcClient{
+class IpcClient extends EventEmitter{
 
   constructor(uri){
+    super();
     this._socket = zmq.socket('req');
     this._uri = uri;
   }
@@ -22,7 +24,9 @@ class IpcClient{
   }
   setResponseHandler(responseCallback){
     this._socket.on('message',(msg)=>{
-      responseCallback(JSON.parse(msg));
+      msg = JSON.parse(msg);
+      this.emit("message", msg);
+      responseCallback(msg);
     });
   }
 }
