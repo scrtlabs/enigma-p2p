@@ -81,7 +81,7 @@ it('#2 Should test handshake with 1 node', async function(){
         // validate handshake on the dns side
         handshakedPeers = dnsController.stats().getAllHandshakedPeers();
 
-        assert.strictEqual(1,handshakedPeers.length, "not 1 length");
+        assert.strictEqual(1,handshakedPeers.length, "not 1 length dns");
         assert.strictEqual(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0], "wrong id for peer");
 
         await dnsController.engNode().syncStop();
