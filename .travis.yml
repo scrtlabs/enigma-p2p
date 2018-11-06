@@ -4,6 +4,7 @@ node_js:
   - "10.12"
 
 install:
+  - apt-get install -y --no-install-recommends libzmq3-dev
   - npm install
 
 script:
