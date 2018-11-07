@@ -8,13 +8,13 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 
 # Getting Started
 
-## Quick CLI 
+## Quick CLI
 
-First: 
+First:
 
 `cd ./src/cli`
 
-For help and list of flags: 
+For help and list of flags:
 
 `node cli.js -h`
 
@@ -22,7 +22,7 @@ For launching the CLI with 1 bootstrap node type:
 
 `node cli.js -n dns -i B1 -b B1 -p B1`
 
-For the run-time commands the node can do: 
+For the run-time commands the node can do:
 
 **While already running type**  `help`
 
@@ -43,7 +43,15 @@ To launch a worker(s) in a different terminal type:
 
 <img src="docs/overview2.jpg"
      alt="Implementation 2" />
-## Prerequisites 
+
+* The components are essentially autonomous "runtimes".
+* The the MainController relays the communication with different Actions.
+* The communication is done via Channel's which are bi-directional message sending implementation.
+
+<img src="docs/overview3.jpg"
+     alt="Implementation 3" />
+
+## Prerequisites
 * TBD
 ## Installing
 * TBD
@@ -57,7 +65,7 @@ To launch a worker(s) in a different terminal type:
 * TBD
 ## Syncing a Worker
 
-### Consensus 
+### Consensus
 
 *WIP*
 
@@ -65,7 +73,7 @@ The Enigma Contract on Ethereum is used as the consensus layer. Contianing a Map
 
 `Secret-Contract-Address` => `hash(WASM)`,`[hash(delta 0), ...hash(delta n)]`
 
-Synchronizing the State means: 
+Synchronizing the State means:
 
     1) Having all the secret-contracts WASM code.
     2) Having all the state deltas for each secret-contract.
@@ -75,30 +83,30 @@ Synchronizing the State means:
 
 The content routing is based on the libp2p implementation of IPFS using [CID](https://github.com/ipld/js-cid) to identify content and Kad-DHT for finding peers.
 
-### Database 
+### Database
 
 *WIP*
 
 All the information is stored encrypted inside a level-db instance on the disk. For each contract delta the key is a byte array of  `ethereum-hash + index`.
 
-### Provide Content 
+### Provide Content
 
 *WIP*
 
 Providing Content is the process of announcing to the network a list of CID's.
 A node announces the content it provides after it's being synchronized with the Enigma Contract on Ethereum.
 
-### Find Content 
+### Find Content
 
 *WIP*
 
-Finding content is the look up of certains CID's in the networking. 
+Finding content is the look up of certains CID's in the networking.
 
-### Synchronize Content 
+### Synchronize Content
 
 *WIP*
 
-Once a provider is found starts the synchronization process. 
+Once a provider is found starts the synchronization process.
 
 ## JSON RPC API
 * TBD
