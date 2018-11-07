@@ -1,100 +1,94 @@
-const CID = require('cids');
-const multihash = require('multihashes');
 const CIDUtil = require('./CIDUtil');
 const EncoderUtil = require('./EncoderUtil');
 
-class EngCID{
+class EngCID {
+  constructor(encoder = EncoderUtil) {
+    this._encoder = encoder;
+    this._cid = null;
+  }
 
-    constructor(encoder = EncoderUtil){
-
-        this._encoder = encoder;
-        this._cid = null;
+  static createFromKeccack256(keccack256Hash) {
+    const cid = CIDUtil.createCID(keccack256Hash);
+    if (cid) {
+      const engCid = new EngCID();
+      engCid._setCID(cid);
+      return engCid;
     }
+    return null;
+  }
 
-    static createFromKeccack256(keccack256Hash){
-        let cid = CIDUtil.createCID(keccack256Hash);
-        if(cid){
-            let engCid = new EngCID();
-            engCid._setCID(cid);
-            return engCid
-        }
-        return null;
+  static createFromNetwork(encodedB58byteArray) {
+    const b58 = EncoderUtil.decodeFromNetwork(encodedB58byteArray);
+    const cid = CIDUtil.createCIDFromB58(b58);
+    if (cid) {
+      const engCID = new EngCID();
+      engCID._setCID(cid);
+      return engCID;
     }
+    return null;
+  }
 
-    static createFromNetwork(encodedB58byteArray){
-        let b58 = EncoderUtil.decodeFromNetwork(encodedB58byteArray);
-        let cid = CIDUtil.createCIDFromB58(b58);
-        if(cid){
-            let engCID = new EngCID();
-            engCID._setCID(cid);
-            return engCID;
-        }
-        return null;
-    }
+  getCID() {
+    return this._cid;
+  }
 
-    getCID(){
-        return this._cid;
-    }
-
-    /** get the keccack256 hash of a CID
+  /** get the keccack256 hash of a CID
      * @param {Boolean} with0x , if true then add 0x to the result
-     * @returns {String} h, a keccak hash representation
+     * @return {String} h, a keccak hash representation
      * */
-    getKeccack256(with0x = false){
-        let h = CIDUtil.getKeccak256FromCID(this._cid);
-        if(with0x){
-            return '0x' + h;
-        }
-        return h;
+  getKeccack256(with0x = false) {
+    const h = CIDUtil.getKeccak256FromCID(this._cid);
+    if (with0x) {
+      return '0x' + h;
     }
+    return h;
+  }
 
-    toBuffer(){
-        return this._cid.buffer;
-    }
+  toBuffer() {
+    return this._cid.buffer;
+  }
 
-    toB58String(){
-        return this._cid.toBaseEncodedString();
-    }
+  toB58String() {
+    return this._cid.toBaseEncodedString();
+  }
 
-    /** Compare if this and other are equal
+  /** Compare if this and other are equal
      * @param {CID} cid - other cid to test
-     * @returns {Boolean} true - this.cid == cid , false otherwise*/
-    equalCID(cid){
-        return this._cid.equals(cid);
+     * @return {Boolean} true - this.cid == cid , false otherwise*/
+  equalCID(cid) {
+    return this._cid.equals(cid);
+  }
+
+  equalKeccack256(keccackHash) {
+    const cid = CIDUtil.createCID(keccackHash);
+    if (cid) {
+      return this.equalCID(cid);
     }
+    return false;
+  }
 
-    equalKeccack256(keccackHash){
-
-        let cid = CIDUtil.createCID(keccackHash);
-        if(cid){
-            return this.equalCID(cid);
-        }
-        return false;
+  equalEngCID(engCID) {
+    if (engCID.constructor.name === 'EngCID') {
+      return this.equalCID(engCID.getCID());
     }
+    return false;
+  }
 
-    equalEngCID(engCID){
-        if (engCID.constructor.name === 'EngCID'){
-            return this.equalCID(engCID.getCID());
-        }
-        return false;
-    }
-
-    /** Encode the CID into a network stream.
+  /** Encode the CID into a network stream.
      * Steps:
      * 1) b58Str = this.cid
      * 2) e = encode(b58Str), encode with encoder util, currently msgpack
      * 3) b = toBytes(e)
      * 4) return b
-     * @returns {Array<Bytes>}
+     * @return {Array<Bytes>}
      * */
-    encodeToNetwork(){
-        return this._encoder.encodeToNetwork(this.toB58String());
-    }
+  encodeToNetwork() {
+    return this._encoder.encodeToNetwork(this.toB58String());
+  }
 
-    _setCID(cid){
-        this._cid = cid;
-    }
-
+  _setCID(cid) {
+    this._cid = cid;
+  }
 }
 
 module.exports = EngCID;

@@ -5,70 +5,64 @@ const parallel = require('async/parallel');
 const pull = require('pull-stream');
 const streams = require('../streams');
 
-class Provider extends EventEmitter{
+class Provider extends EventEmitter {
+  constructor(enigmaNode, logger) {
+    super();
 
-    constructor(enigmaNode, logger){
-        super();
-
-        this._enigmaNode = enigmaNode;
-        this._logger = logger;
-
-    }
-    /** provide content in a batch of CID's
+    this._enigmaNode = enigmaNode;
+    this._logger = logger;
+  }
+  /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
      * currently it's secret contract addresses
      * @param {Function} callback - (err,listOfFailedEngCIDs) = >{}
      * */
-    provideContentsBatch(descriptorsList,callback){
+  provideContentsBatch(descriptorsList, callback) {
+    const engCIDs = descriptorsList.map((desc)=>{
+      const h = CIDUtil.hashKeccack256(desc);
+      return EngCID.createFromKeccack256(h);
+    });
 
-        let engCIDs = descriptorsList.map(desc=>{
-            let h = CIDUtil.hashKeccack256(desc);
-            return EngCID.createFromKeccack256(h);
+
+    const jobs = [];
+
+    engCIDs.forEach((ecid)=>{
+      jobs.push((cb)=>{
+        this._enigmaNode.provideContent(ecid, (err, ecid)=>{
+          if (err) {
+            this._logger.error(' error providing : ' + ecid.getKeccack256() + ' log = ' + err);
+          } else {
+            this._logger.info(' success providing : ' + ecid.getKeccack256());
+          }
+          cb(null, {error: err, ecid: ecid});
         });
+      });
+    });
 
 
-        let jobs = [];
+    parallel(jobs, (err, results)=>{
+      let isError = false;
+      const failedCids = [];
+      results.map((r)=>{
+        if (r.error) {
+          isError = true;
+          failedCids.push(r.ecid);
+        }
+      });
 
-        engCIDs.forEach(ecid=>{
-            jobs.push((cb)=>{
+      callback(isError, failedCids);
+    });
+  }
 
-                this._enigmaNode.provideContent(ecid, (err,ecid)=>{
-                    if(err){
-                        this._logger.error(" error providing : " + ecid.getKeccack256() + " log = " + err);
-                    }else{
-                        this._logger.info(" success providing : " + ecid.getKeccack256());
-                    }
-                    cb(null,{error: err, ecid : ecid});
-                });
-            })
-        });
-
-
-        parallel(jobs, (err,results)=>{
-
-            let isError = false;
-            let failedCids = [];
-            results.map(r=>{
-                if(r.error){
-                    isError = true;
-                    failedCids.push(r.ecid);
-                }
-            });
-
-            callback(isError, failedCids);
-        });
-    }
-
-    startStateSyncResponse(connectionStream){
-        pull(
-            connectionStream,
-            streams.requestParserStream,
-            streams.fromDbStream,
-            streams.toNetworkParser,
-            connectionStream
-        );
-    }
-
+  startStateSyncResponse(connectionStream) {
+    pull(
+        connectionStream,
+        streams.requestParserStream,
+        streams.fromDbStream,
+        streams.toNetworkParser,
+        connectionStream
+    );
+  }
 }
 
 module.exports = Provider;

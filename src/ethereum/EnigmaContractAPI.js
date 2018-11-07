@@ -1,8 +1,9 @@
-const Web3 = require('web3');
+// const Web3 = require('web3');
 
 class EnigmaContractAPI {
+  constructor(options, logger) {
 
-    constructor(options, logger) {
-
-    }
+  }
 }
+
+module.exports = EnigmaContractAPI;
