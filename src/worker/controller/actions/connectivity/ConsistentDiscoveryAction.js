@@ -1,7 +1,7 @@
-const constants = require('../../../common/constants');
+const constants = require('../../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
-const StoppableTask = require('../../../common/StoppableTask');
+const StoppableTask = require('../../../../common/StoppableTask');
 
 class ConsistentDiscoveryAction{
 

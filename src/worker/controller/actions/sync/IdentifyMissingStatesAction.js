@@ -28,15 +28,15 @@ class IdentifyMissingStatesAction{
           //TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     }else{
-      let requestEnvelop = new Envelop(true,
-          {type : constants.CORE_REUESTS.GetAllTips} ,
-          constants.CORE_REUESTS.GetAllTips);
+      let requestEnvelop = new Envelop(true
+          ,{type : constants.CORE_REUESTS.GetAllTips}
+          ,constants.CORE_REUESTS.GetAllTips);
 
       this._controller.communicator()
         .sendAndReceive(requestEnvelop)
           .then(responseEnvelop=>{
             //TODO:: parse the envelop into some format
-            let parsedResponse = responseEnvelop;
+            let parsedResponse = responseEnvelop.content();
             onResponse(parsedResponse);
       });
     }

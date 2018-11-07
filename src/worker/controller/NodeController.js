@@ -26,16 +26,16 @@ const PersistentStateCache = require('../../db/StateCache');
 // api
 const P2PApi = require('./P2PApi');
 // actions
-const HandshakeUpdateAction = require('./actions/HandshakeUpdateAction');
-const DoHandshakeAction = require('./actions/DoHandshakeAction');
-const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
-const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
+const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
+const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
+const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
+const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
-const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
+const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
-const SendFindPeerRequestAction = require('./actions/SendFindPeerRequestAction');
+const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 
 class NodeController{
 
