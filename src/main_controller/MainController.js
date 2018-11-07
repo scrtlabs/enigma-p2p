@@ -43,7 +43,7 @@
 
 const Channel = require('./channels/Channel');
 // dummy
-const DummyRuntime = require('./DummyRuntime');
+// const DummyRuntime = require('./DummyRuntime');
 const DummyAction = require('./actions/DummyAction');
 
 class MainController{
