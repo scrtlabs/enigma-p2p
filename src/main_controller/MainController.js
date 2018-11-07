@@ -84,14 +84,14 @@ class MainController{
 
 
 /** mini test */
-async function test(){
-
-  let runtime = new DummyRuntime();
-  let controller = new MainController([runtime]);
-  controller.start();
-  runtime.sendMsg({"req" : "wassup?"});
-
-}
+// async function test(){
+//
+//   let runtime = new DummyRuntime();
+//   let controller = new MainController([runtime]);
+//   controller.start();
+//   runtime.sendMsg({"req" : "wassup?"});
+//
+// }
 
 
 
