@@ -3,6 +3,12 @@
   <head>
   <meta charset="utf-8">
     <title>Network visualization</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <script src="http://code.jquery.com/jquery.js"></script>
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
     <style media="screen">
       body {font-family: sans-serif; margin:0}
       svg {position: absolute; z-index: -1; top:0}
@@ -10,29 +16,64 @@
       a {color: #27343d; text-decoration: none; padding: 1em; display: inline-block; font-size: 20px; font-size: 4vmax; font-weight: 100; transition: all .1s}
       a:hover {color: #f4065f}
       circle {cursor: pointer}
+      .node text { pointer-events: none; font: 10px sans-serif;}
+      line { stroke: #ccc; }
     </style>
   </head>
 <body>
+  <div class="row">
+    <div class="col-sm-8" id="graph"></div>
+    <div class="col-sm-4" id="log" style="background: #e2e2e2">
+      <form>
+        <input type="checkbox" id="labelsCheckbox" name="labelsCheckbox" value="1" checked="checked" onclick="switchLabels()"> Show labels<br>
+      </form>
+    </div>
+  </div>
+
+
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
   <script src="client-script.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
 
 <script>
-var source = new EventSource('http://localhost:3000/events');
 
-source.addEventListener('message', function(e) {
-  console.log(e.data);
-  addNode(e.data);
-}, false);
-
-source.addEventListener('open', function(e) {
-  // Connection was opened.
-}, false);
-
-source.addEventListener('error', function(e) {
-  if (e.readyState == EventSource.CLOSED) {
-    // Connection was closed.
+var socket = io();
+socket.on('initEvent', function(data){
+  console.log('initEvent');
+  console.log(data);
+  for (n in data.nodes) {
+    addNode(data.nodes[n]);
   }
-}, false);
+  for (l in data.links) {
+    addLink(data.links[l]);
+  }
+  restartPlot();
+});
+
+socket.on('addNode', function(node){
+  console.log('addNode');
+  console.log(node);
+  addNode(node, true);
+})
+
+socket.on('addLink', function(link){
+  console.log('addLink');
+  console.log(link);
+  addLink(link, true);
+})
+
+socket.on('delNode', function(node){
+  console.log('delNode');
+  console.log(node);
+  delNode(node, true);
+})
+
+socket.on('delLink', function(link){
+  console.log('delLink');
+  console.log(link);
+  delLink(link, true);
+})
+
 </script>
 </body>
 </html>
