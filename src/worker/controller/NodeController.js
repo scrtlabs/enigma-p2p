@@ -32,9 +32,9 @@ const BootstrapFinishAction = require('./actions/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
 const AfterOptimalDHTAction = require('./actions/AfterOptimalDHTAction');
-const ProvideStateSyncAction = require('./actions/ProvideSyncStateAction');
-const AnnounceContentAction = require('./actions/AnnounceContentAction');
-const FindContentProviderAction = require('./actions/FindContentProviderAction');
+const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
+const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
+const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/SendFindPeerRequestAction');
 
 class NodeController{
@@ -290,7 +290,7 @@ class NodeController{
             let map = findProvidersResult.getProvidersMap();
             for(let key in map){
                 console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^");
-                console.log("cid " + key)
+                console.log("cid " + key);
                 console.log("providers:" );
                 map[key].providers.forEach(p=>{
                     let mas = [];
