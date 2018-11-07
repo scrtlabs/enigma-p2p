@@ -5,6 +5,10 @@
  * -    Subscribes to all of the Runtimes
  * -    Propagates Requests between them upon some event.
  * -    Each event is a Trigger to some Action, that's all.
+ * -    Every runtime must implement 2 functions:
+ * -      setChannel(communicator), communicator is a part of channel that speaks to the Runtime Manager
+ * -      type():String, returns the type of the runtime so the communicators can be mapped.
+ * -
  * Runtimes:
  * -    CLI
  * -    Core
@@ -37,35 +41,76 @@
  * -    secret contract users will query the Workers via this Api
  */
 
+const Channel = require('./channels/Channel');
+// dummy
+const DummyRuntime = require('./DummyRuntime');
+const DummyAction = require('./actions/DummyAction');
+
 class MainController{
 
     constructor(runtimes){
-      // each runtime has {settings,runtime, priority}
       this._runtimes = runtimes;
       // actions
-      this._actions = {};
+      this._actions = {
+        'dummy' : new DummyAction(this)
+      };
+      // runtime communicators
+      this._communicators = {};
+    }
+    getCommunicator(type){
+      return this._communicators[type];
     }
     start(){
-      return new Promise(async (resolve,reject)=>{
-          // sort 1..n by, 1 will run first , n will run last
-          this._runtimes.sort((a,b)=>{
-            return a.priority - b.priority;
-          });
-          // start each runtime in order
-          for(let i=0;i<this._runtimes.length;++i){
-            let runtime = this._runtimes[i].runtime;
-            let settings = this._runtimes[i].settings;
-            await runtime.start(settings);
+      // start each runtime in order
+      this._runtimes.forEach(runtime=>{
+        // setup a channel
+        let channels = Channel.biDirectChannel();
+        let thisCommunicator = channels.channel1;
+        let rtCommunicatior = channels.channel2;
+        // save the communicator
+        this._communicators[runtime.type()] = rtCommunicatior;
+        // dispatch the other side of the channel
+        runtime.setChannel(rtCommunicatior);
+        // set a response method
+        thisCommunicator.setOnMessage((envelop)=>{
+          let action = this._actions[envelop.type()];
+          if(action){
+            action.execute(thisCommunicator,envelop);
           }
-          resolve();
-      });
-    }
-    _subscribeToRuntimes(){
-      this._runtimes.forEach(rt=>{
-          
+        });
       });
     }
 }
+
+
+/** mini test */
+async function test(){
+
+  let runtime = new DummyRuntime();
+  let controller = new MainController([runtime]);
+  controller.start();
+  runtime.sendMsg({"req" : "wassup?"});
+
+}
+
+
+
+test();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
