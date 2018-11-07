@@ -17,6 +17,8 @@ class PersistentStateCache {
     constructor(cachePath){
         this._CONTRACTS_KEY = "contracts";
         this._dbApi = new DbApi(cachePath);
+    }
+    start(){
         this._dbApi.open();
     }
     /** add a new address to the cache

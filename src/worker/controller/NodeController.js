@@ -22,7 +22,7 @@ const Stats = require('../Stats');
 const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
-
+const PersistentStateCache = require('../../db/StateCache');
 // api
 const P2PApi = require('./P2PApi');
 // actions
@@ -46,10 +46,13 @@ class NodeController{
         // initialize logger
         this._logger = logger;
 
+        this._communicator = null;
         this._engNode = enigmaNode;
         this._connectionManager = connectionManager;
         this._protocolHandler = protocolHandler;
-
+        // init persistent cache
+        // TODO:: currently it's ignored and not initialized _initStateCache()
+        this._cache = new PersistentStateCache('./dbName');
         // TODO:: take Provider form CTOR - currently uses _initContentProvider()
         this._provider = null;
         // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
@@ -107,13 +110,18 @@ class NodeController{
         return new NodeController(enigmaNode,enigmaNode.getProtocolHandler(),connectionManager, logger);
 
     }
+    /** private methods */
     _initController(){
         this._initEnigmaNode();
         this._initConnectionManager();
         this._initProtocolHandler();
         this._initContentProvider();
         this._initContentReceiver();
+        // this._initCache();
         // this._initP2PApi();
+    }
+    _initCache(){
+        // this._cache.start();
     }
     _initConnectionManager(){
 
@@ -196,6 +204,48 @@ class NodeController{
         this._p2pApi.on('isSimpleConnected',(nodeId)=>{
             this.isSimpleConnected(nodeId);
         });
+    }
+
+    /***********************
+     * public methods
+    *********************/
+
+    /**
+     * "Runtime Id" required method for the main controller
+     * @returns {String}
+     * */
+    type(){
+        return constants.RUNTIME_TYPE.Node;
+    }
+    /**
+     * Set the communication channel, required for the main controller
+     * This communicator class is the communication with the main controller
+     * and other components
+     * @param {Communicator} communicator
+     * */
+    setChannel(communicator){
+        this._communicator = communicator;
+        this._communicator.setOnMessage(envelop=>{
+            let action = this._actions[envelop.type()];
+            if(action){
+                action.execute(envelop);
+            }else{
+              this._logger.error("[-] Err wrong type in NodeController: " + envelop.type());
+            }
+        });
+    }
+    /** Get the main controller communicator
+     * This is suppose to be used by the Actions that receive an envelop and need to reply.
+     * @returns {Communicator} _communicator
+     * */
+    communicator(){
+        return this._communicator;
+    }
+    /** Get the cache object for the state tips and contracts that are stored locally.
+     * @returns {PersistentStateCache}
+     * */
+    cache(){
+        return this._cache;
     }
     p2pApi(){
         return this._p2pApi;

@@ -77,3 +77,19 @@ module.exports.STAT_TYPES =  {
     'DEBLACKLIST':'DEBLACKLIST',
 };
 
+// used by the main controller
+// every runtime implements getType() method
+module.exports.RUNTIME_TYPE = {
+    CLI : 'cli',
+    Core : 'core',
+    Node : 'node',
+    Ethereum : 'eth',
+    JsonRpcApi : 'rpcApi'
+};
+// all the different requests that can be made to Core via the Ipc client
+module.exports.CORE_REUESTS = {
+    GetAllTips : 'GetAllTips'
+};
+
+
+
