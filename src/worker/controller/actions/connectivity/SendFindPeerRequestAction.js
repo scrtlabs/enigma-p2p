@@ -8,16 +8,15 @@ class SendFindPeerRequestAction{
     this._controller = controller;
   }
 
-  execute(params){
-    let peerInfo = params.peerInfo;
-    let onResponse = params.onResponse;
-    let maxPeers = params.maxPeers;
+  execute(params) {
+    const peerInfo = params.peerInfo;
+    const onResponse = params.onResponse;
+    const maxPeers = params.maxPeers;
     this._controller.connectionManager().findPeersRequest(peerInfo,
-      (err,request, response) => {
-        onResponse(err,request,response);
-      }
-    , maxPeers);
+        (err, request, response) => {
+          onResponse(err, request, response);
+        }
+        , maxPeers);
   }
-
 }
 module.exports = SendFindPeerRequestAction;

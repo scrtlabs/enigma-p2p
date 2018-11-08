@@ -46,42 +46,42 @@ const Channel = require('./channels/Channel');
 // const DummyRuntime = require('./DummyRuntime');
 const DummyAction = require('./actions/DummyAction');
 
-class MainController{
-
-    constructor(runtimes){
-      this._runtimes = runtimes;
-      // actions
-      this._actions = {
-        'dummy' : new DummyAction(this)
-      };
-      // runtime communicators
-      this._communicators = {};
-    }
-    getCommunicator(type){
-      return this._communicators[type];
-    }
-    start(){
-      // start each runtime in order
-      this._runtimes.forEach(runtime=>{
-        // setup a channel
-        let channels = Channel.biDirectChannel();
-        let thisCommunicator = channels.channel1;
-        let rtCommunicatior = channels.channel2;
-        // save the communicator
-        this._communicators[runtime.type()] = rtCommunicatior;
-        // dispatch the other side of the channel
-        runtime.setChannel(rtCommunicatior);
-        // set a response method
-        thisCommunicator.setOnMessage((envelop)=>{
-          let action = this._actions[envelop.type()];
-          if(action){
-            action.execute(thisCommunicator,envelop);
-          }
-        });
+class MainController {
+  constructor(runtimes) {
+    this._runtimes = runtimes;
+    // actions
+    this._actions = {
+      'dummy': new DummyAction(this),
+    };
+    // runtime communicators
+    this._communicators = {};
+  }
+  getCommunicator(type) {
+    return this._communicators[type];
+  }
+  start() {
+    // start each runtime in order
+    this._runtimes.forEach((runtime)=>{
+      // setup a channel
+      const channels = Channel.biDirectChannel();
+      const thisCommunicator = channels.channel1;
+      const rtCommunicatior = channels.channel2;
+      // save the communicator
+      this._communicators[runtime.type()] = rtCommunicatior;
+      // dispatch the other side of the channel
+      runtime.setChannel(rtCommunicatior);
+      // set a response method
+      thisCommunicator.setOnMessage((envelop)=>{
+        const action = this._actions[envelop.type()];
+        if (action) {
+          action.execute(thisCommunicator, envelop);
+        }
       });
-    }
+    });
+  }
 }
 
+module.exports = MainController;
 
 /** mini test */
 // async function test(){
@@ -94,33 +94,6 @@ class MainController{
 // }
 
 
-
 test();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -1,5 +1,5 @@
 const DbApi = require('./LevelDbApi');
-const DbKey = require('./DbKey');
+// const DbKey = require('./DbKey');
 const parallel = require('async/parallel');
 
 /**
@@ -11,98 +11,95 @@ const parallel = require('async/parallel');
  *      - a list of all secret contract addresses for quick lookup
  * */
 class PersistentStateCache {
-
-    /** @param {String} cachePath, the path to the db
+  /** @param {String} cachePath, the path to the db
      * Will create or open existing*/
-    constructor(cachePath){
-        this._CONTRACTS_KEY = "contracts";
-        this._dbApi = new DbApi(cachePath);
-    }
-    start(){
-        this._dbApi.open();
-    }
-    /** add a new address to the cache
-     * @param {String} addres - secret contract address
+  constructor(cachePath) {
+    this._CONTRACTS_KEY = 'contracts';
+    this._dbApi = new DbApi(cachePath);
+    this._dbApi.open();
+  }
+  /** add a new address to the cache
+     * @param {String} address - secret contract address
      * @param {String} initialStateHash - hash of the delta 0
      * @param {Function} callback , (err)=>{}
      * */
-    addAddress(address,initialStateHash,callback){
-        this._dbApi.get(this._CONTRACTS_KEY,(err,addrsList)=>{
-            let addrsObj = [];
-            // update address
-            if(!err){
-                addrsObj = addrsList;
-            }
-            addrsObj.push(address);
+  addAddress(address, initialStateHash, callback) {
+    this._dbApi.get(this._CONTRACTS_KEY, (err, addrsList)=>{
+      let addrsObj = [];
+      // update address
+      if (!err) {
+        addrsObj = addrsList;
+      }
+      addrsObj.push(address);
 
-            // store back
-            this._dbApi.put(this._CONTRACTS_KEY,JSON.stringify(addrsObj),(err)=>{
-                if(err){
-                    callback(err);
-                }else{
-                    // add initial delta
-                  this._dbApi.put(address,JSON.stringify({index : 0, hash: initialStateHash}),callback);
-                }
-            });
-        });
-    }
-    /**
+      // store back
+      this._dbApi.put(this._CONTRACTS_KEY, JSON.stringify(addrsObj), (err)=>{
+        if (err) {
+          callback(err);
+        } else {
+          // add initial delta
+          this._dbApi.put(address, JSON.stringify({index: 0, hash: initialStateHash}), callback);
+        }
+      });
+    });
+  }
+  /**
      * Update an EXISTING tip
      * @param {String} address - secret contract
      * @param {String} tipHash - hash of the tip
      * @param {Integer} tipIndex - delta index
      * @param {Function} callback - (err)=>{}
      * */
-    updateTip(address,tipHash,tipIndex,callback){
-        this._dbApi.get(address,(err,tip)=>{
-            if(err){
-                callback(err);
-            }else{
-                tip.index = tipIndex;
-                tip.hash = tipHash;
-                this._dbApi.put(address,JSON.stringify(tip),callback);
-            }
-        });
-    }
-    /** get Existing delta tip or err
+  updateTip(address, tipHash, tipIndex, callback) {
+    this._dbApi.get(address, (err, tip)=>{
+      if (err) {
+        callback(err);
+      } else {
+        tip.index = tipIndex;
+        tip.hash = tipHash;
+        this._dbApi.put(address, JSON.stringify(tip), callback);
+      }
+    });
+  }
+  /** get Existing delta tip or err
      * TipObject => {index,hash}
      * if err -> no tip && no address in cache
      * @param {String} address - secret contract
      * @param {Function} callback - (err,tipObject)=>{}*/
-    getTip(address,callback){
-        this._dbApi.get(address,callback);
-    }
-    /** get all cached addrs
+  getTip(address, callback) {
+    this._dbApi.get(address, callback);
+  }
+  /** get all cached addrs
      * @param {Function} callback - (err,addressesList)=>{}*/
-    getAllAddrs(callback){
-        this._dbApi.get(this._CONTRACTS_KEY,(err,addrs)=>{
-            callback(err,addrs);
-        });
-    }
-    /** Get all the cached tips
+  getAllAddrs(callback) {
+    this._dbApi.get(this._CONTRACTS_KEY, (err, addrs)=>{
+      callback(err, addrs);
+    });
+  }
+  /** Get all the cached tips
      * @param {Function} callback - (err,CachedTipsList)=>{}
      * -> CachedTipsList == [{error, address,tip : {index,hash}},...] error inside is individual for a key
      * */
-    getAllTips(callback){
-        this.getAllAddrs((err,addrs)=>{
-            if(err){
-                callback(err);
-            }else{
-                let jobs = [];
-                addrs.forEach(addr=>{
-                    jobs.push((cb)=>{
-                        this.getTip(addr,(err,tip)=>{
-                            cb(null,{error : err, address : addr, tip : tip});
-                        });
-                    });
-                });
+  getAllTips(callback) {
+    this.getAllAddrs((err, addrs)=>{
+      if (err) {
+        callback(err);
+      } else {
+        const jobs = [];
+        addrs.forEach((addr)=>{
+          jobs.push((cb)=>{
+            this.getTip(addr, (err, tip)=>{
+              cb(null, {error: err, address: addr, tip: tip});
+            });
+          });
+        });
 
-                parallel(jobs,(err,tips)=>{
-                    callback(err,tips);
-                });
-            }
-        })
-    }
+        parallel(jobs, (err, tips)=>{
+          callback(err, tips);
+        });
+      }
+    });
+  }
 }
 module.exports = PersistentStateCache;
 

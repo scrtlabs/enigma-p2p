@@ -9,13 +9,13 @@ class FindContentProviderAction{
         this._controller = controller;
     }
 
-    execute(params){
-        let descriptorsList = params.descriptorsList;
-        let next = params.next;
-        this._controller.receiver().findProvidersBatch(descriptorsList, (findProviderResult)=>{
-            next(findProviderResult);
-        });
-    }
+  execute(params) {
+    const descriptorsList = params.descriptorsList;
+    const next = params.next;
+    this._controller.receiver().findProvidersBatch(descriptorsList, (findProviderResult)=>{
+      next(findProviderResult);
+    });
+  }
 }
 
 module.exports = FindContentProviderAction;

@@ -3,14 +3,13 @@ const constants = require('../../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
 
-class BootstrapFinishAction{
+class BootstrapFinishAction {
+  constructor(controller) {
+    this._controller = controller;
+  }
 
-    constructor(controller){
-        this._controller = controller;
-    }
-
-    execute(params){
-        console.log("[+] BOOTSTRAP WITH ALL DNS - DONE.");
-    }
+  execute(params) {
+    console.log('[+] BOOTSTRAP WITH ALL DNS - DONE.');
+  }
 }
 module.exports = BootstrapFinishAction;

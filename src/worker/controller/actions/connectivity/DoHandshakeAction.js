@@ -8,17 +8,16 @@ class DoHandshakeAction{
         this._controller = controller;
     }
 
-    execute(params){
-        params = params.params;
-        let otherPeer = params.peer;
+  execute(params) {
+    params = params.params;
+    const otherPeer = params.peer;
 
-        if(this._controller.engNode().isConnected(otherPeer.id.toB58String())){
-            return;
-        }
-
-        let withPeerList = true;
-        this._controller.connectionManager().handshake(otherPeer, withPeerList);
-
+    if (this._controller.engNode().isConnected(otherPeer.id.toB58String())) {
+      return;
     }
+
+    const withPeerList = true;
+    this._controller.connectionManager().handshake(otherPeer, withPeerList);
+  }
 }
 module.exports = DoHandshakeAction;

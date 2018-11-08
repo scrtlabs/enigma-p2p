@@ -9,10 +9,10 @@ class ProvideSyncStateAction{
         this._controller = controller;
     }
 
-    execute(params){
-        let provider = this._controller.provider();
-        let connectionStream = params.params.connection;
-        provider.startStateSyncResponse(connectionStream);
-    }
+  execute(params) {
+    const provider = this._controller.provider();
+    const connectionStream = params.params.connection;
+    provider.startStateSyncResponse(connectionStream);
+  }
 }
 module.exports = ProvideSyncStateAction;
