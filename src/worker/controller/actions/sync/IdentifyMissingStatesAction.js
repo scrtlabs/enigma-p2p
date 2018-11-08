@@ -31,7 +31,6 @@ class IdentifyMissingStatesAction{
       let requestEnvelop = new Envelop(true
           ,{type : constants.CORE_REUESTS.GetAllTips}
           ,constants.CORE_REUESTS.GetAllTips);
-
       this._controller.communicator()
         .sendAndReceive(requestEnvelop)
           .then(responseEnvelop=>{

@@ -44,6 +44,11 @@ class NodeController {
     // initialize logger
     this._logger = logger;
 
+    this._communicator = null;
+    // init persistent cache
+    // TODO:: currently it's ignored and not initialized _initStateCache()
+    // this._cache = new PersistentStateCache('./some_db_name');
+
     this._engNode = enigmaNode;
     this._connectionManager = connectionManager;
     this._protocolHandler = protocolHandler;
@@ -113,6 +118,7 @@ class NodeController {
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
+    // this._initCache();
     // this._initP2PApi();
   }
   _initConnectionManager() {
@@ -128,6 +134,10 @@ class NodeController {
       }
     });
   }
+  _initCache(){
+    //TODO:: start the cache service
+    // this._cache.start()
+  };
   _initEnigmaNode() {
     this._engNode.on('notify', (params)=>{
       this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
@@ -198,6 +208,46 @@ class NodeController {
   // p2pApi() {
   //   return this._p2pApi;
   // }
+  /***********************
+   * public methods
+   *********************/
+  /**
+   * "Runtime Id" required method for the main controller
+   * @returns {String}
+   * */
+  type(){
+    return constants.RUNTIME_TYPE.Node;
+  }
+  /**
+   * Set the communication channel, required for the main controller
+   * This communicator class is the communication with the main controller
+   * and other components
+   * @param {Communicator} communicator
+   * */
+  setChannel(communicator){
+    this._communicator = communicator;
+    this._communicator.setOnMessage(envelop=>{
+      let action = this._actions[envelop.type()];
+      if(action){
+        action.execute(envelop);
+      }else{
+        this._logger.error("[-] Err wrong type in NodeController: " + envelop.type());
+      }
+    });
+  }
+  /** Get the main controller communicator
+   * This is suppose to be used by the Actions that receive an envelop and need to reply.
+   * @returns {Communicator} _communicator
+   * */
+  communicator(){
+    return this._communicator;
+  }
+  /** Get the cache object for the state tips and contracts that are stored locally.
+   * @returns {PersistentStateCache}
+   * */
+  cache(){
+    return this._cache;
+  }
   engNode() {
     return this._engNode;
   }
