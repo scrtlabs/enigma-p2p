@@ -1,26 +1,23 @@
 
 
-class AfterOptimalDHTAction{
+class AfterOptimalDHTAction {
+  constructor(controller) {
+    this._controller = controller;
+  }
 
-    constructor(controller){
-        this._controller = controller;
-    }
-
-    execute(params){
-
-        let success = params.status;
-        let bootTime = params.bootTime;
+  execute(params) {
+    const success = params.status;
+    const bootTime = params.bootTime;
 
 
-        // TODO:: Initialize the process of understand what is missing
+    // TODO:: Initialize the process of understand what is missing
 
 
-        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-        console.log("AfterOptimalDHTAction");
-        console.log("status: " + success + " bootTime: " + bootTime);
-        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
-
-    }
+    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+    console.log('AfterOptimalDHTAction');
+    console.log('status: ' + success + ' bootTime: ' + bootTime);
+    console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^');
+  }
 }
 
 module.exports = AfterOptimalDHTAction;

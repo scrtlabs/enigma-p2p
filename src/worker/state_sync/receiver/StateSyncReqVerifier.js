@@ -1,6 +1,6 @@
-class StateSyncReqVerifier{
-    verify(unverified, callback){
-        callback(true);
-    }
+class StateSyncReqVerifier {
+  verify(unverified, callback) {
+    callback(true);
+  }
 }
 module.exports = StateSyncReqVerifier;

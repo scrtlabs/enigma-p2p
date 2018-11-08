@@ -1,35 +1,34 @@
 const EventEmitter = require('events').EventEmitter;
 
-class Communicator extends EventEmitter{
-
-  constructor(otherCommunicator){
+class Communicator extends EventEmitter {
+  constructor(otherCommunicator) {
     super();
-    this._M = "m";
+    this._M = 'm';
     this._other = otherCommunicator;
   }
-  _setCommunicator(other){
+  _setCommunicator(other) {
     this._other = other;
   }
-  send(envelop){
-    if(envelop.id()){
-      this.emit(envelop.id(),envelop);
-    }else{
+  send(envelop) {
+    if (envelop.id()) {
+      this.emit(envelop.id(), envelop);
+    } else {
       this.emit(this._M, envelop);
     }
   }
-  sendAndReceive(envelop){
-    return new Promise((res,rej)=>{
+  sendAndReceive(envelop) {
+    return new Promise((res, rej)=>{
       // assumption: the responder will emit id() event
-      this._other.on(envelop.id(),responseEnvelop=>{
+      this._other.on(envelop.id(), (responseEnvelop)=>{
         res(responseEnvelop);
       });
       // emit the message
       this.emit(this._M, envelop);
     });
   }
-  setOnMessage(callback){
-    this._other.on(this._M,(envelop)=>{
-        callback(envelop);
+  setOnMessage(callback) {
+    this._other.on(this._M, (envelop)=>{
+      callback(envelop);
     });
   }
 }

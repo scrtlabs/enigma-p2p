@@ -4,76 +4,75 @@ const constants = require('../../../common/constants');
 const MsgTypes = constants.P2P_MESSAGES;
 const Validator = require('jsonschema').Validator;
 
-function loadScheme(path, callback){
-    loadJsonFile(path).then(json => {
-        callback(null,json);
-    })
-    .catch((err)=>{
-            callback(err);
-    });
+function loadScheme(path, callback) {
+  loadJsonFile(path).then((json) => {
+    callback(null, json);
+  })
+      .catch((err)=>{
+        callback(err);
+      });
 }
 
-//./schemes/state_sync_scheme.json
+// ./schemes/state_sync_scheme.json
 const schemeMap = {
-    [MsgTypes.SYNC_STATE_REQ] : (testObj, callback) =>{
+  [MsgTypes.SYNC_STATE_REQ]: (testObj, callback) =>{
+    loadScheme(path.join(__dirname, '/state_sync_scheme.json'), (err, preScheme)=>{
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
+      }
+    });
+  },
 
-        loadScheme(path.join(__dirname,'/state_sync_scheme.json'),(err,preScheme)=>{
-            if(err){
-                callback(err);
-            }else{
-                let scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
-                let v = new Validator();
-                let isValid = v.validate(testObj,scheme).valid;
-                callback(null,isValid);
-            }
-        });
-    },
-
-    [MsgTypes.SYNC_STATE_RES] : (testObj, callback)=>{
-        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
-            if(err){
-                callback(err);
-            }else{
-                let scheme = preScheme[MsgTypes.SYNC_STATE_RES];
-                let v = new Validator();
-                let isValid = v.validate(testObj,scheme).valid;
-                callback(null,isValid);
-            }
-        });
-    },
-    [MsgTypes.SYNC_BCODE_REQ] : (testObj, callback)=>{
-        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
-            if(err){
-                callback(err);
-            }else{
-                let scheme = preScheme[MsgTypes.SYNC_BCODE_REQ];
-                let v = new Validator();
-                let isValid = v.validate(testObj,scheme).valid;
-                callback(null,isValid);
-            }
-        });
-    },
-    [MsgTypes.SYNC_BCODE_RES] : (testObj,callback)=>{
-        loadScheme(path.join(__dirname,'/state_sync_scheme.json'), (err,preScheme)=>{
-            if(err){
-                callback(err);
-            }else{
-                let scheme = preScheme[MsgTypes.SYNC_BCODE_RES];
-                let v = new Validator();
-                let isValid = v.validate(testObj,scheme).valid;
-                callback(null,isValid);
-            }
-        });
-    }
+  [MsgTypes.SYNC_STATE_RES]: (testObj, callback)=>{
+    loadScheme(path.join(__dirname, '/state_sync_scheme.json'), (err, preScheme)=>{
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_STATE_RES];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
+      }
+    });
+  },
+  [MsgTypes.SYNC_BCODE_REQ]: (testObj, callback)=>{
+    loadScheme(path.join(__dirname, '/state_sync_scheme.json'), (err, preScheme)=>{
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_BCODE_REQ];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
+      }
+    });
+  },
+  [MsgTypes.SYNC_BCODE_RES]: (testObj, callback)=>{
+    loadScheme(path.join(__dirname, '/state_sync_scheme.json'), (err, preScheme)=>{
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_BCODE_RES];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
+      }
+    });
+  },
 };
 
-function _validateScheme(testedObj, msgName, callback){
-    let s = schemeMap[msgName];
-    if(s){
-        s(testedObj,callback);
-    }else{
-        callback("no such scheme");
-    }
+function _validateScheme(testedObj, msgName, callback) {
+  const s = schemeMap[msgName];
+  if (s) {
+    s(testedObj, callback);
+  } else {
+    callback('no such scheme');
+  }
 };
 
 /** valida a scheme
@@ -81,7 +80,7 @@ function _validateScheme(testedObj, msgName, callback){
  * - SYNC_STATE_RES
  * - SYNC_STATE_REQ
  * @param {Json} testedObj,
- * @param {String} Msg name from  MsgTypes
+ * @param {String} msgName from MsgTypes
  * @param {Function} callback , (err,isValid)=>{
  *  -err -> error , does not imply if the msg is ok or not
  *  -isValid -> true = valid, false = invalid
@@ -89,7 +88,7 @@ function _validateScheme(testedObj, msgName, callback){
  *
  * */
 module.exports.validateScheme = (testedObj, msgName, callback)=>{
-    _validateScheme(testedObj,msgName,callback);
+  _validateScheme(testedObj, msgName, callback);
 };
 
 
@@ -105,7 +104,8 @@ module.exports.validateScheme = (testedObj, msgName, callback)=>{
 // let state_sync_res_obj = {
 //     msgType :"SYNC_STATE_RES",
 //     contractAddress : '0x...',
-//     states : [{index:1,hash : '0x1',data : [11,12,13]},{index:2,hash : '0x2',data : [311,122,133]},{index:3,hash : '0x3',data : [151,152,143]}]
+//     states : [{index:1,hash : '0x1',data : [11,12,13]},{index:2,hash : '0x2',data : [311,122,133]},
+//               {index:3,hash : '0x3',data : [151,152,143]}]
 // };
 //
 // _validateScheme(state_sync_res_obj , MsgTypes.SYNC_STATE_RES ,(err,isValid)=>{
@@ -115,8 +115,6 @@ module.exports.validateScheme = (testedObj, msgName, callback)=>{
 //         console.log("is valid? " + isValid);
 //     }
 // });
-
-
 
 
 /** byte code validation */
@@ -150,7 +148,5 @@ module.exports.validateScheme = (testedObj, msgName, callback)=>{
 //         console.log("is valid ? " + isValid);
 //     }
 // });
-
-
 
 
