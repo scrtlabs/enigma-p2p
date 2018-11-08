@@ -1,7 +1,7 @@
-const constants = require('../../../common/constants');
+const constants = require('../../../../common/constants');
+const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
-// const STAT_TYPES = constants.STAT_TYPES;
-const StoppableTask = require('../../../common/StoppableTask');
+const StoppableTask = require('../../../../common/StoppableTask');
 
 class ConsistentDiscoveryAction {
   constructor(controller) {
@@ -73,16 +73,16 @@ class ConsistentDiscoveryAction {
       console.log('result => ', JSON.stringify(result, null, 2));
       console.log('------------------- FINISHED STOPPABLE TASK ------------------');
 
-      if (options.callback) {
-        options.callback(status, result);
-      }
+            if(options.callback){
+                options.callback(status,result);
+            }
 
-      this._controller.connectionManager().onDonePersistentDiscovery(status, result);
-    };
+            this._controller.connectionManager().onDonePersistentDiscovery(status,result);
+        };
 
-    const stopabbleTask = new StoppableTask(options, task, onFinish);
+        let stopabbleTask = new StoppableTask(options,task,onFinish);
 
-    stopabbleTask.start();
-  }
+        stopabbleTask.start();
+    }
 }
 module.exports = ConsistentDiscoveryAction;
