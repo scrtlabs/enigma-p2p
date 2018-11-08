@@ -644,25 +644,7 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
-  /** TEMPORARY method
-   * @param {String} protocolName
-   * @param {Function} onAllConnections , (err,[{protocol,connection}])
-   * dial to all peers on the list & forEach connection activate onResponse callback with (protocol,connection) params
-   */
-  groupDialBatch(protocolName, onAllConnections) {
-    const peersInfo = this.getAllPeersInfo();
-    const jobs = [];
-    peersInfo.forEach((peer)=>{
-      jobs.push((cb)=>{
-        this.dialProtocol(peer, protocolName, (connErr, conn)=>{
-          cb({'error': conErr, 'connection': conn});
-        });
-      });
-    });
-    parallel(jobs, (err, connections)=>{
-      onAllConnections(connections);
-    });
-  }
+
 }
 
 

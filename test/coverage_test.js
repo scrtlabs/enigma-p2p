@@ -1,9 +1,15 @@
+const path = require('path');
+
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const assert = require('assert');
-const waterfall = require('async/waterfall');
 const PeerBank = require('../src/worker/handlers/PeerBank');;
-const PeerInfo = require('peer-info');
-const PeerId = require('peer-id');
+const EnigmaNode = require('../src/worker/EnigmaNode');
+const NodeController = require('../src/worker/controller/NodeController');
+const B1Path = path.join(__dirname,"testUtils/id-l");
+const B1Port = "10300";
+const B2Path = "../../test/testUtils/id-d";
+const B2Port = "10301";
+
 const pongMsg = {
   "jsonrpc":"2.0",
   "method":"pong",
@@ -54,4 +60,42 @@ it('#1 test PeerBank',function(done){
     done();
 });
 
+it('#2 coverage', (done)=>{
+
+  let tree = TEST_TREE.coverage;
+  if(!tree['all'] || !tree['#2']){
+    this.skip();
+  }
+
+  let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+  let node = NodeController.initDefaultTemplate({"port":B1Port, "idPath":B1Path, "nickname":"dns", "bootstrapNodes":bootstrapNodes});
+  try{
+    node.engNode().sendHeartBeat(null,null,(err)=>{
+      assert.strictEqual(false,true,"should fail");
+    });
+  }catch(e){
+
+  }
+
+  try{
+    node.engNode().startStateSyncRequest(null,null);
+    assert.strictEqual(true,false,'should fail');
+  }catch(e){
+
+  }
+  node.engNode().syncGetPeersPeerBook(null).catch(err=>{
+
+    try{
+      node.engNode().findPeers(null,null,null);
+      assert.strictEqual(true,false,'should fail');
+    }catch(e){
+
+      try{
+        node.engNode().subscribe()
+      }catch(e){
+        done();
+      }
+    }
+  });
+});
 
