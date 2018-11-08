@@ -17,5 +17,10 @@ module.exports.TEST_TREE = {
   'cache' :{
     'all' : true,
     '#1' : true
+  },
+  'ethereum' : {
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
   }
 };

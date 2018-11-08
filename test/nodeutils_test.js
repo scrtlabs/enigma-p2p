@@ -39,7 +39,7 @@ it('should parsePeerInfo', function() {
 
 it('should generate randId', function() {
   assert.strictEqual(nodeUtils.randId().length, 12);
-  assert.notEqual(nodeUtils.randId(), nodeUtils.randId());
+  assert.notStrictEqual(nodeUtils.randId(), nodeUtils.randId());
 });
 
 it('should toPingMsg', function() {
