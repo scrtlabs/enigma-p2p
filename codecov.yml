@@ -1,10 +1,10 @@
 codecov:
   notify:
-    require_ci_to_pass: yes
+    require_ci_to_pass: false
 
 coverage:
-  precision: 2
-  round: down
+  precision: 1
+  round: up
   range: "30...100"
 
   status:
