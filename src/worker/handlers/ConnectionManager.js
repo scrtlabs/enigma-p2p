@@ -218,14 +218,6 @@ class ConnectionManager extends EventEmitter {
 
     return false;
   }
-  /**
-   * analyze the peer book to see the dht status
-   * @return {Json}  {status: "{STABLE}/{SYNC}/{CRITICAL_LOW}/{CRITICAL_HIGH/DISCONNECTED}",
-   *                  number: number of peers to add/ remove(?)}
-   */
-  dhtStatus() {
-    return this._policy.getDhtStauts(this._enigmaNode.getSelfPeerBook());
-  }
   /** /findpeers/0.1
    * Singal request to a peer for findpeers
    * @param {PeerInfo} peerInfo , the target peer

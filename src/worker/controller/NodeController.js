@@ -149,55 +149,55 @@ class NodeController {
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
   }
-  _initP2PApi() {
-    this._p2pApi.on('execCmd', (cmd, params)=>{
-      this.execCmd(cmd, params);
-    });
-    this._p2pApi.on('addPeer', (maStr)=>{
-      this.addPeer(maStr);
-    });
-    this._p2pApi.on('getSelfAddrs', (callback)=>{
-      const addrs = this.getSelfAddrs();
-      callback(addrs);
-    });
-    this._p2pApi.on('getAllOutboundHandshakes', (callback)=>{
-      const oHs = this.getAllOutboundHandshakes();
-      callback(oHs);
-    });
-    this._p2pApi.on('getAllInboundHandshakes', (callback)=>{
-      const iHs = this.getAllInboundHandshakes();
-      callback(iHs);
-    });
-    this._p2pApi.on('getAllPeerBank', (callback)=>{
-      const pb = this.getAllPeerBank();
-      callback(pb);
-    });
-    this._p2pApi.on('tryConsistentDiscovery', ()=>{
-      this.tryConsistentDiscovery();
-    });
-    this._p2pApi.on('broadcast', (content)=>{
-      this.broadcast(content);
-    });
-    /** temp */
-    this._p2pApi.on('provideContent', ()=>{
-      this.provideContent();
-    });
-    /** temp */
-    this._p2pApi.on('findContent', ()=>{
-      this.findContent();
-    });
-    /** temp */
-    this._p2pApi.on('findContentAndSync', ()=>{
-      this.findContentAndSync();
-    });
-    /** temp */
-    this._p2pApi.on('isSimpleConnected', (nodeId)=>{
-      this.isSimpleConnected(nodeId);
-    });
-  }
-  p2pApi() {
-    return this._p2pApi;
-  }
+  // _initP2PApi() {
+  //   this._p2pApi.on('execCmd', (cmd, params)=>{
+  //     this.execCmd(cmd, params);
+  //   });
+  //   this._p2pApi.on('addPeer', (maStr)=>{
+  //     this.addPeer(maStr);
+  //   });
+  //   this._p2pApi.on('getSelfAddrs', (callback)=>{
+  //     const addrs = this.getSelfAddrs();
+  //     callback(addrs);
+  //   });
+  //   this._p2pApi.on('getAllOutboundHandshakes', (callback)=>{
+  //     const oHs = this.getAllOutboundHandshakes();
+  //     callback(oHs);
+  //   });
+  //   this._p2pApi.on('getAllInboundHandshakes', (callback)=>{
+  //     const iHs = this.getAllInboundHandshakes();
+  //     callback(iHs);
+  //   });
+  //   this._p2pApi.on('getAllPeerBank', (callback)=>{
+  //     const pb = this.getAllPeerBank();
+  //     callback(pb);
+  //   });
+  //   this._p2pApi.on('tryConsistentDiscovery', ()=>{
+  //     this.tryConsistentDiscovery();
+  //   });
+  //   this._p2pApi.on('broadcast', (content)=>{
+  //     this.broadcast(content);
+  //   });
+  //   /** temp */
+  //   this._p2pApi.on('provideContent', ()=>{
+  //     this.provideContent();
+  //   });
+  //   /** temp */
+  //   this._p2pApi.on('findContent', ()=>{
+  //     this.findContent();
+  //   });
+  //   /** temp */
+  //   this._p2pApi.on('findContentAndSync', ()=>{
+  //     this.findContentAndSync();
+  //   });
+  //   /** temp */
+  //   this._p2pApi.on('isSimpleConnected', (nodeId)=>{
+  //     this.isSimpleConnected(nodeId);
+  //   });
+  // }
+  // p2pApi() {
+  //   return this._p2pApi;
+  // }
   engNode() {
     return this._engNode;
   }

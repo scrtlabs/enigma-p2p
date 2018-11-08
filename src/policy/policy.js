@@ -99,39 +99,6 @@ class Policy extends EventEmitter {
       return true;
     }
   }
-  /** Policy on DHT peer status
-   * takes the workers peer book and returns the number of connections needs to be added for optimal
-   * also the status of the search required
-   * @param {PeerBook} peerBook
-   * @return {Json}  {status: "{STABLE}/{SYNC}/{CRITICAL_LOW}/{CRITICAL_HIGH/DISCONNECTED}",
-   *                  number: number of peers to add/ remove(?)}
-   */
-  getDhtStauts(peerBook) {
-    const peers = peerBook.getAll();
-    const peersLength = peers.length;
-    const dhtStatus = {'status': '', 'number': 0};
-    // TODO:: analyze range
-    // TODO:: check which peers are actually connected(?) isConnected()
-    return dhtStatus;
-    if (peersLength == 0) {
-      dhtStatus.status = 'DISCONNECTED';
-      dhtStatus.number = this._OPTIMAL_DHT_SIZE;
-    } else if (peersLength <= this._CRITICAL_LOW_DHT_SIZE) {
-      dhtStatus.status = 'CRITICAL_LOW';
-      dhtStatus.number = this._OPTIMAL_DHT_SIZE - peersLength;
-    } else if (peersLength < this._OPTIMAL_DHT_SIZE) {
-      dhtStatus.status = 'SYNC';
-      dhtStatus.number = this._OPTIMAL_DHT_SIZE - peersLength;
-    } else if (peersLength == this._OPTIMAL_DHT_SIZE ||
-      (peersLength < this._CRITICAL_HIGH_DHT_SIZE && peersLength > this._OPTIMAL_DHT_SIZE)) {
-      dhtStatus.status = 'STABLE';
-      dhtStatus.number = 0;
-    } else if (peersLength >= this._CRITICAL_HIGH_DHT_SIZE) {
-      dhtStatus.status = 'CRITICAL_HIGH';
-      dhtStatus.number = 0;
-    }
-    return dhtStatus;
-  }
 }
 
 module.exports = Policy;
