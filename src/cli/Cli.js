@@ -5,6 +5,8 @@ const program = require('commander');
 const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
 const NodeController = require('../worker/controller/NodeController');
+const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
+
 class CLI{
   constructor(){
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -35,7 +37,7 @@ class CLI{
     };
 
     this._node = null;
-
+    this._mainController = null;
     this._commands = {
       'addPeer': (args)=>{
         const ma = args[1];
@@ -142,7 +144,7 @@ class CLI{
       },
     };
     this._initInitialFlags();
-    this._initializeNode();
+    this._initEnvironment();
   }
   _initInitialFlags() {
     program
@@ -169,24 +171,12 @@ class CLI{
     });
     return finalConfig;
   }
-  async _initializeNode() {
-    console.log('----- starting node with config ----- ');
-    const config = this._getFinalConfig();
-    console.log(JSON.stringify(config, null, 2));
-    console.log('--------------------------------------');
-    this._node = NodeController.initDefaultTemplate(config);
-
-    await this._node.start();
-    console.log('node has started');
+  async _initEnvironment(){
+    this._mainController = await new EnviornmentBuilder()
+        .setNodeConfig(this._getFinalConfig())
+        .build();
+    this._node = this._mainController.getNode();
   }
-  _execCmd(cmd) {
-    const args = cmd.split(' ');
-    if (this._commands[args[0]]) {
-      this._commands[args[0]](args);
-    } else {
-      console.log('XXX no such command XXX ');
-    }
-  };
   start() {
     console.log(Parsers.opener);
     let cmds = this._commands;

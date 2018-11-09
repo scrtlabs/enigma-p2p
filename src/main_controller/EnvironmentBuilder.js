@@ -46,6 +46,7 @@ class EnvironmentBuilder{
   }
 }
 
+module.exports = EnvironmentBuilder;
 
 /** mini test */
 
