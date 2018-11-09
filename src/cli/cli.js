@@ -1,6 +1,5 @@
 const path = require('path')
 const NodeController = require('../worker/controller/NodeController');
-const NetworkMonitor = require('../monitor/NetworkMonitor');
 const opn = require('opn');
 
 var readline = require('readline');
@@ -92,7 +91,6 @@ function initInitialConfig(){
         .option('-n, --nickname [value]', 'nickname', nickname)
         .option('-p, --port [value]', 'listening port', port)
         .option('-i, --path [value]', 'id path', idPath)
-        .option('-m, --monitor', 'Monitor the network')
         .parse(process.argv);
     return program;
 }
@@ -235,9 +233,4 @@ async function initializeNode(){
 
 p = initInitialConfig();
 initializeNode();
-if (p.monitor) {
-    nm = new NetworkMonitor();
-    opn('../monitor/index.html');
-    console.log('Monitor mode')
-}
 initReadLine();

@@ -4,7 +4,7 @@ const app = express();
 const cors = require('cors');
 const http = require('http');
 const server = new http.Server(app);
-const io = require('socket.io')(http);
+const io = require('socket.io')(server);
 
 // const opn = require('opn');
 const utils = require('../common/utils');

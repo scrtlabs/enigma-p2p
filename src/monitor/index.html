@@ -27,13 +27,21 @@
       <form>
         <input type="checkbox" id="labelsCheckbox" name="labelsCheckbox" value="1" checked="checked" onclick="switchLabels()"> Show labels<br>
       </form>
+      <p>&nbsp;</p>
+      Network composition:
+      <ul>
+        <li><span id="nnodes"></span><br/></li>
+        <li><span id="nlinks"></span><br/></li>
+      </ul>
+
     </div>
   </div>
 
 
   <script src="https://d3js.org/d3.v3.min.js" charset="utf-8"></script>
-  <script src="client-script.js"></script>
   <script src="/socket.io/socket.io.js"></script>
+  <script src="client-script.js"></script>
+
 
 <script>
 

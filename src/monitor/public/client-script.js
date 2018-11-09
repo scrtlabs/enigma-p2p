@@ -13,20 +13,36 @@ const force = d3.layout.force()
     .gravity(0.5);
 
 const nodes = [];
-
-
 const links = [];
+
+/**
+ * Update de display of the number of nodes and links in the graph
+ */
+function updateStats() {
+  document.getElementById('nnodes').innerHTML = (nodes.length==1) ? "1 node" : nodes.length + " nodes";
+  document.getElementById('nlinks').innerHTML = (links.length==1) ? "1 link" : links.length + " links";
+}
+
+/**
+ * Utility function to move graph elements to the front,
+ * used for nodes to stay on top of links.
+ */
+d3.selection.prototype.moveToFront = function() {  
+  return this.each(function(){
+    this.parentNode.appendChild(this);
+  });
+};
 
 /**
  * Add a node to the graph.
  * @param {object} data
  * @param {boolean} r
  */
-!function addNode(data, r=false) {
+function addNode(data, r=false) {
   const node = {x: 0, y: 0, r: 5, name: data.id._idB58String};
   nodes.push(node);
   console.log('Circle added: ' + data.id._idB58String);
-
+  updateStats();
   if (r) restartPlot();
 };
 
@@ -35,7 +51,7 @@ const links = [];
  * @param {object} data
  * @param {boolean} r
  */
-!function addLink(data, r=false) {
+function addLink(data, r=false) {
   const source = nodes.map(function(o) {
     return o.name;
   }).indexOf(data.source);
@@ -59,7 +75,7 @@ const links = [];
   const link = {source: source, target: target, value: 1};
   links.push(link);
   console.log('Link added: source: ' + source + ' target: ' + target);
-
+  updateStats();
   if (r) restartPlot();
 };
 
@@ -68,7 +84,7 @@ const links = [];
  * @param {object} data
  * @param {boolean} r
  */
-!function delNode(data, r=false) {
+function delNode(data, r=false) {
   const index = nodes.findIndex(function(e) {
     return e.name == data.id._idB58String;
   });
@@ -84,6 +100,7 @@ const links = [];
       links.splice(index, 1);
     }
   }
+  updateStats();
   if (r) restartPlot();
 };
 
@@ -92,11 +109,12 @@ const links = [];
  * @param {object} data
  * @param {boolean} r
  */
-!function delLink(data, r=false) {
+function delLink(data, r=false) {
   const index = links.findIndex(function(e) {
     return e.source.name == data.source && e.target.name == data.target;
   });
   links.splice(index, 1);
+  updateStats();
   if (r) restartPlot();
 };
 
@@ -139,6 +157,8 @@ function restartPlot() {
 
   node.exit().remove();
 
+  node.moveToFront();
+
   force.on('tick', () => {
     link.attr('x1', function(d) {
       return d.source.x;
@@ -161,7 +181,7 @@ function restartPlot() {
 /**
  * Switch the visibility of node labels
  */
-!function switchLabels() {
+function switchLabels() {
   const nodes = document.querySelectorAll('.node text');
   const checkStatus = document.getElementById('labelsCheckbox').checked;
   nodes.forEach(function(div) {
