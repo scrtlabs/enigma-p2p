@@ -1,6 +1,7 @@
 const nodeUtils = require('../common/utils');
 const zmq = require('zeromq');
 const EventEmitter = require('events').EventEmitter;
+const constants = require('../common/constants');
 
 class IpcClient extends EventEmitter {
   constructor(uri) {
@@ -27,6 +28,14 @@ class IpcClient extends EventEmitter {
       this.emit('message', msg);
       responseCallback(msg);
     });
+  }
+  /** MUST for runtime manager (main controller)*/
+  type(){
+    return constants.RUNTIME_TYPE.Core;
+  }
+  /** MUST for runtime manager (main controller)*/
+  setChannel(communicator){
+    //TODO::
   }
 }
 

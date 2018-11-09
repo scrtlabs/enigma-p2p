@@ -211,6 +211,10 @@ class NodeController {
   /***********************
    * public methods
    *********************/
+  /** start the node */
+  async start(){
+    await this.engNode().syncRun();
+  }
   /**
    * "Runtime Id" required method for the main controller
    * @returns {String}
