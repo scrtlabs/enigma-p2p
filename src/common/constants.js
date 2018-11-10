@@ -22,6 +22,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'CONTENT_ANNOUNCEMENT': 'announce_content', // request to announce to the network the contents of cids
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
+  'IDENTIFY_MISSING_STATES_FROM_REMOTE' : 'identify' // identify the missing states, compare local with remote
 };
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',
@@ -88,7 +89,10 @@ module.exports.RUNTIME_TYPE = {
     JsonRpcApi : 'rpcApi'
 };
 
-
+/** All the notificatiosn that the MainController can handle */
+module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
+  DbRequest : 'dbreq'
+};
 /** IPC core message types
  * in /docs there is  a README called IPC_MESSAGES.md
  * describing each message

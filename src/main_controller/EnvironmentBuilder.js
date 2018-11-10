@@ -41,6 +41,7 @@ class EnvironmentBuilder{
     }
     // init main controller
     let mainController = new MainController(runtimes);
+    mainController.start();
     return mainController;
   }
 }

@@ -42,16 +42,20 @@
  */
 
 const Channel = require('./channels/Channel');
+const constants = require('../common/constants');
+
 // dummy
 // const DummyRuntime = require('./DummyRuntime');
 const DummyAction = require('./actions/DummyAction');
-
+const DbAction = require('./actions/DbAction');
 class MainController {
   constructor(runtimes) {
+    let notifications = constants.MAIN_CONTROLLER_NOTIFICATIONS;
     this._runtimes = runtimes;
     // actions
     this._actions = {
       'dummy': new DummyAction(this),
+      [notifications.DbRequest] : new DbAction(this),
     };
     // runtime communicators
     this._communicators = {};
@@ -67,7 +71,7 @@ class MainController {
       const thisCommunicator = channels.channel1;
       const rtCommunicatior = channels.channel2;
       // save the communicator
-      this._communicators[runtime.type()] = rtCommunicatior;
+      this._communicators[runtime.type()] = {rtCommunicator : rtCommunicatior , thisCommunicator : thisCommunicator};
       // dispatch the other side of the channel
       runtime.setChannel(rtCommunicatior);
       // set a response method

@@ -36,7 +36,7 @@ const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
-
+const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -78,6 +78,7 @@ class NodeController {
       [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell ntw what cids are available for sync
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
+      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
       // (same during handshake but isolated)
     };
   }
@@ -214,6 +215,10 @@ class NodeController {
   /** start the node */
   async start(){
     await this.engNode().syncRun();
+  }
+  /*** stop the node */
+  async stop(){
+    await this.engNode().syncStop();
   }
   /**
    * "Runtime Id" required method for the main controller
@@ -401,6 +406,19 @@ class NodeController {
       peerInfo: peerInfo,
       onResponse: onResponse,
       maxPeers: maxPeers,
+    });
+  }
+  /**
+   * MissingStates = Remote_States - Local_States
+   * used by the requester to find providers.
+   * The missing states are what the worker will be requesting from other peers to sync.
+   * @param {Boolean} fromCache , if true => use cache , false=> directly from core
+   * @param {Function} onResponse , (missingStates) =>{}
+   * */
+  identifyMissingStates(fromCache, onResponse){
+    this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
+      cache : fromCache,
+      onResponse : onResponse
     });
   }
 }
