@@ -37,6 +37,11 @@ class IpcClient extends EventEmitter {
       }
     });
   }
+  /** Send a JSON message and trigger a callback once there's a response.
+   * A unique msg.id is used to identify each response and its callback
+   * @param {JSON} msg, must have id field
+   * @param {Function} callback , (msg)=>{}
+   * */
   sendJsonAndReceive(msg,callback){
     this._msgMapping[msg.id] = callback;
     if(!nodeUtils.isString(msg)){
@@ -44,20 +49,16 @@ class IpcClient extends EventEmitter {
     }
     this._socket.send(msg);
   }
+  /** General response callback that will be called for every incoming message
+   * Usage example - logging
+   * @param {Function} responseCallback
+   * */
   setResponseHandler(responseCallback) {
     this._socket.on('message', (msg)=>{
       msg = JSON.parse(msg);
       this.emit('message', msg);
       responseCallback(msg);
     });
-  }
-  /** MUST for runtime manager (main controller)*/
-  type(){
-    return constants.RUNTIME_TYPE.Core;
-  }
-  /** MUST for runtime manager (main controller)*/
-  setChannel(communicator){
-    //TODO::
   }
 }
 

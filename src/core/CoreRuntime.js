@@ -1,11 +1,17 @@
+/**
+ * This is the interface components for interacting with Core.
+ * It should be passed to the MainController another Runtime and implement setChannel() && type()
+ * This class supports sequential zeromq messages and Channels implementation of sequence.
+ * Each message to Core is identified with a unique ID.
+ * */
 const IpcClient = require('./ipc');
 const constants = require('../common/constants');
 
 //actions
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
+
 class CoreRuntime{
   constructor(config){
-
     if(config.uri)
       this._ipcClient = new IpcClient(config.uri);
     else
@@ -25,6 +31,9 @@ class CoreRuntime{
     };
 
   }
+  /**
+   * Connects to core
+   * */
   _initIpcClient(){
     this._ipcClient.connect();
     this._ipcClient.setResponseHandler((msg)=>{
@@ -34,15 +43,16 @@ class CoreRuntime{
       //TODO:: so think if this even nessceary, maybe logging?
     });
   }
-  type(){
-    return constants.RUNTIME_TYPE.Core;
-  }
   disconnect(){
     this.getIpcClient().disconnect();
   }
   getIpcClient(){
     return this._ipcClient;
   }
+  /**
+   * Returns the Channel commiunicator, used by Actions
+   * @return {Communicator} this._communicator
+   * */
   getCommunicator(){
     return this._communicator;
   }
@@ -63,6 +73,10 @@ class CoreRuntime{
 }
 
 module.exports = CoreRuntime;
+
+// mini tests
+
+
 // async function test1(){
 //   //start the server
 //   const utils = require('../common/utils');
