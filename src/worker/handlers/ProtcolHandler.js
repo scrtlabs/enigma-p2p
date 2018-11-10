@@ -16,12 +16,12 @@ const Messages = require('../../policy/p2p_messages/messages');
 const Logger = require('../../common/logger');
 
 class ProtocolHandler extends EventEmitter {
-  constructor(loggerOptions) {
+  constructor(logger) {
     super();
 
     // initialize logger
-    if (loggerOptions) {
-      this._logger = new Logger(loggerOptions);
+    if (logger) {
+      this._logger =logger;
     } else {
       this._logger = new Logger({
         'level': 'debug',
