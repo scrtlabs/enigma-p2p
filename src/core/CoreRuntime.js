@@ -9,6 +9,7 @@ const constants = require('../common/constants');
 
 //actions
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
+const GetAllTipsAction = require('./actions/GetAllTipsAction');
 
 class CoreRuntime{
   constructor(config){
@@ -24,7 +25,7 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
-      [constants.CORE_REQUESTS.GetAllTips] : null,
+      [constants.CORE_REQUESTS.GetAllTips] : new GetAllTipsAction(this),
       [constants.CORE_REQUESTS.GetAllAddrs] : null,
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetContract] : null,
@@ -64,7 +65,8 @@ class CoreRuntime{
   setChannel(communicator){
     this._communicator = communicator;
     this._communicator.setOnMessage((envelop)=>{
-      let action = this._actions[envelop.type()];
+      let concreteCmd = envelop.content().type;
+      let action = this._actions[concreteCmd];
       if(action){
         action.execute(envelop);
       }
