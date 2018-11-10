@@ -7,7 +7,8 @@ module.exports.TEST_TREE = {
   },
   'ipc' :{
     'all' : true,
-    '#1' : true
+    '#1' : true,
+    '#2' : true
   },
   'coverage' : {
     'all' : true,
