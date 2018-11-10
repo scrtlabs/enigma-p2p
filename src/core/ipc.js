@@ -8,6 +8,10 @@ class IpcClient extends EventEmitter {
     super();
     this._socket = zmq.socket('req');
     this._uri = uri;
+    // map msg id's for sequential tasks
+    // delete the callbacks after use.
+    this._msgMapping = {};
+    this._initContextListener();
   }
   connect() {
     this._socket.connect(this._uri);
@@ -18,6 +22,24 @@ class IpcClient extends EventEmitter {
   }
   sendJson(msg) {
     if (!nodeUtils.isString(msg)) {
+      msg = JSON.stringify(msg);
+    }
+    this._socket.send(msg);
+  }
+  _initContextListener(){
+    this._socket.on('message',(msg)=>{
+      msg = JSON.parse(msg);
+      let callback = this._msgMapping[msg.id];
+      if(callback){
+        callback(msg);
+        // clear memory
+        this._msgMapping[msg.id] = null;
+      }
+    });
+  }
+  sendJsonAndReceive(msg,callback){
+    this._msgMapping[msg.id] = callback;
+    if(!nodeUtils.isString(msg)){
       msg = JSON.stringify(msg);
     }
     this._socket.send(msg);
