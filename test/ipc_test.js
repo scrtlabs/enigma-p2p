@@ -9,6 +9,7 @@ const Envelop = require('../src/main_controller/channels/Envelop');
 const Channel = require('../src/main_controller/channels/Channel');
 const constants = require('../src/common/constants');
 const nodeUtils = require('../src/common/utils');
+const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 
 it('#1 send acks to each other', async function(){
   let tree = TEST_TREE['ipc'];
@@ -85,6 +86,42 @@ it('#2 GetRegistrationParams - mock server', async function() {
       assert.strictEqual(Quote,resEnv.content().quote ,"quote don't match");
       assert.strictEqual(signingKey, resEnv.content().signingKey, 'signing key dont match');
       coreRuntime.disconnect();
+      CoreServer.disconnect();
+      resolve();
+    });
+  });
+});
+it('#3 GetRegistrationParams - mock server', async function() {
+  let tree = TEST_TREE['ipc'];
+  if (!tree['all'] || !tree['#3']) {
+    this.skip();
+  }
+  const peerConfig = {
+    'bootstrapNodes': [],
+    'port': '0',
+    'nickname': 'peer',
+    'idPath': null,
+  };
+  const uri = 'tcp://127.0.0.1:5454';
+  return new Promise(async resolve => {
+    // start the server (core)
+    CoreServer.runServer(uri);
+    await nodeUtils.sleep(1500);
+    // start the client (enigma-p2p)
+    let builder = new EnvironmentBuilder();
+    let mainController = await builder
+    .setNodeConfig(peerConfig)
+    .setIpcConfig({uri : uri})
+    .build();
+    await nodeUtils.sleep(2000);
+    let fromCache = false;
+    mainController.getNode().identifyMissingStates(fromCache,async (missingStates)=>{
+      assert.strictEqual(3, missingStates.tips.length, 'len not 3');
+      assert.strictEqual(10, missingStates.tips[0].key, 'key not 10');
+      assert.strictEqual(34, missingStates.tips[1].key, 'key not 34');
+      assert.strictEqual(0, missingStates.tips[2].key, 'key not 0');
+      await mainController.getNode().stop();
+      mainController.getIpcClient().disconnect();
       CoreServer.disconnect();
       resolve();
     });

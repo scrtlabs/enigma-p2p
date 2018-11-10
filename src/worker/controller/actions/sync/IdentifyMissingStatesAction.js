@@ -30,12 +30,14 @@ class IdentifyMissingStatesAction{
     }else{
       let requestEnvelop = new Envelop(true
           ,{type : constants.CORE_REQUESTS.GetAllTips}
-          ,constants.CORE_REQUESTS.GetAllTips);
+          ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
       this._controller.communicator()
         .sendAndReceive(requestEnvelop)
           .then(responseEnvelop=>{
             //TODO:: parse the envelop into some format
             let parsedResponse = responseEnvelop.content();
+            // TODO:: fetch the state from remote
+            // TODO:: extract the delta between remote and local
             onResponse(parsedResponse);
       });
     }
