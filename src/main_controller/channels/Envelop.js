@@ -1,7 +1,9 @@
 const nodeUtils = require('../../common/utils');
 
 class Envelop {
+
   constructor(sequenceOrId, obj, msgType) {
+    //TODO:: this does not actually THROW it just hangs in there without any signal
     if (!sequenceOrId || !obj || !msgType) {
       throw new Error('sequenceOrId,obj,msgType must be specified!');
     }
@@ -13,6 +15,11 @@ class Envelop {
       this._id = sequenceOrId;
     } else if (sequenceOrId === true) { // initialize a request with id for response
       this._id = nodeUtils.randId();
+    }
+
+    // attach id to msg if missing
+    if(!('id' in this._obj) && this._id !== false){
+      this._obj.id = this._id;
     }
   }
   type() {
