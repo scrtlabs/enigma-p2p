@@ -92,5 +92,27 @@ module.exports.CORE_REUESTS = {
     GetAllTips : 'GetAllTips'
 };
 
+/** IPC core message types
+ * in /docs there is  a README called IPC_MESSAGES.md
+ * describing each message
+ * */
+module.exports.IPC_MESSAGES = {
+  GetRegistrationParams : 'GetRegistrationParams',
+  IdentityChallenge : 'IdentityChallenge',
+  GetTip : 'GetTip',
+  GetTips : 'GetTips',
+  GetAllTips : 'GetAllTips',
+  GetAllAddrs : 'GetAllAddrs',
+  GetDelta : 'GetDelta',
+  GetContract : 'GetContract'
+};
+
+
+
+
+
+
+
+
 
 
