@@ -15,12 +15,12 @@ const PeerBank = require('./PeerBank');
 const Logger = require('../../common/logger');
 
 class ConnectionManager extends EventEmitter {
-  constructor(enigmaNode, loggerOptions) {
+  constructor(enigmaNode, logger) {
     super();
 
     // initialize logger
-    if (loggerOptions) {
-      this._logger = new Logger(loggerOptions);
+    if (logger) {
+      this._logger = logger;
     } else {
       this._logger = new Logger({
         'level': 'debug',

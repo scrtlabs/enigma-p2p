@@ -99,15 +99,15 @@ class NodeController {
     }
 
     // with default option (in constants.js)
-
+    // const logger = new Logger({pretty:true});
     const logger = new Logger();
 
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
-    const enigmaNode = WorkerBuilder.build(finalConfig);
+    const enigmaNode = WorkerBuilder.build(finalConfig,logger);
 
     // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode);
+    const connectionManager = new ConnectionManager(enigmaNode,logger);
 
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, logger);

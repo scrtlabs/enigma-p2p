@@ -18,12 +18,12 @@ const Logger = require('../common/logger');
 
 
 class EnigmaNode extends EventEmitter {
-  constructor(config, protocolHandler, loggerOptions) {
+  constructor(config, protocolHandler, logger) {
     super();
 
     // initialize logger
-    if (loggerOptions) {
-      this._logger = new Logger(loggerOptions);
+    if (logger) {
+      this._logger = logger;
     } else {
       this._logger = new Logger({
         'level': 'debug',
