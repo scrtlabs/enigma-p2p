@@ -1,6 +1,6 @@
 const NodeController = require('../worker/controller/NodeController');
 const MainController = require('../main_controller/FacadeController');
-const IpcClient = require('../core/ipc');
+const CoreRuntime = require('../core/CoreRuntime');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
@@ -14,7 +14,7 @@ class EnvironmentBuilder{
    * use reuse() before building another controller.
    * i.e in tests when you want 10 nodes but want to reuse the same builder */
   reuse(){
-    this._nodeConfig=false;
+    this._nodeConfig = false;
     this._ipcConfig = false;
     return this;
   }
@@ -36,9 +36,8 @@ class EnvironmentBuilder{
     }
     // init ipc
     if(this._ipcConfig){
-      let ipcClient = new IpcClient(this._ipcConfig.uri);
-      ipcClient.connect();
-      runtimes.push(ipcClient);
+      let coreRuntime = new CoreRuntime(this._ipcConfig);
+      runtimes.push(coreRuntime);
     }
     // init main controller
     let mainController = new MainController(runtimes);
