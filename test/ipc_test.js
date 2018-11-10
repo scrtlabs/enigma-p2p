@@ -69,7 +69,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
   const signingKey = '4910f5dce2e9C7395691344d8d2c71349B14F924';
   return new Promise(async resolve => {
     //start the server
-    const uri = 'tcp://127.0.0.1:5555';
+    const uri = 'tcp://127.0.0.1:5556';
     CoreServer.runServer(uri);
     await nodeUtils.sleep(1000);
 // start the client
