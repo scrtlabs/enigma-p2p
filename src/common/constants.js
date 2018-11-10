@@ -87,16 +87,14 @@ module.exports.RUNTIME_TYPE = {
     Ethereum : 'eth',
     JsonRpcApi : 'rpcApi'
 };
-// all the different requests that can be made to Core via the Ipc client
-module.exports.CORE_REUESTS = {
-    GetAllTips : 'GetAllTips'
-};
+
 
 /** IPC core message types
  * in /docs there is  a README called IPC_MESSAGES.md
  * describing each message
  * */
-module.exports.IPC_MESSAGES = {
+// all the different requests that can be made to Core via the Ipc client
+module.exports.CORE_REQUESTS = {
   GetRegistrationParams : 'GetRegistrationParams',
   IdentityChallenge : 'IdentityChallenge',
   GetTip : 'GetTip',
