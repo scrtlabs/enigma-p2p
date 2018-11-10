@@ -37,6 +37,9 @@ class CoreRuntime{
   type(){
     return constants.RUNTIME_TYPE.Core;
   }
+  disconnect(){
+    this.getIpcClient().disconnect();
+  }
   getIpcClient(){
     return this._ipcClient;
   }
@@ -59,7 +62,7 @@ class CoreRuntime{
   }
 }
 
-
+module.exports = CoreRuntime;
 // async function test1(){
 //   //start the server
 //   const utils = require('../common/utils');
