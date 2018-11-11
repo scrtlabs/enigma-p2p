@@ -393,7 +393,7 @@ class EnigmaNode extends EventEmitter {
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
    * @param {String} protocolName , the protocl name /echo/1.0.1
-   * @param {Function} onConnection recieves (protocol,connection) =>{}
+   * @param {Function} onConnection recieves (err,connection) =>{}
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
@@ -594,9 +594,9 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} connectionHandler (protocol,connection) =>{}
    */
   startStateSyncRequest(peerInfo, connectionHandler) {
-    this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
-      connectionHandler(protocol, connection);
-    });
+      this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
+        connectionHandler(protocol, connection);
+      });
   }
   /** TEMPORARY method
    * @param {String} protocolName

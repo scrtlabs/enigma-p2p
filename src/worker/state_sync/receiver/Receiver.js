@@ -82,7 +82,7 @@ class Receiver extends EventEmitter {
      * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
      * */
   startStateSyncRequest(peerInfo, stateSyncReqMsgs) {
-    this._engNode.startStateSyncRequest(peerInfo, (protocol, connectionStream)=>{
+    this._engNode.startStateSyncRequest(peerInfo, (err, connectionStream)=>{
       pull(
           pull.values(stateSyncReqMsgs),
           streams.toNetworkSyncReqParser,
@@ -92,6 +92,27 @@ class Receiver extends EventEmitter {
       );
     });
   }
+  trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callbackEachChunk){
+      this._engNode.startStateSyncRequest(peerInfo, (err,connectionStream)=>{
+        if(err){
+          callbackEachChunk(err);
+        }else{
+            pull(
+                pull.values(stateSyncReqMsgs),
+                streams.toNetworkSyncReqParser,
+                connectionStream,
+                streams.verificationStream,
+                streams.throughDbStream,
+                pull.map(data=>{
+                  //TODO:: this is only used for the callback
+                  console.log("[AfterDbThrough] : " + data);
+                  callbackEachChunk(null,data);
+                  return data;
+                }),
+                pull.drain()
+            );
+        }
+      });
+  }
 }
-
 module.exports = Receiver;

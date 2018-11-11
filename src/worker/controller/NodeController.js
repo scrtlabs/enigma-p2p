@@ -378,7 +378,11 @@ class NodeController {
           if (map.hasOwnProperty(key)) {
             // const ecid = map[key].ecid;
             const providers = map[key].providers;
-            this.receiver().startStateSyncRequest(providers[0], ['addr1']);
+            // this.receiver().startStateSyncRequest(providers[0], ['addr1','addr2']);
+              this.receiver().trySyncOneContractOneRequest(providers[0], ['addr1','addr2'],(err,result)=>{
+                console.log("[finalCallback] is err? " + err );
+                console.log('[finalCallback] : ' + result);
+              });
             break;
           }
         }

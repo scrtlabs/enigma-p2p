@@ -46,17 +46,45 @@ module.exports.toNetworkParser = (read) =>{
 module.exports.toNetworkSyncReqParser = (read)=>{
   return _toNetworkSyncReqParser(read);
 };
+/**
+ * used by the receiver yo store the deltas into db
+ * //TODO:: replace the old toDbStream
+ * After verificationStream => into db
+ * @param {stream} read
+ * @return {function()}
+ * */
+module.exports.throughDbStream = (read)=>{
+  return _throughDbStream(read);
+};
+function _throughDbStream(read){
+  return function readble(end,cb){
+    read(end,(end,data)=>{
+      if(data != null){
+        fakeSaveToDb(data,(status)=>{
+          if(!status){
+            console.log('some fake error saving to db ');
+            throw end;
+          }else{
+            cb(end,data);
+          }
+        });
+      }else{
+        cb(end,null);
+      }
+    });
+  };
+}
 
 function _toNetworkSyncReqParser(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
-      if (data != null) {
-        // TODO:: parse the msg to msgpack serialization
-        cb(end, data);
-      } else {
-        cb(end, null);
-      }
-    });
+      read(end, (end, data) => {
+        if (data != null) {
+          // TODO:: parse the msg to msgpack serialization
+          cb(end, data);
+        } else {
+          cb(end, null);
+        }
+      });
   };
 }
 function _fakeParseFromDbToNetwork(dbResult, callback) {
@@ -139,15 +167,17 @@ function _requestParserStream(read) {
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  console.log('[saveToDb] : ' + data);
+  console.log('[saveToDbStream] : ' + data);
   callback(status);
 }
+
+
+
 function _toDbStream(read) {
   read(null, function next(end, data) {
     if (end === true) return;
 
     if (end) throw end;
-
     // TODO:: placeholder - save states into db with core.
     fakeSaveToDb(data, (status)=>{
       if (!status) {
