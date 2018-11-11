@@ -21,14 +21,23 @@ class EnvironmentBuilder{
     this._loggerConfig = false;
     return this;
   }
+  /**
+   * TODO:: specify options
+   * */
   setNodeConfig(nodeConfig){
     this._nodeConfig = nodeConfig;
     return this;
   }
+  /**
+   * TODO:: specify options
+   * */
   setIpcConfig(ipcConfig){
     this._ipcConfig = ipcConfig;
     return this;
   }
+  /**
+   * Optimal config //TODO:: specify options
+   * */
   setLoggerConfig(loggerConfig){
     this._loggerConfig = loggerConfig;
     return this;
