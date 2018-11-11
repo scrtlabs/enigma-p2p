@@ -91,27 +91,32 @@ class NodeController {
    * @param {string} configPath
    * @return {NodeController}
    */
-  static initDefaultTemplate(options, configPath) {
+  static initDefaultTemplate(options, logger) {
     // create EnigmaNode
     let path = null;
 
-    if (configPath) {
-      path = configPath;
+    if (options.configPath) {
+      path = options.configPath;
     }
 
     // with default option (in constants.js)
     // const logger = new Logger({pretty:true});
-    const logger = new Logger();
+    let _logger = null;
+    if(logger){
+      _logger = logger;
+    }else{
+      _logger = new Logger();
+    }
 
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
-    const enigmaNode = WorkerBuilder.build(finalConfig,logger);
+    const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
 
     // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode,logger);
+    const connectionManager = new ConnectionManager(enigmaNode,_logger);
 
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, logger);
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
   _initController() {
     this._initEnigmaNode();
