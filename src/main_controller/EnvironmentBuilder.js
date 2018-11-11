@@ -1,6 +1,7 @@
 const NodeController = require('../worker/controller/NodeController');
 const MainController = require('../main_controller/FacadeController');
 const CoreRuntime = require('../core/CoreRuntime');
+const Logger = require('../common/logger');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
@@ -9,6 +10,7 @@ class EnvironmentBuilder{
   constructor(){
     this._nodeConfig = false;
     this._ipcConfig = false;
+    this._loggerConfig = false;
   }
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
    * use reuse() before building another controller.
@@ -16,21 +18,37 @@ class EnvironmentBuilder{
   reuse(){
     this._nodeConfig = false;
     this._ipcConfig = false;
+    this._loggerConfig = false;
     return this;
   }
+  /**
+   * TODO:: specify options
+   * */
   setNodeConfig(nodeConfig){
     this._nodeConfig = nodeConfig;
     return this;
   }
+  /**
+   * TODO:: specify options
+   * */
   setIpcConfig(ipcConfig){
     this._ipcConfig = ipcConfig;
     return this;
   }
+  /**
+   * Optimal config //TODO:: specify options
+   * */
+  setLoggerConfig(loggerConfig){
+    this._loggerConfig = loggerConfig;
+    return this;
+  }
   async build(){
     let runtimes = [];
+    // init logger
+    let logger = new Logger(this._loggerConfig);
     // init node
     if(this._nodeConfig){
-      let node = NodeController.initDefaultTemplate(this._nodeConfig, this._nodeConfig.configPath);
+      let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
       await node.start();
       runtimes.push(node);
     }
