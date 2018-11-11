@@ -43,11 +43,9 @@
 
 const Channel = require('./channels/Channel');
 const constants = require('../common/constants');
-
-// dummy
-// const DummyRuntime = require('./DummyRuntime');
 const DummyAction = require('./actions/DummyAction');
 const DbAction = require('./actions/DbAction');
+
 class MainController {
   constructor(runtimes) {
     let notifications = constants.MAIN_CONTROLLER_NOTIFICATIONS;
@@ -62,6 +60,23 @@ class MainController {
   }
   getCommunicator(type) {
     return this._communicators[type];
+  }
+  /**
+   * Stop the PROGRAM completely.
+   * */
+  async stopAll(){
+    // //TODO:: add stop all Runtimes
+    // let jobs = [];
+    // this._runtimes.forEach(rt=>{
+    //   let communicator = this._communicators[rt.type()].thisCommunicator;
+    //   jobs.push((cb)=>{
+    //     communicator.sendAndReceive(new Envelop())
+    //         .then(resEnv=>{
+    //           cb(null,resEnv);
+    //     });
+    //   });
+    // });
+    //
   }
   start() {
     // start each runtime in order

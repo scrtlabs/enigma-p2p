@@ -10,10 +10,7 @@
 
 const constants = require('../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
-const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
-const STAT_TYPES = constants.STAT_TYPES;
-const EnigmaNode = require('../EnigmaNode');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
 const ConnectionManager = require('../handlers/ConnectionManager');
