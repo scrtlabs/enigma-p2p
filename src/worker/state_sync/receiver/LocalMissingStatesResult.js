@@ -5,15 +5,25 @@
  * */
 const EngCid = require('../../../common/EngCID');
 
-class LocalMissingStates{
+class LocalMissingStatesResult{
   /**
-   * @param {Json} missingContent
+   * @param {Array<JSON>} missingContent
    * [{address,deltas:[{deltaHash,index},...]},...]
    * */
   constructor(missingContent){
     this._missingList = missingContent;
+    this._errorParsing = false;
     this._addCids();
-    this._rangesMap = null;
+    // initialized only the first time when getRangesMap() is called.
+    this._rangesMap = {};
+  }
+  /**
+   * @return {Array<EngCid>}
+   * */
+  getEngCids(){
+    return this._missingList.map(elem=>{
+      return elem.ecid;
+    });
   }
   /**
    * add to this._missingList a another field `ecid`
@@ -29,12 +39,17 @@ class LocalMissingStates{
       let ecid = EngCid.createFromKeccack256(address);
       if(ecid){
         element.ecid = ecid;
+      }else{
+        this._errorParsing = true;
       }
     });
   }
+  isError(){
+    return this._errorParsing;
+  }
   /** get the eng cids only.
    * @return {Array<EngCid>}
-   * */
+   **/
   getEngCids(){
     return this._missingList.map(element=>{
       return element.ecid;
@@ -53,7 +68,7 @@ class LocalMissingStates{
    * }
    * */
   getRangesMap(){
-    if(this._rangesMap){
+    if(Object.keys(this._rangesMap).length > 0){
       return this._rangesMap;
     }
     for(let i=0;i<this._missingList.length;++i){
@@ -63,7 +78,7 @@ class LocalMissingStates{
     return this._rangesMap;
   }
   _calcRange(index){
-    if(index >= this._missingList.length){
+    if(index >= this._missingList.length || index < 0 || this._missingList.length === 0){
       return null;
     }
     let scDeltas = this._missingList[index].deltas;
@@ -71,12 +86,36 @@ class LocalMissingStates{
       return d1.index - d2.index;
     });
     return {
-      address   : scDeltas.address,
+      address   : this._missingList[index].address,
       fromIndex : scDeltas[0].index,
       fromHash  : scDeltas[0].deltaHash,
-      toIndex   : scDeltas[scDeltas.length-1].index,
-      toHash    : scDeltas[scDeltas.length-1].deltaHash
+      toIndex   :  scDeltas[scDeltas.length-1].index,
+      toHash    : scDeltas[scDeltas.length-1].deltaHash,
     };
   }
 }
 
+// /** mini test */
+//* [{address,deltas:[{deltaHash,index},...]},...]
+// let raw = [];
+// for(let i =0;i<3;++i){
+//   let res ={
+//     address : ('0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac' + i),
+//     deltas : []
+//   };
+//   for(let i=0;i<3;++i){
+//     res.deltas.push({
+//       deltaHash: '0x54663e7b6238f5c40596b0' + i,
+//       index : i
+//     });
+//   }
+//   raw.push(res);
+// }
+//
+// let missingStates = new LocalMissingStatesResult(raw);
+// let map = missingStates.getRangesMap();
+// console.log(map);
+// let ecids = missingStates.getEngCids();
+// ecids.forEach(ecid=>{
+//   console.log(ecid.getKeccack256());
+// })
