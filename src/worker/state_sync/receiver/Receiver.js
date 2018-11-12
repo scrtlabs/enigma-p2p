@@ -36,16 +36,20 @@ class Receiver extends EventEmitter {
      *
      * @callback findProviderResult
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
+      * * //TODO:: remove withEngCid to default true, leave now for compatability
+      * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
      * */
-  findProvidersBatch(descriptorsList, callback) {
+  findProvidersBatch(descriptorsList, withEngCid,callback) {
     const timeout = this._policy.getTimeoutFindProvider();
-    const engCids = descriptorsList.map((desc)=>{
-      const h = CIDUtil.hashKeccack256(desc);
-      return EngCID.createFromKeccack256(h);
-    });
 
-
+    let engCids = descriptorsList;
+    if(!withEngCid){
+      engCids = descriptorsList.map((desc)=>{
+        const h = CIDUtil.hashKeccack256(desc);
+        return EngCID.createFromKeccack256(h);
+      });
+    }
     const jobs = [];
 
     // define each jobs

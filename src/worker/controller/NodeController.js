@@ -338,6 +338,7 @@ class NodeController {
 
     this._actions[NOTIFICATION.CONTENT_ANNOUNCEMENT].execute({
       descriptorsList: descriptorsList,
+      isEngCid : false
     });
   }
   /** temp */
@@ -366,12 +367,15 @@ class NodeController {
     this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
       descriptorsList: descriptorsList,
       next: onResult,
+      isEngCid:  false
     });
   }
+
   /** temp */
   findContentAndSync(){
     const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
+    let isEngCid = false;
+    this.receiver().findProvidersBatch(descriptorsList, isEngCid,(findProvidersResult)=>{
       if (findProvidersResult.isErrors()) {
         throw new Error('failed finding providers there is some error');
       } else {

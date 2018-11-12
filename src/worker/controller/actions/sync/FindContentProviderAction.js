@@ -15,8 +15,9 @@ class FindContentProviderAction{
   execute(params) {
     const descriptorsList = params.descriptorsList;
     const next = params.next;
+    const isEngCid = params.isEngCid;
     this._controller.receiver()
-      .findProvidersBatch(descriptorsList, (findProviderResult)=>{
+      .findProvidersBatch(descriptorsList, isEngCid, (findProviderResult)=>{
         next(findProviderResult);
     });
   }
