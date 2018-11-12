@@ -553,10 +553,8 @@ class EnigmaNode extends EventEmitter {
     if (!this.started) {
       throw Error('Please start the Worker before providing content');
     }
-
     if (engCid) {
       const cid = engCid.getCID();
-
       this.node.contentRouting.provide(cid, (err)=>{
         callback(err, engCid);
       });
