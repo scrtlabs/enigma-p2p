@@ -47,12 +47,12 @@ class TryReceiveAllAction{
         });
       });
     });
-
     // execute all jobs
     waterfall(jobs, (err,allResults)=>{
       if(onFinish){
         onFinish(err,allResults);
       }else{
+        //TODO:: implement something here :)
         console.log("err ? " + err );
         console.log("all results = > " , allResults);
       }

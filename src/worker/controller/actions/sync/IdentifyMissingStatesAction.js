@@ -35,6 +35,7 @@ class IdentifyMissingStatesAction{
         .sendAndReceive(requestEnvelop)
           .then(responseEnvelop=>{
             //TODO:: parse the envelop into some format
+
             let parsedResponse = responseEnvelop.content();
             // TODO:: fetch the state from remote
             // TODO:: extract the delta between remote and local
