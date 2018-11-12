@@ -97,20 +97,20 @@ class Receiver extends EventEmitter {
         if(err){
           callbackEachChunk(err);
         }else{
-            pull(
-                pull.values(stateSyncReqMsgs),
-                streams.toNetworkSyncReqParser,
-                connectionStream,
-                streams.verificationStream,
-                streams.throughDbStream,
-                pull.map(data=>{
-                  //TODO:: this is only used for the callback
-                  console.log("[AfterDbThrough] : " + data);
-                  callbackEachChunk(null,data);
-                  return data;
-                }),
-                pull.drain()
-            );
+          pull(
+              pull.values(stateSyncReqMsgs),
+              streams.toNetworkSyncReqParser,
+              connectionStream,
+              streams.verificationStream,
+              streams.throughDbStream,
+              pull.map(data=>{
+                //TODO:: this is only used for the callback
+                console.log("[AfterDbThrough] : " + data);
+                callbackEachChunk(null,data);
+                return data;
+              }),
+              pull.drain()
+          );
         }
       });
   }
