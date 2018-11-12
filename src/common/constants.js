@@ -22,7 +22,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'CONTENT_ANNOUNCEMENT': 'announce_content', // request to announce to the network the contents of cids
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
-  'IDENTIFY_MISSING_STATES_FROM_REMOTE' : 'identify' // identify the missing states, compare local with remote
+  'IDENTIFY_MISSING_STATES_FROM_REMOTE' : 'identify', // identify the missing states, compare local with remote
+  'TRY_RECEIVE_ALL' : 'trcva', // try recieve all of the CID's
 };
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',

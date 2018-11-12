@@ -34,6 +34,8 @@ const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
+const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -76,7 +78,7 @@ class NodeController {
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
-      // (same during handshake but isolated)
+      [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this),
     };
   }
   /**
@@ -367,7 +369,7 @@ class NodeController {
     });
   }
   /** temp */
-  findContentAndSync() {
+  findContentAndSync(){
     const descriptorsList = ['addr1', 'addr2', 'addr3'];
     this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
       if (findProvidersResult.isErrors()) {
@@ -379,13 +381,25 @@ class NodeController {
             // const ecid = map[key].ecid;
             const providers = map[key].providers;
             // this.receiver().startStateSyncRequest(providers[0], ['addr1','addr2']);
-              this.receiver().trySyncOneContractOneRequest(providers[0], ['addr1','addr2'],(err,result)=>{
-                console.log("[finalCallback] is err? " + err );
-                console.log('[finalCallback] : ' + result);
-              });
+            let list = [];
+            this.receiver().trySyncReceive(providers,descriptorsList,(err,isDone,resultList)=>{
+              console.log("[finalCallback] is err? " + err );
+              console.log("[finalCallback] is done? " + isDone );
+              console.log('[finalCallback] : ' + resultList);
+            });
             break;
           }
         }
+      }
+    });
+  }
+  /** temp */
+  tryReceiveAll(){
+    this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL , {
+      findProvidersResult: null,
+      missingStates : null,
+      onFinish : (err,allResults)=>{
+        console.log("done try Receive all ");
       }
     });
   }
