@@ -6,6 +6,8 @@ const Policy = require('../../../policy/policy');
 const FindProviderResult = require('./FindProviderResult');
 const pull = require('pull-stream');
 const streams = require('../streams');
+const waterfall = require('async/waterfall');
+
 
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -92,11 +94,16 @@ class Receiver extends EventEmitter {
       );
     });
   }
-  trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callbackEachChunk){
+  /**
+   * @param {PeerInfo}  peerInfo , the peer provider
+   * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
+   * @param {Function} callback , (err,ResultList)=>{}
+   * */
+  trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callback){
       this._engNode.startStateSyncRequest(peerInfo, (err,connectionStream)=>{
         if(err){
-          callbackEachChunk(err);
-        }else{
+          return callback(err);
+        }
           pull(
               pull.values(stateSyncReqMsgs),
               streams.toNetworkSyncReqParser,
@@ -104,15 +111,107 @@ class Receiver extends EventEmitter {
               streams.verificationStream,
               streams.throughDbStream,
               pull.map(data=>{
-                //TODO:: this is only used for the callback
-                console.log("[AfterDbThrough] : " + data);
-                callbackEachChunk(null,data);
+                //TODO:: parse the data to minimal version
+                //TODO:: the .collect function below takes the full array
+                //TODO:: so in order for it to be minimal in memory reduce here
+                //TODO:: to something in the form of List: {range: {} ,request_status:success/err}
                 return data;
               }),
-              pull.drain()
+              pull.collect((err,resultList)=>{
+                if(err){
+                  console.log("serioes err ", err );
+                  callback(err,resultList);
+                }else{
+                  console.log("got result List = ? " + resultList);
+                  callback(null,resultList);
+                }
+              }),
           );
+      });
+  }
+  /**
+   * try and sync 1 contract (all deltas and code)  given a list of potential providers.
+   * init bunch of waterfall functions (jobs) to call trySyncOneContractOneRequest
+   * the amount of jobs == providersList.length
+   * it will propagate the result from one jobs to another:
+   * - if the previous job == success: => forward the result
+   * - else: => retry trySyncOneContractOneRequest
+   *
+   * @param {Array<PeerInfo>} providersList
+   * @param {Array<StateSyncReqMsg>} stateSyncMsgs
+   * //TODO:: define what resultList contains
+   * @param {Function} callback , (err,isDone,resultList)=>{}
+   * */
+  trySyncReceive(providersList, stateSyncMsgs, callback){
+    let jobs = [];
+    // init first job
+    let ctx = this;
+    jobs.push((cb)=>{
+      ctx.trySyncOneContractOneRequest(providersList[0],stateSyncMsgs,(err,resultList)=>{
+        let isDone = true;
+        if(err) {
+          // general error - retry
+          isDone = false;
+          cb(null,isDone, resultList);
+        }else{
+          // were done.
+          cb(null,isDone,resultList);
         }
       });
+    });
+
+    // init rest of the jobs except the last one
+    for(let i=1;i<providersList.length -1 ;++i){
+      jobs.push((isDone,resultList,cb)=>{
+        if(isDone){
+          // were done.
+          cb(null,isDone,resultList);
+        }else{
+          // retry
+          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err,resultList)=>{
+            let isDone = true;
+            if(err){
+              // general error - retry
+              isDone = false;
+              cb(null,isDone,resultList);
+            }else{
+              // were done.
+              cb(null,isDone, resultList);
+            }
+          });
+        }
+      });
+    }
+
+    jobs.push((isDone,resultList,cb)=>{
+      if(isDone){
+        // were done.
+        cb(null,isDone, resultList);
+      }else{
+        // some error - retry
+        ctx.trySyncOneContractOneRequest(providersList[providersList.length-1], stateSyncMsgs,(err,resultList)=>{
+          // finish regardless if it worked or not.
+          if(err){
+            // finish with error
+            cb(err,false,resultList);
+          }else{
+            // finish with success
+            cb(null,true,resultList);
+          }
+        });
+      }
+    });
+
+    waterfall(jobs,(err,isDone,resultList)=>{
+      callback(err,isDone,resultList);
+    });
   }
 }
 module.exports = Receiver;
+
+
+
+
+
+
+
