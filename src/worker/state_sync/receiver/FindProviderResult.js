@@ -9,7 +9,6 @@ class FindProviderResult {
   setCompleteError() {
     this._completeError = true;
   }
-
   /**
    * add a new mapping
    * @param {EngCID} engCid
@@ -43,6 +42,9 @@ class FindProviderResult {
   }
   getProvidersMap() {
     return this._map;
+  }
+  getKeysList(){
+    return Object.keys(this._map);
   }
 }
 
