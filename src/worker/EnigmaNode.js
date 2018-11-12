@@ -621,11 +621,11 @@ class EnigmaNode extends EventEmitter {
           pull.values([heartBeatRequest.toNetworkStream()]),
           conn,
           pull.collect((err, response)=>{
-            if (err) {
+            if (err){
               // TODO:: add Logger
               this._logger.error('[-] Err in collecting HBRes msg' + err);
               onResult(err, null);
-            } else {
+            }else{
               // validate HeartBeat Message response
               const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
               if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {
