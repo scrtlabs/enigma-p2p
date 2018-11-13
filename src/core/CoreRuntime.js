@@ -10,6 +10,7 @@ const constants = require('../common/constants');
 //actions
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const GetAllTipsAction = require('./actions/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/GetAllAddrsAction');
 
 class CoreRuntime{
   constructor(config){
@@ -20,17 +21,15 @@ class CoreRuntime{
 
     this._initIpcClient();
     this._communicator = null;
-
     this._actions = {
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
       [constants.CORE_REQUESTS.GetAllTips] : new GetAllTipsAction(this),
-      [constants.CORE_REQUESTS.GetAllAddrs] : null,
+      [constants.CORE_REQUESTS.GetAllAddrs] : new GetAllAddrsAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetContract] : null,
     };
-
   }
   /**
    * Connects to core
