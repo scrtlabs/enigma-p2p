@@ -35,7 +35,7 @@ const FindContentProviderAction = require('./actions/sync/FindContentProviderAct
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
-
+const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -74,11 +74,12 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
-      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell ntw what cids are available for sync
+      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell the network what cids are available for sync
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
-      [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this),
+      [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
+      [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this)
     };
   }
   /**
@@ -444,6 +445,24 @@ class NodeController {
       cache : fromCache,
       onResponse : onResponse
     });
+  }
+  /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
+  tryAnnounce(){
+    //test_real_announce
+    // AnnounceLocalStateAction
+    this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
+      cache : false,
+      onResponse : (error,content)=>{
+        if(error){
+          console.log("err providing!@!!!! " , error);
+        }else{
+          console.log("final success providing: ");
+          content.forEach(ecid=>{
+            console.log("providing => " + ecid.getKeccack256());
+          });
+        }
+      }
+    })
   }
 }
 module.exports = NodeController;
