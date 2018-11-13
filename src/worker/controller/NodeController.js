@@ -36,6 +36,8 @@ const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRe
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
+const DbRequestAction = require('./actions/sync/DbRequestAction');
+const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -78,7 +80,9 @@ class NodeController {
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
+      [NOTIFICATION.GET_ALL_TIPS] : new GetAllTipsAction(this),
       [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
+      [NOTIFICATION.DB_REQUEST] : new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this)
     };
   }
@@ -434,16 +438,24 @@ class NodeController {
     });
   }
   /**
-   * MissingStates = Remote_States - Local_States
-   * used by the requester to find providers.
-   * The missing states are what the worker will be requesting from other peers to sync.
+   * returns the current local tips
    * @param {Boolean} fromCache , if true => use cache , false=> directly from core
    * @param {Function} onResponse , (missingStates) =>{}
    * */
-  identifyMissingStates(fromCache, onResponse){
+  getAllLocalTips(fromCache, onResponse){
+    this._actions[NOTIFICATION.GET_ALL_TIPS].execute({
+      queryType : constants.CORE_REQUESTS.GetAllTips,
+      onResponse : onResponse,
+      cache : fromCache
+    });
+  }
+  /** TEMP */
+  identifyMissingStates(){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
-      cache : fromCache,
-      onResponse : onResponse
+      cache : false,
+      onResponse : (err , localTips) =>{
+        console.log("err? " + err + " -> local tips final callback : " , JSON.stringify(localTips));
+      }
     });
   }
   /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */

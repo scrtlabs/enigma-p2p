@@ -91,7 +91,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
     });
   });
 });
-it('#3 GetRegistrationParams - mock server', async function() {
+it('#3 GetAllTips - mock server', async function() {
   let tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -115,7 +115,8 @@ it('#3 GetRegistrationParams - mock server', async function() {
     .build();
     await nodeUtils.sleep(2000);
     let fromCache = false;
-    mainController.getNode().identifyMissingStates(fromCache,async (missingStates)=>{
+    mainController.getNode().getAllLocalTips(fromCache,async (err,missingStates)=>{
+      assert.strictEqual(null,err,'some error in response');
       assert.strictEqual(3, missingStates.tips.length, 'len not 3');
       assert.strictEqual(10, missingStates.tips[0].key, 'key not 10');
       assert.strictEqual(34, missingStates.tips[1].key, 'key not 34');

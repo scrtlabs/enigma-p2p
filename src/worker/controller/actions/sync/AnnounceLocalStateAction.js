@@ -35,8 +35,7 @@ class AnnounceLocalStateAction{
          * do the announcement
          * */
         let parsedEngCids = responseEnvelop.content().addresses.map(addr=>{
-          let hexAddr = DbUtils.toHexString(addr);
-          let ecid = EngCid.createFromKeccack256(hexAddr);
+          let ecid = EngCid.createFromKeccack256(addr);
           if(ecid){
             return ecid;
           }else{
