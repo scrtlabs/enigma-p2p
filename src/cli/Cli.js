@@ -107,6 +107,9 @@ class CLI{
       'tryAnnounce' : ()=>{
         this._node.tryAnnounce();
       },
+      'identify' : ()=>{
+        this._node.identifyMissingStates();
+      },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
         console.log(hsPeers);
