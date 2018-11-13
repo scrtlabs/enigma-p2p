@@ -21,5 +21,4 @@ class AnnounceContentAction{
     });
   }
 }
-
 module.exports = AnnounceContentAction;
