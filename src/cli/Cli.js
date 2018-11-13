@@ -6,7 +6,7 @@ const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
 const NodeController = require('../worker/controller/NodeController');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
-
+const CoreServer = require('../core/core_server_mock/core_server');
 class CLI{
   constructor(){
     // mock server
@@ -104,6 +104,9 @@ class CLI{
       'sync': () =>{
         this._node.findContentAndSync();
       },
+      'tryAnnounce' : ()=>{
+        this._node.tryAnnounce();
+      },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
         console.log(hsPeers);
@@ -179,8 +182,12 @@ class CLI{
   }
   async _initEnvironment(){
     if(this._corePort){
+      let uri ='tcp://127.0.0.1:' + this._corePort;
+      // start the mock server first
+      CoreServer.runServer(uri);
+      // init the rest
       this._mainController = await new EnviornmentBuilder()
-          .setIpcConfig({uri : 'tcp://127.0.0.1:' + this._corePort})
+          .setIpcConfig({uri : uri})
           .setNodeConfig(this._getFinalConfig())
           .build();
     }else{
