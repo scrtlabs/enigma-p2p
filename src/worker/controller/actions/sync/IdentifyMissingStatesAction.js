@@ -17,7 +17,6 @@ class IdentifyMissingStatesAction{
   constructor(controller){
     this._controller = controller;
   }
-
   execute(params){
     let useCache = params.cache;
     let onResponse = params.onResponse;

@@ -9,6 +9,9 @@ const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 
 class CLI{
   constructor(){
+    // mock server
+    this._corePort = null;
+
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
     this._B2Path = path.join(__dirname, '../../test/testUtils/id-d');
@@ -162,6 +165,9 @@ class CLI{
     .option('-i, --path [value]', 'id path', (theIdPath)=>{
       Parsers.idPath(theIdPath, this._globalWrapper);
     })
+    .option('-c, --core [value]', '[TEST] specify port and start with core mock server',(portStr)=>{
+      this._corePort = portStr;
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -172,9 +178,16 @@ class CLI{
     return finalConfig;
   }
   async _initEnvironment(){
-    this._mainController = await new EnviornmentBuilder()
-        .setNodeConfig(this._getFinalConfig())
-        .build();
+    if(this._corePort){
+      this._mainController = await new EnviornmentBuilder()
+          .setIpcConfig({uri : 'tcp://127.0.0.1:' + this._corePort})
+          .setNodeConfig(this._getFinalConfig())
+          .build();
+    }else{
+      this._mainController = await new EnviornmentBuilder()
+      .setNodeConfig(this._getFinalConfig())
+      .build();
+    }
     this._node = this._mainController.getNode();
   }
   start() {
