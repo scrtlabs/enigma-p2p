@@ -7,12 +7,12 @@ class DbAction{
   execute(reqCommunicator, envelop) {
     //TODO:: go to db and get all tips
     if(envelop.id()){
-      console.log('DbAction: got ' + envelop.type() + ' ' + JSON.stringify(envelop.content()));
+      console.log('[DbAction:] got request ' + envelop.type());
       // pass to core
       let dbCommunicator = this._controller.getCommunicator(constatnts.RUNTIME_TYPE.Core).thisCommunicator;
       dbCommunicator.sendAndReceive(envelop)
       .then(resEnv=>{
-        console.log("DbAction passing back to original requester");
+        console.log("[DbAction:] passing back to origin requester");
         reqCommunicator.send(resEnv);
       });
     }
