@@ -38,6 +38,8 @@ const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
 const DbRequestAction = require('./actions/sync/DbRequestAction');
 const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -83,7 +85,9 @@ class NodeController {
       [NOTIFICATION.GET_ALL_TIPS] : new GetAllTipsAction(this),
       [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
       [NOTIFICATION.DB_REQUEST] : new DbRequestAction(this), // all the db requests to core should go through here.
-      [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this)
+      [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
+      [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
+
     };
   }
   /**

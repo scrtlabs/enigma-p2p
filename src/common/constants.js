@@ -27,7 +27,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'TRY_RECEIVE_ALL' : 'trcva', // try recieve all of the CID's
   'ANNOUNCE_LOCAL_STATE' : 'alc', // announce local state (after being synced)
   'DB_REQUEST' : 'dbreq', // some db request to core
-  'GET_ALL_TIPS' : 'getat' // get all tips from cache/core
+  'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
+  'GET_ALL_ADDRS' : 'getaa' // get all addrs from cache/core
 };
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',

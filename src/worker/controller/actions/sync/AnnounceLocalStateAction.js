@@ -25,34 +25,33 @@ class AnnounceLocalStateAction{
         //TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     }else{
-      let requestEnvelop = new Envelop(true
-          ,{type : constants.CORE_REQUESTS.GetAllAddrs}
-          ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
-      this._controller.communicator()
-      .sendAndReceive(requestEnvelop)
-      .then(responseEnvelop=>{
-        /**
-         * do the announcement
-         * */
-        let parsedEngCids = responseEnvelop.content().addresses.map(addr=>{
-          let ecid = EngCid.createFromKeccack256(addr);
-          if(ecid){
-            return ecid;
-          }else{
-            console.log('[-] err converting bytearry->hex->EngCid !');
-          }
-        }).filter(ecid=>{return (ecid !== undefined && ecid !== null);});
-        // because we parsed above to eng ecid
-        isEngCid = true;
-        this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid,(err, failedCids)=>{
-          if(err){
-            console.log('[-] err %s couldnt provide at all. failed cids %s ', err, failedCids.length);
-            onResponse(err,parsedEngCids);
-          }else{
-            console.log('[+] success providing cids. there are failed %s cids  ', failedCids.length);
-            onResponse(null,parsedEngCids);
-          }
-        });
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.GET_ALL_ADDRS,{
+        useCache : useCache,
+        onResponse : (err,allAddrsResponse)=>{
+          /**
+           * do the announcement
+           * */
+          let parsedEngCids = allAddrsResponse.addresses.map(addr=>{
+            let ecid = EngCid.createFromKeccack256(addr);
+            if(ecid){
+              return ecid;
+            }else{
+              console.log('[-] err converting bytearry->hex->EngCid !');
+            }
+          }).filter(ecid=>{return (ecid !== undefined && ecid !== null);});
+
+          isEngCid = true;
+          this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid,(err, failedCids)=>{
+            if(err){
+              console.log('[-] err %s couldnt provide at all. failed cids %s ', err, failedCids.length);
+              onResponse(err,parsedEngCids);
+            }else{
+              console.log('[+] success providing cids. there are failed %s cids  ', failedCids.length);
+              onResponse(null,parsedEngCids);
+            }
+          });
+
+        }
       });
     }
   }
