@@ -67,6 +67,10 @@ module.exports.MSG_STATUS = {
   'ERR_SELF_DIAL': 3,
 };
 
+module.exports.CONTENT_ROUTING = {
+  // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
+  RANGE_LIMIT : 10,
+};
 /**
  * Stat Types:
  * - CONNECTION_SUCCESS // dial success

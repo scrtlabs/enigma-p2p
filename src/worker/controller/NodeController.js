@@ -87,7 +87,6 @@ class NodeController {
       [NOTIFICATION.DB_REQUEST] : new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
       [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
-
     };
   }
   /**
@@ -270,6 +269,9 @@ class NodeController {
   cache(){
     return this._cache;
   }
+  logger(){
+    return this._logger;
+  }
   engNode() {
     return this._engNode;
   }
@@ -407,15 +409,15 @@ class NodeController {
     });
   }
   /** temp */
-  tryReceiveAll(){
-    this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL , {
-      findProvidersResult: null,
-      missingStates : null,
-      onFinish : (err,allResults)=>{
-        console.log("done try Receive all ");
-      }
-    });
-  }
+  // tryReceiveAll(){
+  //   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL , {
+  //     findProvidersResult: null,
+  //     missingStates : null,
+  //     onFinish : (err,allResults)=>{
+  //       console.log("done try Receive all ");
+  //     }
+  //   });
+  // }
   /** temp - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
@@ -457,8 +459,11 @@ class NodeController {
   identifyMissingStates(){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
       cache : false,
-      onResponse : (err , localTips) =>{
-        console.log("err? " + err + " -> local tips final callback : " , JSON.stringify(localTips));
+      onResponse : (err , missingStatesMsgsMap) =>{
+        console.log("err? " + err + " -> local tips final callback : ");
+        for(let ecidHash in missingStatesMsgsMap){
+          console.log(missingStatesMsgsMap[ecidHash].toJSON());
+        }
       }
     });
   }

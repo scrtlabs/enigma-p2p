@@ -13,7 +13,7 @@ class GetAllTipsAction{
   }
   execute(params){
     let useCache = params.cache;
-    let onResponse = params.onResponse;
+    let onResult = params.onResponse;
     if(useCache){
       this._controller.cache().getAllTips((err,tipsList)=>{
         //TODO:: implement cache logic
@@ -22,7 +22,7 @@ class GetAllTipsAction{
     }else{
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
         queryType : constants.CORE_REQUESTS.GetAllTips,
-        onResponse : (err,result)=>{onResponse(err,result)}
+        onResponse : (err,result)=>{return onResult(err,result);}
       });
     }
   }

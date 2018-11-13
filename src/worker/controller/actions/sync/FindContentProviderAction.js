@@ -22,5 +22,4 @@ class FindContentProviderAction{
     });
   }
 }
-
 module.exports = FindContentProviderAction;

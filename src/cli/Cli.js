@@ -187,6 +187,7 @@ class CLI{
     if(this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first
+      CoreServer.setProvider(true);
       CoreServer.runServer(uri);
       // init the rest
       this._mainController = await new EnviornmentBuilder()

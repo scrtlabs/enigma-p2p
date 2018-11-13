@@ -2,7 +2,7 @@ const constants = require('../../common/constants');
 const MSG_TYPES = constants.P2P_MESSAGES;
 const schemeValidator = require('./schemes/SchemeValidator');
 const EncoderUtil = require('../../common/EncoderUtil');
-
+const waterfall = require('async/waterfall');
 class SyncMsgBuilder {
   /**
      * from network stream
@@ -47,6 +47,41 @@ class SyncMsgBuilder {
       callback(err, message);
     });
   }
+  static batchStateReqFromObjs(msgsObjList,callback){
+    if(msgsObjList.length < 1){
+      return callback("empty msg list");
+    }
+    let jobs = [];
+    // init first jobs
+    jobs.push(cb=>{
+      SyncMsgBuilder.stateReqFromObj(msgsObjList[0], (err,msg)=>{
+        if(err){
+          return cb(err);
+        }else{
+          let results = [];
+          results.push(msg);
+          return cb(err,results);
+        }
+      });
+    });
+    // init rest of the jobs
+    for(let i=1;i<msgsObjList.length;i++){
+      jobs.push((results,cb)=>{
+        SyncMsgBuilder.stateReqFromObj(msgs[i], (err,msg)=>{
+          if(err){
+            return cb(err);
+          }else{
+            results.push(msg);
+            return cb(err,results);
+          }
+        });
+      });
+    }
+    // execute jobs
+    waterfall(jobs,(err,results)=>{
+      return callback(err,results);
+    });
+  }
   static bCodeReqFromNetwork(networkMsg, callback) {
     const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
     if (obj) {
@@ -58,7 +93,11 @@ class SyncMsgBuilder {
   static bCodeReqFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
     SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_REQ, msgObj, (err, message)=>{
-      callback(err, message);
+      if(err){
+        return callback(err);
+      }else{
+        return callback(null, message);
+      }
     });
   }
   static bCodeResFromNetwork(networkMsg, callback) {
@@ -81,7 +120,7 @@ class SyncMsgBuilder {
   static _buildMsg(msgType, msgObj, callback) {
     SyncMsgBuilder._isValidScheme(msgType, msgObj, (err, isValid)=>{
       if (err) {
-        callback(err);
+        return callback(err);
       } else {
         if (isValid) {
           switch (msgType) {
@@ -213,7 +252,6 @@ module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 
 /** mini tests */
 
-
 /** bcode sync */
 
 // let state_bcode_req = {
@@ -295,3 +333,21 @@ module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 // });
 
 
+/** batch state sync request */
+// let state_sync_req_obj = {
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
+// };
+// let msgs = [];
+// for(let i=0;i<15;++i){
+//   msgs.push(state_sync_req_obj);
+// }
+// SyncMsgBuilder.batchStateReqFromObjs(msgs,(err,results)=>{
+//   console.log("is err? " + err);
+//   results.forEach(res=>{
+//     console.log(res.contractAddress());
+//   });
+// });

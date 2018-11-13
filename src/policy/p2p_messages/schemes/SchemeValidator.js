@@ -6,13 +6,11 @@ const Validator = require('jsonschema').Validator;
 
 function loadScheme(path, callback) {
   loadJsonFile(path).then((json) => {
-    callback(null, json);
-  })
-      .catch((err)=>{
-        callback(err);
-      });
+    return callback(null, json);
+  }).catch((err)=>{
+    return callback(err);
+  });
 }
-
 // ./schemes/state_sync_scheme.json
 const schemeMap = {
   [MsgTypes.SYNC_STATE_REQ]: (testObj, callback) =>{

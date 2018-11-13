@@ -1,9 +1,5 @@
 
 const constants = require('../../../../common/constants');
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
-const Envelop = require('../../../../main_controller/channels/Envelop');
-const DbUtils = require('../../../../common/DbUtils');
 const EngCid = require('../../../../common/EngCID');
 /**
  * This Action announces to the network about it's local state
@@ -39,7 +35,6 @@ class AnnounceLocalStateAction{
               console.log('[-] err converting bytearry->hex->EngCid !');
             }
           }).filter(ecid=>{return (ecid !== undefined && ecid !== null);});
-
           isEngCid = true;
           this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid,(err, failedCids)=>{
             if(err){
@@ -50,7 +45,6 @@ class AnnounceLocalStateAction{
               onResponse(null,parsedEngCids);
             }
           });
-
         }
       });
     }

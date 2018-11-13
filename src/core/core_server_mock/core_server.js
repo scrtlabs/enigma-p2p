@@ -2,9 +2,14 @@ const zmq = require('zeromq');
 const constants = require('../../common/constants');
 const MsgTypes = constants.CORE_REQUESTS;
 const Quote = 'AgAAANoKAAAHAAYAAAAAABYB+Vw5ueowf+qruQGtw+54eaWW7MiyrIAooQw/uU3eBAT/////AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABwAAAAAAAAAHAAAAAAAAALcVy53ugrfvYImaDi1ZW5RueQiEekyu/HmLIKYvg6OxAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACD1xnnferKFHD2uvYqTXdDA8iZ22kCD5xw7h38CMfOngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACGcCDM4cgbYe6zQSwWQINFsDvd21kXGeteDakovCXPDwjJ31WG0K+wyDDRo8PFi293DtIr6DgNqS/guQSkglPJqAIAALbvs91Ugh9/yhBpAyGQPth+UWXRboGkTaZ3DY8U+Upkb2NWbLPkXbcMbB7c3SAfV4ip/kPswyq0OuTTiJijsUyOBOV3hVLIWM4f2wVXwxiVRXrfeFs/CGla6rGdRQpFzi4wWtrdKisVK5+Cyrt2y38Ialm0NqY9FIjxlodD9D7TC8fv0Xog29V1HROlY+PvRNa+f2qp858w8j+9TshkvOAdE1oVzu0F8KylbXfsSXhH7d+n0c8fqSBoLLEjedoDBp3KSO0bof/uzX2lGQJkZhJ/RSPPvND/1gVj9q1lTM5ccbfVfkmwdN0B5iDA5fMJaRz5o8SVILr3uWoBiwx7qsUceyGX77tCn2gZxfiOICNrpy3vv384TO2ovkwvhq1Lg071eXAlxQVtPvRYOGgBAABydn7bEWdP2htRd46nBkGIAoNAnhMvbGNbGCKtNVQAU0N9f7CROLPOTrlw9gVlKK+G5vM1X95KTdcOjs8gKtTkgEos021zBs9R+whyUcs9npo1SJ8GzowVwTwWfVz9adw2jL95zwJ/qz+y5x/IONw9iXspczf7W+bwyQpNaetO9xapF6aHg2/1w7st9yJOd0OfCZsowikJ4JRhAMcmwj4tiHovLyo2fpP3SiNGzDfzrpD+PdvBpyQgg4aPuxqGW8z+4SGn+vwadsLr+kIB4z7jcLQgkMSAplrnczr0GQZJuIPLxfk9mp8oi5dF3+jqvT1d4CWhRwocrs7Vm1tAKxiOBzkUElNaVEoFCPmUYE7uZhfMqOAUsylj3Db1zx1F1d5rPHgRhybpNpxThVWWnuT89I0XLO0WoQeuCSRT0Y9em1lsozSu2wrDKF933GL7YL0TEeKw3qFTPKsmUNlWMIow0jfWrfds/Lasz4pbGA7XXjhylwum8e/I';
-
+const DbUtils = require('../../common/DbUtils');
 let socket;
 let globalUri;
+let isProvider = false;
+
+module.exports.setProvider= (_isProvider)=>{
+  isProvider = _isProvider;
+};
 
 module.exports.disconnect = ()=>{
   socket.disconnect(globalUri);
@@ -55,9 +60,22 @@ function getRegistrationParams(msg){
 }
 
 function getAllAddrs(msg){
-  let addresses = TIPS.map(tip=>{
-    return tip.address;
-  });
+  let addresses;
+  if(isProvider){
+    addresses = DB_PROVIDER.map(o=>{
+      if(o.key < 0){
+        return DbUtils.toHexString(o.address);
+      }else{
+        return [];
+      }
+    }).filter(o=>{
+      return o.length > 0;
+    });
+  }else{
+    addresses = TIPS.map(tip=>{
+      return DbUtils.toHexString(tip.address);
+    });
+  }
   return {
     type : msg.type,
     id : msg.id,
@@ -247,7 +265,7 @@ const DB_PROVIDER= [
       88,135,204],
   },
   {
-    address : [76,214,171,4,67,23,118,195,84,56,103,199,97,21,226,55,220,54,212,246,174,203,51,171,28,30,63,158,131,64,181,33],
+    address : [13,214,171,4,67,23,118,195,84,56,103,199,97,21,226,55,220,54,212,246,174,203,51,171,28,30,63,158,131,64,181,42],
     key : -1,
     delta : [253,160,2,1,133,12,135,94,144,211,23,61,150,36,31,55,178,42,128,60,194,192,182,190,227,136,133,252,128,213,
       88,135,204,213,199,50,191,7,61,104,87,210,127,76,163,11,175,114,207,167,26,249,222,222,73,175,207,222,86,42,236,92,194,214,
@@ -300,3 +318,42 @@ const DB_PROVIDER= [
       88,135,204,213,199,50,191,7,61,104,87,210,127,76,163,11,175,114,207,167,26,249,222,222,73,175,207,222,86,42],
   }
 ];
+
+
+// struct DeltaKey {
+//   hash: [u8; 32],
+//   type: Stype
+// };
+//
+// enum Stype {
+//   State,
+//   Bytecode,
+//   Delta(u32)
+// };
+//
+// DeltaKey { hash: [0u8;32], type: Delta(15)};
+//
+//
+// address: "0x00321" {
+//   [00,00,00,00,00]: [,5435,34,53534,534]
+//   02: [43,,432,4,234,32]
+// }
+
+
+// DB = {
+//   'address' : {
+//     bytecode : [0,0,0,0,0,...]
+//     delta : [{
+//       index : 11,
+//       data : [243,56,66758,657876]
+//     }]
+//   }
+// }
+//
+// let k1 = [76,214,171,4,67,23,118,195,84,56,103,199,97,21,226,55,220,54,212,246,174,203,51,171,28,30,63,158,131,64,181,33]
+// let k2 = [11,214,171,4,67,23,118,195,84,34,103,199,97,21,226,55,220,143,212,246,174,203,51,171,28,30,63,158,131,64,181,200]
+// let k3 = [13,214,171,4,67,23,118,195,84,56,103,199,97,21,226,55,220,54,212,246,174,203,51,171,28,30,63,158,131,64,181,42]
+//
+// console.log(DbUtils.toHexString(k1))
+// console.log(DbUtils.toHexString(k2))
+// console.log(DbUtils.toHexString(k3))
