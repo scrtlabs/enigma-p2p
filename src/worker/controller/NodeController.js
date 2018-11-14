@@ -512,6 +512,8 @@ class NodeController {
         });
         // now we have providers and all the messages ready. we can connect and sync.
         this.fullTryReceiveAll(allReceiveData, (err,AllResults)=>{
+          //TODO:: check the sync status
+          // that's it basically.
           console.log("success synching all.");
         });
       });
