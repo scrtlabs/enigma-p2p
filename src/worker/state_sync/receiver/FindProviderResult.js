@@ -15,10 +15,6 @@ class FindProviderResult {
    * @param {Array<PeerInfo>} providerList
    */
   addProviderResult(engCid, providerList) {
-    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
-    console.log("provider list empty ? " , providerList);
-    console.log("providerlist size : " + providerList.length);
-    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     const key = engCid.getKeccack256();
     this._map[key] = {providers: providerList, ecid: engCid};
   }
@@ -54,6 +50,8 @@ class FindProviderResult {
     }
     return null;
   }
+  /** the keys are the keccack hash of each ecid
+   * @return {Array<string>}*/
   getKeysList(){
     return Object.keys(this._map);
   }
