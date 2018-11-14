@@ -5,7 +5,7 @@ const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy extends EventEmitter {
-  constructor() {
+  constructor(){
     super();
     this._version = '0.1';
     // TODO:: define from config

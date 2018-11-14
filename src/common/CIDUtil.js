@@ -39,6 +39,7 @@ class CIDUtil {
     }
   }
 
+  //TODO:: BUG when addr longer than 64 and 66
   /** remove 0x from the hash if existing
      * @param {String} h, keccack256 hash
      * @return {String} hash without 0x or the same
@@ -49,8 +50,6 @@ class CIDUtil {
       final = h;
     } else if (h.length == 66) {
       final = h.substring(2, h.length);
-    }else{
-      return h;
     }
     return final;
   }

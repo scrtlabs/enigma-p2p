@@ -7,23 +7,24 @@ const EngCid = require('../../../common/EngCID');
 const SyncMsgBuilder = require('../../../policy/p2p_messages/sync_messages').SyncMsgBuilder;
 const constants = require('../../../common/constants');
 
+//TODO:: come to conclusion that this function is unnesceary and delete it.
 //   /**
 //    * add to this._missingList a another field `ecid`
 //    * we need ecid to be attached and computed heer
 //    * this ecid will be used to findproviders message
 //    * //TODO:: assumption here about addresses, read the TODO inside the code block.
 //    */
-function _addCids(missingList){
-  missingList.forEach(element=>{
-    //TODO:: assumption here is that the address is a keccack256 hash already
-    //TODO:: i.e saved like this both in db (as byte array) and in Enigma.sol
-    let address = element.address;
-    let ecid = EngCid.createFromKeccack256(address);
-    if(ecid){
-      element.ecid = ecid;
-    }
-  });
-}
+// function _addCids(missingList){
+//   missingList.forEach(element=>{
+//     //TODO:: assumption here is that the address is a keccack256 hash already
+//     //TODO:: i.e saved like this both in db (as byte array) and in Enigma.sol
+//     let address = element.address;
+//     let ecid = EngCid.createFromKeccack256(address);
+//     if(ecid){
+//       element.ecid = ecid;
+//     }
+//   });
+// }
 /**
  * identify if the bytecode is missing and should be requested as well.
  * @param {JSON} contractData,
@@ -97,12 +98,11 @@ function buildP2ReqPMsgsOneContract(contractData){
  * */
 module.exports.createP2PReqMsgsMap = (missingList)=>{
   //* [{address,deltas:[{deltaHash,index},...]},...]
-  _addCids(missingList);
   sortAll(missingList);
   let output = {};
   for(let i=0;i<missingList.length;++i){
     let reqMsgs = buildP2ReqPMsgsOneContract(missingList[i]);
-    output[missingList[i].ecid.getKeccack256()] = reqMsgs;
+    output[missingList[i].address] = reqMsgs;
   }
   return output;
 };
