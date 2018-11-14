@@ -7,7 +7,6 @@ module.exports.LOG_CONFIG = {
   'file': 'peer.log',
   'cli': true,
 };
-
 module.exports.NODE_NOTIFICATIONS = {
   'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
   // (ready to be discovered) -> 'peer:discovery' event.
@@ -30,6 +29,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
   'GET_ALL_ADDRS' : 'getaa' // get all addrs from cache/core
 };
+
+/** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',
   'PEER_CONNECT': 'peer:connect',
@@ -43,6 +44,7 @@ module.exports.PROTOCOLS = {
   'STATE_SYNC': '/sync/0.1',
 };
 
+/** DO NOT CHANGE THE VALUES SINCE ITS PART OF THE PROTOCOL MESSAGE FIELDS */
 module.exports.P2P_MESSAGES = {
   'SYNC_STATE_REQ': 'SYNC_STATE_REQ',
   'SYNC_STATE_RES': 'SYNC_STATE_RES',
@@ -55,21 +57,21 @@ module.exports.PUBSUB_TOPICS = {
 };
 
 module.exports.DHT_STATUS = {
-  'CRITICAL_HIGH_DHT_SIZE': 20,
-  'OPTIMAL_DHT_SIZE': 8,
-  'CRITICAL_LOW_DHT_SIZE': 3,
-  'TIMEOUT_FIND_PROVIDER': 180000, // 3 minutes
+  CRITICAL_HIGH_DHT_SIZE: 20,
+  OPTIMAL_DHT_SIZE: 8,
+  CRITICAL_LOW_DHT_SIZE: 3,
 };
 module.exports.MSG_STATUS = {
-  'OK': 0,
-  'ERROR': 1,
-  'ERR_EMPTY_PEER_BANK': 2,
-  'ERR_SELF_DIAL': 3,
+  OK: 0,
+  ERROR: 1,
+  ERR_EMPTY_PEER_BANK: 2,
+  ERR_SELF_DIAL: 3,
 };
 
 module.exports.CONTENT_ROUTING = {
   // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
   RANGE_LIMIT : 10,
+  TIMEOUT_FIND_PROVIDER : 180000,// 3 minutes, t.o before declaring couldn't find content provider
 };
 /**
  * Stat Types:
@@ -118,13 +120,3 @@ module.exports.CORE_REQUESTS = {
   GetDelta : 'GetDelta',
   GetContract : 'GetContract'
 };
-
-
-
-
-
-
-
-
-
-

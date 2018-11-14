@@ -26,6 +26,7 @@ class CIDUtil {
       const mh = multihash.encode(buffHash, 'keccak-256');
       return new CID(1, 'eth-block', mh);
     } catch (err) {
+      console.log('[-] err creating cid {%s}', err);
       return null;
     }
   }
@@ -48,6 +49,8 @@ class CIDUtil {
       final = h;
     } else if (h.length == 66) {
       final = h.substring(2, h.length);
+    }else{
+      return h;
     }
     return final;
   }
