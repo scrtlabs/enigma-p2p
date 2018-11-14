@@ -4,6 +4,19 @@ const schemeValidator = require('./schemes/SchemeValidator');
 const EncoderUtil = require('../../common/EncoderUtil');
 const waterfall = require('async/waterfall');
 class SyncMsgBuilder {
+
+  /** no validation test */
+  static batchStateReqFromObjsNoValidation(msgsObjList){
+    return msgsObjList.map(m=>{
+      m.msgType = MSG_TYPES.SYNC_STATE_REQ;
+      return new SyncStateReqMsg(m);
+    });
+  }
+  static bCodeReqFromObjNoValidation(msgObj){
+    msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
+    return new SyncBcodeReqMsg(msgObj);
+  }
+  /** no validation test */
   /**
      * from network stream
      * @param {Array<Integer>} networkMsg , a StateSyncReq msg
@@ -27,8 +40,7 @@ class SyncMsgBuilder {
   }
   static _parseFromNetwork(networkMsg) {
     const decoded = EncoderUtil.decodeFromNetwork(networkMsg);
-    const obj = JSON.parse(decoded);
-    return obj;
+    return JSON.parse(decoded);
   }
   /**
      * from regular object in the code (JSON)

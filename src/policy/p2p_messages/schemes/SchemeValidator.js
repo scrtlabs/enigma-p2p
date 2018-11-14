@@ -16,12 +16,22 @@ const schemeMap = {
   [MsgTypes.SYNC_STATE_REQ]: (testObj, callback) =>{
     loadScheme(path.join(__dirname, '/state_sync_scheme.json'), (err, preScheme)=>{
       if (err) {
-        callback(err);
+        return callback(err);
       } else {
         const scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
         const v = new Validator();
-        const isValid = v.validate(testObj, scheme).valid;
-        callback(null, isValid);
+        let isValid = true;
+        if(Array.isArray(testObj)){
+          for(let i=0;i<testObj.length;++i){
+            if(!v.validate(testObj[i], scheme).valid){
+              isValid = false;
+              break;
+            }
+          }
+        }else{
+        isValid = v.validate(testObj, scheme).valid;
+        }
+        return callback(null, isValid);
       }
     });
   },
@@ -71,7 +81,7 @@ function _validateScheme(testedObj, msgName, callback) {
   } else {
     callback('no such scheme');
   }
-};
+}
 
 /** valida a scheme
  * supported:

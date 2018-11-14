@@ -462,7 +462,10 @@ class NodeController {
       onResponse : (err , missingStatesMsgsMap) =>{
         console.log("err? " + err + " -> local tips final callback : ");
         for(let ecidHash in missingStatesMsgsMap){
-          console.log(missingStatesMsgsMap[ecidHash].toJSON());
+          let contractMsgs = missingStatesMsgsMap[ecidHash];
+          for(let i=0;i<contractMsgs.length;++i){
+            console.log(contractMsgs[i].toPrettyJSON());
+          }
         }
       }
     });
