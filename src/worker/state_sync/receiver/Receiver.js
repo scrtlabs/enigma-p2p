@@ -70,9 +70,6 @@ class Receiver extends EventEmitter {
             this._logger.error('[-] error in findProvider specific CID ' + res.error);
             findProviderResult.addErroredProviderResult(res.ecid, res.error);
           } else {
-            console.log('33333333333333333333333333333333333333333333333');
-            console.log("im getting here adding normal provider. -> " +  res.providers + ' <-');
-            console.log('33333333333333333333333333333333333333333333333');
             findProviderResult.addProviderResult(res.ecid, res.providers);
           }
         });
