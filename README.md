@@ -60,7 +60,12 @@ To launch a worker(s) in a different terminal type:
 # Running the tests
 * TBD
 # How it works
-* TBD
+At a very high level, the Worker need to execute a sequence of steps 
+and only then it can start "Working". Here is a diagram explaining all of the initial steps the Worker has to do: 
+
+<img src="docs/start_flow.jpg"
+     alt="Implementation 3" />
+
 ## Peer Discovery
 * TBD
 ## Syncing a Worker
