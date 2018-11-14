@@ -1,6 +1,7 @@
 const EventEmitter = require('events').EventEmitter;
 const CIDUtil = require('../../../common/CIDUtil');
 const EngCID = require('../../../common/EngCID');
+const EncoderUtil = require('../../../common/EncoderUtil');
 const parallel = require('async/parallel');
 const Policy = require('../../../policy/policy');
 const FindProviderResult = require('./FindProviderResult');
@@ -98,34 +99,38 @@ class Receiver extends EventEmitter {
    * @param {Function} callback , (err,ResultList)=>{}
    * */
   trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callback){
-      this._engNode.startStateSyncRequest(peerInfo, (err,connectionStream)=>{
-        if(err){
-          return callback(err);
-        }
-          pull(
-              pull.values(stateSyncReqMsgs),
-              streams.toNetworkSyncReqParser,
-              connectionStream,
-              streams.verificationStream,
-              streams.throughDbStream,
-              pull.map(data=>{
-                //TODO:: parse the data to minimal version
-                //TODO:: the .collect function below takes the full array
-                //TODO:: so in order for it to be minimal in memory reduce here
-                //TODO:: to something in the form of List: {range: {} ,request_status:success/err}
-                return data;
-              }),
-              pull.collect((err,resultList)=>{
-                if(err){
-                  console.log("serioes err ", err );
-                  callback(err,resultList);
-                }else{
-                  console.log("got result List = ? " + resultList);
-                  callback(null,resultList);
-                }
-              }),
-          );
-      });
+    this._engNode.startStateSyncRequest(peerInfo, (err,connectionStream)=>{
+      if(err){
+        return callback(err);
+      }
+      pull(
+          pull.values(stateSyncReqMsgs),
+          streams.toNetworkSyncReqParser,
+          connectionStream,
+          streams.verificationStream,
+          streams.throughDbStream,
+          pull.map(data=>{
+            //TODO:: parse the data to minimal version
+            //TODO:: the .collect function below takes the full array
+            //TODO:: so in order for it to be minimal in memory reduce here
+            //TODO:: to something in the form of List: {range: {} ,request_status:success/err}
+            return data;
+          }),
+          pull.collect((err,resultList)=>{
+            if(err){
+              console.log("serioes err ", err );
+              return callback(err,resultList);
+            }else{
+              // resultList.map(r=>{
+              //   let d=  EncoderUtil.decode(r);
+              //   d= JSON.parse(d);
+              //   return d;
+              // });
+              return callback(null,resultList);
+            }
+          }),
+      );
+    });
   }
   /**
    * try and sync 1 contract (all deltas and code)  given a list of potential providers.

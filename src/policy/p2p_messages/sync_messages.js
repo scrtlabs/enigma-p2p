@@ -40,7 +40,7 @@ class SyncMsgBuilder {
     }
   }
   static _parseFromNetwork(networkMsg) {
-    const decoded = EncoderUtil.decodeFromNetwork(networkMsg);
+    const decoded = EncoderUtil.decode(networkMsg);
     return JSON.parse(decoded);
   }
   /**
@@ -172,8 +172,7 @@ class SyncMsg {
      * @return {Array<Integer>} encoded and seriallized msgpack array of the msg*/
   toNetwork() {
     const msg = this.toJSON();
-    const encoded = EncoderUtil.encodeToNetwork(msg);
-    return encoded;
+    return EncoderUtil.encode(msg);
   }
 
 }
@@ -365,3 +364,17 @@ module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 //     console.log(res.contractAddress());
 //   });
 // });
+
+
+// let state_sync_req_obj = {
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
+// };
+// const msg = this.toJSON();
+// const encoded = EncoderUtil.encodeToNetwork(msg);
+// console.log(encoded);
+// let b= Buffer.from(encoded);
+

@@ -1,5 +1,5 @@
 const Verifier = require('./receiver/StateSyncReqVerifier');
-
+const EncoderUtil = require('../../common/EncoderUtil');;
 /**
  * from providerStream => verify (consensus)
  * @param {stream} read
@@ -79,8 +79,9 @@ function _toNetworkSyncReqParser(read) {
   return function readble(end, cb) {
       read(end, (end, data) => {
         if (data != null) {
-          // TODO:: parse the msg to msgpack serialization
-          cb(end, data);
+          // TODO:: every method must have toNetwork();
+          // TODO:: parse the msg to msgpack serialization + buffer
+          cb(end, data.toNetwork());
         } else {
           cb(end, null);
         }
@@ -167,7 +168,7 @@ function _requestParserStream(read) {
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  console.log('[saveToDbStream] : ' + data);
+  console.log('[saveToDbStream] : ' + JSON.stringify(data));
   callback(status);
 }
 
@@ -193,6 +194,8 @@ function _verificationStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data !=null) {
+        data = EncoderUtil.decode(data);
+        data = JSON.parse(data);
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
         new Verifier().verify(data, (isOk)=>{

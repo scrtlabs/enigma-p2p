@@ -46,12 +46,12 @@ class IdentifyMissingStatesAction{
     ];
     let result = LocalMissingStateResult.createP2PReqMsgsMap(mockMissing);
     let finalOutput = {};
-    for(let ecidHash in result){
-      let obj = result[ecidHash];
+    for(let addrKey in result){
+      let obj = result[addrKey];
       if(obj.bcodeReq){
         obj.deltasReq.push(obj.bcodeReq);
       }
-      finalOutput[ecidHash] = obj.deltasReq;
+      finalOutput[addrKey] = obj.deltasReq;
     }
     return finalOutput;
   }

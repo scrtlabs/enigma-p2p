@@ -409,16 +409,6 @@ class NodeController {
       }
     });
   }
-  /** temp */
-  // tryReceiveAll(){
-  //   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL , {
-  //     findProvidersResult: null,
-  //     missingStates : null,
-  //     onFinish : (err,allResults)=>{
-  //       console.log("done try Receive all ");
-  //     }
-  //   });
-  // }
   /** temp - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
@@ -484,26 +474,46 @@ class NodeController {
       isEngCid:  true
     });
   }
+  fullTryReceiveAll(allMissingDataList,callback){
+   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL,{
+     allMissingDataList : allMissingDataList,
+     onFinish : (err,allResults)=>{
+        callback(err,allResults)
+     }
+   });
+  }
   fullReceiver(){
     this.identifyMissingStates((err,missingStatesMap)=>{
       let ecids = [];
+      let tempEcidToAddrMap = {};
       for(let addrKey in missingStatesMap){
         let ecid = EngCid.createFromKeccack256(addrKey);
         if(ecid){
-          console.log("will look for -> " + ecid.getKeccack256());
+          //TODO:: every EngCid should expose the addr as a built
+          //TODO:: in method
+          tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
           ecids.push(ecid);
         }else{
-          this._logger.error("Error creating EngCid from " + addrKey);
+          this._logger.error("error creating EngCid from " + addrKey);
         }
       }
       this.findProvidersReal(ecids,findProviderResult=>{
-        console.log("######################################################3")
-        console.log("complete error ? " , findProviderResult.isCompleteError())
-        console.log("is some error ? " , findProviderResult.isErrors());
-        console.log(findProviderResult.getProvidersMap());
-        // console.log(findProviderResult.getProvidersFor(ecids[0]));
-        console.log("######################################################3")
-        console.log("found providers. found missing states.");
+        if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
+          return console.log("[-] some error finding providers !!!!!!");
+        }
+        // parse to 1 object: cid => {providers, msgs} -> simple :)
+        let allReceiveData = [];
+        let providersMap = findProviderResult.getProvidersMap();
+        ecids.forEach(ecid=>{
+          allReceiveData.push({
+            requestMessages : missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]] ,
+            providers : findProviderResult.getProvidersFor(ecid)
+          });
+        });
+        // now we have providers and all the messages ready. we can connect and sync.
+        this.fullTryReceiveAll(allReceiveData, (err,AllResults)=>{
+          console.log("success synching all.");
+        });
       });
     });
   }

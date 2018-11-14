@@ -18,45 +18,49 @@ class TryReceiveAllAction{
    *  - onFinish
    * }*/
   execute(params){
-    let findProvidersResult = params.findProvidersResult;
-    let missingStates = params.missingStates;
+    let allMissingDataList = params.allMissingDataList;
     let onFinish = params.onFinish;
-    let keysList = findProvidersResult.getKeysList();
-    let providersMap = findProvidersResult.getProvidersMap();
-    //TODO:: define missingStates created by IdentifyMissingStatesAction action
+    let receiver = this._controller.receiver();
     let jobs = [];
+    let firstJob = allMissingDataList[0];
     // init the first job
-    let firstJobKey = keysList.pop();
-    let firstJobProviders = providersMap[firstJobKey];
-    //TODO:: each jobs should get different missing states so maybe something like
-    //TODO:: let cidMissingJobs = missingStates.forCid(cid) or something and use it for each job
     jobs.push(cb=>{
-      this._controller.receiver().trySyncReceive(firstJobProviders, missingStates, (err,isDone,resultList)=>{
-        let allResults = [];
-        allResults.push({success : isDone, resultList : resultList, error : err});
-        cb(null,allResults);
+      receiver.trySyncReceive(firstJob.providers,firstJob.requestMessages,
+          (err,isDone,resultList)=>{
+            if(err){
+              return cb(err);
+            }else{
+              let allResults = [];
+              allResults.push({success:isDone, resultList : resultList , error : err});
+              return cb(null,allResults);
+            }
       });
     });
-    // init rest of the jobs
-    keysList.forEach(k=>{
-      let providers = providersMap[k];
-      jobs.push((allResults, cb)=>{
-        this._controller.receive().trySyncReceive(providers, missingStates , (err, isDone, resultList)=>{
-          allResults.push({success : isDone, resultList : resultList, error : err});
-          cb(null,allResults);
+    // init the rest of the jobs
+    for(let i=1;i<allMissingDataList.length;++i){
+      let providers = allMissingDataList[i].providers;
+      let requestMessages = allMissingDataList[i].requestMessages;
+      jobs.push((allResults,cb)=>{
+        receiver.trySyncReceive(providers,requestMessages,(err,isDone,resultList)=>{
+          if(err){
+            return cb(err);
+          }else{
+            allResults.push({success:isDone, resultList : resultList , error : err});
+            return cb(null,allResults);
+          }
         });
       });
-    });
-    // execute all jobs
-    waterfall(jobs, (err,allResults)=>{
-      if(onFinish){
-        onFinish(err,allResults);
-      }else{
-        //TODO:: implement something here :)
-        console.log("err ? " + err );
-        console.log("all results = > " , allResults);
-      }
+    }
+    // execute all the jobs
+    waterfall(jobs,(err,allResults)=>{
+      onFinish(err,allResults);
     });
   }
 }
 module.exports = TryReceiveAllAction;
+
+
+
+
+
+
