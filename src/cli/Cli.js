@@ -110,6 +110,9 @@ class CLI{
       'identify' : ()=>{
         this._node.identifyMissingStates();
       },
+      'rsync' : ()=>{
+        this._node.fullReceiver();
+      },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
         console.log(hsPeers);

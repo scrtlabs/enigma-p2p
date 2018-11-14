@@ -18,7 +18,14 @@ class FindContentProviderAction{
     const isEngCid = params.isEngCid;
     this._controller.receiver()
       .findProvidersBatch(descriptorsList, isEngCid, (findProviderResult)=>{
-        next(findProviderResult);
+        //TODO:: add error param to the callback.
+        if(findProviderResult.isErrors()){
+          next(findProviderResult);
+        }else if(findProviderResult.isCompleteError()){
+          next(findProviderResult);
+        }else{
+          next(findProviderResult);
+        }
     });
   }
 }

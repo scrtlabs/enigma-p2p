@@ -7,7 +7,7 @@ const FindProviderResult = require('./FindProviderResult');
 const pull = require('pull-stream');
 const streams = require('../streams');
 const waterfall = require('async/waterfall');
-
+const constants = require('../../../common/constants');
 
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -41,8 +41,7 @@ class Receiver extends EventEmitter {
      * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
      * */
   findProvidersBatch(descriptorsList, withEngCid,callback) {
-    const timeout = this._policy.getTimeoutFindProvider();
-
+    const timeout = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
     let engCids = descriptorsList;
     if(!withEngCid){
       engCids = descriptorsList.map((desc)=>{
@@ -51,7 +50,6 @@ class Receiver extends EventEmitter {
       });
     }
     const jobs = [];
-
     // define each jobs
     engCids.forEach((ecid)=>{
       jobs.push((cb)=>{
@@ -60,12 +58,9 @@ class Receiver extends EventEmitter {
         });
       });
     });
-
     // execute jobs
-
     parallel(jobs, (err, result)=>{
       const findProviderResult = new FindProviderResult();
-
       if (err) {
         this._logger.error('[-] complete error findProvidersBatch ' + err);
         findProviderResult.setCompleteError();
@@ -75,11 +70,13 @@ class Receiver extends EventEmitter {
             this._logger.error('[-] error in findProvider specific CID ' + res.error);
             findProviderResult.addErroredProviderResult(res.ecid, res.error);
           } else {
+            console.log('33333333333333333333333333333333333333333333333');
+            console.log("im getting here adding normal provider. -> " +  res.providers + ' <-');
+            console.log('33333333333333333333333333333333333333333333333');
             findProviderResult.addProviderResult(res.ecid, res.providers);
           }
         });
       }
-
       callback(findProviderResult);
     });
   }

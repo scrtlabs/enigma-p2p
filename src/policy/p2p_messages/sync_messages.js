@@ -3,6 +3,7 @@ const MSG_TYPES = constants.P2P_MESSAGES;
 const schemeValidator = require('./schemes/SchemeValidator');
 const EncoderUtil = require('../../common/EncoderUtil');
 const waterfall = require('async/waterfall');
+const EngCid = require('../../common/EngCID');
 class SyncMsgBuilder {
 
   /** no validation test */
@@ -174,6 +175,7 @@ class SyncMsg {
     const encoded = EncoderUtil.encodeToNetwork(msg);
     return encoded;
   }
+
 }
 
 /**

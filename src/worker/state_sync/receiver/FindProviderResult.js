@@ -15,6 +15,10 @@ class FindProviderResult {
    * @param {Array<PeerInfo>} providerList
    */
   addProviderResult(engCid, providerList) {
+    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
+    console.log("provider list empty ? " , providerList);
+    console.log("providerlist size : " + providerList.length);
+    console.log("&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&")
     const key = engCid.getKeccack256();
     this._map[key] = {providers: providerList, ecid: engCid};
   }
@@ -42,6 +46,13 @@ class FindProviderResult {
   }
   getProvidersMap() {
     return this._map;
+  }
+  getProvidersFor(ecid){
+    const key = ecid.getKeccack256();
+    if(this._map[key]){
+      return this._map[key].providers;
+    }
+    return null;
   }
   getKeysList(){
     return Object.keys(this._map);

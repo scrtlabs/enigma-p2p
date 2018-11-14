@@ -20,6 +20,7 @@ const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
+const EngCid = require('../../common/EngCID');
 // api
 // const P2PApi = require('./P2PApi');
 // actions
@@ -456,18 +457,54 @@ class NodeController {
     });
   }
   /** TEMP */
-  identifyMissingStates(){
+  identifyMissingStates(callback){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
       cache : false,
       onResponse : (err , missingStatesMsgsMap) =>{
+        if(callback){
+          return callback(err,missingStatesMsgsMap);
+        }
         console.log("err? " + err + " -> local tips final callback : ");
         for(let ecidHash in missingStatesMsgsMap){
+          console.log(" ----------- contract 1 --------------------- ");
           let contractMsgs = missingStatesMsgsMap[ecidHash];
           for(let i=0;i<contractMsgs.length;++i){
+            console.log("---- msg ----- ");
             console.log(contractMsgs[i].toPrettyJSON());
           }
         }
       }
+    });
+  }
+  /** full receiver trip **/
+  findProvidersReal(ecidList, callback){
+    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
+      descriptorsList: ecidList,
+      next: callback,
+      isEngCid:  true
+    });
+  }
+  fullReceiver(){
+    this.identifyMissingStates((err,missingStatesMap)=>{
+      let ecids = [];
+      for(let addrKey in missingStatesMap){
+        let ecid = EngCid.createFromKeccack256(addrKey);
+        if(ecid){
+          console.log("will look for -> " + ecid.getKeccack256());
+          ecids.push(ecid);
+        }else{
+          this._logger.error("Error creating EngCid from " + addrKey);
+        }
+      }
+      this.findProvidersReal(ecids,findProviderResult=>{
+        console.log("######################################################3")
+        console.log("complete error ? " , findProviderResult.isCompleteError())
+        console.log("is some error ? " , findProviderResult.isErrors());
+        console.log(findProviderResult.getProvidersMap());
+        // console.log(findProviderResult.getProvidersFor(ecids[0]));
+        console.log("######################################################3")
+        console.log("found providers. found missing states.");
+      });
     });
   }
   /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
