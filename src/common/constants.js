@@ -27,7 +27,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'ANNOUNCE_LOCAL_STATE' : 'alc', // announce local state (after being synced)
   'DB_REQUEST' : 'dbreq', // some db request to core
   'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
-  'GET_ALL_ADDRS' : 'getaa' // get all addrs from cache/core
+  'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
+  'GET_DELTAS' : 'getds' // get deltas request from core
 };
 
 /** DO NOT CHANGE THE VALUES */
@@ -118,5 +119,6 @@ module.exports.CORE_REQUESTS = {
   GetAllTips : 'GetAllTips',
   GetAllAddrs : 'GetAllAddrs',
   GetDelta : 'GetDelta',
+  GetDeltas : 'GetDeltas',
   GetContract : 'GetContract'
 };
