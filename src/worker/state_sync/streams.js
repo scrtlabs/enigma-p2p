@@ -1,6 +1,32 @@
 const Verifier = require('./receiver/StateSyncReqVerifier');
 const EncoderUtil = require('../../common/EncoderUtil');
-
+const constants = require('../../common/constants');
+const SyncMsgMgmgt = require('../../policy/p2p_messages/sync_messages');
+const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
+/**
+ * global methods
+ * */
+/**
+ * @param {JSON} globalState - a global state the is accessible to all of the stream methods.
+ * @param {Receiver/Provider} context - access other methods i.e db requests
+ * @param {Logger} logger
+ * */
+const globalState = {
+  context : null,
+  logger : null,
+};
+/**
+ * Set the global state, this function will be executed only once
+ * regardless of the amount of times it is being called.
+ * */
+module.exports.setGlobalState = (state)=>{
+  if(state.context && globalState.context === null){
+    globalState.context = state.context;
+  }
+  if(state.logger && globalState.logger === null){
+    globalState.logger = state.logger;
+  }
+};
 /**
  * Actuall streams implementation
  * */
@@ -29,6 +55,7 @@ module.exports.fromDbStream = (read) =>{
 /**
  * parses the data from the requester into a format that core can read
  * this is preperation before loading the deltas from the db.
+ * the data here gets one by one from remote. (i.e for list of request, this is activated for each request)
  * @param {stream} read
  * @return {function()}
  * */
@@ -93,7 +120,7 @@ function _toNetworkSyncReqParser(read) {
       });
   };
 }
-function _fakeParseFromDbToNetwork(dbResult, callback) {
+function _fakeParseFromDbToNetwork(dbResult, callback){
   //TODO:: add toNetwork() method to all the dbResults.
   dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
@@ -119,9 +146,25 @@ function _toNetworkParse(read) {
     });
   };
 }
-function _fakeFromDbStream(data, callback) {
-  const dbResult = data;
+function _fakeFromDbStream(syncReqMsg, callback){
+  // TODO:: create a db call ...
+  // TODO:: validate that the range < limit here or somewhere else.
+  const dbResult = syncReqMsg.toPrettyJSON();
   const isError = null;
+  let queryType = null;
+  if(syncReqMsg.msgType === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
+    queryType = constants.CORE_REQUESTS.GetContract;
+  }else if(syncReqMsg.msgType === constants.P2P_MESSAGES.SYNC_STATE_REQ){
+    queryType = constants.CORE_REQUESTS.GetDelta;
+  }else{
+
+  }
+  globalState.context.dbRequest({
+    queryType : constants.CORE_REQUESTS.,
+    onResponse : (ctxErr,dbResult) =>{
+      callback(ctxErr,parsedData)
+    }
+  });
   callback(isError, dbResult);
 }
 
@@ -135,7 +178,7 @@ function _fromDbStream(read) {
             console.log('error in fakeFromDbStream');
             cb(err, null);
           } else {
-            cb(end, data);
+            cb(end, dbResult);
           }
         });
       } else {
@@ -147,14 +190,21 @@ function _fromDbStream(read) {
 
 // used by _requestParserStream() this should parse the msgs from network
 // into something that core can read and load from db
-function _fakeRequestParser(data, callback) {
+function _fakeRequestParser(data, callback){
+  let err = null;
+  //TODO:: validate network input validity
   data = EncoderUtil.decode(data);
-  const parsedData = JSON.parse(data);
-  const err = null;
-  callback(err, parsedData);
+  let parsedData = JSON.parse(data);
+  if(parsedData.msgType === constants.P2P_MESSAGES.SYNC_STATE_REQ){
+    parsedData = SyncMsgBuilder.stateReqFromObjNoValidation(parsedData);
+  }else if(parsedData.msgType === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
+    parsedData = SyncMsgBuilder.bCodeReqFromObjNoValidation(parsedData);
+  }else{
+    err = 'error building request message';
+  }
+  return callback(err, parsedData);
 }
-
-function _requestParserStream(read) {
+function _requestParserStream(read){
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data != null) {
@@ -170,7 +220,7 @@ function _requestParserStream(read) {
       }
     });
   };
-};
+}
 
 // used by _toDbStream()
 // TODO:: replace with some real access to core/ipc
