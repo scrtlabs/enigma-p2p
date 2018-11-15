@@ -174,6 +174,9 @@ class SyncMsg {
   constructor(rawMsg){
     this._rawMsg = rawMsg;
   }
+  type(){
+    return this._rawMsg.msgType;
+  }
   toJSON(){
     return JSON.stringify(this._rawMsg);
   }
