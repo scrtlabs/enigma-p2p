@@ -1,12 +1,12 @@
 module.exports.TEST_TREE = {
   'basic' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'ipc' :{
-    'all' : true,
+    'all' : false,
     '#1' : true
   },
   'coverage' : {
@@ -15,7 +15,7 @@ module.exports.TEST_TREE = {
     '#2' : true
   },
   'cache' :{
-    'all' : true,
+    'all' : false,
     '#1' : true
   },
   'ethereum' : {
