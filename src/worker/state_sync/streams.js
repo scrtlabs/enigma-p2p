@@ -1,5 +1,24 @@
 const Verifier = require('./receiver/StateSyncReqVerifier');
-const EncoderUtil = require('../../common/EncoderUtil');;
+const EncoderUtil = require('../../common/EncoderUtil');
+
+let globalState={
+  inited : false,
+  logger : null,
+};
+/**
+ * General methods for streams
+ * */
+/**
+ * @param {Logger} logger
+ * */
+module.exports.setGlobalState = (state)=>{
+  globalState.inited = true;
+  globalState.logger = state.logger;
+};
+/**
+ * Actuall streams implementation
+ * */
+
 /**
  * from providerStream => verify (consensus)
  * @param {stream} read
@@ -62,7 +81,7 @@ function _throughDbStream(read){
       if(data != null){
         fakeSaveToDb(data,(status)=>{
           if(!status){
-            console.log('some fake error saving to db ');
+            globalLogger.debug("some fake error saving to db ");
             throw end;
           }else{
             cb(end,data);
@@ -89,6 +108,8 @@ function _toNetworkSyncReqParser(read) {
   };
 }
 function _fakeParseFromDbToNetwork(dbResult, callback) {
+  //TODO:: add toNetwork() method to all the dbResults.
+  dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
   const isError = null;
   callback(isError, parsed);
@@ -141,7 +162,8 @@ function _fromDbStream(read) {
 // used by _requestParserStream() this should parse the msgs from network
 // into something that core can read and load from db
 function _fakeRequestParser(data, callback) {
-  const parsedData = data;
+  data = EncoderUtil.decode(data);
+  const parsedData = JSON.parse(data);
   const err = null;
   callback(err, parsedData);
 }

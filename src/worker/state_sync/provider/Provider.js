@@ -8,9 +8,9 @@ const streams = require('../streams');
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
-
     this._enigmaNode = enigmaNode;
     this._logger = logger;
+
   }
   /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
