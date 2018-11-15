@@ -11,7 +11,7 @@ const constants = require('../common/constants');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const GetAllTipsAction = require('./actions/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/GetAllAddrsAction');
-
+const GetDeltasAction = require('./actions/GetDeltasAction');
 class CoreRuntime{
   constructor(config){
     if(config.uri)
@@ -28,6 +28,7 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.GetAllTips] : new GetAllTipsAction(this),
       [constants.CORE_REQUESTS.GetAllAddrs] : new GetAllAddrsAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
+      [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
       [constants.CORE_REQUESTS.GetContract] : null,
     };
   }

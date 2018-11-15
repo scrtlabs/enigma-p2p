@@ -152,20 +152,25 @@ function _fakeFromDbStream(syncReqMsg, callback){
   const dbResult = syncReqMsg.toPrettyJSON();
   const isError = null;
   let queryType = null;
-  if(syncReqMsg.msgType === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
+  if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
+    //TODO:: GetContract dont exist yet.
+    return callback(null, "bytecode result not implemented yet :-(");
+    // throw new Error("GetContract not implemented yet!");
     queryType = constants.CORE_REQUESTS.GetContract;
-  }else if(syncReqMsg.msgType === constants.P2P_MESSAGES.SYNC_STATE_REQ){
-    queryType = constants.CORE_REQUESTS.GetDelta;
+  }else if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ){
+    queryType = constants.CORE_REQUESTS.GetDeltas;
   }else{
-
+    // TODO:: handle error
+    console.log("[-] error in _fakeFromDbStream");
   }
   globalState.context.dbRequest({
-    queryType : constants.CORE_REQUESTS.,
+    queryType : queryType,
+    query : syncReqMsg,
     onResponse : (ctxErr,dbResult) =>{
-      callback(ctxErr,parsedData)
+      callback(ctxErr,dbResult)
     }
   });
-  callback(isError, dbResult);
+  // callback(isError, dbResult);
 }
 
 // fake load from the database, this will return the deltas for the requester
