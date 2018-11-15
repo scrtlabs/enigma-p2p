@@ -23,10 +23,11 @@ module.exports.loadConfig = function(path) {
 };
 /** WIP - build the Node given a config object
  * @param {Json} config
+ * @param {Logger} logger
  * @return {EnigmaNode} engNode
  * */
-module.exports.build = function(config) {
-  return _buildNode(config);
+module.exports.build = function(config,logger) {
+  return _buildNode(config,logger);
 };
 
 function _loadConfig(path) {
@@ -39,7 +40,7 @@ function _loadConfig(path) {
   return Object.assign({}, config, {});
 }
 
-function _buildNode(config) {
+function _buildNode(config,logger) {
   const options = {};
   options.isDiscover = config.isDiscover;
   const maAddrs = config.multiAddrs;
@@ -55,6 +56,6 @@ function _buildNode(config) {
     options.multiAddrs.push(ma+options.port);
   });
 
-  return new EnigmaNode(options, new ProtocolHandler());
+  return new EnigmaNode(options, new ProtocolHandler(logger),logger);
 };
 

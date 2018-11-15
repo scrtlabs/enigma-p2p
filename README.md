@@ -60,7 +60,43 @@ To launch a worker(s) in a different terminal type:
 # Running the tests
 * TBD
 # How it works
-* TBD
+
+## Overview on start 
+At a very high level, the Worker need to execute a sequence of steps 
+and only then it can start "Working". Here is a diagram explaining all of the initial steps the Worker has to do: 
+
+<img src="docs/start_flow.jpg"
+     alt="Implementation 4" />
+
+* Start
+   
+Starting the node after Core. Set some configurations such as network settings, Ethereum wallet etc.
+
+* Bootstrap
+
+Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
+
+* Persistent Discovery
+
+ervice that always alive and optimizes for "Optimal DHT" state
+(i.e take care of connection stability.)
+
+* Sync State
+
+Synchronize the Worker state. (Secret contracts bytecode and deltas.)
+
+* Announce State 
+
+Update the DHT registries with the content available (i.e deltas) for other peers to sync.
+
+* Background Services 
+
+Such as Ethereum listener, JSonRpcAPI etc.
+
+* Register 
+
+Register with Enigma.sol with all the required steps including Enclave Report.
+
 ## Peer Discovery
 * TBD
 ## Syncing a Worker

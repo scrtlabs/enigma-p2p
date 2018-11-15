@@ -10,10 +10,7 @@
 
 const constants = require('../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
-const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
-const STAT_TYPES = constants.STAT_TYPES;
-const EnigmaNode = require('../EnigmaNode');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
 const ConnectionManager = require('../handlers/ConnectionManager');
@@ -23,6 +20,7 @@ const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
+const EngCid = require('../../common/EngCID');
 // api
 // const P2PApi = require('./P2PApi');
 // actions
@@ -36,6 +34,12 @@ const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
+const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
+const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
+const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
+const DbRequestAction = require('./actions/sync/DbRequestAction');
+const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -75,10 +79,15 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
-      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell ntw what cids are available for sync
+      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell the network what cids are available for sync
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
-      // (same during handshake but isolated)
+      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
+      [NOTIFICATION.GET_ALL_TIPS] : new GetAllTipsAction(this),
+      [NOTIFICATION.TRY_RECEIVE_ALL] : new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
+      [NOTIFICATION.DB_REQUEST] : new DbRequestAction(this), // all the db requests to core should go through here.
+      [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
+      [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
     };
   }
   /**
@@ -90,27 +99,32 @@ class NodeController {
    * @param {string} configPath
    * @return {NodeController}
    */
-  static initDefaultTemplate(options, configPath) {
+  static initDefaultTemplate(options, logger) {
     // create EnigmaNode
     let path = null;
 
-    if (configPath) {
-      path = configPath;
+    if (options.configPath) {
+      path = options.configPath;
     }
 
     // with default option (in constants.js)
-
-    const logger = new Logger();
+    // const logger = new Logger({pretty:true});
+    let _logger = null;
+    if(logger){
+      _logger = logger;
+    }else{
+      _logger = new Logger();
+    }
 
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
-    const enigmaNode = WorkerBuilder.build(finalConfig);
+    const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
 
     // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode);
+    const connectionManager = new ConnectionManager(enigmaNode,_logger);
 
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, logger);
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
   _initController() {
     this._initEnigmaNode();
@@ -211,6 +225,14 @@ class NodeController {
   /***********************
    * public methods
    *********************/
+  /** start the node */
+  async start(){
+    await this.engNode().syncRun();
+  }
+  /*** stop the node */
+  async stop(){
+    await this.engNode().syncStop();
+  }
   /**
    * "Runtime Id" required method for the main controller
    * @returns {String}
@@ -247,6 +269,9 @@ class NodeController {
    * */
   cache(){
     return this._cache;
+  }
+  logger(){
+    return this._logger;
   }
   engNode() {
     return this._engNode;
@@ -325,6 +350,7 @@ class NodeController {
 
     this._actions[NOTIFICATION.CONTENT_ANNOUNCEMENT].execute({
       descriptorsList: descriptorsList,
+      isEngCid : false
     });
   }
   /** temp */
@@ -353,12 +379,15 @@ class NodeController {
     this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
       descriptorsList: descriptorsList,
       next: onResult,
+      isEngCid:  false
     });
   }
+
   /** temp */
-  findContentAndSync() {
+  findContentAndSync(){
     const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    this.receiver().findProvidersBatch(descriptorsList, (findProvidersResult)=>{
+    let isEngCid = false;
+    this.receiver().findProvidersBatch(descriptorsList, isEngCid,(findProvidersResult)=>{
       if (findProvidersResult.isErrors()) {
         throw new Error('failed finding providers there is some error');
       } else {
@@ -367,7 +396,13 @@ class NodeController {
           if (map.hasOwnProperty(key)) {
             // const ecid = map[key].ecid;
             const providers = map[key].providers;
-            this.receiver().startStateSyncRequest(providers[0], ['addr1']);
+            // this.receiver().startStateSyncRequest(providers[0], ['addr1','addr2']);
+            let list = [];
+            this.receiver().trySyncReceive(providers,descriptorsList,(err,isDone,resultList)=>{
+              console.log("[finalCallback] is err? " + err );
+              console.log("[finalCallback] is done? " + isDone );
+              console.log('[finalCallback] : ' + resultList);
+            });
             break;
           }
         }
@@ -398,6 +433,109 @@ class NodeController {
       onResponse: onResponse,
       maxPeers: maxPeers,
     });
+  }
+  /**
+   * returns the current local tips
+   * @param {Boolean} fromCache , if true => use cache , false=> directly from core
+   * @param {Function} onResponse , (missingStates) =>{}
+   * */
+  getAllLocalTips(fromCache, onResponse){
+    this._actions[NOTIFICATION.GET_ALL_TIPS].execute({
+      queryType : constants.CORE_REQUESTS.GetAllTips,
+      onResponse : onResponse,
+      cache : fromCache
+    });
+  }
+  /** TEMP */
+  identifyMissingStates(callback){
+    this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
+      cache : false,
+      onResponse : (err , missingStatesMsgsMap) =>{
+        if(callback){
+          return callback(err,missingStatesMsgsMap);
+        }
+        console.log("err? " + err + " -> local tips final callback : ");
+        for(let ecidHash in missingStatesMsgsMap){
+          console.log(" ----------- contract 1 --------------------- ");
+          let contractMsgs = missingStatesMsgsMap[ecidHash];
+          for(let i=0;i<contractMsgs.length;++i){
+            console.log("---- msg ----- ");
+            console.log(contractMsgs[i].toPrettyJSON());
+          }
+        }
+      }
+    });
+  }
+  /** full receiver trip **/
+  findProvidersReal(ecidList, callback){
+    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
+      descriptorsList: ecidList,
+      next: callback,
+      isEngCid:  true
+    });
+  }
+  fullTryReceiveAll(allMissingDataList,callback){
+   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL,{
+     allMissingDataList : allMissingDataList,
+     onFinish : (err,allResults)=>{
+        callback(err,allResults)
+     }
+   });
+  }
+  fullReceiver(){
+    this.identifyMissingStates((err,missingStatesMap)=>{
+      let ecids = [];
+      let tempEcidToAddrMap = {};
+      for(let addrKey in missingStatesMap){
+        let ecid = EngCid.createFromKeccack256(addrKey);
+        if(ecid){
+          //TODO:: every EngCid should expose the addr as a built
+          //TODO:: in method
+          tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
+          ecids.push(ecid);
+        }else{
+          this._logger.error("error creating EngCid from " + addrKey);
+        }
+      }
+      this.findProvidersReal(ecids,findProviderResult=>{
+        if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
+          return console.log("[-] some error finding providers !!!!!!");
+        }
+        // parse to 1 object: cid => {providers, msgs} -> simple :)
+        let allReceiveData = [];
+        let providersMap = findProviderResult.getProvidersMap();
+        ecids.forEach(ecid=>{
+          allReceiveData.push({
+            requestMessages : missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]] ,
+            providers : findProviderResult.getProvidersFor(ecid)
+          });
+        });
+        // now we have providers and all the messages ready. we can connect and sync.
+        this.fullTryReceiveAll(allReceiveData, (err,AllResults)=>{
+          //TODO:: check the sync status
+          // that's it basically.
+          console.log("success synching all.");
+        });
+      });
+    });
+  }
+  /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
+  tryAnnounce(){
+    //test_real_announce
+    // AnnounceLocalStateAction
+    this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
+      cache : false,
+      onResponse : (error,content)=>{
+        if(error){
+          console.log("err providing!@!!!! " , error);
+        }else{
+          console.log("final success providing: ");
+          content.forEach(ecid=>{
+            console.log("providing => " + ecid.getKeccack256());
+          });
+        }
+      }
+    })
   }
 }
 module.exports = NodeController;

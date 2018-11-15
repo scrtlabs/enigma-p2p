@@ -1,12 +1,17 @@
 const nodeUtils = require('../common/utils');
 const zmq = require('zeromq');
 const EventEmitter = require('events').EventEmitter;
+const constants = require('../common/constants');
 
 class IpcClient extends EventEmitter {
   constructor(uri) {
     super();
     this._socket = zmq.socket('req');
     this._uri = uri;
+    // map msg id's for sequential tasks
+    // delete the callbacks after use.
+    this._msgMapping = {};
+    this._initContextListener();
   }
   connect() {
     this._socket.connect(this._uri);
@@ -21,6 +26,33 @@ class IpcClient extends EventEmitter {
     }
     this._socket.send(msg);
   }
+  _initContextListener(){
+    this._socket.on('message',(msg)=>{
+      msg = JSON.parse(msg);
+      let callback = this._msgMapping[msg.id];
+      if(callback){
+        callback(msg);
+        // clear memory
+        this._msgMapping[msg.id] = null;
+      }
+    });
+  }
+  /** Send a JSON message and trigger a callback once there's a response.
+   * A unique msg.id is used to identify each response and its callback
+   * @param {JSON} msg, must have id field
+   * @param {Function} callback , (msg)=>{}
+   * */
+  sendJsonAndReceive(msg,callback){
+    this._msgMapping[msg.id] = callback;
+    if(!nodeUtils.isString(msg)){
+      msg = JSON.stringify(msg);
+    }
+    this._socket.send(msg);
+  }
+  /** General response callback that will be called for every incoming message
+   * Usage example - logging
+   * @param {Function} responseCallback
+   * */
   setResponseHandler(responseCallback) {
     this._socket.on('message', (msg)=>{
       msg = JSON.parse(msg);

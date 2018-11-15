@@ -1,7 +1,13 @@
 const nodeUtils = require('../../common/utils');
 
 class Envelop {
+
+  /** @param {Boolean/string} sequenceOrId
+   *  -- if sequenceOrId is True generate new random id, if sequenceOrId is a string=> it is already id. (hence the name ;-) )
+   *  @param {Object} obj, the data being passed
+   *  @param {string} msgType , used by the MainController to identify which runtime should be called */
   constructor(sequenceOrId, obj, msgType) {
+    //TODO:: this does not actually THROW it just hangs in there without any signal
     if (!sequenceOrId || !obj || !msgType) {
       throw new Error('sequenceOrId,obj,msgType must be specified!');
     }
@@ -13,6 +19,11 @@ class Envelop {
       this._id = sequenceOrId;
     } else if (sequenceOrId === true) { // initialize a request with id for response
       this._id = nodeUtils.randId();
+    }
+
+    // attach id to msg if missing
+    if(!('id' in this._obj) && this._id !== false){
+      this._obj.id = this._id;
     }
   }
   type() {

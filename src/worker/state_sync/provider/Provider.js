@@ -8,22 +8,25 @@ const streams = require('../streams');
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
-
     this._enigmaNode = enigmaNode;
     this._logger = logger;
+
   }
   /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
      * currently it's secret contract addresses
+     * //TODO:: remove withEngCid to default true, leave now for compatability
+     * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback - (err,listOfFailedEngCIDs) = >{}
      * */
-  provideContentsBatch(descriptorsList, callback) {
-    const engCIDs = descriptorsList.map((desc)=>{
-      const h = CIDUtil.hashKeccack256(desc);
-      return EngCID.createFromKeccack256(h);
-    });
-
-
+  provideContentsBatch(descriptorsList, withEngCid ,callback) {
+    let engCIDs = descriptorsList;
+    if(!withEngCid){
+      engCIDs = descriptorsList.map((desc)=>{
+        const h = CIDUtil.hashKeccack256(desc);
+        return EngCID.createFromKeccack256(h);
+      });
+    }
     const jobs = [];
 
     engCIDs.forEach((ecid)=>{

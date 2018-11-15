@@ -5,14 +5,14 @@ const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy extends EventEmitter {
-  constructor() {
+  constructor(){
     super();
     this._version = '0.1';
     // TODO:: define from config
     this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE;
     this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS.OPTIMAL_DHT_SIZE;
     this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS.CRITICAL_HIGH_DHT_SIZE;
-    this._TIMEOUT_FIND_PROVIDERS = constants.DHT_STATUS.TIMEOUT_FIND_PROVIDER;
+    this._TIMEOUT_FIND_PROVIDERS = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
   }
   /** get the optimal number of outbound connections
    * @return {Integer}

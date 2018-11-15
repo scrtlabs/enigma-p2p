@@ -11,7 +11,8 @@ class AnnounceContentAction{
 
   execute(params) {
     const descriptorsList = params.descriptorsList;
-    this._controller.provider().provideContentsBatch(descriptorsList, (err, failedCids)=>{
+    const isEngCid = params.isEngCid;
+    this._controller.provider().provideContentsBatch(descriptorsList, isEngCid,(err, failedCids)=>{
       if (err) {
         console.log('[-] err %s couldnt provide at all. failed cids %s ', err, failedCids.length);
       } else {
@@ -20,5 +21,4 @@ class AnnounceContentAction{
     });
   }
 }
-
 module.exports = AnnounceContentAction;

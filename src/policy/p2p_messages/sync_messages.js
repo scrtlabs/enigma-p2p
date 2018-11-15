@@ -2,8 +2,22 @@ const constants = require('../../common/constants');
 const MSG_TYPES = constants.P2P_MESSAGES;
 const schemeValidator = require('./schemes/SchemeValidator');
 const EncoderUtil = require('../../common/EncoderUtil');
-
+const waterfall = require('async/waterfall');
+const EngCid = require('../../common/EngCID');
 class SyncMsgBuilder {
+
+  /** no validation test */
+  static batchStateReqFromObjsNoValidation(msgsObjList){
+    return msgsObjList.map(m=>{
+      m.msgType = MSG_TYPES.SYNC_STATE_REQ;
+      return new SyncStateReqMsg(m);
+    });
+  }
+  static bCodeReqFromObjNoValidation(msgObj){
+    msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
+    return new SyncBcodeReqMsg(msgObj);
+  }
+  /** no validation test */
   /**
      * from network stream
      * @param {Array<Integer>} networkMsg , a StateSyncReq msg
@@ -26,9 +40,8 @@ class SyncMsgBuilder {
     }
   }
   static _parseFromNetwork(networkMsg) {
-    const decoded = EncoderUtil.decodeFromNetwork(networkMsg);
-    const obj = JSON.parse(decoded);
-    return obj;
+    const decoded = EncoderUtil.decode(networkMsg);
+    return JSON.parse(decoded);
   }
   /**
      * from regular object in the code (JSON)
@@ -47,6 +60,41 @@ class SyncMsgBuilder {
       callback(err, message);
     });
   }
+  static batchStateReqFromObjs(msgsObjList,callback){
+    if(msgsObjList.length < 1){
+      return callback("empty msg list");
+    }
+    let jobs = [];
+    // init first jobs
+    jobs.push(cb=>{
+      SyncMsgBuilder.stateReqFromObj(msgsObjList[0], (err,msg)=>{
+        if(err){
+          return cb(err);
+        }else{
+          let results = [];
+          results.push(msg);
+          return cb(err,results);
+        }
+      });
+    });
+    // init rest of the jobs
+    for(let i=1;i<msgsObjList.length;i++){
+      jobs.push((results,cb)=>{
+        SyncMsgBuilder.stateReqFromObj(msgs[i], (err,msg)=>{
+          if(err){
+            return cb(err);
+          }else{
+            results.push(msg);
+            return cb(err,results);
+          }
+        });
+      });
+    }
+    // execute jobs
+    waterfall(jobs,(err,results)=>{
+      return callback(err,results);
+    });
+  }
   static bCodeReqFromNetwork(networkMsg, callback) {
     const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
     if (obj) {
@@ -58,7 +106,11 @@ class SyncMsgBuilder {
   static bCodeReqFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
     SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_REQ, msgObj, (err, message)=>{
-      callback(err, message);
+      if(err){
+        return callback(err);
+      }else{
+        return callback(null, message);
+      }
     });
   }
   static bCodeResFromNetwork(networkMsg, callback) {
@@ -81,7 +133,7 @@ class SyncMsgBuilder {
   static _buildMsg(msgType, msgObj, callback) {
     SyncMsgBuilder._isValidScheme(msgType, msgObj, (err, isValid)=>{
       if (err) {
-        callback(err);
+        return callback(err);
       } else {
         if (isValid) {
           switch (msgType) {
@@ -120,9 +172,9 @@ class SyncMsg {
      * @return {Array<Integer>} encoded and seriallized msgpack array of the msg*/
   toNetwork() {
     const msg = this.toJSON();
-    const encoded = EncoderUtil.encodeToNetwork(msg);
-    return encoded;
+    return EncoderUtil.encode(msg);
   }
+
 }
 
 /**
@@ -213,7 +265,6 @@ module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 
 /** mini tests */
 
-
 /** bcode sync */
 
 // let state_bcode_req = {
@@ -294,4 +345,36 @@ module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 //     // });
 // });
 
+
+/** batch state sync request */
+// let state_sync_req_obj = {
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
+// };
+// let msgs = [];
+// for(let i=0;i<15;++i){
+//   msgs.push(state_sync_req_obj);
+// }
+// SyncMsgBuilder.batchStateReqFromObjs(msgs,(err,results)=>{
+//   console.log("is err? " + err);
+//   results.forEach(res=>{
+//     console.log(res.contractAddress());
+//   });
+// });
+
+
+// let state_sync_req_obj = {
+//     contractAddress : '0x...',
+//     fromIndex: 1,
+//     toIndex : 101,
+//     fromHash : '0x...',
+//     toHash : '0x...'
+// };
+// const msg = this.toJSON();
+// const encoded = EncoderUtil.encodeToNetwork(msg);
+// console.log(encoded);
+// let b= Buffer.from(encoded);
 

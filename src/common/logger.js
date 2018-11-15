@@ -9,6 +9,8 @@ class Logger {
     this._options.level = LOG_CONFIG.level;
     this._options.cli = LOG_CONFIG.cli;
     this._options.file = LOG_CONFIG.file;
+    this._options.pretty =false;
+
     if (options != undefined) {
       if (options.level !== undefined) {
         this._options.level = options.level;
@@ -18,6 +20,9 @@ class Logger {
       }
       if (options.file !== undefined) {
         this._options.file = options.file;
+      }
+      if(options.cli === undefined && options.pretty === true){
+        this._options.pretty = true;
       }
     }
 

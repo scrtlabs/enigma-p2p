@@ -1,21 +1,24 @@
 module.exports.TEST_TREE = {
   'basic' : {
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'ipc' :{
-    'all' : false,
-    '#1' : true
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
   },
   'coverage' : {
     'all' : true,
     '#1' : true,
-    '#2' : true
+    '#2' : true,
+    '#3' : true,
   },
   'cache' :{
-    'all' : false,
+    'all' : true,
     '#1' : true
   },
   'ethereum' : {
@@ -24,3 +27,4 @@ module.exports.TEST_TREE = {
     '#2' : true,
   }
 };
+

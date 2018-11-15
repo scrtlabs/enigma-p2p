@@ -6,7 +6,6 @@ class EngCID {
     this._encoder = encoder;
     this._cid = null;
   }
-
   static createFromKeccack256(keccack256Hash) {
     const cid = CIDUtil.createCID(keccack256Hash);
     if (cid) {
@@ -16,7 +15,6 @@ class EngCID {
     }
     return null;
   }
-
   static createFromNetwork(encodedB58byteArray) {
     const b58 = EncoderUtil.decodeFromNetwork(encodedB58byteArray);
     const cid = CIDUtil.createCIDFromB58(b58);

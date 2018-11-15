@@ -61,4 +61,3 @@ class DbUtils {
 }
 
 module.exports = DbUtils;
-

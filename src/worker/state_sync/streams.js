@@ -1,4 +1,9 @@
 const Verifier = require('./receiver/StateSyncReqVerifier');
+const EncoderUtil = require('../../common/EncoderUtil');
+
+/**
+ * Actuall streams implementation
+ * */
 
 /**
  * from providerStream => verify (consensus)
@@ -46,20 +51,51 @@ module.exports.toNetworkParser = (read) =>{
 module.exports.toNetworkSyncReqParser = (read)=>{
   return _toNetworkSyncReqParser(read);
 };
-
-function _toNetworkSyncReqParser(read) {
-  return function readble(end, cb) {
-    read(end, (end, data)=>{
-      if (data != null) {
-        // TODO:: parse the msg to msgpack serialization
-        cb(end, data);
-      } else {
-        cb(end, null);
+/**
+ * used by the receiver yo store the deltas into db
+ * //TODO:: replace the old toDbStream
+ * After verificationStream => into db
+ * @param {stream} read
+ * @return {function()}
+ * */
+module.exports.throughDbStream = (read)=>{
+  return _throughDbStream(read);
+};
+function _throughDbStream(read){
+  return function readble(end,cb){
+    read(end,(end,data)=>{
+      if(data != null){
+        fakeSaveToDb(data,(status)=>{
+          if(!status){
+            console.log("some fake error saving to db ");
+            throw end;
+          }else{
+            cb(end,data);
+          }
+        });
+      }else{
+        cb(end,null);
       }
     });
   };
 }
+
+function _toNetworkSyncReqParser(read) {
+  return function readble(end, cb) {
+      read(end, (end, data) => {
+        if (data != null) {
+          // TODO:: every method must have toNetwork();
+          // TODO:: parse the msg to msgpack serialization + buffer
+          cb(end, data.toNetwork());
+        } else {
+          cb(end, null);
+        }
+      });
+  };
+}
 function _fakeParseFromDbToNetwork(dbResult, callback) {
+  //TODO:: add toNetwork() method to all the dbResults.
+  dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
   const isError = null;
   callback(isError, parsed);
@@ -112,7 +148,8 @@ function _fromDbStream(read) {
 // used by _requestParserStream() this should parse the msgs from network
 // into something that core can read and load from db
 function _fakeRequestParser(data, callback) {
-  const parsedData = data;
+  data = EncoderUtil.decode(data);
+  const parsedData = JSON.parse(data);
   const err = null;
   callback(err, parsedData);
 }
@@ -139,15 +176,17 @@ function _requestParserStream(read) {
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  console.log('[saveToDb] : ' + data);
+  console.log('[saveToDbStream] : ' + JSON.stringify(data));
   callback(status);
 }
+
+
+
 function _toDbStream(read) {
   read(null, function next(end, data) {
     if (end === true) return;
 
     if (end) throw end;
-
     // TODO:: placeholder - save states into db with core.
     fakeSaveToDb(data, (status)=>{
       if (!status) {
@@ -163,6 +202,8 @@ function _verificationStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data !=null) {
+        data = EncoderUtil.decode(data);
+        data = JSON.parse(data);
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
         new Verifier().verify(data, (isOk)=>{

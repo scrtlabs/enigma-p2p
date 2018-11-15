@@ -18,4 +18,5 @@ class DummyAction {
     }
   }
 }
+
 module.exports = DummyAction;

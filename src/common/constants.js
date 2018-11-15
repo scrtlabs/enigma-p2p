@@ -7,7 +7,6 @@ module.exports.LOG_CONFIG = {
   'file': 'peer.log',
   'cli': true,
 };
-
 module.exports.NODE_NOTIFICATIONS = {
   'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
   // (ready to be discovered) -> 'peer:discovery' event.
@@ -19,10 +18,19 @@ module.exports.NODE_NOTIFICATIONS = {
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
+  //TODO::'CONTENT_ANNOUNCEMENT' is temporary to support test cli
   'CONTENT_ANNOUNCEMENT': 'announce_content', // request to announce to the network the contents of cids
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
+  'IDENTIFY_MISSING_STATES_FROM_REMOTE' : 'identify', // identify the missing states, compare local with remote
+  'TRY_RECEIVE_ALL' : 'trcva', // try recieve all of the CID's
+  'ANNOUNCE_LOCAL_STATE' : 'alc', // announce local state (after being synced)
+  'DB_REQUEST' : 'dbreq', // some db request to core
+  'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
+  'GET_ALL_ADDRS' : 'getaa' // get all addrs from cache/core
 };
+
+/** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',
   'PEER_CONNECT': 'peer:connect',
@@ -36,6 +44,7 @@ module.exports.PROTOCOLS = {
   'STATE_SYNC': '/sync/0.1',
 };
 
+/** DO NOT CHANGE THE VALUES SINCE ITS PART OF THE PROTOCOL MESSAGE FIELDS */
 module.exports.P2P_MESSAGES = {
   'SYNC_STATE_REQ': 'SYNC_STATE_REQ',
   'SYNC_STATE_RES': 'SYNC_STATE_RES',
@@ -48,18 +57,22 @@ module.exports.PUBSUB_TOPICS = {
 };
 
 module.exports.DHT_STATUS = {
-  'CRITICAL_HIGH_DHT_SIZE': 20,
-  'OPTIMAL_DHT_SIZE': 8,
-  'CRITICAL_LOW_DHT_SIZE': 3,
-  'TIMEOUT_FIND_PROVIDER': 180000, // 3 minutes
+  CRITICAL_HIGH_DHT_SIZE: 20,
+  OPTIMAL_DHT_SIZE: 8,
+  CRITICAL_LOW_DHT_SIZE: 3,
 };
 module.exports.MSG_STATUS = {
-  'OK': 0,
-  'ERROR': 1,
-  'ERR_EMPTY_PEER_BANK': 2,
-  'ERR_SELF_DIAL': 3,
+  OK: 0,
+  ERROR: 1,
+  ERR_EMPTY_PEER_BANK: 2,
+  ERR_SELF_DIAL: 3,
 };
 
+module.exports.CONTENT_ROUTING = {
+  // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
+  RANGE_LIMIT : 10,
+  TIMEOUT_FIND_PROVIDER : 180000,// 3 minutes, t.o before declaring couldn't find content provider
+};
 /**
  * Stat Types:
  * - CONNECTION_SUCCESS // dial success
@@ -87,10 +100,23 @@ module.exports.RUNTIME_TYPE = {
     Ethereum : 'eth',
     JsonRpcApi : 'rpcApi'
 };
-// all the different requests that can be made to Core via the Ipc client
-module.exports.CORE_REUESTS = {
-    GetAllTips : 'GetAllTips'
+
+/** All the notificatiosn that the MainController can handle */
+module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
+  DbRequest : 'dbreq'
 };
-
-
-
+/** IPC core message types
+ * in /docs there is  a README called IPC_MESSAGES.md
+ * describing each message
+ * */
+// all the different requests that can be made to Core via the Ipc client
+module.exports.CORE_REQUESTS = {
+  GetRegistrationParams : 'GetRegistrationParams',
+  IdentityChallenge : 'IdentityChallenge',
+  GetTip : 'GetTip',
+  GetTips : 'GetTips',
+  GetAllTips : 'GetAllTips',
+  GetAllAddrs : 'GetAllAddrs',
+  GetDelta : 'GetDelta',
+  GetContract : 'GetContract'
+};

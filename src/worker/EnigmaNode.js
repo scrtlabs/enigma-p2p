@@ -18,12 +18,12 @@ const Logger = require('../common/logger');
 
 
 class EnigmaNode extends EventEmitter {
-  constructor(config, protocolHandler, loggerOptions) {
+  constructor(config, protocolHandler, logger) {
     super();
 
     // initialize logger
-    if (loggerOptions) {
-      this._logger = new Logger(loggerOptions);
+    if (logger) {
+      this._logger = logger;
     } else {
       this._logger = new Logger({
         'level': 'debug',
@@ -393,7 +393,7 @@ class EnigmaNode extends EventEmitter {
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
    * @param {String} protocolName , the protocl name /echo/1.0.1
-   * @param {Function} onConnection recieves (protocol,connection) =>{}
+   * @param {Function} onConnection recieves (err,connection) =>{}
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
@@ -553,10 +553,8 @@ class EnigmaNode extends EventEmitter {
     if (!this.started) {
       throw Error('Please start the Worker before providing content');
     }
-
     if (engCid) {
       const cid = engCid.getCID();
-
       this.node.contentRouting.provide(cid, (err)=>{
         callback(err, engCid);
       });
@@ -594,9 +592,9 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} connectionHandler (protocol,connection) =>{}
    */
   startStateSyncRequest(peerInfo, connectionHandler) {
-    this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
-      connectionHandler(protocol, connection);
-    });
+      this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
+        connectionHandler(protocol, connection);
+      });
   }
   /** TEMPORARY method
    * @param {String} protocolName
@@ -621,11 +619,11 @@ class EnigmaNode extends EventEmitter {
           pull.values([heartBeatRequest.toNetworkStream()]),
           conn,
           pull.collect((err, response)=>{
-            if (err) {
+            if (err){
               // TODO:: add Logger
               this._logger.error('[-] Err in collecting HBRes msg' + err);
               onResult(err, null);
-            } else {
+            }else{
               // validate HeartBeat Message response
               const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
               if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {

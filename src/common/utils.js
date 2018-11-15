@@ -8,6 +8,16 @@ const mafmt = require('mafmt');
 const multiaddr = require('multiaddr');
 const timestamp = require('unix-timestamp');
 
+
+/**
+ * Simply sleep
+ * @param {Integer} ms - milliseconds
+ * @example `await sleep(1000)` will sleep for a second and block.
+ * */
+module.exports.sleep = function(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 /** turn peerbook into parsed obj
  * @param {peerInfo} rawPeerBook
  * @return {Array}
