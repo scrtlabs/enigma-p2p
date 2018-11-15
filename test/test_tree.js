@@ -23,8 +23,7 @@ module.exports.TEST_TREE = {
   },
   'ethereum' : {
     'all' : true,
-    '#1' : true,
-    '#2' : true,
+    '#1' : true
   }
 };
 

@@ -50,7 +50,7 @@ async function init(truffleDirectory) {
             //gasPrice: '100000000000'
         });
 
-    console.log('using account', principal, 'as principal signer');
+    //console.log('using account', principal, 'as principal signer');
     
     let enigmaContract = new web3.eth.Contract(EnigmaContractJson.abi);
     enigmaContractInstance = await enigmaContract.deploy({

@@ -53,7 +53,7 @@
                 if (error) {
                     reject(error);
                 }
-                resolve(data);
+                resolve(parseInt(data));
             });
         })
     }
@@ -277,9 +277,9 @@
             'TaskRecordCreated' : (event) => {
                 return {
                     taskId: event.returnValues.taskId,
-                    fee: event.returnValues.fee,
+                    fee: parseInt(event.returnValues.fee),
                     tokenAddress: event.returnValues.token,
-                    tokenValue: event.returnValues.tokenValue,
+                    tokenValue: parseInt(event.returnValues.tokenValue),
                     senderAddress: event.returnValues.sender
                 };
             },
@@ -287,12 +287,20 @@
              * @return {JSON}: {Array<string>} taskIds , {Array<Integer>} fees, {Array<string>} tokenAddresses, 
              *                 {Array<Integer>} tokenValues, {string} senderAddress
              * */
-            'TaskRecordCreated' : (event) => {
+            'TaskRecordsCreated' : (event) => {
+                let parsedFees = [];
+                event.returnValues.fees.forEach(function(element) {
+                    parsedFees.push(parseInt(element));
+                  });
+                let parsedTokenValues = [];
+                event.returnValues.tokenValues.forEach(function(element) {
+                    parsedTokenValues.push(parseInt(element));
+                  });
                 return {
                     taskIds: event.returnValues.taskIds,
-                    fees: event.returnValues.fees,
+                    fees: parsedFees,
                     tokenAddresses: event.returnValues.tokens,
-                    tokenValues: event.returnValues.tokenValues,
+                    tokenValues: parsedTokenValues,
                     senderAddress: event.returnValues.sender
                 };
             },
