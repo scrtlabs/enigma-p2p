@@ -1,7 +1,7 @@
 const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 
-const EnigmaContractJson= require("./build/contracts/Enigma.json");
+const EnigmaContractJson= require("./build/contracts/EnigmaMock.json");
 const EnigmaTokenContractJson = require("./build/contracts/EnigmaToken.json");
 const testUtils = require('../../testUtils/utils');
 
@@ -83,10 +83,15 @@ async function start(truffleDirectory) {
     await startNetwork(truffleDirectory);
 }
 
+
 function stop(web3) {
-    web3.currentProvider.disconnect();
     subprocess.kill();
 }
 
 
-module.exports = {start : start, stop: stop, init: init}
+function disconnect(web3) {
+    web3.currentProvider.disconnect();
+}
+
+
+module.exports = {start : start, stop: stop, init: init, disconnect: disconnect}

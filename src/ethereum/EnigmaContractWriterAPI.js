@@ -148,7 +148,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     }
     /**
      * Worker commits the results on-chain
-     * @param {string} secrectContractAddress
+     * @param {string} secretContractAddress
      * @param {string} taskId
      * @param {string} inStateDeltaHash
      * @param {string} outStateDeltaHash
@@ -157,7 +157,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-    commitReceipt(secrectContractAddress, taskId, inStateDeltaHash, outStateDeltaHash, ethCall, signature, txParams) {
+    commitReceipt(secretContractAddress, taskId, inStateDeltaHash, outStateDeltaHash, ethCall, signature, txParams) {
         return new Promise((resolve, reject) => {
             let defaultOptions = config.default;
             let transactionOptions = defaultOptions;
@@ -170,7 +170,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
                 }
                 transactionOptions = defaultsDeep(txParams,defaultOptions);
             }
-            this._enigmaContract.methods.commitReceipt(secrectContractAddress, taskId, inStateDeltaHash, outStateDeltaHash, ethCall, signature)
+            this._enigmaContract.methods.commitReceipt(secretContractAddress, taskId, inStateDeltaHash, outStateDeltaHash, ethCall, signature)
                 .send(transactionOptions, (error, receipt)=> {
                 if (error) {
                     reject(error);
@@ -180,7 +180,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         })
     }
     /** same as above but for a batch */
-    commitReceipts(secrectContractAddresses, taskIds, inStateDeltaHashes, outStateDeltaHashes, ethCall, signature, txParams) {
+    commitReceipts(secretContractAddresses, taskIds, inStateDeltaHashes, outStateDeltaHashes, ethCall, signature, txParams) {
         return new Promise((resolve, reject) => {
             let defaultOptions = config.default;
             let transactionOptions = defaultOptions;
@@ -193,7 +193,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
                 }
                 transactionOptions = defaultsDeep(txParams,defaultOptions);
             }
-            this._enigmaContract.methods.commitReceipts(secrectContractAddresses, taskIds, inStateDeltaHashes, outStateDeltaHashes, ethCall, signature)
+            this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, inStateDeltaHashes, outStateDeltaHashes, ethCall, signature)
                 .send(transactionOptions, (error, receipt)=> {
                 if (error) {
                     reject(error);

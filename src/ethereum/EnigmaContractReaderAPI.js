@@ -84,7 +84,7 @@
                 if (error) {
                     reject(error);
                 }
-                resolve(data);
+                resolve(parseInt(data));
             });
         })
     }
@@ -215,7 +215,7 @@
 
         eventWatcher
             .on('data', (event)=>{
-                let result = this._eventParsers[eventName](event);
+                let result = this._eventParsers[eventName](event, this._web3);
                 callback(null ,result);
             })
             .on('changed', (e)=> {
@@ -233,7 +233,7 @@
      * */
     unsubscribeAll() {
         for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
-            console.log("unsubscribing " + eventName);
+            //console.log("unsubscribing " + eventName);
             eventWatcher.unsubscribe();
             }
         return true;
@@ -308,26 +308,28 @@
              * @return {JSON}: {string} taskId , {string} inStateDeltaHash, {string} outStateDeltaHash, 
              *                 {string} ethCall, {string} signature
              * */
-            'ReceiptVerified' : (event) => {
+            'ReceiptVerified' : (event, web3) => {
                 return {
                     taskId: event.returnValues.taskId,
                     inStateDeltaHash: event.returnValues.inStateDeltaHash,
                     outStateDeltaHash: event.returnValues.outStateDeltaHash,
                     ethCall: event.returnValues.ethCall,
-                    signature: event.returnValues.sig
+                    // TODO: why is this required?!
+                    signature: web3.utils.toChecksumAddress(event.returnValues.sig)
                 };
             },
             /**
              * @return {JSON}: {Array<string>} taskIds , {Array<string>} inStateDeltaHashes, {Array<string>} outStateDeltaHashes, 
              *                 {string} ethCall, {string} signature
              * */
-            'ReceiptVerified' : (event) => {
+            'ReceiptsVerified' : (event, web3) => {
                 return {
                     taskIds: event.returnValues.taskIds,
                     inStateDeltaHashes: event.returnValues.inStateDeltaHashes,
                     outStateDeltaHashes: event.returnValues.outStateDeltaHashes,
                     ethCall: event.returnValues.ethCall,
-                    signature: event.returnValues.sig
+                    // TODO: why is this required?!
+                    signature: web3.utils.toChecksumAddress(event.returnValues.sig)
                 };
             },
             /**
