@@ -7,15 +7,16 @@ class GetAllAddrsAction{
     this._coreRuntime = coreRuntime;
   }
   execute(envelop){
-    let client = this._coreRuntime.getIpcClient();
-    client.sendJsonAndReceive({
+    /***/
+    let request = {
       id : nodeUtils.randId(),
       type : Msg.GetAllAddrs
-    },(responseMsg)=>{
-      const resEnv = new Envelop(envelop.id(),responseMsg, envelop.type());
-      this._coreRuntime.getCommunicator()
-      .send(resEnv);
+    };
+    this._coreRuntime.execCmd(Msg.CORE_DB_READ_ACTION,{
+      envelop : envelop,
+      sendMsg : request,
     });
+    /***/
   }
 }
 module.exports = GetAllAddrsAction;
