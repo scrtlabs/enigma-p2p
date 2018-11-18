@@ -210,13 +210,12 @@ module.exports.partialDBStateFromEthereum = function(ethereumState, contractsNum
     const deltas = contract.deltas;
     const chosenDeltas = [];
 
-    for (let i =0; i< Math.min(deltas.length, deltasNumToTake); ++i) {
+    for (let i =0; i< Math.min(deltas.length, deltasNumToTake); ++i){
       chosenDeltas.push({
         'delta': deltas[i],
         'index': i,
       });
     }
-
     const contractByteAddr = contractByteAddrFromHash(contract.code_hash);
 
     // add contract bytecode
@@ -228,7 +227,7 @@ module.exports.partialDBStateFromEthereum = function(ethereumState, contractsNum
     chosenDeltas.forEach((d)=>{
       const deltaKey = deltaKeyBytes(contractByteAddr, d.index);
       console.log('added delta key ' + deltaKey);
-      database[[deltaKey]] =d.delta;
+      database[[deltaKey]] = d.delta;
     });
   });
 
