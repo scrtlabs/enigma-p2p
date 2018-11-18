@@ -13,11 +13,11 @@ const constants = require('../../../common/constants');
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
-
     // TODO:: take policy from the outside no need in ANOTHER instance in memory.
     this._policy = new Policy();
     this._engNode = enigmaNode;
     this._logger = logger;
+    streams.setGlobalState({logger : this._logger, context : this});
   }
 
   /**

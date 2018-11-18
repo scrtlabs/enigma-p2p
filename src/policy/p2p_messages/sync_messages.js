@@ -4,18 +4,41 @@ const schemeValidator = require('./schemes/SchemeValidator');
 const EncoderUtil = require('../../common/EncoderUtil');
 const waterfall = require('async/waterfall');
 const EngCid = require('../../common/EngCID');
-class SyncMsgBuilder {
 
+class SyncMsgBuilder {
   /** no validation test */
+  static msgReqFromObjNoValidation(msgObj){
+    if(msgObj.hasOwnProperty('msgType')){
+      switch(msgObj.msgType){
+        case MSG_TYPES.SYNC_STATE_REQ:
+          return SyncMsgBuilder.stateReqFromObjNoValidation(msgObj);
+        case MSG_TYPES.SYNC_BCODE_REQ:
+          return SyncMsgBuilder.bCodeReqFromObjNoValidation(msgObj);
+      }
+    }
+    return null;
+  }
   static batchStateReqFromObjsNoValidation(msgsObjList){
     return msgsObjList.map(m=>{
       m.msgType = MSG_TYPES.SYNC_STATE_REQ;
       return new SyncStateReqMsg(m);
     });
   }
+  static stateReqFromObjNoValidation(msgObj){
+    msgObj.msgType = MSG_TYPES.SYNC_STATE_REQ;
+    return new SyncStateReqMsg(msgObj);
+  }
   static bCodeReqFromObjNoValidation(msgObj){
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
     return new SyncBcodeReqMsg(msgObj);
+  }
+  static stateReqFromNetworkNoValidation(stateReqRaw){
+    let reqObj = SyncMsgBuilder._parseFromNetwork(stateReqRaw);
+    return SyncMsgBuilder.stateReqFromObjNoValidation(reqObj);
+  }
+  static bCodeFromNetworkNoValidation(stateReqRaw){
+    let reqObj = SyncMsgBuilder._parseFromNetwork(stateReqRaw);
+    return SyncMsgBuilder.bCodeReqFromObjNoValidation(reqObj);
   }
   /** no validation test */
   /**
@@ -159,22 +182,24 @@ class SyncMsgBuilder {
 }
 
 class SyncMsg {
-  constructor(rawMsg) {
+  constructor(rawMsg){
     this._rawMsg = rawMsg;
   }
-  toJSON() {
+  type(){
+    return this._rawMsg.msgType;
+  }
+  toJSON(){
     return JSON.stringify(this._rawMsg);
   }
-  toPrettyJSON() {
+  toPrettyJSON(){
     return JSON.stringify(this._rawMsg, null, 2);
   }
   /** before sending to network;
      * @return {Array<Integer>} encoded and seriallized msgpack array of the msg*/
-  toNetwork() {
+  toNetwork(){
     const msg = this.toJSON();
     return EncoderUtil.encode(msg);
   }
-
 }
 
 /**

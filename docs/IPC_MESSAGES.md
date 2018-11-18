@@ -143,6 +143,23 @@ Response:
     }
 }
 ```
+### `GetDeltas` message 
+Request: 
+```
+{
+    id : <unique_request_id>,
+    type : GetDelta 
+    input : [{address, from:key,to:key},...]
+}
+```
+Response: 
+```
+{
+    id : <unique_request_id>
+    type : GetDeltas
+    deltas : [{address,key,data},...]
+}
+```
 ### `GetContract` message 
 Request: 
 ```

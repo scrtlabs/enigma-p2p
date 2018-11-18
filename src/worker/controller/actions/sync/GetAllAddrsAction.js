@@ -21,7 +21,7 @@ class GetAllAddrsAction{
       });
     }else {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
-        queryType : constants.CORE_REQUESTS.GetAllAddrs,
+        dbQueryType : constants.CORE_REQUESTS.GetAllAddrs,
         onResponse : (err,result)=>{onResponse(err,result);}
       });
     }

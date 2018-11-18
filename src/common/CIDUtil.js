@@ -26,7 +26,7 @@ class CIDUtil {
       const mh = multihash.encode(buffHash, 'keccak-256');
       return new CID(1, 'eth-block', mh);
     } catch (err) {
-      console.log('[-] err creating cid {%s}', err);
+      // console.log('[-] err creating cid {%s}', err);
       return null;
     }
   }

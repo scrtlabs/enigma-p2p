@@ -26,6 +26,7 @@ it('should hash keccack', async function() {
 it('should createCID', async function() {
   const r = '1b20' + hash.substring(2, 66);
   const c = CIDUtil.createCID(hash);
+  assert.notStrictEqual(null,c, "error creating cid is null");
   assert.deepStrictEqual(c.multihash, Buffer.from(r, 'hex'));
   assert.ok(CIDUtil.isValidCID(c));
   const h = CIDUtil.getKeccak256FromCID(c);

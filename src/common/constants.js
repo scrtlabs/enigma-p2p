@@ -27,7 +27,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'ANNOUNCE_LOCAL_STATE' : 'alc', // announce local state (after being synced)
   'DB_REQUEST' : 'dbreq', // some db request to core
   'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
-  'GET_ALL_ADDRS' : 'getaa' // get all addrs from cache/core
+  'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
+  'GET_DELTAS' : 'getds' // get deltas request from core
 };
 
 /** DO NOT CHANGE THE VALUES */
@@ -111,6 +112,7 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
  * */
 // all the different requests that can be made to Core via the Ipc client
 module.exports.CORE_REQUESTS = {
+  CORE_DB_READ_ACTION : 'CORE_DB_READ_ACTION', // internal for CoreRuntime
   GetRegistrationParams : 'GetRegistrationParams',
   IdentityChallenge : 'IdentityChallenge',
   GetTip : 'GetTip',
@@ -118,5 +120,6 @@ module.exports.CORE_REQUESTS = {
   GetAllTips : 'GetAllTips',
   GetAllAddrs : 'GetAllAddrs',
   GetDelta : 'GetDelta',
+  GetDeltas : 'GetDeltas',
   GetContract : 'GetContract'
 };

@@ -4,13 +4,14 @@ const EngCID = require('../../../common/EngCID');
 const parallel = require('async/parallel');
 const pull = require('pull-stream');
 const streams = require('../streams');
+const constants = require('../../../common/constants');
 
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
     this._enigmaNode = enigmaNode;
     this._logger = logger;
-
+    streams.setGlobalState({logger : this._logger, context : this});
   }
   /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
@@ -56,13 +57,38 @@ class Provider extends EventEmitter {
       callback(isError, failedCids);
     });
   }
-
-  startStateSyncResponse(connectionStream) {
+  /** stream related methods
+   * MUST CONTAIN a "notification" field
+   * specifying the concrete Action
+   * */
+  notify(params){
+    this.emit('notify',params);
+  }
+  /**
+   * Calls the worker/DbRequestAction
+   * @param {JSON} request ,must contain the fields:
+   * - onResponse(err,response)=>{}
+   * - queryType, describe the query type needed
+   * */
+  dbRequest(request){
+    if(request.hasOwnProperty('onResponse') && request.hasOwnProperty('dbQueryType')){
+      if(request.dbQueryType === constants.CORE_REQUESTS.GetDeltas){
+        request.notification = constants.NODE_NOTIFICATIONS.GET_DELTAS;
+      }
+      this.notify(request);
+    }
+  }
+  startStateSyncResponse(connectionStream){
     pull(
+        // read msg requests one-by-one
         connectionStream,
+        // parse the message
         streams.requestParserStream,
+        // get the requested data from db (i.e array of deltas)
         streams.fromDbStream,
+        // serialize the database result into a network stream
         streams.toNetworkParser,
+        // send the result to the msg request back to the receiver
         connectionStream
     );
   }
