@@ -27,6 +27,7 @@ class IdentifyMissingStatesAction{
       this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS,{
         cache : useCache,
         onResponse : (err,localTips)=>{
+          // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
           //TODO:: pass to ethereum anaylzer the localTips
           let msgsMap = IdentifyMissingStatesAction._tempBuildMissingStatesResult();
           return finalCallback(err,msgsMap);

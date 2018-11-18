@@ -1,3 +1,13 @@
+// local missing states
+// input
+// [{address,key,delta},...]}
+// output
+// let mockMissing = [
+//   {address : addr1, deltas : [{deltaHash : 'hash1_0',index:0},{deltaHash : 'hash1_1',index:1},{deltaHash : 'hash1_2',index:2}]},
+//   {address : addr2, deltas : [{deltaHash : 'hash2_0',index:0}]},
+//   {address : addr3, deltas : [{deltaHash : 'hash3_0',index:0},{deltaHash : 'hash3_1',index:1}]},
+// ];
+//
 // const parallel = require('async/parallel');
 //
 // /** Pseudo code for getting missing states */
