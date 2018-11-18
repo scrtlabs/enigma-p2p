@@ -449,7 +449,7 @@ class NodeController {
    * */
   getAllLocalTips(fromCache, onResponse){
     this._actions[NOTIFICATION.GET_ALL_TIPS].execute({
-      queryType : constants.CORE_REQUESTS.GetAllTips,
+      dbQueryType : constants.CORE_REQUESTS.GetAllTips,
       onResponse : onResponse,
       cache : fromCache
     });

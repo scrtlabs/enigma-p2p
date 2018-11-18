@@ -7,6 +7,17 @@ const EngCid = require('../../common/EngCID');
 
 class SyncMsgBuilder {
   /** no validation test */
+  static msgReqFromObjNoValidation(msgObj){
+    if(msgObj.hasOwnProperty('msgType')){
+      switch(msgObj.msgType){
+        case MSG_TYPES.SYNC_STATE_REQ:
+          return SyncMsgBuilder.stateReqFromObjNoValidation(msgObj);
+        case MSG_TYPES.SYNC_BCODE_REQ:
+          return SyncMsgBuilder.bCodeReqFromObjNoValidation(msgObj);
+      }
+    }
+    return null;
+  }
   static batchStateReqFromObjsNoValidation(msgsObjList){
     return msgsObjList.map(m=>{
       m.msgType = MSG_TYPES.SYNC_STATE_REQ;

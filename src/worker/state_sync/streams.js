@@ -149,8 +149,6 @@ function _toNetworkParse(read) {
 function _fakeFromDbStream(syncReqMsg, callback){
   // TODO:: create a db call ...
   // TODO:: validate that the range < limit here or somewhere else.
-  const dbResult = syncReqMsg.toPrettyJSON();
-  const isError = null;
   let queryType = null;
   if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
     //TODO:: GetContract dont exist yet.
@@ -164,13 +162,12 @@ function _fakeFromDbStream(syncReqMsg, callback){
     console.log("[-] error in _fakeFromDbStream");
   }
   globalState.context.dbRequest({
-    queryType : queryType,
-    query : syncReqMsg,
+    dbQueryType : queryType,
+    requestMsg : syncReqMsg,
     onResponse : (ctxErr,dbResult) =>{
       callback(ctxErr,dbResult)
     }
   });
-  // callback(isError, dbResult);
 }
 
 // fake load from the database, this will return the deltas for the requester
@@ -180,7 +177,7 @@ function _fromDbStream(read) {
       if (data != null) {
         _fakeFromDbStream(data, (err, dbResult)=>{
           if (err) {
-            console.log('error in fakeFromDbStream');
+            console.log('error in fakeFromDbStream {%s}',err);
             cb(err, null);
           } else {
             cb(end, dbResult);
@@ -200,11 +197,8 @@ function _fakeRequestParser(data, callback){
   //TODO:: validate network input validity
   data = EncoderUtil.decode(data);
   let parsedData = JSON.parse(data);
-  if(parsedData.msgType === constants.P2P_MESSAGES.SYNC_STATE_REQ){
-    parsedData = SyncMsgBuilder.stateReqFromObjNoValidation(parsedData);
-  }else if(parsedData.msgType === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
-    parsedData = SyncMsgBuilder.bCodeReqFromObjNoValidation(parsedData);
-  }else{
+  parsedData = SyncMsgBuilder.msgReqFromObjNoValidation(parsedData);
+  if(parsedData === null){
     err = 'error building request message';
   }
   return callback(err, parsedData);

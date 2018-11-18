@@ -38,6 +38,12 @@ class AnnounceLocalStateAction{
           isEngCid = true;
           this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid,(err, failedCids)=>{
             if(err){
+              //TODO:: this is completley incorrect.
+              //TODO:: it shows like there was some total error, but there will be errrors in the case where 1 peer logged out
+              //TODO:: it will try to reconnect to him in the DHT and will throw an error
+              //TODO:: this is ok accestable behaviour.
+              //TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
+              //TODO:: Bottom line im not processing the errors in the correct way.
               console.log('[-] err %s couldnt provide at all. failed cids %s ', err, failedCids.length);
               onResponse(err,parsedEngCids);
             }else{

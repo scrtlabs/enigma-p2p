@@ -116,7 +116,7 @@ it('#3 GetAllTips - mock server', async function() {
     await nodeUtils.sleep(2000);
     let fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache,async (err,missingStates)=>{
-      assert.strictEqual(null,err,'some error in response');
+      assert.strictEqual(null,err,'some error in response [' + err + ' ]');
       assert.strictEqual(3, missingStates.tips.length, 'len not 3');
       assert.strictEqual(10, missingStates.tips[0].key, 'key not 10');
       assert.strictEqual(34, missingStates.tips[1].key, 'key not 34');

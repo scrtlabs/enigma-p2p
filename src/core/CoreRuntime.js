@@ -12,6 +12,7 @@ const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsActi
 const GetAllTipsAction = require('./actions/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/GetDeltasAction');
+const DbReadAction = require('./actions/DbReadAction');
 class CoreRuntime{
   constructor(config){
     if(config.uri)
@@ -22,6 +23,7 @@ class CoreRuntime{
     this._initIpcClient();
     this._communicator = null;
     this._actions = {
+      [constants.CORE_REQUESTS.CORE_DB_READ_ACTION] : new DbReadAction(this),
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
@@ -71,6 +73,12 @@ class CoreRuntime{
         action.execute(envelop);
       }
     });
+  }
+  execCmd(cmd,params){
+    let action = this._actions[cmd];
+    if(action) {
+      action.execute(params);
+    }
   }
 }
 

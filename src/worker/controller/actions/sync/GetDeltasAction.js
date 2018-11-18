@@ -14,7 +14,7 @@ class GetDeltasAction{
   execute(params){
 
     let onResult = params.onResponse;
-    let queryMsg = params.query;
+    let queryMsg = params.requestMsg;
     // make query
     let addr = queryMsg.contractAddress();
     let range = queryMsg.getRange();
@@ -22,8 +22,8 @@ class GetDeltasAction{
     let to = range.toIndex;
     let input = [{address:addr, from: from, to: to}];
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
-      queryType : constants.CORE_REQUESTS.GetDeltas,
-      query : input,
+      dbQueryType : constants.CORE_REQUESTS.GetDeltas,
+      input : input,
       onResponse : (err,result)=>{return onResult(err,result);}
     });
   }

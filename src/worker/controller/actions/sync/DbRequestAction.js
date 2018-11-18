@@ -13,14 +13,14 @@ class DbRequestAction{
   }
   execute(params){
     let onResponse = params.onResponse;
-    let queryType = params.queryType;
-    let queryMsg = params.query;
+    let queryType = params.dbQueryType;
+    let input = params.input;
     if(!this._validateRequest(queryType)){
       onResponse("invalid queryType");
       return;
     }
     let requestEnvelop = new Envelop(true
-        ,{type : queryType, input : queryMsg}
+        ,{type : queryType, input : input}
         ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
 
     this._controller.communicator()

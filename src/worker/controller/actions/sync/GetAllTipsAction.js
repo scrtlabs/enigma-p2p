@@ -21,7 +21,7 @@ class GetAllTipsAction{
       });
     }else{
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
-        queryType : constants.CORE_REQUESTS.GetAllTips,
+        dbQueryType : constants.CORE_REQUESTS.GetAllTips,
         onResponse : (err,result)=>{return onResult(err,result);}
       });
     }
