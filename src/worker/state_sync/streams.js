@@ -122,6 +122,12 @@ function _toNetworkSyncReqParser(read) {
 }
 function _fakeParseFromDbToNetwork(dbResult, callback){
   //TODO:: add toNetwork() method to all the dbResults.
+  // parse all to network
+  if(dbResult.type === constants.CORE_REQUESTS.GetDeltas){
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_STATE_RES;
+  }else if(dbResult.type === constants.CORE_REQUESTS.GetContract){
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_BCODE_RES;
+  }
   dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
   const isError = null;
@@ -250,6 +256,13 @@ function _verificationStream(read) {
       if (data !=null) {
         data = EncoderUtil.decode(data);
         data = JSON.parse(data);
+        if(SyncMsgBuilder.msgResFromObjNoValidation(data) === null){
+          console.log("**************************************");
+          console.log("this shit is null @@@@@@@@@@@@@ %s ", JSON.stringify(data));
+          console.log("**************************************");
+        }else{
+          console.log(" :-) ************************************** all good :-)");
+        }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
         new Verifier().verify(data, (isOk)=>{
