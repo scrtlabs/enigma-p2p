@@ -41,6 +41,8 @@ const DbRequestAction = require('./actions/sync/DbRequestAction');
 const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/sync/GetDeltasAction');
+const GetContractCodeAction = require('./actions/sync/GetContractCodeAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -89,6 +91,7 @@ class NodeController {
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
       [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
       [NOTIFICATION.GET_DELTAS] : new GetDeltasAction(this), // get deltas from core
+      [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this) // get bytecode
     };
   }
   /**

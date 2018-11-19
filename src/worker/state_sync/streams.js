@@ -151,9 +151,6 @@ function _fakeFromDbStream(syncReqMsg, callback){
   // TODO:: validate that the range < limit here or somewhere else.
   let queryType = null;
   if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
-    //TODO:: GetContract dont exist yet.
-    return callback(null, "bytecode result not implemented yet :-(");
-    // throw new Error("GetContract not implemented yet!");
     queryType = constants.CORE_REQUESTS.GetContract;
   }else if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ){
     queryType = constants.CORE_REQUESTS.GetDeltas;

@@ -28,7 +28,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'DB_REQUEST' : 'dbreq', // some db request to core
   'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
   'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
-  'GET_DELTAS' : 'getds' // get deltas request from core
+  'GET_DELTAS' : 'getds', // get deltas request from core
+  'GET_CONTRACT_BCODE' : 'getcbc' // get the bytecode of some contract
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
