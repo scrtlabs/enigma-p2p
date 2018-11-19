@@ -30,7 +30,6 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
   'GET_DELTAS' : 'getds' // get deltas request from core
 };
-
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
   'PEER_DISCOVERY': 'peer:discovery',
