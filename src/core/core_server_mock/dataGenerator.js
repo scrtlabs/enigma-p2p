@@ -72,6 +72,7 @@ function generatePartialData(db, contractsNum, deltasNum){
   return newDb;
 }
 
+
 /** how to generate data && save to file */
 // let db = generateData(3, 3);
 //let file = 'module.exports.DB_PROVIDER=' + JSON.stringify(db);
@@ -90,15 +91,4 @@ function generatePartialData(db, contractsNum, deltasNum){
 /** how to generate a partial db from a given db */
 // let db = generateData(3,3);
 // let newDb = generatePartialData(db,2,1);
-
-
-
-
-
-
-
-
-
-
-
 

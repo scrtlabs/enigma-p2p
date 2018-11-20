@@ -97,7 +97,7 @@ function _throughDbStream(read){
             console.log("some fake error saving to db ");
             throw end;
           }else{
-            cb(end,data);
+            cb(end,{status:status, data : data});
           }
         });
       }else{

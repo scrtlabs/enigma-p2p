@@ -522,9 +522,15 @@ class NodeController {
           });
         });
         // now we have providers and all the messages ready. we can connect and sync.
-        this.fullTryReceiveAll(allReceiveData, (err,AllResults)=>{
+        this.fullTryReceiveAll(allReceiveData, (err,allResults)=>{
           //TODO:: check the sync status
           // that's it basically.
+          console.log("@@@@@@@@@@@@@@2");
+          allResults.forEach(r=>{
+            console.log("-----");
+            console.log(r);
+          });
+          console.log("@@@@@@@@@@@@@@2");
           console.log("success synching all.");
         });
       });

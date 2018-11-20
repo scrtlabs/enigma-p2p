@@ -113,7 +113,7 @@ class Receiver extends EventEmitter {
             //TODO:: parse the data to minimal version
             //TODO:: the .collect function below takes the full array
             //TODO:: so in order for it to be minimal in memory reduce here
-            //TODO:: to something in the form of List: {range: {} ,request_status:success/err}
+            //TODO:: to something in the form of List: {range: {} ,requesrsynct_status:success/err}
             return data;
           }),
           pull.collect((err,resultList)=>{
@@ -163,7 +163,7 @@ class Receiver extends EventEmitter {
       jobs.push((isDone,resultList,cb)=>{
         if(isDone){
           // were done.
-          cb(null,isDone,resultList);
+          return cb(null,isDone,resultList);
         }else{
           // retry
           ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err,resultList)=>{
@@ -171,11 +171,9 @@ class Receiver extends EventEmitter {
             if(err){
               // general error - retry
               isDone = false;
-              cb(null,isDone,resultList);
-            }else{
-              // were done.
-              cb(null,isDone, resultList);
             }
+              // were done.
+            return cb(null,isDone, resultList);
           });
         }
       });
@@ -184,17 +182,17 @@ class Receiver extends EventEmitter {
     jobs.push((isDone,resultList,cb)=>{
       if(isDone){
         // were done.
-        cb(null,isDone, resultList);
+        return cb(null,isDone, resultList);
       }else{
         // some error - retry
         ctx.trySyncOneContractOneRequest(providersList[providersList.length-1], stateSyncMsgs,(err,resultList)=>{
           // finish regardless if it worked or not.
           if(err){
             // finish with error
-            cb(err,false,resultList);
+            return cb(err,false,resultList);
           }else{
             // finish with success
-            cb(null,true,resultList);
+            return cb(null,true,resultList);
           }
         });
       }
