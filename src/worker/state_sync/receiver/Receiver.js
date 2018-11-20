@@ -103,23 +103,6 @@ class Receiver extends EventEmitter {
       if(err){
         return callback(err);
       }
-      console.log("================== receiver start ========================== ");
-      let codeSync = 0;
-      let deltaSync = 0;
-      stateSyncReqMsgs.forEach(m=>{
-        console.log( " m.type() = " + m.type());
-        if(m.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ){
-          deltaSync++;
-        }else if(m.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
-          codeSync++;
-        }else{
-          console.log(" receiver().aso().console.log().async().then(r=>{}) ==== bad error idk type MOST bad");
-        }
-      });
-      console.log( " total of " + stateSyncReqMsgs.length + " msgs.");
-      console.log(" code sync = " + codeSync);
-      console.log(" delta sync = " + deltaSync);
-      console.log("================== receiver end ========================== ");
       pull(
           pull.values(stateSyncReqMsgs),
           streams.toNetworkSyncReqParser,
@@ -138,11 +121,6 @@ class Receiver extends EventEmitter {
               console.log("serioes err ", err );
               return callback(err,resultList);
             }else{
-              // resultList.map(r=>{
-              //   let d=  EncoderUtil.decode(r);
-              //   d= JSON.parse(d);
-              //   return d;
-              // });
               return callback(null,resultList);
             }
           }),

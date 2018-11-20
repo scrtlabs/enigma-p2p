@@ -62,14 +62,17 @@ function send(socket,msg){
 
 function getContract(msg){
   let bcode = null;
+  let contractAddr = null;
   DB_PROVIDER.forEach(entry=>{
     if(msg.input[0] === DbUtils.toHexString(entry.address) && entry.key === -1){
       bcode = entry.delta;
+      contractAddr = DbUtils.toHexString(entry.address);
     }
   });
   return {
     type : msg.type,
     id : msg.id,
+    address : contractAddr,
     bytecode : bcode
   }
 }

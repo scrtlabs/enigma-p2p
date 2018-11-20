@@ -32,7 +32,7 @@ class IdentifyMissingStatesAction{
           let msgsMap = IdentifyMissingStatesAction._tempBuildMissingStatesResult();
           return finalCallback(err,msgsMap);
         }
-      })
+      });
     }
   }
   static _tempBuildMissingStatesResult(){

@@ -228,7 +228,7 @@ function _requestParserStream(read){
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  console.log('[saveToDbStream] : ' + JSON.stringify(data));
+  // console.log('[saveToDbStream] : ' + JSON.stringify(data));
   callback(status);
 }
 
@@ -256,13 +256,6 @@ function _verificationStream(read) {
       if (data !=null) {
         data = EncoderUtil.decode(data);
         data = JSON.parse(data);
-        if(SyncMsgBuilder.msgResFromObjNoValidation(data) === null){
-          console.log("**************************************");
-          console.log("this shit is null @@@@@@@@@@@@@ %s ", JSON.stringify(data));
-          console.log("**************************************");
-        }else{
-          console.log(" :-) ************************************** all good :-)");
-        }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
         new Verifier().verify(data, (isOk)=>{
