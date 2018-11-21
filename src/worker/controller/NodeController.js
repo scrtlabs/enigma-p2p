@@ -29,7 +29,6 @@ const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDisc
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
-const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
@@ -78,7 +77,6 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
-      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell the network what cids are available for sync
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
@@ -274,20 +272,19 @@ class NodeController {
 
     const handshakedIds = this.stats().getAllActiveOutbound(currentPeerIds);
 
-    const peersInfo = this.engNode().getPeersInfoList(handshakedIds);
-    return peersInfo;
+    return this.engNode().getPeersInfoList(handshakedIds);
   }
   getAllInboundHandshakes() {
     const currentPeerIds = this.engNode().getAllPeersIds();
 
     const handshakedIds = this.stats().getAllActiveInbound(currentPeerIds);
 
-    const peersInfo = this.engNode().getPeersInfoList(handshakedIds);
-    return peersInfo;
+    return this.engNode().getPeersInfoList(handshakedIds);
   }
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
   }
+  //TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
       'delay': 500,
@@ -302,71 +299,7 @@ class NodeController {
       'message': content,
     });
   }
-  /** temp */
-  announceContent() {
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
 
-    this._actions[NOTIFICATION.CONTENT_ANNOUNCEMENT].execute({
-      descriptorsList: descriptorsList,
-      isEngCid : false
-    });
-  }
-  /** temp */
-  findContent() {
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    const onResult = (findProvidersResult)=>{
-      console.log('---------------------- find providers ------------------------------ ');
-      console.log(' is complete error ? ' + findProvidersResult.isCompleteError());
-      console.log(' is some error ? ' + findProvidersResult.isErrors());
-      const map = findProvidersResult.getProvidersMap();
-      Object.keys(map).forEach(function(key) {
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^');
-        console.log('cid ' + key);
-        console.log('providers:' );
-        map[key].providers.forEach((p)=>{
-          const mas = [];
-          p.multiaddrs.forEach((ma)=>{
-            mas.push(ma.toString());
-          });
-          console.log(mas);
-        });
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^');
-      });
-      console.log('---------------------- find providers ------------------------------ ');
-    };
-    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
-      descriptorsList: descriptorsList,
-      next: onResult,
-      isEngCid:  false
-    });
-  }
-
-  /** temp */
-  findContentAndSync(){
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    let isEngCid = false;
-    this.receiver().findProvidersBatch(descriptorsList, isEngCid,(findProvidersResult)=>{
-      if (findProvidersResult.isErrors()) {
-        throw new Error('failed finding providers there is some error');
-      } else {
-        const map = findProvidersResult.getProvidersMap();
-        for (const key in map) {
-          if (map.hasOwnProperty(key)) {
-            // const ecid = map[key].ecid;
-            const providers = map[key].providers;
-            // this.receiver().startStateSyncRequest(providers[0], ['addr1','addr2']);
-            let list = [];
-            this.receiver().trySyncReceive(providers,descriptorsList,(err,isDone,resultList)=>{
-              console.log("[finalCallback] is err? " + err );
-              console.log("[finalCallback] is done? " + isDone );
-              console.log('[finalCallback] : ' + resultList);
-            });
-            break;
-          }
-        }
-      }
-    });
-  }
   /** temp - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
@@ -392,7 +325,8 @@ class NodeController {
       maxPeers: maxPeers,
     });
   }
-  /**
+  /**TODO:: add this as cli api + in the cli dump it into a file.;
+   * TODO:: good for manual testing
    * returns the current local tips
    * @param {Boolean} fromCache , if true => use cache , false=> directly from core
    * @param {Function} onResponse , (missingStates) =>{}
@@ -404,6 +338,8 @@ class NodeController {
       cache : fromCache
     });
   }
+  // TODO:: $identify is good to see output and console. refactor command
+  // TODO:: that a user can use to identify its missing states at any time.
   /** TEMP */
   identifyMissingStates(callback){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
@@ -424,6 +360,7 @@ class NodeController {
       }
     });
   }
+  //TODO make it usable to execute this pipeline
   syncReceiverPipeline(){
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
       cache : false,
@@ -432,7 +369,7 @@ class NodeController {
       }
     });
   }
-  /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
+  //TODO:: make it real announce command
   tryAnnounce(){
     //test_real_announce
     // AnnounceLocalStateAction

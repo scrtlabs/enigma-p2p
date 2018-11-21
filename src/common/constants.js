@@ -18,8 +18,6 @@ module.exports.NODE_NOTIFICATIONS = {
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
-  //TODO::'CONTENT_ANNOUNCEMENT' is temporary to support test cli
-  'CONTENT_ANNOUNCEMENT': 'announce_content', // request to announce to the network the contents of cids
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
   'IDENTIFY_MISSING_STATES_FROM_REMOTE' : 'identify', // identify the missing states, compare local with remote

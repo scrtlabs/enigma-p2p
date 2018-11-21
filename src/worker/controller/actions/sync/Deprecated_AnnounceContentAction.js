@@ -3,7 +3,7 @@ const constants = require('../../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
 
-class AnnounceContentAction{
+class Deprecated_AnnounceContentAction{
 
     constructor(controller){
         this._controller = controller;
@@ -21,4 +21,3 @@ class AnnounceContentAction{
     });
   }
 }
-module.exports = AnnounceContentAction;
