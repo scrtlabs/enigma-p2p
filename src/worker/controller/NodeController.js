@@ -7,20 +7,18 @@
  * - setBootstrapPeers
  * - ...TBD
  * */
-
 const constants = require('../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
+const nodeUtils = require('../../common/utils');
+const WorkerBuilder = require('../builder/WorkerBuilder');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
 const ConnectionManager = require('../handlers/ConnectionManager');
-const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
-const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
-const EngCid = require('../../common/EngCID');
 // actions
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
@@ -95,8 +93,8 @@ class NodeController {
    * Example:
    *  let nodeController = NodeController.initDefaultTemplate({'port':'30103'},'/path/to/config.json')
    *  nodeController.start();
-   * @param {Json} options
-   * @param {string} configPath
+   * @param {JSON} options
+   * @param {Logger} logger
    * @return {NodeController}
    */
   static initDefaultTemplate(options, logger) {
@@ -338,9 +336,10 @@ class NodeController {
       cache : fromCache
     });
   }
-  // TODO:: $identify is good to see output and console. refactor command
-  // TODO:: that a user can use to identify its missing states at any time.
-  /** TEMP */
+  /**
+   * identify and print to log the missing states
+   * @{Function} callback , optional (err,missingStates)=>{}
+   * */
   identifyMissingStates(callback){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
       cache : false,
@@ -348,9 +347,11 @@ class NodeController {
         if(callback){
           return callback(err,missingStatesMsgsMap);
         }
-        console.log("err? " + err + " -> local tips final callback : ");
+        if(err){
+          return this._logger.error(" error identifying missing states : " + err);
+        }
         for(let ecidHash in missingStatesMsgsMap){
-          console.log(" ----------- contract 1 --------------------- ");
+         this._logger.debug("----------- contract --------------");
           let contractMsgs = missingStatesMsgsMap[ecidHash];
           for(let i=0;i<contractMsgs.length;++i){
             console.log("---- msg ----- ");
@@ -365,11 +366,14 @@ class NodeController {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
       cache : false,
       onEnd : (err,statusResult)=>{
-        console.log("cool? " + err);
+        this._logger.debug("done receiving pipeline. err? " + err);
       }
     });
   }
-  //TODO:: make it real announce command
+  /**
+   * Announce the network the contents the worker is holding.
+   * This will be used to route requests to this announcing node.
+   * */
   tryAnnounce(){
     //test_real_announce
     // AnnounceLocalStateAction
@@ -377,11 +381,10 @@ class NodeController {
       cache : false,
       onResponse : (error,content)=>{
         if(error){
-          console.log("err providing!@!!!! " , error);
+          this._logger.error("failed announcing " + error);
         }else{
-          console.log("final success providing: ");
           content.forEach(ecid=>{
-            console.log("providing => " + ecid.getKeccack256());
+            this._logger.info("providing : " + ecid.getKeccack256());
           });
         }
       }
