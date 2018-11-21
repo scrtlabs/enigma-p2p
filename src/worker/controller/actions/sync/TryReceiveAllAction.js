@@ -26,7 +26,6 @@ class TryReceiveAllAction{
     let firstJob = allMissingDataList[0];
     // init the first job
     jobs.push(cb=>{
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ running job !!!!!!!!!!");
       receiver.trySyncReceive(firstJob.providers,firstJob.requestMessages,
           (err,isDone,resultList)=>{
             if(err){
@@ -43,7 +42,6 @@ class TryReceiveAllAction{
       let providers = allMissingDataList[i].providers;
       let requestMessages = allMissingDataList[i].requestMessages;
       jobs.push((allResults,cb)=>{
-        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ running job !!!!!!!!!!");
         receiver.trySyncReceive(providers,requestMessages,(err,isDone,resultList)=>{
           if(err){
             return cb(err);

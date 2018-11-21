@@ -21,8 +21,6 @@ const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
 const EngCid = require('../../common/EngCID');
-// api
-// const P2PApi = require('./P2PApi');
 // actions
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
@@ -42,6 +40,7 @@ const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/sync/GetDeltasAction');
 const GetContractCodeAction = require('./actions/sync/GetContractCodeAction');
+const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -63,8 +62,7 @@ class NodeController {
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-    // TODO:: take api from CTOR - currently uses _initP2PApi()
-    // this._p2pApi = new P2PApi();
+
 
     // stats
     this._stats = new Stats();
@@ -91,7 +89,8 @@ class NodeController {
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
       [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
       [NOTIFICATION.GET_DELTAS] : new GetDeltasAction(this), // get deltas from core
-      [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this) // get bytecode
+      [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
+      [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this) // sync receiver pipeline
     };
   }
   /**
@@ -137,7 +136,6 @@ class NodeController {
     this._initContentProvider();
     this._initContentReceiver();
     // this._initCache();
-    // this._initP2PApi();
   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
@@ -184,55 +182,6 @@ class NodeController {
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
   }
-  // _initP2PApi() {
-  //   this._p2pApi.on('execCmd', (cmd, params)=>{
-  //     this.execCmd(cmd, params);
-  //   });
-  //   this._p2pApi.on('addPeer', (maStr)=>{
-  //     this.addPeer(maStr);
-  //   });
-  //   this._p2pApi.on('getSelfAddrs', (callback)=>{
-  //     const addrs = this.getSelfAddrs();
-  //     callback(addrs);
-  //   });
-  //   this._p2pApi.on('getAllOutboundHandshakes', (callback)=>{
-  //     const oHs = this.getAllOutboundHandshakes();
-  //     callback(oHs);
-  //   });
-  //   this._p2pApi.on('getAllInboundHandshakes', (callback)=>{
-  //     const iHs = this.getAllInboundHandshakes();
-  //     callback(iHs);
-  //   });
-  //   this._p2pApi.on('getAllPeerBank', (callback)=>{
-  //     const pb = this.getAllPeerBank();
-  //     callback(pb);
-  //   });
-  //   this._p2pApi.on('tryConsistentDiscovery', ()=>{
-  //     this.tryConsistentDiscovery();
-  //   });
-  //   this._p2pApi.on('broadcast', (content)=>{
-  //     this.broadcast(content);
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('provideContent', ()=>{
-  //     this.provideContent();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('findContent', ()=>{
-  //     this.findContent();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('findContentAndSync', ()=>{
-  //     this.findContentAndSync();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('isSimpleConnected', (nodeId)=>{
-  //     this.isSimpleConnected(nodeId);
-  //   });
-  // }
-  // p2pApi() {
-  //   return this._p2pApi;
-  // }
   /***********************
    * public methods
    *********************/
@@ -313,7 +262,6 @@ class NodeController {
       const action = NOTIFICATION['DISCOVERED'];
       if (err) {
         this._logger.error('[-] Err: ' + err);
-        return;
       } else {
         this.execCmd(action, {'params': {'peer': peerInfo}});
       }
@@ -536,6 +484,14 @@ class NodeController {
       });
     });
   }
+  syncReceiverPipeline(){
+    this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
+      cache : false,
+      onEnd : (err,statusResult)=>{
+        console.log("cool? " + err);
+      }
+    });
+  }
   /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
   tryAnnounce(){
     //test_real_announce
@@ -554,9 +510,5 @@ class NodeController {
       }
     })
   }
-};
+}
 module.exports = NodeController;
-
-
-
-

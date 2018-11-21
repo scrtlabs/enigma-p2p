@@ -29,7 +29,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_ALL_TIPS' : 'getat', // get all tips from cache/core
   'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
   'GET_DELTAS' : 'getds', // get deltas request from core
-  'GET_CONTRACT_BCODE' : 'getcbc' // get the bytecode of some contract
+  'GET_CONTRACT_BCODE' : 'getcbc',// get the bytecode of some contract
+  'SYNC_RECEIVER_PIPELINE' : 'srpl' // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
