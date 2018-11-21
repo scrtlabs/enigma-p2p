@@ -79,21 +79,6 @@ class Receiver extends EventEmitter {
     });
   }
   /**
-     * @param {PeerInfo}  peerInfo , the peer provider
-     * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
-     * */
-  startStateSyncRequest(peerInfo, stateSyncReqMsgs) {
-    this._engNode.startStateSyncRequest(peerInfo, (err, connectionStream)=>{
-      pull(
-          pull.values(stateSyncReqMsgs),
-          streams.toNetworkSyncReqParser,
-          connectionStream,
-          streams.verificationStream,
-          streams.toDbStream
-      );
-    });
-  }
-  /**
    * @param {PeerInfo}  peerInfo , the peer provider
    * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
    * @param {Function} callback , (err,ResultList)=>{}

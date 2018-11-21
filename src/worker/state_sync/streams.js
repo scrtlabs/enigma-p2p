@@ -45,9 +45,9 @@ module.exports.verificationStream = (read)=>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.toDbStream = (read)=>{
-  return _toDbStream(read);
-};
+// module.exports.toDbStream = (read)=>{
+//   return _toDbStream(read);
+// };
 
 module.exports.fromDbStream = (read) =>{
   return _fromDbStream(read);
@@ -79,8 +79,7 @@ module.exports.toNetworkSyncReqParser = (read)=>{
   return _toNetworkSyncReqParser(read);
 };
 /**
- * used by the receiver yo store the deltas into db
- * //TODO:: replace the old toDbStream
+ * used by the receiver to store the deltas into db
  * After verificationStream => into db
  * @param {stream} read
  * @return {function()}
@@ -111,8 +110,6 @@ function _toNetworkSyncReqParser(read) {
   return function readble(end, cb) {
       read(end, (end, data) => {
         if (data != null) {
-          // TODO:: every method must have toNetwork();
-          // TODO:: parse the msg to msgpack serialization + buffer
           cb(end, data.toNetwork());
         } else {
           cb(end, null);
@@ -232,24 +229,6 @@ function fakeSaveToDb(data, callback) {
   callback(status);
 }
 
-
-
-function _toDbStream(read) {
-  read(null, function next(end, data) {
-    if (end === true) return;
-
-    if (end) throw end;
-    // TODO:: placeholder - save states into db with core.
-    fakeSaveToDb(data, (status)=>{
-      if (!status) {
-        console.log('some fake error saving to db ');
-        throw end;
-      } else {
-        read(null, next);
-      }
-    });
-  });
-}
 function _verificationStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{

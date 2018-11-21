@@ -63,7 +63,6 @@ class NodeController {
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
 
-
     // stats
     this._stats = new Stats();
 
