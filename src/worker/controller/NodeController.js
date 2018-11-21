@@ -425,65 +425,6 @@ class NodeController {
       }
     });
   }
-  /** full receiver trip **/
-  findProvidersReal(ecidList, callback){
-    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
-      descriptorsList: ecidList,
-      next: callback,
-      isEngCid:  true
-    });
-  }
-  fullTryReceiveAll(allMissingDataList,callback){
-   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL,{
-     allMissingDataList : allMissingDataList,
-     onFinish : (err,allResults)=>{
-        callback(err,allResults)
-     }
-   });
-  }
-  fullReceiver(){
-    this.identifyMissingStates((err,missingStatesMap)=>{
-      let ecids = [];
-      let tempEcidToAddrMap = {};
-      for(let addrKey in missingStatesMap){
-        let ecid = EngCid.createFromKeccack256(addrKey);
-        if(ecid){
-          //TODO:: every EngCid should expose the addr as a built
-          //TODO:: in method
-          tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
-          ecids.push(ecid);
-        }else{
-          this._logger.error("error creating EngCid from " + addrKey);
-        }
-      }
-      this.findProvidersReal(ecids,findProviderResult=>{
-        if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
-          return console.log("[-] some error finding providers !!!!!!");
-        }
-        // parse to 1 object: cid => {providers, msgs} -> simple :)
-        let allReceiveData = [];
-        let providersMap = findProviderResult.getProvidersMap();
-        ecids.forEach(ecid=>{
-          allReceiveData.push({
-            requestMessages : missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]] ,
-            providers : findProviderResult.getProvidersFor(ecid)
-          });
-        });
-        // now we have providers and all the messages ready. we can connect and sync.
-        this.fullTryReceiveAll(allReceiveData, (err,allResults)=>{
-          //TODO:: check the sync status
-          // that's it basically.
-          console.log("@@@@@@@@@@@@@@2");
-          allResults.forEach(r=>{
-            console.log("-----");
-            console.log(r);
-          });
-          console.log("@@@@@@@@@@@@@@2");
-          console.log("success synching all.");
-        });
-      });
-    });
-  }
   syncReceiverPipeline(){
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
       cache : false,
