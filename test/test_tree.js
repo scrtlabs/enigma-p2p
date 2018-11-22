@@ -25,6 +25,10 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true
+  },
+  'sync_basic' : {
+    'all' : true,
+    '#1' : true,
   }
 };
 

@@ -60,13 +60,12 @@ it('#1 test PeerBank',function(done){
     done();
 });
 
-it('#2 coverage', (done)=>{
+it('#2 coverage', function(done){
 
   let tree = TEST_TREE.coverage;
   if(!tree['all'] || !tree['#2']){
     this.skip();
   }
-
   let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
   let node = NodeController.initDefaultTemplate({"port":B1Port, "idPath":B1Path, "nickname":"dns", "bootstrapNodes":bootstrapNodes});
   try{
