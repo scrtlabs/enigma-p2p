@@ -33,11 +33,6 @@ class Provider extends EventEmitter {
     engCIDs.forEach((ecid)=>{
       jobs.push((cb)=>{
         this._enigmaNode.provideContent(ecid, (err, ecid)=>{
-          if (err) {
-            this._logger.error(' error providing : ' + ecid.getKeccack256() + ' log = ' + err);
-          } else {
-            this._logger.info(' success providing : ' + ecid.getKeccack256());
-          }
           cb(null, {error: err, ecid: ecid});
         });
       });
@@ -53,7 +48,6 @@ class Provider extends EventEmitter {
           failedCids.push(r.ecid);
         }
       });
-
       callback(isError, failedCids);
     });
   }

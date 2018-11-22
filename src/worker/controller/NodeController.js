@@ -98,13 +98,11 @@ class NodeController {
    * @return {NodeController}
    */
   static initDefaultTemplate(options, logger) {
-    // create EnigmaNode
-    let path = null;
 
+    let path = null;
     if (options.configPath) {
       path = options.configPath;
     }
-
     // with default option (in constants.js)
     // const logger = new Logger({pretty:true});
     let _logger = null;
@@ -113,14 +111,11 @@ class NodeController {
     }else{
       _logger = new Logger();
     }
-
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
-
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode,_logger);
-
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
@@ -374,13 +369,16 @@ class NodeController {
    * Announce the network the contents the worker is holding.
    * This will be used to route requests to this announcing node.
    * */
-  tryAnnounce(){
+  tryAnnounce(callback){
     //test_real_announce
     // AnnounceLocalStateAction
     this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
       cache : false,
       onResponse : (error,content)=>{
-        if(error){
+        if(callback){
+          return callback(error,content);
+        }
+        else if(error){
           this._logger.error("failed announcing " + error);
         }else{
           content.forEach(ecid=>{
@@ -389,6 +387,17 @@ class NodeController {
         }
       }
     })
+  }
+  /** Find a list of providers for each ecid
+   * @param {Array<EngCid>} ecids
+   * @param {Function} callback (findProviderResult)=>{}
+   * */
+  findProviders(ecids,callback){
+    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
+      descriptorsList:  ecids,
+      isEngCid : true,
+      next : (findProvidersResult)=>{callback(findProvidersResult)}
+    });
   }
 }
 module.exports = NodeController;
