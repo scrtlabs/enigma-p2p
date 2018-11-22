@@ -357,11 +357,14 @@ class NodeController {
     });
   }
   //TODO make it usable to execute this pipeline
-  syncReceiverPipeline(){
+  syncReceiverPipeline(callback){
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
       cache : false,
       onEnd : (err,statusResult)=>{
-        this._logger.debug("done receiving pipeline. err? " + err);
+        if(callback){
+          return callback(err,statusResult);
+        }
+        return this._logger.debug("done receiving pipeline. err? " + err);
       }
     });
   }

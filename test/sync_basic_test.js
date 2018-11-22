@@ -1,25 +1,8 @@
-const path = require('path')
-const parallel = require('async/parallel');
-const EnigmaNode = require('../src/worker/EnigmaNode');
-const quickBuilderUtils = require('./testUtils/quickBuilderUtil');
-const testUtils = require('./testUtils/utils');
 const assert = require('assert');
 const waterfall = require('async/waterfall');
-const pull = require('pull-stream');
-const Policy = require('../src/policy/policy');
-const ProtocolHandler = require('../src/worker/handlers/ProtcolHandler');
-const ConnectionManager = require('../src/worker/handlers/ConnectionManager');
-const consts = require('../src/common/constants');
-const PROTOCOLS = consts.PROTOCOLS;
 const TEST_TREE = require('./test_tree').TEST_TREE;
-const WorkerBuilder = require('../src/worker/builder/WorkerBuilder');
-const NodeController = require('../src/worker/controller/NodeController');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
-const B1Path = path.join(__dirname,"testUtils/id-l");
-const B1Port = "10300";
-const B2Path = "../../test/testUtils/id-d";
-const B2Port = "10301";
 
 
 it('#1 should tryAnnounce action from mock-db no-cache', async function(){
@@ -64,11 +47,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function(){
       (ecids,cb)=>{
         // verify announcement FindContentProviderAction action
         mainController.getNode().findProviders(ecids,(findProvidersResult)=>{
-          let map = findProvidersResult.getProvidersMap();
-          let keyCounter = 0;
-          for(let key in map){
-            keyCounter++;
-          }
+          let keyCounter = findProvidersResult.getKeysList().length;
           assert.strictEqual(ecids.length,keyCounter, 'not enough keys');
           cb(null);
         });
