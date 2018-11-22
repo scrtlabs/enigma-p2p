@@ -11,11 +11,10 @@ const EngCid = require('../../../../common/EngCID');
  *
  * */
 class ReceiveAllPipelineAction {
-  constructor(controller) {
+  constructor(controller){
     this._controller = controller;
     this._running = false;
   }
-
   execute(params) {
     let cache = params.cache;
     let onEnd = params.onEnd;
@@ -38,11 +37,12 @@ class ReceiveAllPipelineAction {
       (missingStatesMap, cb) => {
         let err = null;
         let ecids = [];
+        //TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
         let tempEcidToAddrMap = {};
         for (let addrKey in missingStatesMap) {
-          let ecid = EngCid.createFromKeccack256(addrKey);
+          let ecid = EngCid.createFromSCAddress(addrKey);
           if (ecid) {
-            //TODO:: every EngCid should expose the addr as a built
+            //TODO:: every EngCid should expose the address as a built
             //TODO:: in method
             tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
             ecids.push(ecid);
@@ -69,7 +69,8 @@ class ReceiveAllPipelineAction {
         let allReceiveData = [];
         ecids.forEach(ecid => {
           allReceiveData.push({
-            requestMessages: missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]],
+            requestMessages: missingStatesMap[ecid.getScAddress()],
+            // requestMessages: missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]],
             providers: findProviderResult.getProvidersFor(ecid)
           });
         });

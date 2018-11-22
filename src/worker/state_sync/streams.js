@@ -225,7 +225,7 @@ function _requestParserStream(read){
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  // console.log('[saveToDbStream] : ' + JSON.stringify(data));
+  console.log('[saveToDbStream] : ' + JSON.stringify(data));
   callback(status);
 }
 

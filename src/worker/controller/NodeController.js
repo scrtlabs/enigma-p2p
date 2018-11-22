@@ -364,7 +364,7 @@ class NodeController {
         if(callback){
           return callback(err,statusResult);
         }
-        return this._logger.debug("done receiving pipeline. err? " + err);
+        this._logger.debug("done receiving pipeline. err? " + err);
       }
     });
   }
