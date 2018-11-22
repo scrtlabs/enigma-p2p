@@ -103,7 +103,7 @@ class Receiver extends EventEmitter {
           }),
           pull.collect((err,resultList)=>{
             if(err){
-              console.log("serioes err ", err );
+              console.log("collection err ", err );
               return callback(err,resultList);
             }else{
               return callback(null,resultList);

@@ -389,7 +389,7 @@ class NodeController {
           });
         }
       }
-    })
+    });
   }
   /** Find a list of providers for each ecid
    * @param {Array<EngCid>} ecids
