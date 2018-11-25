@@ -518,7 +518,7 @@ describe('Ethereum tests', function() {
         });
     });
 
-    it('State sync - partial local tips', async function(){
+    it('State sync - partial local tips 2', async function(){
         let tree = TEST_TREE.ethereum;
         if(!tree['all'] || !tree['#5']){
             await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
