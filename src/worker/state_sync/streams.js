@@ -222,10 +222,11 @@ function _requestParserStream(read){
 }
 
 // used by _toDbStream()
+// save response (after validation) to db
+// the objects are either SYNC_STATE_RES or SYNC_BCODE_RES
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   const status = true;
-  console.log('[saveToDbStream] : ' + JSON.stringify(data));
   callback(status);
 }
 
