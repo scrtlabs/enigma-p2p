@@ -8,12 +8,12 @@ const IpcClient = require('./ipc');
 const constants = require('../common/constants');
 
 //actions
-const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
-const GetAllTipsAction = require('./actions/GetAllTipsAction');
-const GetAllAddrsAction = require('./actions/GetAllAddrsAction');
-const GetDeltasAction = require('./actions/GetDeltasAction');
-const DbReadAction = require('./actions/DbReadAction');
-const GetContractCodeAction = require('./actions/GetContractCodeAction');
+const GetRegistrationParamsAction = require('./actions/DbRead/GetRegistrationParamsAction');
+const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
+const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
+const DbReadAction = require('./actions/DbRead/DbReadAction');
+const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
 class CoreRuntime{
   constructor(config){
     if(config.uri)
