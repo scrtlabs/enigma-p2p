@@ -28,7 +28,7 @@ class AnnounceLocalStateAction{
            * do the announcement
            * */
           let parsedEngCids = allAddrsResponse.addresses.map(addr=>{
-            let ecid = EngCid.createFromKeccack256(addr);
+            let ecid = EngCid.createFromSCAddress(addr);
             if(ecid){
               return ecid;
             }else{
@@ -44,11 +44,11 @@ class AnnounceLocalStateAction{
               //TODO:: this is ok accestable behaviour.
               //TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
               //TODO:: Bottom line im not processing the errors in the correct way.
-              console.log('[-] err %s couldnt provide at all. failed cids %s ', err, failedCids.length);
-              onResponse(err,parsedEngCids);
+              console.log('[-] err %s couldnt provide to all. failed cids %s ', err, failedCids.length);
+              return onResponse(err,parsedEngCids);
             }else{
-              console.log('[+] success providing cids. there are failed %s cids  ', failedCids.length);
-              onResponse(null,parsedEngCids);
+              console.log('[+] success providing cids.');
+              return onResponse(null,parsedEngCids);
             }
           });
         }

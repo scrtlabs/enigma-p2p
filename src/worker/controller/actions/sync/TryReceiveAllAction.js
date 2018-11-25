@@ -16,7 +16,8 @@ class TryReceiveAllAction{
    *  - findProvidersResult
    *  - missingStates
    *  - onFinish
-   * }*/
+   * }
+   * */
   execute(params){
     let allMissingDataList = params.allMissingDataList;
     let onFinish = params.onFinish;

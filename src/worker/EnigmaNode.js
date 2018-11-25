@@ -141,8 +141,7 @@ class EnigmaNode extends EventEmitter {
   addHandlers() {
     const protocols = this._handler.getProtocolsList();
 
-    // TODO:: currently ignore for testing.
-    if ((!this.policy.validateProtocols(protocols) || !this.started ) && false) {
+    if ((!this.started )) {
       throw Error('not all protocols are satisfied, check constants.js for more info.');
     }
     this.node.on(PROTOCOLS['PEER_DISCOVERY'], (peer) => {
@@ -450,13 +449,11 @@ class EnigmaNode extends EventEmitter {
             const data = response;
             const pongMsg = nodeUtils.toPongMsg(data);
             if (!pongMsg.isValidMsg()) {
-              // TODO:: handle invalid msg(?)
               err = '[-] Err bad pong msg recieved.';
             }
-
             // TODO:: REPLACE THAT with normal notify,
             // TODO:: The question is - where do I notify forall inbound/outbound handshakes
-            //        see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
+            //see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
             this.emit('notify', pongMsg);
             onHandshake(err, peerInfo, ping, pongMsg);
             return pongMsg.toNetworkStream();

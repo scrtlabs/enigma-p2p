@@ -45,9 +45,9 @@ module.exports.verificationStream = (read)=>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.toDbStream = (read)=>{
-  return _toDbStream(read);
-};
+// module.exports.toDbStream = (read)=>{
+//   return _toDbStream(read);
+// };
 
 module.exports.fromDbStream = (read) =>{
   return _fromDbStream(read);
@@ -79,8 +79,7 @@ module.exports.toNetworkSyncReqParser = (read)=>{
   return _toNetworkSyncReqParser(read);
 };
 /**
- * used by the receiver yo store the deltas into db
- * //TODO:: replace the old toDbStream
+ * used by the receiver to store the deltas into db
  * After verificationStream => into db
  * @param {stream} read
  * @return {function()}
@@ -97,7 +96,7 @@ function _throughDbStream(read){
             console.log("some fake error saving to db ");
             throw end;
           }else{
-            cb(end,data);
+            cb(end,{status:status, data : data});
           }
         });
       }else{
@@ -111,8 +110,6 @@ function _toNetworkSyncReqParser(read) {
   return function readble(end, cb) {
       read(end, (end, data) => {
         if (data != null) {
-          // TODO:: every method must have toNetwork();
-          // TODO:: parse the msg to msgpack serialization + buffer
           cb(end, data.toNetwork());
         } else {
           cb(end, null);
@@ -122,6 +119,12 @@ function _toNetworkSyncReqParser(read) {
 }
 function _fakeParseFromDbToNetwork(dbResult, callback){
   //TODO:: add toNetwork() method to all the dbResults.
+  // parse all to network
+  if(dbResult.type === constants.CORE_REQUESTS.GetDeltas){
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_STATE_RES;
+  }else if(dbResult.type === constants.CORE_REQUESTS.GetContract){
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_BCODE_RES;
+  }
   dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
   const isError = null;
@@ -151,9 +154,6 @@ function _fakeFromDbStream(syncReqMsg, callback){
   // TODO:: validate that the range < limit here or somewhere else.
   let queryType = null;
   if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ){
-    //TODO:: GetContract dont exist yet.
-    return callback(null, "bytecode result not implemented yet :-(");
-    // throw new Error("GetContract not implemented yet!");
     queryType = constants.CORE_REQUESTS.GetContract;
   }else if(syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ){
     queryType = constants.CORE_REQUESTS.GetDeltas;
@@ -229,24 +229,6 @@ function fakeSaveToDb(data, callback) {
   callback(status);
 }
 
-
-
-function _toDbStream(read) {
-  read(null, function next(end, data) {
-    if (end === true) return;
-
-    if (end) throw end;
-    // TODO:: placeholder - save states into db with core.
-    fakeSaveToDb(data, (status)=>{
-      if (!status) {
-        console.log('some fake error saving to db ');
-        throw end;
-      } else {
-        read(null, next);
-      }
-    });
-  });
-}
 function _verificationStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{

@@ -41,6 +41,10 @@ module.exports.runServer = (uri)=>{
         let deltas = getDeltas(msg);
         send(socket,deltas);
         break;
+      case MsgTypes.GetContract:
+        let contract = getContract(msg);
+        send(socket,contract);
+        break;
     }
   });
 
@@ -52,6 +56,24 @@ function send(socket,msg){
     socket.send(JSON.stringify(msg));
   }else{
     socket.send(JSON.stringify(error));
+  }
+}
+
+
+function getContract(msg){
+  let bcode = null;
+  let contractAddr = null;
+  DB_PROVIDER.forEach(entry=>{
+    if(msg.input[0] === DbUtils.toHexString(entry.address) && entry.key === -1){
+      bcode = entry.delta;
+      contractAddr = DbUtils.toHexString(entry.address);
+    }
+  });
+  return {
+    type : msg.type,
+    id : msg.id,
+    address : contractAddr,
+    bytecode : bcode
   }
 }
 

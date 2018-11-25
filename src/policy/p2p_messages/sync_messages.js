@@ -7,6 +7,23 @@ const EngCid = require('../../common/EngCID');
 
 class SyncMsgBuilder {
   /** no validation test */
+  static msgResFromObjNoValidation(msgObj){
+    if(msgObj.hasOwnProperty('msgType')){
+      switch(msgObj.msgType){
+        case MSG_TYPES.SYNC_STATE_RES:
+          return SyncMsgBuilder.stateResFromObjNoValidation(msgObj);
+        case MSG_TYPES.SYNC_BCODE_RES:
+          return SyncMsgBuilder.bcodeResFromObjNoValidation(msgObj);
+      }
+    }
+    return null;
+  }
+  static stateResFromObjNoValidation(msgObj){
+    return new SyncStateResMsg(msgObj);
+  }
+  static bcodeResFromObjNoValidation(msgObj){
+    return new SyncBcodeResMsg(msgObj);
+  }
   static msgReqFromObjNoValidation(msgObj){
     if(msgObj.hasOwnProperty('msgType')){
       switch(msgObj.msgType){

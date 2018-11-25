@@ -7,22 +7,18 @@
  * - setBootstrapPeers
  * - ...TBD
  * */
-
 const constants = require('../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
+const nodeUtils = require('../../common/utils');
+const WorkerBuilder = require('../builder/WorkerBuilder');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
 const ConnectionManager = require('../handlers/ConnectionManager');
-const WorkerBuilder = require('../builder/WorkerBuilder');
 const Stats = require('../Stats');
-const nodeUtils = require('../../common/utils');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
-const EngCid = require('../../common/EngCID');
-// api
-// const P2PApi = require('./P2PApi');
 // actions
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
@@ -31,7 +27,6 @@ const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDisc
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
-const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
@@ -41,6 +36,9 @@ const DbRequestAction = require('./actions/sync/DbRequestAction');
 const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/sync/GetDeltasAction');
+const GetContractCodeAction = require('./actions/sync/GetContractCodeAction');
+const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -61,8 +59,6 @@ class NodeController {
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-    // TODO:: take api from CTOR - currently uses _initP2PApi()
-    // this._p2pApi = new P2PApi();
 
     // stats
     this._stats = new Stats();
@@ -79,7 +75,6 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
-      [NOTIFICATION.CONTENT_ANNOUNCEMENT]: new AnnounceContentAction(this), // tell the network what cids are available for sync
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE] : new IdentifyMissingStatesAction(this),
@@ -89,6 +84,8 @@ class NodeController {
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE] : new AnnounceLocalStateAction(this),
       [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
       [NOTIFICATION.GET_DELTAS] : new GetDeltasAction(this), // get deltas from core
+      [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
+      [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this) // sync receiver pipeline
     };
   }
   /**
@@ -96,18 +93,16 @@ class NodeController {
    * Example:
    *  let nodeController = NodeController.initDefaultTemplate({'port':'30103'},'/path/to/config.json')
    *  nodeController.start();
-   * @param {Json} options
-   * @param {string} configPath
+   * @param {JSON} options
+   * @param {Logger} logger
    * @return {NodeController}
    */
   static initDefaultTemplate(options, logger) {
-    // create EnigmaNode
-    let path = null;
 
+    let path = null;
     if (options.configPath) {
       path = options.configPath;
     }
-
     // with default option (in constants.js)
     // const logger = new Logger({pretty:true});
     let _logger = null;
@@ -116,14 +111,11 @@ class NodeController {
     }else{
       _logger = new Logger();
     }
-
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
-
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode,_logger);
-
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
@@ -134,7 +126,6 @@ class NodeController {
     this._initContentProvider();
     this._initContentReceiver();
     // this._initCache();
-    // this._initP2PApi();
   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
@@ -181,55 +172,6 @@ class NodeController {
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
   }
-  // _initP2PApi() {
-  //   this._p2pApi.on('execCmd', (cmd, params)=>{
-  //     this.execCmd(cmd, params);
-  //   });
-  //   this._p2pApi.on('addPeer', (maStr)=>{
-  //     this.addPeer(maStr);
-  //   });
-  //   this._p2pApi.on('getSelfAddrs', (callback)=>{
-  //     const addrs = this.getSelfAddrs();
-  //     callback(addrs);
-  //   });
-  //   this._p2pApi.on('getAllOutboundHandshakes', (callback)=>{
-  //     const oHs = this.getAllOutboundHandshakes();
-  //     callback(oHs);
-  //   });
-  //   this._p2pApi.on('getAllInboundHandshakes', (callback)=>{
-  //     const iHs = this.getAllInboundHandshakes();
-  //     callback(iHs);
-  //   });
-  //   this._p2pApi.on('getAllPeerBank', (callback)=>{
-  //     const pb = this.getAllPeerBank();
-  //     callback(pb);
-  //   });
-  //   this._p2pApi.on('tryConsistentDiscovery', ()=>{
-  //     this.tryConsistentDiscovery();
-  //   });
-  //   this._p2pApi.on('broadcast', (content)=>{
-  //     this.broadcast(content);
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('provideContent', ()=>{
-  //     this.provideContent();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('findContent', ()=>{
-  //     this.findContent();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('findContentAndSync', ()=>{
-  //     this.findContentAndSync();
-  //   });
-  //   /** temp */
-  //   this._p2pApi.on('isSimpleConnected', (nodeId)=>{
-  //     this.isSimpleConnected(nodeId);
-  //   });
-  // }
-  // p2pApi() {
-  //   return this._p2pApi;
-  // }
   /***********************
    * public methods
    *********************/
@@ -310,7 +252,6 @@ class NodeController {
       const action = NOTIFICATION['DISCOVERED'];
       if (err) {
         this._logger.error('[-] Err: ' + err);
-        return;
       } else {
         this.execCmd(action, {'params': {'peer': peerInfo}});
       }
@@ -324,20 +265,19 @@ class NodeController {
 
     const handshakedIds = this.stats().getAllActiveOutbound(currentPeerIds);
 
-    const peersInfo = this.engNode().getPeersInfoList(handshakedIds);
-    return peersInfo;
+    return this.engNode().getPeersInfoList(handshakedIds);
   }
   getAllInboundHandshakes() {
     const currentPeerIds = this.engNode().getAllPeersIds();
 
     const handshakedIds = this.stats().getAllActiveInbound(currentPeerIds);
 
-    const peersInfo = this.engNode().getPeersInfoList(handshakedIds);
-    return peersInfo;
+    return this.engNode().getPeersInfoList(handshakedIds);
   }
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
   }
+  //TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
       'delay': 500,
@@ -352,71 +292,7 @@ class NodeController {
       'message': content,
     });
   }
-  /** temp */
-  announceContent() {
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
 
-    this._actions[NOTIFICATION.CONTENT_ANNOUNCEMENT].execute({
-      descriptorsList: descriptorsList,
-      isEngCid : false
-    });
-  }
-  /** temp */
-  findContent() {
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    const onResult = (findProvidersResult)=>{
-      console.log('---------------------- find providers ------------------------------ ');
-      console.log(' is complete error ? ' + findProvidersResult.isCompleteError());
-      console.log(' is some error ? ' + findProvidersResult.isErrors());
-      const map = findProvidersResult.getProvidersMap();
-      Object.keys(map).forEach(function(key) {
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^');
-        console.log('cid ' + key);
-        console.log('providers:' );
-        map[key].providers.forEach((p)=>{
-          const mas = [];
-          p.multiaddrs.forEach((ma)=>{
-            mas.push(ma.toString());
-          });
-          console.log(mas);
-        });
-        console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^');
-      });
-      console.log('---------------------- find providers ------------------------------ ');
-    };
-    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
-      descriptorsList: descriptorsList,
-      next: onResult,
-      isEngCid:  false
-    });
-  }
-
-  /** temp */
-  findContentAndSync(){
-    const descriptorsList = ['addr1', 'addr2', 'addr3'];
-    let isEngCid = false;
-    this.receiver().findProvidersBatch(descriptorsList, isEngCid,(findProvidersResult)=>{
-      if (findProvidersResult.isErrors()) {
-        throw new Error('failed finding providers there is some error');
-      } else {
-        const map = findProvidersResult.getProvidersMap();
-        for (const key in map) {
-          if (map.hasOwnProperty(key)) {
-            // const ecid = map[key].ecid;
-            const providers = map[key].providers;
-            // this.receiver().startStateSyncRequest(providers[0], ['addr1','addr2']);
-            let list = [];
-            this.receiver().trySyncReceive(providers,descriptorsList,(err,isDone,resultList)=>{
-              console.log("[finalCallback] is err? " + err );
-              console.log("[finalCallback] is done? " + isDone );
-              console.log('[finalCallback] : ' + resultList);
-            });
-            break;
-          }
-        }
-      }
-    });
-  }
   /** temp - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
@@ -442,7 +318,8 @@ class NodeController {
       maxPeers: maxPeers,
     });
   }
-  /**
+  /**TODO:: add this as cli api + in the cli dump it into a file.;
+   * TODO:: good for manual testing
    * returns the current local tips
    * @param {Boolean} fromCache , if true => use cache , false=> directly from core
    * @param {Function} onResponse , (missingStates) =>{}
@@ -454,7 +331,10 @@ class NodeController {
       cache : fromCache
     });
   }
-  /** TEMP */
+  /**
+   * identify and print to log the missing states
+   * @{Function} callback , optional (err,missingStates)=>{}
+   * */
   identifyMissingStates(callback){
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
       cache : false,
@@ -462,9 +342,11 @@ class NodeController {
         if(callback){
           return callback(err,missingStatesMsgsMap);
         }
-        console.log("err? " + err + " -> local tips final callback : ");
+        if(err){
+          return this._logger.error(" error identifying missing states : " + err);
+        }
         for(let ecidHash in missingStatesMsgsMap){
-          console.log(" ----------- contract 1 --------------------- ");
+         this._logger.debug("----------- contract --------------");
           let contractMsgs = missingStatesMsgsMap[ecidHash];
           for(let i=0;i<contractMsgs.length;++i){
             console.log("---- msg ----- ");
@@ -474,80 +356,51 @@ class NodeController {
       }
     });
   }
-  /** full receiver trip **/
-  findProvidersReal(ecidList, callback){
-    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
-      descriptorsList: ecidList,
-      next: callback,
-      isEngCid:  true
-    });
-  }
-  fullTryReceiveAll(allMissingDataList,callback){
-   this.execCmd(NOTIFICATION.TRY_RECEIVE_ALL,{
-     allMissingDataList : allMissingDataList,
-     onFinish : (err,allResults)=>{
-        callback(err,allResults)
-     }
-   });
-  }
-  fullReceiver(){
-    this.identifyMissingStates((err,missingStatesMap)=>{
-      let ecids = [];
-      let tempEcidToAddrMap = {};
-      for(let addrKey in missingStatesMap){
-        let ecid = EngCid.createFromKeccack256(addrKey);
-        if(ecid){
-          //TODO:: every EngCid should expose the addr as a built
-          //TODO:: in method
-          tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
-          ecids.push(ecid);
-        }else{
-          this._logger.error("error creating EngCid from " + addrKey);
+  //TODO make it usable to execute this pipeline
+  syncReceiverPipeline(callback){
+    this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
+      cache : false,
+      onEnd : (err,statusResult)=>{
+        if(callback){
+          return callback(err,statusResult);
         }
+        this._logger.debug("done receiving pipeline. err? " + err);
       }
-      this.findProvidersReal(ecids,findProviderResult=>{
-        if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
-          return console.log("[-] some error finding providers !!!!!!");
-        }
-        // parse to 1 object: cid => {providers, msgs} -> simple :)
-        let allReceiveData = [];
-        let providersMap = findProviderResult.getProvidersMap();
-        ecids.forEach(ecid=>{
-          allReceiveData.push({
-            requestMessages : missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]] ,
-            providers : findProviderResult.getProvidersFor(ecid)
-          });
-        });
-        // now we have providers and all the messages ready. we can connect and sync.
-        this.fullTryReceiveAll(allReceiveData, (err,AllResults)=>{
-          //TODO:: check the sync status
-          // that's it basically.
-          console.log("success synching all.");
-        });
-      });
     });
   }
-  /** TEMP TEMP TEMP TEMP TEMP TEMP TEMP */
-  tryAnnounce(){
+  /**
+   * Announce the network the contents the worker is holding.
+   * This will be used to route requests to this announcing node.
+   * */
+  tryAnnounce(callback){
     //test_real_announce
     // AnnounceLocalStateAction
     this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
       cache : false,
       onResponse : (error,content)=>{
-        if(error){
-          console.log("err providing!@!!!! " , error);
+        if(callback){
+          return callback(error,content);
+        }
+        else if(error){
+          this._logger.error("failed announcing " + error);
         }else{
-          console.log("final success providing: ");
           content.forEach(ecid=>{
-            console.log("providing => " + ecid.getKeccack256());
+            this._logger.info("providing : " + ecid.getKeccack256());
           });
         }
       }
-    })
+    });
   }
-};
+  /** Find a list of providers for each ecid
+   * @param {Array<EngCid>} ecids
+   * @param {Function} callback (findProviderResult)=>{}
+   * */
+  findProviders(ecids,callback){
+    this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
+      descriptorsList:  ecids,
+      isEngCid : true,
+      next : (findProvidersResult)=>{callback(findProvidersResult)}
+    });
+  }
+}
 module.exports = NodeController;
-
-
-
-
