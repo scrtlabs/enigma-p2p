@@ -52,7 +52,6 @@ async function getRemoteMissingStates(api, localTips, callback) {
         var filtered = _.filter(results, function(x) {
             return (x===undefined ? false : true);
           });
-        console.log("filtered="+ util.inspect(filtered, {showHidden: false, depth: null}));
         return callback(filtered);
     });
 }
