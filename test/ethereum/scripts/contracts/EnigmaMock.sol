@@ -243,6 +243,7 @@ contract EnigmaMock {
         uint pos = 0;
         for (uint i = start; i < stop; i++) {
             addresses[pos] = scAddresses[i];
+            pos++;
         }
         return addresses;
     }
