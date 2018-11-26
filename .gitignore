@@ -244,3 +244,4 @@ typings/
 
 # Codecov
 coverage.lcov
+test/ethereum/scripts/build/contracts/Migrations.json

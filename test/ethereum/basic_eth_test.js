@@ -407,7 +407,7 @@ describe('Ethereum tests', function() {
                 ethCall, workerEnclaveSigningAddress, workerAddress);
 
 
-            StateSync.getRemoteMissingStates(api, [], (results)=>{
+            StateSync.getRemoteMissingStates(api, [], (err, results)=>{
                 //DONE results == [{address, deltas : [deltaHash, index]}]
                 assert.strictEqual(results.length, 2);
 
@@ -496,7 +496,7 @@ describe('Ethereum tests', function() {
             await commitReceipt(api, secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4, 
                 ethCall, workerEnclaveSigningAddress, workerAddress);
 
-            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key : 0}], (results)=>{
+            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key : 0}], (err, results)=>{
                 //DONE results == [{address, deltas : [deltaHash, index]}]
                 assert.strictEqual(results.length, 2);
 
@@ -584,7 +584,7 @@ describe('Ethereum tests', function() {
                 ethCall, workerEnclaveSigningAddress, workerAddress);
 
 
-            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}, {address: secretContractAddress2, key: 0}], (results)=>{
+            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}, {address: secretContractAddress2, key: 0}], (err, results)=>{
                 //DONE results == [{address, deltas : [deltaHash, index]}]
                 assert.strictEqual(results.length, 1);
 
@@ -667,7 +667,7 @@ describe('Ethereum tests', function() {
                 ethCall, workerEnclaveSigningAddress, workerAddress);
 
 
-            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 2}, {address: secretContractAddress2, key: 0}], (results)=>{
+            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 2}, {address: secretContractAddress2, key: 0}], (err, results)=>{
                 //DONE results == [{address, deltas : [deltaHash, index]}]
                 assert.strictEqual(results.length, 0);
 
