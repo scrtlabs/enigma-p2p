@@ -1,4 +1,4 @@
-# Communication type 
+# Communication type
 `enigma-core` and `enigma-p2p` communicate via `zeromq` architechture.
 The communication is done with `REQ` and `REP` sockets.
 `enigma-p2p` is the `REQ` (requester) and `enigma-core` is the `REP` (responder).
@@ -7,8 +7,8 @@ The communication is done with `REQ` and `REP` sockets.
 
 ## Enclave identity related
 
-### `GetRegistrationParams` message 
-Request: 
+### `GetRegistrationParams` message
+Request:
 
 ```
 {
@@ -16,17 +16,17 @@ Request:
     type : GetRegistrationParams
 }
 ```
-Response: 
+Response:
 ```
 {
     id : <unique_request_id>
     type : GetRegistrationParams
-    signingKey : hex 
-    quote : base64 
+    signingKey : hex
+    quote : base64
 }
 ```
 
-### `IdentityChallenge` message 
+### `IdentityChallenge` message
 
 Request:
 
@@ -34,7 +34,7 @@ Request:
 {
     id : <unique_request_id>
     type : IdentityChallenge
-    nonce : 
+    nonce :
 }
 ```
 Response:
@@ -43,17 +43,17 @@ Response:
     id : <unique_request_id>
     type : IdentityChallenge
     nonce :
-    signature :  
+    signature :
 }
 ```
-## Enclave Read only Database related 
+## Enclave Read only Database related
 
-### `GetTip` message 
+### `GetTip` message
 Request:
 ```
 {
     id : <unique_request_id>
-    type : GetTip 
+    type : GetTip
     input : [Secret Contract Address]
 }
 ```
@@ -61,20 +61,20 @@ Response:
 ```
 {
    id : <unique_request_id>
-   type : GetTip 
+   type : GetTip
    result : {
        key : [],
        delta : [],
    }
 }
 ```
-### `GetTips` message 
+### `GetTips` message
 
 Request:
 ```
 {
     id : <unique_request_id>
-    type : Ge:tTips 
+    type : Ge:tTips
     input : [Array<Secret Contract Address>]
 }
 ```
@@ -82,7 +82,7 @@ Response:
 ```
 {
     id : <unique_request_id>
-    type : GetTips 
+    type : GetTips
     result : {
         tips : [Array<{address,key,delta}>]
     }
@@ -93,7 +93,7 @@ Request:
 ```
 {
     id : <unique_request_id>
-    type : GetAllTips 
+    type : GetAllTips
 }
 ```
 Response:
@@ -124,16 +124,16 @@ Response:
     }
 }
 ```
-### `GetDelta` message 
-Request: 
+### `GetDelta` message
+Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDelta 
+    type : GetDelta
     input : [{address, key}]
 }
 ```
-Response: 
+Response:
 ```
 {
     id : <unique_request_id>
@@ -143,16 +143,16 @@ Response:
     }
 }
 ```
-### `GetDeltas` message 
-Request: 
+### `GetDeltas` message
+Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDelta 
+    type : GetDelta
     input : [{address, from:key,to:key},...]
 }
 ```
-Response: 
+Response:
 ```
 {
     id : <unique_request_id>
@@ -160,8 +160,8 @@ Response:
     deltas : [{address,key,data},...]
 }
 ```
-### `GetContract` message 
-Request: 
+### `GetContract` message
+Request:
 ```
 {
     id : <unique_request_id>
@@ -169,7 +169,7 @@ Request:
     input : [address]
 }
 ```
-Response: 
+Response:
 ```
 {
     id : <unique_request_id>
@@ -180,13 +180,54 @@ Response:
 }
 ```
 
-## Master Node Key-Exchange related 
+## Enclave Write only Database related
 
-## Computation related 
+### `UpdateNewContract` message
+Request:
+```
+{
+    id : <unique_request_id>
+    type : UpdateNewContract
+    address : ...
+    bytecode : [Secret Contract Address]
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>
+    type : UpdateNewContract
+    address : ...
+    status : 0 or err code
+}
+```
 
-### `DeploySecretContract` message 
+### `UpdateDeltas` message
+Request:
+```
+{
+    id : <unique_request_id>
+    type : UpdateDeltas
+    deltas : [{address,index,data : []}, ...]
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>
+    type : UpdateDeltas
+    general_status : 0 or err code
+    statuses : [{address,index,status : }, ...]
+}
+```
 
-### `ComputeTask` message 
+## Master Node Key-Exchange related
+
+## Computation related
+
+### `DeploySecretContract` message
+
+### `ComputeTask` message
 
 
 
