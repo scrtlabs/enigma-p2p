@@ -4,13 +4,26 @@
  * and do stuff like: broadcast computeTask, get other workers PubKey etc.
  * */
 const jayson = require('jayson');
+class QuoteAction{}
 
 class JsonRpcServer{
+
   constructor(config){
     this._port = config.port;
+    this._peerId = config.peerId;
+    this._pendingSequence = {};
     this._server = jayson.server({
-      add : (args,callback)=>{
-        callback(null,args[0]+ args[1]);
+      say_hi : (args,callback)=>{
+        callback(null,"Hi from %s" , this._peerId);
+      },
+      getQuote : (args,callback)=>{
+        new QuoteAction(this,args,callback);
+      },
+      sequence_hello : (args,callback)=>{
+        let msg_id = args[0]
+        // do stuff
+        // send back with sequence id
+        this._pendingSequence[msg_id] = [args[1]];
       }
     });
   }
