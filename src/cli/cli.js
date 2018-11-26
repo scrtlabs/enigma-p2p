@@ -95,15 +95,6 @@ class CLI{
         const msg = args[1];
         this._node.broadcast(msg);
       },
-      'provide': (args) =>{
-        this._node.announceContent();
-      },
-      'receive': ()=>{
-        this._node.findContent();
-      },
-      'sync': () =>{
-        this._node.findContentAndSync();
-      },
       'tryAnnounce' : ()=>{
         this._node.tryAnnounce();
       },
@@ -111,7 +102,7 @@ class CLI{
         this._node.identifyMissingStates();
       },
       'rsync' : ()=>{
-        this._node.fullReceiver();
+        this._node.syncReceiverPipeline();
       },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
