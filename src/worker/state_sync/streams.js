@@ -12,7 +12,8 @@ const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
  * @param {Logger} logger
  * */
 const globalState = {
-  context : null,
+  providerContext : null,
+  receiverContext : null,
   logger : null,
 };
 /**
@@ -20,8 +21,11 @@ const globalState = {
  * regardless of the amount of times it is being called.
  * */
 module.exports.setGlobalState = (state)=>{
-  if(state.context && globalState.context === null){
-    globalState.context = state.context;
+  if(state.providerContext && globalState.providerContext === null){
+    globalState.providerContext = state.providerContext;
+  }
+  if(state.receiverContext && globalState.receiverContext === null){
+    globalState.receiverContext = state.receiverContext;
   }
   if(state.logger && globalState.logger === null){
     globalState.logger = state.logger;
@@ -161,7 +165,7 @@ function _fakeFromDbStream(syncReqMsg, callback){
     // TODO:: handle error
     console.log("[-] error in _fakeFromDbStream");
   }
-  globalState.context.dbRequest({
+  globalState.providerContext.dbRequest({
     dbQueryType : queryType,
     requestMsg : syncReqMsg,
     onResponse : (ctxErr,dbResult) =>{
@@ -226,8 +230,13 @@ function _requestParserStream(read){
 // the objects are either SYNC_STATE_RES or SYNC_BCODE_RES
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
-  const status = true;
-  callback(status);
+  globalState.receiverContext.dbWrite({
+    type : '',
+    data : data,
+    callback : (err,status)=>{
+      callback(status);
+    }
+  });
 }
 
 function _verificationStream(read) {
