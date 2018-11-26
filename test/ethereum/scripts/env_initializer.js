@@ -1,13 +1,24 @@
 const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 
-const EnigmaContractJson= require("./build/contracts/EnigmaMock.json");
-const EnigmaTokenContractJson = require("./build/contracts/EnigmaToken.json");
 const testUtils = require('../../testUtils/utils');
 
 
 let subprocess; // Global `trufffle develop` "child process" object 
 
+
+function buildEnv(truffleDirectory) {
+    return new Promise((resolve, reject) => {
+        const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
+        exec(command, (err, stdout, stderr) => {
+            if (err) {
+                reject();
+            }
+            //console.log(stdout);
+            resolve(stderr, stdout);
+        })
+    })
+}
 
 function resetEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
@@ -24,7 +35,11 @@ function resetEnv(truffleDirectory) {
 
 
 async function init(truffleDirectory) {
+    await buildEnv(truffleDirectory);
     await resetEnv(truffleDirectory);
+
+    const EnigmaContractJson = require("./build/contracts/EnigmaMock.json");
+    const EnigmaTokenContractJson = require("./build/contracts/EnigmaToken.json");
 
     const websocketProvider = "ws://127.0.0.1:9545"
     const provider = new Web3.providers.WebsocketProvider(websocketProvider);
