@@ -31,6 +31,23 @@ class Receiver extends EventEmitter {
       callback(err, providers);
     });
   }
+  /** stream related methods
+   * MUST CONTAIN a "notification" field
+   * specifying the concrete Action
+   * */
+  notify(params){
+    this.emit('notify',params);
+  }
+  /**
+   * Calls the worker/DbWriteAction
+   * @param {JSON} request ,must contain the fields:
+   * */
+  dbRequest(request){
+    if(request.hasOwnProperty('onResponse') && request.hasOwnProperty('dbQueryType')){
+      //
+      this.notify(request);
+    }
+  }
   /** find providers for some content in a batch mode
      * On error check findProviderResult.isCompleteError() => general error in the process
      * findProviderResult.isErrors() => means that some had errors.

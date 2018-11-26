@@ -171,6 +171,13 @@ class NodeController {
   }
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
+    this._receiver.on('notify',(params)=>{
+      const notification = params.notification;
+      const action = this._actions[notification];
+      if(action !== undefined){
+        this._actions[notification].execute(params);
+      }
+    });
   }
   /***********************
    * public methods
