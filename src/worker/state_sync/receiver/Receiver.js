@@ -17,7 +17,7 @@ class Receiver extends EventEmitter {
     this._policy = new Policy();
     this._engNode = enigmaNode;
     this._logger = logger;
-    streams.setGlobalState({logger : this._logger, context : this});
+    streams.setGlobalState({logger : this._logger, receiverContext : this});
   }
 
   /**
@@ -40,12 +40,16 @@ class Receiver extends EventEmitter {
   }
   /**
    * Calls the worker/DbWriteAction
-   * @param {JSON} request ,must contain the fields:
+   * @param {JSON} request ,must contain the fields: dbQueryType, callback(err,status) , data
    * */
-  dbRequest(request){
-    if(request.hasOwnProperty('onResponse') && request.hasOwnProperty('dbQueryType')){
-      //
-      this.notify(request);
+  dbWrite(request){
+    if(request.hasOwnProperty('callback') && request.hasOwnProperty('data') && request.hasOwnProperty('dbQueryType')){
+      
+      // ToDO:: notification = DB WRITE ACTION for node controller.
+      console.log(request.dbQueryType);
+      // console.log(request.data);
+      console.log("cool got the request !!! ");
+      request.callback(null,{msg : "saved everything is cool!"});
     }
   }
   /** find providers for some content in a batch mode
@@ -58,7 +62,7 @@ class Receiver extends EventEmitter {
       * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
      * */
-  findProvidersBatch(descriptorsList, withEngCid,callback) {
+  findProvidersBatch(descriptorsList, withEngCid,callback){
     const timeout = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
     let engCids = descriptorsList;
     if(!withEngCid){

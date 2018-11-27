@@ -11,7 +11,7 @@ class Provider extends EventEmitter {
     super();
     this._enigmaNode = enigmaNode;
     this._logger = logger;
-    streams.setGlobalState({logger : this._logger, context : this});
+    streams.setGlobalState({logger : this._logger, providerContext : this});
   }
   /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
