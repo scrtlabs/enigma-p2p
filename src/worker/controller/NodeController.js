@@ -32,11 +32,11 @@ const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRe
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
-const DbRequestAction = require('./actions/sync/DbRequestAction');
-const GetAllTipsAction = require('./actions/sync/GetAllTipsAction');
-const GetAllAddrsAction = require('./actions/sync/GetAllAddrsAction');
-const GetDeltasAction = require('./actions/sync/GetDeltasAction');
-const GetContractCodeAction = require('./actions/sync/GetContractCodeAction');
+const DbRequestAction = require('./actions/db/read/DbRequestAction');
+const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
+const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
+const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 
 class NodeController {

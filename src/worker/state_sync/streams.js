@@ -231,7 +231,7 @@ function _requestParserStream(read){
 // TODO:: replace with some real access to core/ipc
 function fakeSaveToDb(data, callback) {
   globalState.receiverContext.dbWrite({
-    type : '',
+    dbQueryType : 'some type....',
     data : data,
     callback : (err,status)=>{
       callback(status);

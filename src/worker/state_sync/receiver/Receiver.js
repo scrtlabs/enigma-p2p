@@ -44,8 +44,10 @@ class Receiver extends EventEmitter {
    * */
   dbWrite(request){
     if(request.hasOwnProperty('callback') && request.hasOwnProperty('data') && request.hasOwnProperty('dbQueryType')){
+      
+      // ToDO:: notification = DB WRITE ACTION for node controller.
       console.log(request.dbQueryType);
-      console.log(request.data);
+      // console.log(request.data);
       console.log("cool got the request !!! ");
       request.callback(null,{msg : "saved everything is cool!"});
     }
@@ -60,7 +62,7 @@ class Receiver extends EventEmitter {
       * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
      * */
-  findProvidersBatch(descriptorsList, withEngCid,callback) {
+  findProvidersBatch(descriptorsList, withEngCid,callback){
     const timeout = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
     let engCids = descriptorsList;
     if(!withEngCid){

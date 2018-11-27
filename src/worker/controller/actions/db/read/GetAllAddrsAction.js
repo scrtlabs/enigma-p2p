@@ -1,5 +1,5 @@
 
-const constants = require('../../../../common/constants');
+const constants = require('../../../../../common/constants');
 
 /**
  * Get all addresses either from core or from cache

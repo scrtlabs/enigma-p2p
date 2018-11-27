@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require('../../../../../common/constants');
 /**
  This action returns all the requested deltas.
  either from cache or directly from core.
