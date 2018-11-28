@@ -248,7 +248,7 @@ class NodeController {
   policy() {
     return this._policy;
   }
-  // ----------------- API Methods  ------------------
+  // ----------------- API Methods  ------------------ //
   execCmd(cmd, params) {
     if (this._actions[cmd]) {
       this._actions[cmd].execute(params);
