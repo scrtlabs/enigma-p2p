@@ -24,6 +24,7 @@ class SyncMsgBuilder {
   static bcodeResFromObjNoValidation(msgObj){
     return new SyncBcodeResMsg(msgObj);
   }
+
   static msgReqFromObjNoValidation(msgObj){
     if(msgObj.hasOwnProperty('msgType')){
       switch(msgObj.msgType){

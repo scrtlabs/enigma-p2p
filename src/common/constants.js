@@ -28,7 +28,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_ALL_ADDRS' : 'getaa', // get all addrs from cache/core
   'GET_DELTAS' : 'getds', // get deltas request from core
   'GET_CONTRACT_BCODE' : 'getcbc',// get the bytecode of some contract
-  'SYNC_RECEIVER_PIPELINE' : 'srpl' // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
+  'SYNC_RECEIVER_PIPELINE' : 'srpl', // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
+  'UPDATE_DB' : 'udb', // request to save a new delta or bytecode in core, usually used by the receiver during sync
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -120,5 +121,6 @@ module.exports.CORE_REQUESTS = {
   GetAllAddrs : 'GetAllAddrs',
   GetDelta : 'GetDelta',
   GetDeltas : 'GetDeltas',
-  GetContract : 'GetContract'
+  GetContract : 'GetContract',
+  UpdateDb : 'udb',
 };

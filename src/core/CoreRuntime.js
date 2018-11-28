@@ -12,7 +12,7 @@ const GetRegistrationParamsAction = require('./actions/DbRead/GetRegistrationPar
 const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
-const DbReadAction = require('./actions/DbRead/DbReadAction');
+const DbReadAction = require('./actions/DbAction');
 const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
 class CoreRuntime{
   constructor(config){

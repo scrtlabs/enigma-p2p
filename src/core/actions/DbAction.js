@@ -1,6 +1,6 @@
-const Envelop = require('../../../main_controller/channels/Envelop');
+const Envelop = require('../../main_controller/channels/Envelop');
 
-class DbReadAction{
+class DbAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
@@ -15,4 +15,4 @@ class DbReadAction{
     });
   }
 }
-module.exports = DbReadAction;
+module.exports = DbAction;
