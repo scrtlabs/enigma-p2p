@@ -44,12 +44,11 @@ class Receiver extends EventEmitter {
    * */
   dbWrite(request){
     if(request.hasOwnProperty('callback') && request.hasOwnProperty('data') && request.hasOwnProperty('dbQueryType')){
-      
-      // ToDO:: notification = DB WRITE ACTION for node controller.
-      console.log(request.dbQueryType);
-      // console.log(request.data);
-      console.log("cool got the request !!! ");
-      request.callback(null,{msg : "saved everything is cool!"});
+      request.notification = constants.NODE_NOTIFICATIONS.UPDATE_DB;
+      this.notify(request);
+    }else{
+      //TODO:: callback might be a missing field for some reason BUT it's ok since it better to crash here than sleep, fix later gracefully.
+      request.callback('err missing fields');
     }
   }
   /** find providers for some content in a batch mode

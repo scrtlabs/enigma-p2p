@@ -95,9 +95,9 @@ function _throughDbStream(read){
   return function readble(end,cb){
     read(end,(end,data)=>{
       if(data != null){
-        fakeSaveToDb(data,(status)=>{
-          if(!status){
-            console.log("some fake error saving to db ");
+        fakeSaveToDb(data,(err, status)=>{
+          if(!status || err ){
+            globalState.logger.error("some fake error saving to db ");
             throw end;
           }else{
             cb(end,{status:status, data : data});
@@ -228,13 +228,17 @@ function _requestParserStream(read){
 // used by _toDbStream()
 // save response (after validation) to db
 // the objects are either SYNC_STATE_RES or SYNC_BCODE_RES
-// TODO:: replace with some real access to core/ipc
-function fakeSaveToDb(data, callback) {
+function fakeSaveToDb(msgObj, callback) {
+  if(msgObj === null || msgObj === undefined){
+    let err = "error saving to db";
+    globalState.logger.error(err);
+    return callback(err);
+  }
   globalState.receiverContext.dbWrite({
-    dbQueryType : 'some type....',
-    data : data,
+    dbQueryType : constants.CORE_REQUESTS.UpdateDb,
+    data : msgObj,
     callback : (err,status)=>{
-      callback(status);
+      callback(err,status);
     }
   });
 }
@@ -245,17 +249,21 @@ function _verificationStream(read) {
       if (data !=null) {
         data = EncoderUtil.decode(data);
         data = JSON.parse(data);
+        data = SyncMsgBuilder.msgResFromObjNoValidation(data);
+        if(data == null){
+          return cb(true, null);
+        }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
         new Verifier().verify(data, (isOk)=>{
           if (isOk) {
-            cb(end, data);
+            return cb(end, data);
           } else {
-            cb(true, null);
+            return cb(true, null);
           }
         });
       } else {
-        cb(end, null);
+        return cb(end, null);
       }
     });
   };

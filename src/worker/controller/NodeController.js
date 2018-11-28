@@ -32,12 +32,13 @@ const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRe
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
-const DbRequestAction = require('./actions/db/read/DbRequestAction');
+const DbRequestAction = require('./actions/db/DbRequestAction');
 const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
+const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -85,7 +86,8 @@ class NodeController {
       [NOTIFICATION.GET_ALL_ADDRS] : new GetAllAddrsAction(this),// get all the addresses from core or from cache
       [NOTIFICATION.GET_DELTAS] : new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
-      [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this) // sync receiver pipeline
+      [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
+      [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
     };
   }
   /**
@@ -248,7 +250,7 @@ class NodeController {
   policy() {
     return this._policy;
   }
-  // ----------------- API Methods  ------------------
+  // ----------------- API Methods  ------------------ //
   execCmd(cmd, params) {
     if (this._actions[cmd]) {
       this._actions[cmd].execute(params);

@@ -45,8 +45,8 @@ To launch a worker(s) in a different terminal type:
      alt="Implementation 2" />
 
 * The components are essentially autonomous "runtimes".
-* The the MainController relays the communication with different Actions.
-* The communication is done via Channel's which are bi-directional message sending implementation.
+* The MainController relays the communication with different Actions.
+* The communication is done via Channels, which are bi-directional message-sending implementations.
 
 <img src="docs/overview3.jpg"
      alt="Implementation 3" />
@@ -62,8 +62,8 @@ To launch a worker(s) in a different terminal type:
 # How it works
 
 ## Overview on start 
-At a very high level, the Worker need to execute a sequence of steps 
-and only then it can start "Working". Here is a diagram explaining all of the initial steps the Worker has to do: 
+At a very high level, the Worker needs to execute a sequence of steps 
+and only then, it can start "Working". Here is a diagram explaining all of the initial steps the Worker has to do: 
 
 <img src="docs/start_flow.jpg"
      alt="Implementation 4" />
@@ -78,12 +78,12 @@ Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
 
 * Persistent Discovery
 
-ervice that always alive and optimizes for "Optimal DHT" state
-(i.e take care of connection stability.)
+Service that is always alive and optimizes for "Optimal DHT" state
+(i.e take care of connection stability).
 
 * Sync State
 
-Synchronize the Worker state. (Secret contracts bytecode and deltas.)
+Synchronize the Worker state: Secret contracts bytecode and deltas.
 
 * Announce State 
 
@@ -105,7 +105,7 @@ Register with Enigma.sol with all the required steps including Enclave Report.
 
 *WIP*
 
-The Enigma Contract on Ethereum is used as the consensus layer. Contianing a Mapping between:
+The Enigma Contract on Ethereum is used as the consensus layer. Containing a Mapping between:
 
 `Secret-Contract-Address` => `hash(WASM)`,`[hash(delta 0), ...hash(delta n)]`
 
@@ -113,6 +113,7 @@ Synchronizing the State means:
 
     1) Having all the secret-contracts WASM code.
     2) Having all the state deltas for each secret-contract.
+
 ### Content Routing
 
 *WIP*
@@ -145,8 +146,8 @@ Finding content is the look up of certains CID's in the networking.
 Once a provider is found starts the synchronization process.
 
 ## JSON RPC API
-* TBD
 
+* TBD
 
 ## Built With
 
@@ -154,7 +155,9 @@ Once a provider is found starts the synchronization process.
 * [Libp2p](https://libp2p.io/) - Networking library
 
 ## Authors
+
 * TBD
+
 ## License
 
 The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
@@ -163,6 +166,3 @@ the Free Software Foundation, either version 3 of the License, or (at your optio
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
 
 You should have received a [copy](LICENSE) of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
-
