@@ -54,7 +54,7 @@ describe('Ethereum tests', function() {
         //console.log("subscribed to " + eventName);
     }
 
-    const util = require('util')
+    //const util = require('util')
 
     //console.log(util.inspect(myObject, {showHidden: false, depth: null}))
 
