@@ -14,14 +14,13 @@ class UpdateDbAction{
     if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
       request.type = constants.CORE_REQUESTS.UpdateDeltas;
       request.deltas = msgObj.deltas();
-    }else if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
+    }else if(msgObj.type() === constants.P2P_MESSAGES.SYNC_BCODE_RES){
       request.type = constants.CORE_REQUESTS.UpdateNewContract;
       request.address = msgObj.contractAddress();
       request.bytecode = msgObj.deployedBytecode();
     }
     if(request.type)
       return request;
-
     return null;
   }
   execute(envelop){

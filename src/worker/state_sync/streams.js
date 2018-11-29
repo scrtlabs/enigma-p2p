@@ -237,12 +237,6 @@ function fakeSaveToDb(msgObj, callback) {
   globalState.receiverContext.dbWrite({
     data : msgObj,
     callback : (err,status)=>{
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("err? " + err);
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-      console.log("status ? " + JSON.stringify(status));
-      console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
       callback(err,status);
     }
   });
