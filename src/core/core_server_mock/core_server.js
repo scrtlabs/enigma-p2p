@@ -45,6 +45,13 @@ module.exports.runServer = (uri)=>{
         let contract = getContract(msg);
         send(socket,contract);
         break;
+      case MsgTypes.UpdateNewContract:
+      case MsgTypes.UpdateDeltas:
+        send(socket, {
+          type : msg.type,
+          id : msg.id,
+        });
+        break;
     }
   });
 

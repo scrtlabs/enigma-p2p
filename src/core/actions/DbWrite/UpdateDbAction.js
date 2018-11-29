@@ -13,7 +13,7 @@ class UpdateDbAction{
     };
     if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
       request.type = constants.CORE_REQUESTS.UpdateDeltas;
-      request.deltas = msgObj.states();
+      request.deltas = msgObj.deltas();
     }else if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
       request.type = constants.CORE_REQUESTS.UpdateNewContract;
       request.address = msgObj.contractAddress();
@@ -25,9 +25,8 @@ class UpdateDbAction{
     return null;
   }
   execute(envelop){
-
     /***/
-    let request = UpdateDbAction._buildRequest(envelop.content());
+    let request = UpdateDbAction._buildRequest(envelop.content().input);
     this._coreRuntime.execCmd(constants.CORE_REQUESTS.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,

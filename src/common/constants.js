@@ -124,5 +124,5 @@ module.exports.CORE_REQUESTS = {
   GetContract : 'GetContract',
   UpdateNewContract : 'UpdateNewContract',
   UpdateDeltas : 'UpdateDeltas',
-  UpdateDb : 'udb',
+  UpdateDb : 'UpdateDb',
 };

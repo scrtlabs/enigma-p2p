@@ -14,6 +14,8 @@ const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
 const DbAction = require('./actions/DbAction');
 const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
+const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
+
 class CoreRuntime{
   constructor(config){
     if(config.uri)
@@ -33,6 +35,7 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
       [constants.CORE_REQUESTS.GetContract] : new GetContractCodeAction(this),
+      [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
     };
   }
   /**

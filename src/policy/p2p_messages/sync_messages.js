@@ -262,6 +262,9 @@ class SyncStateResMsg extends SyncMsg {
   contractAddress() {
     return this._rawMsg.contractAddress;
   }
+  deltas(){
+    return this._rawMsg.deltas;
+  }
   states() {
     return this._rawMsg.states;
   }
