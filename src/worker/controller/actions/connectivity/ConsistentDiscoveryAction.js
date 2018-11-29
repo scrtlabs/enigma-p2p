@@ -7,7 +7,7 @@ class ConsistentDiscoveryAction {
   constructor(controller) {
     this._controller = controller;
   }
-  _getStoppableTaskOptions(options, taskInput) {
+  _getStoppableTaskOptions(options, taskInput){
     const final = {};
 
     const maxRetry = options.maxRetry;
