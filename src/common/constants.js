@@ -112,7 +112,7 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
  * */
 // all the different requests that can be made to Core via the Ipc client
 module.exports.CORE_REQUESTS = {
-  CORE_DB_READ_ACTION : 'CORE_DB_READ_ACTION', // internal for CoreRuntime
+  CORE_DB_ACTION : 'CORE_DB_ACTION', // internal for CoreRuntime
   GetRegistrationParams : 'GetRegistrationParams',
   IdentityChallenge : 'IdentityChallenge',
   GetTip : 'GetTip',
@@ -122,5 +122,7 @@ module.exports.CORE_REQUESTS = {
   GetDelta : 'GetDelta',
   GetDeltas : 'GetDeltas',
   GetContract : 'GetContract',
+  UpdateNewContract : 'UpdateNewContract',
+  UpdateDeltas : 'UpdateDeltas',
   UpdateDb : 'udb',
 };
