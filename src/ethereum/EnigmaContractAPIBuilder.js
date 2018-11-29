@@ -9,7 +9,7 @@ const path = require('path');
 const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 
-const truffleDir = '../../test/ethereum/scripts';
+const truffleDir = path.join(__dirname, '../../test/ethereum/scripts');
 
  
 //const testUtils = require('../../testUtils/utils');
@@ -87,8 +87,10 @@ class EnigmaContractAPIBuilder {
             const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
             exec(command, (err, stdout, stderr) => {
                 if (err) {
+                    //console.log(err);
                     reject();
                 }
+                //console.log(stdout);
                 resolve(stderr, stdout);
             })
         })
@@ -99,8 +101,10 @@ class EnigmaContractAPIBuilder {
             const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
             exec(command, (err, stdout, stderr) => {
                 if (err) {
+                    //console.log(err);
                     reject();
                 }
+                //console.log(stdout);
                 resolve(stderr, stdout);
             })
         })
@@ -192,101 +196,4 @@ class EnigmaContractAPIBuilder {
     }
 }
 
-
-
 module.exports = EnigmaContractAPIBuilder;  
-
-
-
-
-
-// async function registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress) {
-//     let regTx = await api.register(workerEnclaveSigningAddress, workerReport, {from : workerAddress});
-//     console.log("worker " + workerAddress + " registred; reciept=" + regTx);
-// }
-
-// async function deposit(api, workerAddress, amount) {
-//     let reciept = await api.deposit(workerAddress, amount, {from : workerAddress});
-//     console.log("worker " + workerAddress + " deposited; reciept=" + reciept);
-// }
-
-// async function deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress, codeHash, workerAddress) { 
-//     let depTx = await api.deploySecretContract(secretContractAddress, codeHash, workerAddress, workerEnclaveSigningAddress, {from : workerAddress});
-//     console.log("secret contracts " + secretContractAddress + " deployed. reciept=" + depTx);    
-// }
-
-// async function createTaskRecord(api, taskId, fee, token, tokenValue, workerAddress) {
-//     let reciept = await api.createTaskRecord(taskId, fee, token, tokenValue, {from : workerAddress});
-//     console.log("task record created. reciept=" + reciept);   
-
-// }
-
-// async function createTaskRecords(api, taskIds, fees, tokens, tokenValues, workerAddress) {
-//     let reciept = await api.createTaskRecords(taskIds, fees, tokens, tokenValues, {from : workerAddress});
-//     console.log("task records created. reciept=" + reciept);   
-
-// }
-
-// function eventSubscribe(api, eventName, filter, callback) {
-//     api.subscribe(eventName, filter, callback);
-//     console.log("subscribed to " + eventName);   
-
-// }
-
-// async function readInfo(api, secretContractAddress, scStart, scStop, deltaStart, delatStop, workerAddress) {
-//     let count = await api.countSecretContracts();
-//     console.log("secret contracts count=" + count);
-
-//     let isDeployed = await api.isDeployed(secretContractAddress);
-//     console.log("secret contract " + secretContractAddress + " is deployed=" + isDeployed);
-
-//     let codeHash = await api.getCodeHash(secretContractAddress);
-//     console.log("secret contract " + secretContractAddress + " code Hash=" + codeHash);
-
-//     let addresses = await api.getSecretContractAddresses(scStart, scStop);
-//     console.log("secret contract array from " + scStart + " to " + scStop + " =" + addresses);
-
-//     let countStateDeltas = await api.countStateDeltas(secretContractAddress);
-//     console.log("secret contract " + secretContractAddress + " state deltas count=" + countStateDeltas);
-
-//     let report = await api.getReport(workerAddress);
-//     console.log("worker " + workerAddress + " report=" + JSON.stringify(report));
-// }
-
-// function getEventRecievedFunc(eventName) {
-//     return (event)=> {console.log("recieved " + eventName + " event: ", event)}
-// }
-
-
-// async function runTest() {
-//     let builder = new EnigmaContractAPIBuilder();
-//     res = await builder.createNetwork().build();
-//     let api = res.api;
-
-//     const accounts = await api.w3().eth.getAccounts();
-//     const workerAddress = accounts[0];
-//     const tokenAddress = accounts[1];
-//     const secretContractAddress = "0x821aea9a577a9b44299b9c15c88cf3087f3b5544";
-//     const workerEnclaveSigningAddress = "0xc5fdf4076b8f3a5357c5e395ab970b5b54098fef";
-
-//     eventSubscribe(api, "Registered", {}, getEventRecievedFunc("Registered"));
-//     eventSubscribe(api, "DepositSuccessful", {}, getEventRecievedFunc("DepositSuccessful"));
-    
-//     await registerWorker(api, workerEnclaveSigningAddress, "0x123456", workerAddress);
-//     await deposit(api, workerAddress, 1000);
-//     await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress, "0x7890", workerAddress);
-//     await readInfo(api, secretContractAddress, 0, 0, 0, 0, workerAddress);
-//     await createTaskRecord(api, "0x555", 50, tokenAddress, 100, workerAddress);
-//     await createTaskRecords(api, ["0x111", "0x222"], [50, 20], [tokenAddress, tokenAddress], [100, 200], workerAddress);
-
-//     res.stopCallback(api, res.enviroment);
-//     //await builder.disconnect();
-//     //builder.disconnect();
-//     //await builder.stop();
-// }
-
-
-
-
-// runTest();
-
