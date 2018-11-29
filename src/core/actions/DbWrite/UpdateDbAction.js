@@ -1,17 +1,34 @@
 const Envelop = require('../../../main_controller/channels/Envelop');
+const constants = require('../../../common/constants');
+const nodeUtils = require('../../../common/utils');
 
 class UpdateDbAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
-  execute(params){
-    /***/
+  static _buildRequest(msgObj){
     let request = {
       id : nodeUtils.randId(),
-      type : Msg.GetDeltas,
-      input : envelop.content().input,
+      type : null,
     };
-    this._coreRuntime.execCmd(Msg.CORE_DB_READ_ACTION,{
+    if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
+      request.type = constants.CORE_REQUESTS.UpdateDeltas;
+      request.deltas = msgObj.states();
+    }else if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
+      request.type = constants.CORE_REQUESTS.UpdateNewContract;
+      request.address = msgObj.contractAddress();
+      request.bytecode = msgObj.deployedBytecode();
+    }
+    if(request.type)
+      return request;
+
+    return null;
+  }
+  execute(envelop){
+
+    /***/
+    let request = UpdateDbAction._buildRequest(envelop.content());
+    this._coreRuntime.execCmd(constants.CORE_REQUESTS.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,
     });

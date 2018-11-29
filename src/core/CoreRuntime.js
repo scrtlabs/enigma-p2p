@@ -12,7 +12,7 @@ const GetRegistrationParamsAction = require('./actions/DbRead/GetRegistrationPar
 const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
-const DbReadAction = require('./actions/DbAction');
+const DbAction = require('./actions/DbAction');
 const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
 class CoreRuntime{
   constructor(config){
@@ -24,7 +24,7 @@ class CoreRuntime{
     this._initIpcClient();
     this._communicator = null;
     this._actions = {
-      [constants.CORE_REQUESTS.CORE_DB_READ_ACTION] : new DbReadAction(this),
+      [constants.CORE_REQUESTS.CORE_DB_ACTION] : new DbAction(this),
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
