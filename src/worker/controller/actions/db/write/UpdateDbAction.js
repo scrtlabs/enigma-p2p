@@ -14,12 +14,7 @@ class UpdateDbAction{
     let onFinish = params.callback;
     let dbQueryType = params.dbQueryType;
 
+
   }
 }
 module.exports = UpdateDbAction;
-
-
-
-
-
-
