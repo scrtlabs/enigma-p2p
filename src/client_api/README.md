@@ -106,7 +106,7 @@ Queries the node for the status of a given Task identified by its TaskId.
 
 ```
 // Request
-curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getTaskStatus", "params": ["{TASKID}"] }'
+curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getTaskStatus", "params": ["0x9f4d74fc0cfd33501e38684274b65e44315ace570a66fd43315760a0891d5fae"] }'
 
 // Result
 {
