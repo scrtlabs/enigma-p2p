@@ -139,3 +139,9 @@ module.exports.CORE_REQUESTS = {
   UpdateDb : 'UpdateDb',
   NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
 };
+
+/** Default configuration for JSON RPC Server
+ */
+module.exports.JSON_RPC_SERVER = {
+  port: 3000,
+}

@@ -12,6 +12,7 @@ class EnvironmentBuilder{
     this._nodeConfig = false;
     this._ipcConfig = false;
     this._loggerConfig = false;
+    this._jsonRpcConfig = false;
   }
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
    * use reuse() before building another controller.
@@ -67,9 +68,9 @@ class EnvironmentBuilder{
     if(this._jsonRpcConfig){
       let port = this._jsonRpcConfig.port;
       let peerId = this._jsonRpcConfig.peerId;
-      let clientApi = new JsonRpcServer({port : port, peerId : peerId});
-      clientApi.listen();
-      runtimes.push(clientApi);
+      let jsonRpc = new JsonRpcServer({port : port, peerId : peerId});
+      jsonRpc.listen();
+      runtimes.push(jsonRpc);
     }
     // init main controller
     let mainController = new MainController(runtimes);

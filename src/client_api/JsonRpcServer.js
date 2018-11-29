@@ -9,15 +9,18 @@ const constants = require('../common/constants');
 const jayson = require('jayson');
 const PROXY_FLAG = constants.MAIN_CONTROLLER_NOTIFICATIONS.Proxy;
 const Envelop = require('../main_controller/channels/Envelop');
+
 // class QuoteAction {}
 
 class JsonRpcServer extends EventEmitter {
   constructor(config) {
     super();
     this._communicator = null;
-    this._port = config.port;
+    this._port = config.port || constants.JSON_RPC_SERVER.port;;
     this._peerId = config.peerId;
+
     this._pendingSequence = {};
+
     this._server = jayson.server({
       getInfo: (args, callback)=>{
         console.log('getInfo request...');
@@ -53,7 +56,23 @@ class JsonRpcServer extends EventEmitter {
               });
         }
       },
+      // Placeholder.
+      // TODO: Implement proper callback
+      deploySecretContract: function(args, callback) {
+        callback(null, [true]);
+      },
+      // Placeholder.
+      // TODO: Implement proper callback
+      sendTaskInputs: function(args, callback) {
+        callback(null, [true]);
+      },
+      // Placeholder.
+      // TODO: Implement proper callback
+      getTaskStatus: function(args, callback) {
+        callback(null, [2])
+      }
     });
+
   }
   listen() {
     console.log('JsonRpcServer listening on port ' + this._port);
@@ -64,7 +83,7 @@ class JsonRpcServer extends EventEmitter {
     return constants.RUNTIME_TYPE.JsonRpcApi;
   }
   /**
-   * Returns the Channel commiunicator, used by Actions
+   * Returns the Channel communicator, used by Actions
    * @return {Communicator} this._communicator
    * */
   getCommunicator() {
@@ -74,16 +93,22 @@ class JsonRpcServer extends EventEmitter {
   setChannel(communicator) {
     this._communicator = communicator;
     this._communicator.setOnMessage((envelop)=>{
-      console.log('!!1!!!~!!#$%^&*(&^&%^$#$#$%^&*()');
-      console.log('@@@@@@@@@@@@@@@@@@@@@ ggot envelop @@@@@');
-      // let concreteCmd = envelop.content().type;
-      // let action = this._actions[concreteCmd];
-      // if(action){
-      //   action.execute(envelop);
-      // }
+      let concreteCmd = envelop.content().type;
+      let action = this._actions[concreteCmd];
+      if(action){
+        action.execute(envelop);
+      }
     });
   }
+  // execCmd(cmd,params){
+  //   let action = this._actions[cmd];
+  //   if(action) {
+  //     action.execute(params);
+  //   }
+  // }
+
 }
+
 module.exports = JsonRpcServer;
 
 // new JsonRpcServer({port : 3939 , peerId : '0xergiohtdjhrorudhgiurdhgiurdhgirdiudrgihl'}).listen();
