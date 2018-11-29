@@ -26,6 +26,3 @@ class UpdateDbAction{
   }
 }
 module.exports = UpdateDbAction;
-let c= {};
-let c2 = {};
-builder.createNetwork(c).createContract(c2).build();
