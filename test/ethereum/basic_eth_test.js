@@ -548,6 +548,7 @@ describe('Ethereum tests', function() {
             assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
   
             await res.enviroment.destroy();
+            await envInitializer.start(truffleDir);
             resolve();
         });
     });
@@ -558,7 +559,7 @@ describe('Ethereum tests', function() {
             await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
             this.skip();
         }
-        await envInitializer.start(truffleDir);
+        
         return new Promise(async function (resolve) {
             const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI}
             let builder = new EnigmaContractAPIBuilder();
