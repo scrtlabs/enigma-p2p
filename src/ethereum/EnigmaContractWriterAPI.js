@@ -1,11 +1,11 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
-
+//TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
 
-
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
+
     constructor (enigmaContractAddress, enigmaContractABI, web3) {
         super(enigmaContractAddress,enigmaContractABI,web3);
     }
@@ -42,8 +42,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     /**
      * Step 2 in registration : stake ENG's (TO DA MOON)
      * @param {string} custodian - the worker address
-     * @param {Integer} amount 
-     * @param {JSON} txParams 
+     * @param {Integer} amount
+     * @param {JSON} txParams
      * */
     deposit(custodian, amount, txParams) {
         return new Promise((resolve, reject) => {
@@ -72,7 +72,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {string} codeHash
      * @param {string} ownerAddress
      * @param {string} signature //TODO:: since it expects bytes maybe here it will be bytes as well (Json-san)
-     * @param {JSON} txParams 
+     * @param {JSON} txParams
      * @return {Promise} receipt //TODO:: we want to turn all the Json's into real classes.
      * */
     deploySecretContract(secretContractAddress, codeHash, ownerAddress, signature, txParams) {
@@ -241,7 +241,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
                 return 'the from address specified ' + txParams.from + ' is not a valid Ethereum address'; + config.valid.gasPriceMin + '-' + config.valid.gasPriceMax;
             }
         }
-        return null;      
+        return null;
     }
 }
 

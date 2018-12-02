@@ -13,6 +13,22 @@ const ADDR_SIZE = 32;
 const BCODE_SIZE = 1500;
 const DELTA_SIZE = 450;
 
+// const fs = require('fs');
+//
+// module.exports.saveToFile = ()=>{
+//
+// };
+// function _saveToFile(){
+//
+// }
+// fs.writeFile('./here.js', file, function(err) {
+//   if (err) {
+//     return console.log(err);
+//   }
+//   console.log('The file was saved!');
+// });
+
+
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }

@@ -1,24 +1,24 @@
 module.exports.TEST_TREE = {
   'basic' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'ipc' :{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'coverage' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'cache' :{
-    'all' : true,
+    'all' : false,
     '#1' : true
   },
   'ethereum' : {
@@ -31,7 +31,7 @@ module.exports.TEST_TREE = {
     '#6' : true
   },
   'sync_basic' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
   }
 };
