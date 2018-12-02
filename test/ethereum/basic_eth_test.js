@@ -3,15 +3,21 @@ const assert = require('assert');
 const TEST_TREE = require(path.join(__dirname, '../test_tree')).TEST_TREE;
 const envInitializer = require('./scripts/env_initializer');
 const EnigmaContractWriterAPI = require(path.join(__dirname, '../../src/ethereum/EnigmaContractWriterAPI'));
+const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));;
+
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 
 const truffleDir = path.join(__dirname, './scripts');
 
 const testParameters = require('./test_parameters.json')
 
+const testUtils = require('../testUtils/utils');
+
 describe('Ethereum tests', function() {
     let web3;
     let api;
+    let enigmaContractAddress;
+    let enigmaContractABI;
 
     before(async function() {
       let tree = TEST_TREE.ethereum;
@@ -35,8 +41,8 @@ describe('Ethereum tests', function() {
     beforeEach(async function() {
         // runs before each test in this block
         const result = await envInitializer.init(truffleDir);
-        let enigmaContractAddress = result.contractAddress;
-        let enigmaContractABI = result.contractABI;
+        enigmaContractAddress = result.contractAddress;
+        enigmaContractABI = result.contractABI;
 
         web3 = result.web3;
 
@@ -54,7 +60,7 @@ describe('Ethereum tests', function() {
         //console.log("subscribed to " + eventName);
     }
 
-    const util = require('util')
+    //const util = require('util')
 
     //console.log(util.inspect(myObject, {showHidden: false, depth: null}))
 
@@ -115,91 +121,6 @@ describe('Ethereum tests', function() {
     //     done();
     // });
 
-    it('Register a worker, deposit and deploy a secret contract! ', async function(){
-        let tree = TEST_TREE.ethereum;
-        if(!tree['all'] || !tree['#1']){
-            await envInitializer.disconnect(web3); 
-            this.skip();
-        }
-        return new Promise(async function (resolve) {
-            const accounts = await web3.eth.getAccounts();
-            const workerEnclaveSigningAddress = accounts[3];
-            const workerAddress = accounts[4];
-            const workerReport = JSON.stringify(testParameters.report);//"0x123456";
-            const depositValue = 1000;
-            const secretContractAddress = accounts[5];
-            const secretContractAddress2 = accounts[6];
-            const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-
-            eventSubscribe(api, "Registered", {}, getEventRecievedFunc("Registered",
-                (result)=> {
-                    assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-                    assert.strictEqual(result.workerAddress, workerAddress);
-                }));
-
-            eventSubscribe(api, "DepositSuccessful", {}, getEventRecievedFunc("DepositSuccessful",
-                (result)=> {
-                    assert.strictEqual(result.from, workerAddress);
-                    assert.strictEqual(result.value, depositValue);
-                }));
-
-            eventSubscribe(api, "SecretContractDeployed", {}, getEventRecievedFunc("SecretContractDeployed",
-                (result)=> {
-                    assert.strictEqual(result.secretContractAddress, secretContractAddress);
-                    assert.strictEqual(result.codeHash, codeHash);
-                }));
-
-            await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
-            await deposit(api, workerAddress, depositValue);
-
-            // Verify worker's report
-            let result = await api.getReport(workerAddress);
-            assert.strictEqual(result.report, workerReport);
-
-            // Verify the number of secret-accounts before deploying one
-            let countBefore = await api.countSecretContracts();
-            assert.strictEqual(countBefore, 0);
-
-            await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
-                codeHash, workerAddress);
-
-            // Verify the number of secret-accounts after deploying one
-            let countAfter = await api.countSecretContracts();
-            assert.strictEqual(countAfter, 1);
-
-            // Verify that the secret-accounts is deployed
-            let isDeployed = await api.isDeployed(secretContractAddress);
-            assert.strictEqual(isDeployed, true);
-
-            let observedCodeHash = await api.getCodeHash(secretContractAddress);
-            assert.strictEqual(observedCodeHash, codeHash);
-
-            let observedAddresses = await api.getSecretContractAddresses(0, 1);
-            assert.strictEqual(observedAddresses[0], secretContractAddress);
-
-            api.unsubscribeAll();
-
-            await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-                codeHash, workerAddress);
-
-            // Verify the number of secret-accounts after deploying another one
-            let observedCount = await api.countSecretContracts();
-            assert.strictEqual(observedCount, 2);
-
-            let observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
-            assert.strictEqual(observedAddressesArray1[0], secretContractAddress);
-
-            let observedAddresses2 = await api.getSecretContractAddresses(1, 2);
-            assert.strictEqual(observedAddresses2[0], secretContractAddress2);
-
-            let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
-            assert.strictEqual(observedAddressesArray[0], secretContractAddress);
-            assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
-  
-            resolve();
-        });
-    });
-
     it('Register deploy secret contract, create tasks and commit reciepts! ', async function(){
         let tree = TEST_TREE.ethereum;
         if(!tree['all'] || !tree['#2']){
@@ -213,18 +134,15 @@ describe('Ethereum tests', function() {
             const workerReport = JSON.stringify(testParameters.report);//"0x123456";
             const secretContractAddress = accounts[5];
             const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-
-            await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
             await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
-
-            const taskId1 = web3.utils.randomHex(32);
+             const taskId1 = web3.utils.randomHex(32);
             const taskFee1 = 5;
             const taskTokenValue1 = 10;
             const taskTokenAddress1 = accounts[6];
             const taskSenderAddress1 = accounts[9];
-
-            const taskId2 = web3.utils.randomHex(32);
+             const taskId2 = web3.utils.randomHex(32);
             const taskFee2 = 19;
             const taskTokenValue2 = 100;
             const taskTokenAddress2 = accounts[7];
@@ -232,8 +150,7 @@ describe('Ethereum tests', function() {
             const taskFee3 = 58;
             const taskTokenValue3 = 1000;
             const taskTokenAddress3 = accounts[8];
-
-            eventSubscribe(api, "TaskRecordCreated", {}, getEventRecievedFunc("TaskRecordCreated",
+             eventSubscribe(api, "TaskRecordCreated", {}, getEventRecievedFunc("TaskRecordCreated",
                 (result)=> {
                     assert.strictEqual(result.taskId, taskId1);
                     assert.strictEqual(result.fee, taskFee1);
@@ -241,42 +158,32 @@ describe('Ethereum tests', function() {
                     assert.strictEqual(result.senderAddress, taskSenderAddress1);
                     assert.strictEqual(result.tokenValue, taskTokenValue1);
                 }));
-
-            eventSubscribe(api, "TaskRecordsCreated", {}, getEventRecievedFunc("TaskRecordsCreated",
+             eventSubscribe(api, "TaskRecordsCreated", {}, getEventRecievedFunc("TaskRecordsCreated",
                 (result)=> {
                     assert.strictEqual(result.taskIds[0], taskId2);
                     assert.strictEqual(result.taskIds[1], taskId3);
                     assert.strictEqual(result.taskIds.length, 2);
-
-                    assert.strictEqual(result.tokenValues[0], taskTokenValue2);
+                     assert.strictEqual(result.tokenValues[0], taskTokenValue2);
                     assert.strictEqual(result.tokenValues[1], taskTokenValue3);
                     assert.strictEqual(result.tokenValues.length, 2);
-
-                    assert.strictEqual(result.fees[0], taskFee2);
+                     assert.strictEqual(result.fees[0], taskFee2);
                     assert.strictEqual(result.fees[1], taskFee3);
                     assert.strictEqual(result.fees.length, 2);
-
-                    assert.strictEqual(result.tokenAddresses[0], taskTokenAddress2);
+                     assert.strictEqual(result.tokenAddresses[0], taskTokenAddress2);
                     assert.strictEqual(result.tokenAddresses[1], taskTokenAddress3);
                     assert.strictEqual(result.tokenAddresses.length, 2);
-
-                    assert.strictEqual(result.senderAddress, workerAddress);
+                     assert.strictEqual(result.senderAddress, workerAddress);
                 }));
-
-
-            await createTaskRecord(api, taskId1, taskFee1, taskTokenAddress1,
+             await createTaskRecord(api, taskId1, taskFee1, taskTokenAddress1,
                 taskTokenValue1, taskSenderAddress1);
             await createTaskRecords(api, [taskId2, taskId3], [taskFee2, taskFee3],
                 [taskTokenAddress2, taskTokenAddress3], [taskTokenValue2, taskTokenValue3], workerAddress);
-
-            let stateDeltaHash0 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+             let stateDeltaHash0 = "0x0000000000000000000000000000000000000000000000000000000000000000";
             let stateDeltaHash1 = web3.utils.randomHex(32);
             let stateDeltaHash2 = web3.utils.randomHex(32);
             let stateDeltaHash3 = web3.utils.randomHex(32);
             let ethCall = web3.utils.randomHex(32);
-
-
-            eventSubscribe(api, "ReceiptVerified", {}, getEventRecievedFunc("ReceiptVerified",
+             eventSubscribe(api, "ReceiptVerified", {}, getEventRecievedFunc("ReceiptVerified",
                 (result)=> {
                     assert.strictEqual(result.taskId, taskId1);
                     assert.strictEqual(result.inStateDeltaHash, stateDeltaHash0);
@@ -284,9 +191,7 @@ describe('Ethereum tests', function() {
                     assert.strictEqual(result.ethCall, ethCall);
                     assert.strictEqual(result.signature, workerEnclaveSigningAddress);
                 }));
-
-
-            eventSubscribe(api, "ReceiptsVerified", {}, getEventRecievedFunc("ReceiptsVerified",
+             eventSubscribe(api, "ReceiptsVerified", {}, getEventRecievedFunc("ReceiptsVerified",
                 (result)=> {
                     assert.strictEqual(result.taskIds[0], taskId2);
                     assert.strictEqual(result.taskIds[1], taskId3);
@@ -297,48 +202,35 @@ describe('Ethereum tests', function() {
                     assert.strictEqual(result.ethCall, ethCall);
                     assert.strictEqual(result.signature, workerEnclaveSigningAddress);
                 }));
-
-            // Verify the number of state deltas is 0 before any commit
+             // Verify the number of state deltas is 0 before any commit
             let count1 = await api.countStateDeltas(secretContractAddress);
             assert.strictEqual(count1, 0);
-
-            // Verify the input state delta is not valid before any commit
+             // Verify the input state delta is not valid before any commit
             let observedValidBefore = await api.isValidDeltaHash(secretContractAddress, stateDeltaHash1);
             assert.strictEqual(observedValidBefore, false);
-
-            await commitReceipt(api, secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
+             await commitReceipt(api, secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
                 ethCall, workerEnclaveSigningAddress, workerAddress);
-
-            // Verify the number of state deltas after one commit
+             // Verify the number of state deltas after one commit
             let count2 = await api.countStateDeltas(secretContractAddress);
             assert.strictEqual(count2, 1);
-
-            // Verify the input state delta is valid after the commit
+             // Verify the input state delta is valid after the commit
             let observedValidAfter = await api.isValidDeltaHash(secretContractAddress, stateDeltaHash1);
             assert.strictEqual(observedValidAfter, true);
-
-            await commitReceipts(api, secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
+             await commitReceipts(api, secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
                 [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
-
-            // Verify the number of state deltas after a batch commit
+             // Verify the number of state deltas after a batch commit
             let count3 = await api.countStateDeltas(secretContractAddress);
             assert.strictEqual(count3, 3);
-
-            let observedStateDeltaHash3 = await api.getStateDeltaHash(secretContractAddress, 2);
+             let observedStateDeltaHash3 = await api.getStateDeltaHash(secretContractAddress, 2);
             assert.strictEqual(observedStateDeltaHash3, stateDeltaHash3);
-
-            let observedStateDeltaHashes = await api.getStateDeltaHashes(secretContractAddress, 0, 3);
+             let observedStateDeltaHashes = await api.getStateDeltaHashes(secretContractAddress, 0, 3);
             assert.strictEqual(observedStateDeltaHashes[0], stateDeltaHash1);
             assert.strictEqual(observedStateDeltaHashes[1], stateDeltaHash2);
             assert.strictEqual(observedStateDeltaHashes[2], stateDeltaHash3);
             assert.strictEqual(observedStateDeltaHashes.length, 3);
-
-
-            api.unsubscribeAll();
-
-            resolve();
-
-        });
+             api.unsubscribeAll();
+             resolve();
+         });
     });
 
     it('State sync - empty local tips', async function(){
@@ -676,4 +568,252 @@ describe('Ethereum tests', function() {
             });
         });
     });
+
+    it('Register a worker, deposit and deploy a secret contract using the BUILDER ', async function(){
+        let tree = TEST_TREE.ethereum;
+        if(!tree['all'] || !tree['#1']){
+            await envInitializer.disconnect(web3); 
+            this.skip();
+        }
+        return new Promise(async function (resolve) {
+            await envInitializer.disconnect(web3);
+            await envInitializer.stop(web3);
+
+            await testUtils.sleep(3000);
+
+            let builder = new EnigmaContractAPIBuilder();
+            res = await builder.createNetwork().deploy().build();
+            let api = res.api;
+            
+            const accounts = await api.w3().eth.getAccounts();
+            const workerEnclaveSigningAddress = accounts[3];
+            const workerAddress = accounts[4];
+            const workerReport = JSON.stringify(testParameters.report);//"0x123456";
+            const depositValue = 1000;
+            const secretContractAddress = accounts[5];
+            const secretContractAddress2 = accounts[6];
+            const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+
+            eventSubscribe(api, "Registered", {}, getEventRecievedFunc("Registered",
+                (result)=> {
+                    assert.strictEqual(result.signer, workerEnclaveSigningAddress);
+                    assert.strictEqual(result.workerAddress, workerAddress);
+                }));
+
+            eventSubscribe(api, "DepositSuccessful", {}, getEventRecievedFunc("DepositSuccessful",
+                (result)=> {
+                    assert.strictEqual(result.from, workerAddress);
+                    assert.strictEqual(result.value, depositValue);
+                }));
+
+            eventSubscribe(api, "SecretContractDeployed", {}, getEventRecievedFunc("SecretContractDeployed",
+                (result)=> {
+                    assert.strictEqual(result.secretContractAddress, secretContractAddress);
+                    assert.strictEqual(result.codeHash, codeHash);
+                }));
+
+            await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+            await deposit(api, workerAddress, depositValue);
+
+            // Verify worker's report
+            let result = await api.getReport(workerAddress);
+            assert.strictEqual(result.report, workerReport);
+
+            // Verify the number of secret-accounts before deploying one
+            let countBefore = await api.countSecretContracts();
+            assert.strictEqual(countBefore, 0);
+
+            await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
+                codeHash, workerAddress);
+
+            // Verify the number of secret-accounts after deploying one
+            let countAfter = await api.countSecretContracts();
+            assert.strictEqual(countAfter, 1);
+
+            // Verify that the secret-accounts is deployed
+            let isDeployed = await api.isDeployed(secretContractAddress);
+            assert.strictEqual(isDeployed, true);
+
+            let observedCodeHash = await api.getCodeHash(secretContractAddress);
+            assert.strictEqual(observedCodeHash, codeHash);
+
+            let observedAddresses = await api.getSecretContractAddresses(0, 1);
+            assert.strictEqual(observedAddresses[0], secretContractAddress);
+
+            api.unsubscribeAll();
+
+            await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
+                codeHash, workerAddress);
+
+            // Verify the number of secret-accounts after deploying another one
+            let observedCount = await api.countSecretContracts();
+            assert.strictEqual(observedCount, 2);
+
+            let observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
+            assert.strictEqual(observedAddressesArray1[0], secretContractAddress);
+
+            let observedAddresses2 = await api.getSecretContractAddresses(1, 2);
+            assert.strictEqual(observedAddresses2[0], secretContractAddress2);
+
+            let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
+            assert.strictEqual(observedAddressesArray[0], secretContractAddress);
+            assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
+  
+            await res.enviroment.destroy();
+            //await envInitializer.start(truffleDir);
+            resolve();
+        });
+    });
+
+    // it('Register deploy secret contract, create tasks and commit reciepts using the BUILDER ', async function(){
+    //     let tree = TEST_TREE.ethereum;
+    //     if(!tree['all'] || !tree['#2']){
+    //         await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
+    //         this.skip();
+    //     }
+        
+    //     return new Promise(async function (resolve) {
+    //         const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI}
+    //         let builder = new EnigmaContractAPIBuilder();
+    //         res = await builder.useDeployed(config).build();
+
+    //         let api2 = res.api;
+    //         let web3_2 = api.w3();
+
+
+    //         const accounts = await web3_2.eth.getAccounts();
+    //         const workerEnclaveSigningAddress = accounts[3];
+    //         const workerAddress = accounts[4];
+    //         const workerReport = JSON.stringify(testParameters.report);//"0x123456";
+    //         const secretContractAddress = accounts[5];
+    //         const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
+
+    //         await registerWorker(api2, workerEnclaveSigningAddress, workerReport, workerAddress);
+    //         await deploySecretContract(api2, secretContractAddress, workerEnclaveSigningAddress,
+    //             codeHash, workerAddress);
+
+    //         const taskId1 = web3_2.utils.randomHex(32);
+    //         const taskFee1 = 5;
+    //         const taskTokenValue1 = 10;
+    //         const taskTokenAddress1 = accounts[6];
+    //         const taskSenderAddress1 = accounts[9];
+
+    //         const taskId2 = web3_2.utils.randomHex(32);
+    //         const taskFee2 = 19;
+    //         const taskTokenValue2 = 100;
+    //         const taskTokenAddress2 = accounts[7];
+    //         const taskId3 = web3_2.utils.randomHex(32);
+    //         const taskFee3 = 58;
+    //         const taskTokenValue3 = 1000;
+    //         const taskTokenAddress3 = accounts[8];
+
+    //         eventSubscribe(api2, "TaskRecordCreated", {}, getEventRecievedFunc("TaskRecordCreated",
+    //             (result)=> {
+    //                 assert.strictEqual(result.taskId, taskId1);
+    //                 assert.strictEqual(result.fee, taskFee1);
+    //                 assert.strictEqual(result.tokenAddress, taskTokenAddress1);
+    //                 assert.strictEqual(result.senderAddress, taskSenderAddress1);
+    //                 assert.strictEqual(result.tokenValue, taskTokenValue1);
+    //             }));
+
+    //         eventSubscribe(api2, "TaskRecordsCreated", {}, getEventRecievedFunc("TaskRecordsCreated",
+    //             (result)=> {
+    //                 assert.strictEqual(result.taskIds[0], taskId2);
+    //                 assert.strictEqual(result.taskIds[1], taskId3);
+    //                 assert.strictEqual(result.taskIds.length, 2);
+
+    //                 assert.strictEqual(result.tokenValues[0], taskTokenValue2);
+    //                 assert.strictEqual(result.tokenValues[1], taskTokenValue3);
+    //                 assert.strictEqual(result.tokenValues.length, 2);
+
+    //                 assert.strictEqual(result.fees[0], taskFee2);
+    //                 assert.strictEqual(result.fees[1], taskFee3);
+    //                 assert.strictEqual(result.fees.length, 2);
+
+    //                 assert.strictEqual(result.tokenAddresses[0], taskTokenAddress2);
+    //                 assert.strictEqual(result.tokenAddresses[1], taskTokenAddress3);
+    //                 assert.strictEqual(result.tokenAddresses.length, 2);
+
+    //                 assert.strictEqual(result.senderAddress, workerAddress);
+    //             }));
+
+
+    //         await createTaskRecord(api2, taskId1, taskFee1, taskTokenAddress1,
+    //             taskTokenValue1, taskSenderAddress1);
+    //         await createTaskRecords(api2, [taskId2, taskId3], [taskFee2, taskFee3],
+    //             [taskTokenAddress2, taskTokenAddress3], [taskTokenValue2, taskTokenValue3], workerAddress);
+
+    //         let stateDeltaHash0 = "0x0000000000000000000000000000000000000000000000000000000000000000";
+    //         let stateDeltaHash1 = web3_2.utils.randomHex(32);
+    //         let stateDeltaHash2 = web3_2.utils.randomHex(32);
+    //         let stateDeltaHash3 = web3_2.utils.randomHex(32);
+    //         let ethCall = web3_2.utils.randomHex(32);
+
+
+    //         eventSubscribe(api2, "ReceiptVerified", {}, getEventRecievedFunc("ReceiptVerified",
+    //             (result)=> {
+    //                 assert.strictEqual(result.taskId, taskId1);
+    //                 assert.strictEqual(result.inStateDeltaHash, stateDeltaHash0);
+    //                 assert.strictEqual(result.outStateDeltaHash, stateDeltaHash1);
+    //                 assert.strictEqual(result.ethCall, ethCall);
+    //                 assert.strictEqual(result.signature, workerEnclaveSigningAddress);
+    //             }));
+
+
+    //         eventSubscribe(api2, "ReceiptsVerified", {}, getEventRecievedFunc("ReceiptsVerified",
+    //             (result)=> {
+    //                 assert.strictEqual(result.taskIds[0], taskId2);
+    //                 assert.strictEqual(result.taskIds[1], taskId3);
+    //                 assert.strictEqual(result.inStateDeltaHashes[0], stateDeltaHash1);
+    //                 assert.strictEqual(result.inStateDeltaHashes[1], stateDeltaHash2);
+    //                 assert.strictEqual(result.outStateDeltaHashes[0], stateDeltaHash2);
+    //                 assert.strictEqual(result.outStateDeltaHashes[1], stateDeltaHash3);
+    //                 assert.strictEqual(result.ethCall, ethCall);
+    //                 assert.strictEqual(result.signature, workerEnclaveSigningAddress);
+    //             }));
+
+    //         // Verify the number of state deltas is 0 before any commit
+    //         let count1 = await api2.countStateDeltas(secretContractAddress);
+    //         assert.strictEqual(count1, 0);
+
+    //         // Verify the input state delta is not valid before any commit
+    //         let observedValidBefore = await api2.isValidDeltaHash(secretContractAddress, stateDeltaHash1);
+    //         assert.strictEqual(observedValidBefore, false);
+
+    //         await commitReceipt(api2, secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
+    //             ethCall, workerEnclaveSigningAddress, workerAddress);
+
+    //         // Verify the number of state deltas after one commit
+    //         let count2 = await api2.countStateDeltas(secretContractAddress);
+    //         assert.strictEqual(count2, 1);
+
+    //         // Verify the input state delta is valid after the commit
+    //         let observedValidAfter = await api2.isValidDeltaHash(secretContractAddress, stateDeltaHash1);
+    //         assert.strictEqual(observedValidAfter, true);
+
+    //         await commitReceipts(api2, secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
+    //             [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+
+    //         // Verify the number of state deltas after a batch commit
+    //         let count3 = await api2.countStateDeltas(secretContractAddress);
+    //         assert.strictEqual(count3, 3);
+
+    //         let observedStateDeltaHash3 = await api2.getStateDeltaHash(secretContractAddress, 2);
+    //         assert.strictEqual(observedStateDeltaHash3, stateDeltaHash3);
+
+    //         let observedStateDeltaHashes = await api2.getStateDeltaHashes(secretContractAddress, 0, 3);
+    //         assert.strictEqual(observedStateDeltaHashes[0], stateDeltaHash1);
+    //         assert.strictEqual(observedStateDeltaHashes[1], stateDeltaHash2);
+    //         assert.strictEqual(observedStateDeltaHashes[2], stateDeltaHash3);
+    //         assert.strictEqual(observedStateDeltaHashes.length, 3);
+
+    //         api2.unsubscribeAll();
+
+    //         await res.enviroment.destroy();
+
+    //         resolve();
+
+    //     });
+    // });
+
 });

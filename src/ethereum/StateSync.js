@@ -11,6 +11,7 @@ const _ = require('underscore');
  * @param {Array} localTips [{address,key,delta},...}]
  * @param {Function} callback (err, results)=>{}
  * @return {Array} missing states [{address, deltas : [deltaHash, index]}]
+ * TODO: as async function returns a Promise, apply both options: return the data using the callback and return the data using the promise 
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
     // create a hashmap from the localTipa array
