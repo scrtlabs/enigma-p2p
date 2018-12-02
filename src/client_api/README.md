@@ -16,6 +16,7 @@ Requests the public encryption key for the worker node assigned to a given contr
 
 - `workerEncryptionKey` (String) - The requested public encryption key of the worker node
 - `workerSig` (String) - The signature of the worker node
+- `msgId` (String) - 12 bytes representing the key with the request
 
 **Example**
 
@@ -29,7 +30,8 @@ curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method"
 	"id": 1,
 	"result": {
 	    "workerEncryptionKey": "0061d93b5412c0c99c3c7867db13c4e13e51292bd52565d002ecf845bb0cfd8adfa5459173364ea8aff3fe24054cca88581f6c3c5e928097b9d4d47fce12ae47",
-	    "workerSig": "mySig"
+	    "workerSig": "mySig",
+		"msgId": "ldotj6nghv7a",
 	}
 }
 ```
@@ -43,6 +45,7 @@ Deploys a Secret Contract onto the Enigma Network.
 - `compiledBytecodeHash` (String) - The hash of the compiled bytecode
 - `encryptedEncodedArgs` (String) - Encrypted RLP-encoded args needed for the secret contract's constructor 
 - `userDeploySig` (String) - Signature of the compiled bytecode hash and encrypted RLP-encoded args using the user's ETH keys
+- `msgId` (String) - 12 bytes received from `getWorkerEncryptionKey` request.
 
 **Returns**
 
@@ -80,6 +83,7 @@ Sends the encrypted inputs for a given Task to the Enigma network for computatio
 - `userTaskSig` (String) - Signature of the encrypted function signature and encrypted RLP-encoded args using the user's ETH keys
 - `userPubKey` (String) - User's public key
 - `fee` (Int) - Task computation fee
+- `msgId` (String) - 12 bytes received from `getWorkerEncryptionKey` request.
 
 **Returns**
 
@@ -89,7 +93,7 @@ Sends the encrypted inputs for a given Task to the Enigma network for computatio
 
 ```sh
 // Request
-curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"sendTaskInput", "params": {"taskId": "0xdd839d251b7b16d0f52bb05b0ab4290abe0e44dd0044b2627ec7e5ce21815667", "creationBlockNumber": 4600, "sender": "0x627306090abaB3A6e1400e9345bC60c78a8BEf57", "scAddr": "0x8Fe32172b6648D9BB221760E3DE738902B076099", "encryptedFn": "1a4a67d6ad23c524d99019a3b778fded06185ab9b9f16b4d0ce8e7538d6cb8da5ea032f313baef3272c74ee161ec6f839bfafaf440", "encryptedEncodedArgs": "c346fe01a814be2939b77eb99a02017bb2ab2ca02f8e74854b8cae10c926b0082f8dca7f25afd48f53bcda5fc5dfaccf", "userTaskSig": "0x5b4683d5d14bdccdb1abd8d58582fcd81d074c8f0019dfc0ab39b232baa76f0045c8c2d2ecf3dac00254dd7957881e0aad763579b795980e3c8c0f3203916e771c", "userPubKey": "04f542371d69af8ebe7c8a00bdc5a9d9f39969406d6c1396037ede55515845dda69e42145834e631628c628812d85c805e9da1c56415b32cf99d5ae900f1c1565c", "fee": 300}}'
+curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"sendTaskInput", "params": {"taskId": "0xdd839d251b7b16d0f52bb05b0ab4290abe0e44dd0044b2627ec7e5ce21815667", "msgId": "kflroej3214n", creationBlockNumber": 4600, "sender": "0x627306090abaB3A6e1400e9345bC60c78a8BEf57", "scAddr": "0x8Fe32172b6648D9BB221760E3DE738902B076099", "encryptedFn": "1a4a67d6ad23c524d99019a3b778fded06185ab9b9f16b4d0ce8e7538d6cb8da5ea032f313baef3272c74ee161ec6f839bfafaf440", "encryptedEncodedArgs": "c346fe01a814be2939b77eb99a02017bb2ab2ca02f8e74854b8cae10c926b0082f8dca7f25afd48f53bcda5fc5dfaccf", "userTaskSig": "0x5b4683d5d14bdccdb1abd8d58582fcd81d074c8f0019dfc0ab39b232baa76f0045c8c2d2ecf3dac00254dd7957881e0aad763579b795980e3c8c0f3203916e771c", "userPubKey": "04f542371d69af8ebe7c8a00bdc5a9d9f39969406d6c1396037ede55515845dda69e42145834e631628c628812d85c805e9da1c56415b32cf99d5ae900f1c1565c", "fee": 300}}'
 
 // Result
 {
