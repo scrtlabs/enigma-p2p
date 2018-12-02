@@ -558,6 +558,7 @@ describe('Ethereum tests', function() {
             await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
             this.skip();
         }
+        await envInitializer.start(truffleDir);
         return new Promise(async function (resolve) {
             const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI}
             let builder = new EnigmaContractAPIBuilder();
