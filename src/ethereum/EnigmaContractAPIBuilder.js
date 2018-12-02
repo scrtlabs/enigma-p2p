@@ -3,42 +3,34 @@ const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
 
 //const config = require('./config.json');
 
-const config = {websocket: 'ws://127.0.0.1:9545'}
 const path = require('path');
+
+const defaultConfig = {
+    websocket: 'ws://127.0.0.1:9545', 
+    truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts')}
 
 const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 
-const truffleDir = path.join(__dirname, '../../test/ethereum/scripts');
-
- 
-//const testUtils = require('../../testUtils/utils');
+const defaultsDeep = require('@nodeutils/defaults-deep');
 
 const util = require('util')
-//let subprocess; // Global `trufffle develop` "child process" object 
 
 function sleep(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
-function destroy(api, env) {
-    //console.log("this in destroy=" + util.inspect(this));
-    api.w3().currentProvider.disconnect();
-    env.subprocess.kill();
-    //this._stop(env);
-    //this._disconnect(api);
-    
-}
-
-
 class EnigmaContractAPIBuilder {
     constructor() {
         this.apiWriterFlag = true;
-        this.createNetworkFlag = true;
+        this.createNetworkFlag = false;
+        this.deployFlag = true;
+        this.useDeployedFlag = false;
         this.enviroment = {}
         this.web3 = null;
         this.api = null;
+        this.config = defaultConfig;
         return this;
     }
     
@@ -47,30 +39,43 @@ class EnigmaContractAPIBuilder {
         return this;
     }
     
-    // deploy() {
-    //    this.deployFlag = true;
-    //    return this;
-    // }
+    deploy(config) {
+       this.deployFlag = true;
+       if (config !== undefined && config !== null) {  
+            this.config = defaultsDeep(config, this.config); 
+        }
+       return this;
+    }
+
+    useDeployed(config) {
+        this.useDeployedFlag = true;
+        if (config !== undefined && config !== null) {  
+             this.config = defaultsDeep(config, this.config); 
+         }
+        return this;
+     }
     
-    createNetwork() {
+    createNetwork(config) {
         this.createNetworkFlag = true;
+        if (config !== undefined && config !== null) {  
+            this.config = defaultsDeep(config, this.config); 
+        }
         return this;
     }
     
     async build() {       
-        //await this._initEnv(truffleDir);
-
-        let stopCallback = null;
-
-        //console.log("start");    
         if (this.createNetworkFlag) {
-            //console.log("truffleDir=" + truffleDir);
-            await this._startNetwork(truffleDir);
-            await this._initEnv(truffleDir);
-            stopCallback = destroy;   
+            await this._startNetwork();  
         }
 
-        //console.log("here");
+        if (this.useDeployedFlag) {
+            await this._connectToContract();    
+        }
+
+        else if (this.deployFlag) {
+            await this._initEnv();
+        }
+
         if (this.apiWriterFlag) {
             this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3); 
         }
@@ -78,20 +83,19 @@ class EnigmaContractAPIBuilder {
             this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
         } 
 
-        return {api : this.api, stopCallback : stopCallback, enviroment: this.enviroment};
+        return {api : this.api, enviroment: this};
     }
 
     _resetEnv(truffleDirectory) {
         return new Promise((resolve, reject) => {
-            //console.log("process.cwd()=" + process.cwd());
             const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
             exec(command, (err, stdout, stderr) => {
                 if (err) {
                     //console.log(err);
                     reject();
                 }
-                //console.log(stdout);
                 resolve(stderr, stdout);
+                //console.log(stdout);
             })
         })
     }
@@ -104,43 +108,29 @@ class EnigmaContractAPIBuilder {
                     //console.log(err);
                     reject();
                 }
-                //console.log(stdout);
                 resolve(stderr, stdout);
+                //console.log(stdout);
             })
         })
     }
-    async _initEnv(truffleDirectory) {
-        //console.log("strating _initEnv ");    
 
+    async _initEnv() {
+        const truffleDirectory = this.config.truffleDirectory;
+        
         await this._buildEnv(truffleDirectory);//.then(console.log).catch(console.log);
         await this._resetEnv(truffleDirectory);//.then(console.log).catch(console.log);
-    
-        // console.log("truffleDirectory= " + truffleDirectory);
-        // console.log("path.join=" + path.join('../a', 'b/c'));
-        // console.log("EnigmaContractJson= " + path.join(truffleDirectory, "build/contracts/EnigmaMock.json"));   
-        // console.log("EnigmaTokenContractJson= " + path.join(truffleDirectory, "build/contracts/EnigmaToken.json"));   
 
         const EnigmaContractJson = require(path.join(truffleDirectory, "build/contracts/EnigmaMock.json"));
         const EnigmaTokenContractJson = require(path.join(truffleDirectory, "build/contracts/EnigmaToken.json"));
     
-        const websocketProvider = config.websocket;
-        const provider = new Web3.providers.WebsocketProvider(websocketProvider);
-
-        // console.log("here ");   
-        
-        // from https://github.com/ethereum/web3.js/issues/1354
-        provider.on('error', e => console.error('WS Error: ', e)); // provider.on('error', e => console.error('WS Error', e));
-        provider.on('end', e => console.log('WS End')); // provider.on('end', e => console.error('WS End', e));
-        
-        this.web3 = new Web3(provider);
+        this._initWeb3();
     
         const accounts = await this.web3.eth.getAccounts();
     
         const sender1 = accounts[0];
         const sender2 = accounts[1];
-        const principal = accounts[2];//'0x627306090abab3a6e1400e9345bc60c78a8bef57';
-    
-        //console.log("here 2");   
+        const principal = accounts[2];
+     
         let enigmaTokenContract = new this.web3.eth.Contract(EnigmaTokenContractJson.abi);
       
         let enigmaTokenContractInstance = await enigmaTokenContract.deploy({data: EnigmaTokenContractJson.bytecode, arguments: []})
@@ -149,9 +139,7 @@ class EnigmaContractAPIBuilder {
                 gas: 1500000,
                 //gasPrice: '100000000000'
             });
-    
-        //console.log('using account', principal, 'as principal signer');
-        
+            
         let enigmaContract = new this.web3.eth.Contract(EnigmaContractJson.abi);
         let enigmaContractInstance = await enigmaContract.deploy({
             data: EnigmaContractJson.bytecode, 
@@ -162,16 +150,31 @@ class EnigmaContractAPIBuilder {
                     //gasPrice: '100000000000'
                 });
         
-        // console.log("here 3");   
-        
         this.enigmaContractAddress = enigmaContractInstance.options.address;
-        this.enigmaContractABI = EnigmaContractJson.abi;
-
-        // console.log("ending _initEnv ");    
+        this.enigmaContractABI = EnigmaContractJson.abi;  
     }
 
-    async _startNetwork(truffleDirectory) {
-        // console.log("strating _startNetwork ");   
+    _connectToContract() {
+        this._initWeb3();
+
+        // TODO: should a cpntract instance be created?!
+        this.enigmaContractAddress = this.config.enigmaContractAddress;
+        this.enigmaContractABI = this.config.enigmaContractABI;
+    }
+
+    _initWeb3() {
+        const websocketProvider = this.config.websocket;
+        const provider = new Web3.providers.WebsocketProvider(websocketProvider);
+        
+        // from https://github.com/ethereum/web3.js/issues/1354
+        provider.on('error', e => console.error('WS Error: ', e));
+        provider.on('end', e => console.log('WS End'));
+        
+        this.web3 = new Web3(provider);
+    }
+    
+    async _startNetwork() {  
+        const truffleDirectory = this.config.truffleDirectory;
         const command = 'cd ' + truffleDirectory + ' && truffle develop';
         this.enviroment.subprocess = spawn(command, {
             shell: true,
@@ -181,18 +184,22 @@ class EnigmaContractAPIBuilder {
         this.enviroment.subprocess.unref();
     
         await sleep(3000);
-        // console.log("ending _startNetwork ");  
     }
     
+    async destroy() {
+        if (this.createNetworkFlag) {
+            await this.stop();
+        }
+        await this.disconnect();
+    }
+
     async stop() {
         await this.enviroment.subprocess.kill();
-        console.log("ending stop ");  
     }
     
     
     async disconnect() {
         await this.web3.currentProvider.disconnect();
-        console.log("ending disconnect "); 
     }
 }
 

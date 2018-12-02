@@ -694,84 +694,84 @@ describe('Ethereum tests', function() {
             await testUtils.sleep(3000);
 
             let builder = new EnigmaContractAPIBuilder();
-            res = await builder.createNetwork().build();
+            res = await builder.createNetwork().deploy().build();
             let api = res.api;
             
-            // const accounts = await web3.eth.getAccounts();
-            // const workerEnclaveSigningAddress = accounts[3];
-            // const workerAddress = accounts[4];
-            // const workerReport = JSON.stringify(testParameters.report);//"0x123456";
-            // const depositValue = 1000;
-            // const secretContractAddress = accounts[5];
-            // const secretContractAddress2 = accounts[6];
-            // const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+            const accounts = await api.w3().eth.getAccounts();
+            const workerEnclaveSigningAddress = accounts[3];
+            const workerAddress = accounts[4];
+            const workerReport = JSON.stringify(testParameters.report);//"0x123456";
+            const depositValue = 1000;
+            const secretContractAddress = accounts[5];
+            const secretContractAddress2 = accounts[6];
+            const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-            // eventSubscribe(api, "Registered", {}, getEventRecievedFunc("Registered",
-            //     (result)=> {
-            //         assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-            //         assert.strictEqual(result.workerAddress, workerAddress);
-            //     }));
+            eventSubscribe(api, "Registered", {}, getEventRecievedFunc("Registered",
+                (result)=> {
+                    assert.strictEqual(result.signer, workerEnclaveSigningAddress);
+                    assert.strictEqual(result.workerAddress, workerAddress);
+                }));
 
-            // eventSubscribe(api, "DepositSuccessful", {}, getEventRecievedFunc("DepositSuccessful",
-            //     (result)=> {
-            //         assert.strictEqual(result.from, workerAddress);
-            //         assert.strictEqual(result.value, depositValue);
-            //     }));
+            eventSubscribe(api, "DepositSuccessful", {}, getEventRecievedFunc("DepositSuccessful",
+                (result)=> {
+                    assert.strictEqual(result.from, workerAddress);
+                    assert.strictEqual(result.value, depositValue);
+                }));
 
-            // eventSubscribe(api, "SecretContractDeployed", {}, getEventRecievedFunc("SecretContractDeployed",
-            //     (result)=> {
-            //         assert.strictEqual(result.secretContractAddress, secretContractAddress);
-            //         assert.strictEqual(result.codeHash, codeHash);
-            //     }));
+            eventSubscribe(api, "SecretContractDeployed", {}, getEventRecievedFunc("SecretContractDeployed",
+                (result)=> {
+                    assert.strictEqual(result.secretContractAddress, secretContractAddress);
+                    assert.strictEqual(result.codeHash, codeHash);
+                }));
 
-            // await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
-            // await deposit(api, workerAddress, depositValue);
+            await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+            await deposit(api, workerAddress, depositValue);
 
-            // // Verify worker's report
-            // let result = await api.getReport(workerAddress);
-            // assert.strictEqual(result.report, workerReport);
+            // Verify worker's report
+            let result = await api.getReport(workerAddress);
+            assert.strictEqual(result.report, workerReport);
 
-            // // Verify the number of secret-accounts before deploying one
-            // let countBefore = await api.countSecretContracts();
-            // assert.strictEqual(countBefore, 0);
+            // Verify the number of secret-accounts before deploying one
+            let countBefore = await api.countSecretContracts();
+            assert.strictEqual(countBefore, 0);
 
-            // await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
-            //     codeHash, workerAddress);
+            await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
+                codeHash, workerAddress);
 
-            // // Verify the number of secret-accounts after deploying one
-            // let countAfter = await api.countSecretContracts();
-            // assert.strictEqual(countAfter, 1);
+            // Verify the number of secret-accounts after deploying one
+            let countAfter = await api.countSecretContracts();
+            assert.strictEqual(countAfter, 1);
 
-            // // Verify that the secret-accounts is deployed
-            // let isDeployed = await api.isDeployed(secretContractAddress);
-            // assert.strictEqual(isDeployed, true);
+            // Verify that the secret-accounts is deployed
+            let isDeployed = await api.isDeployed(secretContractAddress);
+            assert.strictEqual(isDeployed, true);
 
-            // let observedCodeHash = await api.getCodeHash(secretContractAddress);
-            // assert.strictEqual(observedCodeHash, codeHash);
+            let observedCodeHash = await api.getCodeHash(secretContractAddress);
+            assert.strictEqual(observedCodeHash, codeHash);
 
-            // let observedAddresses = await api.getSecretContractAddresses(0, 1);
-            // assert.strictEqual(observedAddresses[0], secretContractAddress);
+            let observedAddresses = await api.getSecretContractAddresses(0, 1);
+            assert.strictEqual(observedAddresses[0], secretContractAddress);
 
-            // api.unsubscribeAll();
+            api.unsubscribeAll();
 
-            // await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-            //     codeHash, workerAddress);
+            await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
+                codeHash, workerAddress);
 
-            // // Verify the number of secret-accounts after deploying another one
-            // let observedCount = await api.countSecretContracts();
-            // assert.strictEqual(observedCount, 2);
+            // Verify the number of secret-accounts after deploying another one
+            let observedCount = await api.countSecretContracts();
+            assert.strictEqual(observedCount, 2);
 
-            // let observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
-            // assert.strictEqual(observedAddressesArray1[0], secretContractAddress);
+            let observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
+            assert.strictEqual(observedAddressesArray1[0], secretContractAddress);
 
-            // let observedAddresses2 = await api.getSecretContractAddresses(1, 2);
-            // assert.strictEqual(observedAddresses2[0], secretContractAddress2);
+            let observedAddresses2 = await api.getSecretContractAddresses(1, 2);
+            assert.strictEqual(observedAddresses2[0], secretContractAddress2);
 
-            // let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
-            // assert.strictEqual(observedAddressesArray[0], secretContractAddress);
-            // assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
+            let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
+            assert.strictEqual(observedAddressesArray[0], secretContractAddress);
+            assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
   
-            await res.stopCallback(api, res.enviroment);
+            await res.enviroment.destroy();
             resolve();
         });
     });
