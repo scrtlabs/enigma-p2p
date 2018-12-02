@@ -235,7 +235,6 @@ function fakeSaveToDb(msgObj, callback) {
     return callback(err);
   }
   globalState.receiverContext.dbWrite({
-    dbQueryType : constants.CORE_REQUESTS.UpdateDb,
     data : msgObj,
     callback : (err,status)=>{
       callback(err,status);

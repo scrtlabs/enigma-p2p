@@ -16,7 +16,7 @@ class DbRequestAction{
     let queryType = params.dbQueryType;
     let input = params.input;
     if(!this._validateRequest(queryType)){
-      onResponse("invalid queryType");
+      onResponse("invalid queryType" +queryType );
       return;
     }
     let requestEnvelop = new Envelop(true

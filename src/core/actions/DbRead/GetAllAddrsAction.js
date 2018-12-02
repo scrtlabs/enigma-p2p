@@ -12,7 +12,7 @@ class GetAllAddrsAction{
       id : nodeUtils.randId(),
       type : Msg.GetAllAddrs
     };
-    this._coreRuntime.execCmd(Msg.CORE_DB_READ_ACTION,{
+    this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,
     });

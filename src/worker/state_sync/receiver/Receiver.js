@@ -40,10 +40,10 @@ class Receiver extends EventEmitter {
   }
   /**
    * Calls the worker/DbWriteAction
-   * @param {JSON} request ,must contain the fields: dbQueryType, callback(err,status) , data
+   * @param {JSON} request ,must contain the fields: , callback(err,status) , data
    * */
   dbWrite(request){
-    if(request.hasOwnProperty('callback') && request.hasOwnProperty('data') && request.hasOwnProperty('dbQueryType')){
+    if(request.hasOwnProperty('callback') && request.hasOwnProperty('data')){
       request.notification = constants.NODE_NOTIFICATIONS.UPDATE_DB;
       this.notify(request);
     }else{

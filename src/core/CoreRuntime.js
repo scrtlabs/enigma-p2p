@@ -12,8 +12,10 @@ const GetRegistrationParamsAction = require('./actions/DbRead/GetRegistrationPar
 const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
-const DbReadAction = require('./actions/DbAction');
+const DbAction = require('./actions/DbAction');
 const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
+const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
+
 class CoreRuntime{
   constructor(config){
     if(config.uri)
@@ -24,7 +26,7 @@ class CoreRuntime{
     this._initIpcClient();
     this._communicator = null;
     this._actions = {
-      [constants.CORE_REQUESTS.CORE_DB_READ_ACTION] : new DbReadAction(this),
+      [constants.CORE_REQUESTS.CORE_DB_ACTION] : new DbAction(this),
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
@@ -33,6 +35,7 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
       [constants.CORE_REQUESTS.GetContract] : new GetContractCodeAction(this),
+      [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
     };
   }
   /**

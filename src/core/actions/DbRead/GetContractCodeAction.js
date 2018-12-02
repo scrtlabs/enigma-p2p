@@ -13,7 +13,7 @@ class GetContractCodeAction{
       type : Msg.GetContract,
       input : envelop.content().input,
     };
-    this._coreRuntime.execCmd(Msg.CORE_DB_READ_ACTION,{
+    this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,
     });

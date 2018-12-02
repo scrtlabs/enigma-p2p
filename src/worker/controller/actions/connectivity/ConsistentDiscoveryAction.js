@@ -7,7 +7,7 @@ class ConsistentDiscoveryAction {
   constructor(controller) {
     this._controller = controller;
   }
-  _getStoppableTaskOptions(options, taskInput) {
+  _getStoppableTaskOptions(options, taskInput){
     const final = {};
 
     const maxRetry = options.maxRetry;
@@ -37,6 +37,7 @@ class ConsistentDiscoveryAction {
     const options = this._getStoppableTaskOptions(params);
 
     const task = (stopper) =>{
+      // flag process start
       this._controller.connectionManager().onStartPersistentDiscovery();
 
       this._controller.connectionManager().tryConnect((err, results)=>{
@@ -78,11 +79,11 @@ class ConsistentDiscoveryAction {
             }
 
             this._controller.connectionManager().onDonePersistentDiscovery(status,result);
-        };
+    };
 
-        let stopabbleTask = new StoppableTask(options,task,onFinish);
+    let stopabbleTask = new StoppableTask(options,task,onFinish);
 
-        stopabbleTask.start();
-    }
+    stopabbleTask.start();
+  }
 }
 module.exports = ConsistentDiscoveryAction;
