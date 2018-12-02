@@ -47,11 +47,19 @@ module.exports.runServer = (uri)=>{
         break;
       case MsgTypes.UpdateNewContract:
       case MsgTypes.UpdateDeltas:
-        send(socket, {
-          type : msg.type,
-          id : msg.id,
+        require('./dataGenerator').saveToFile('./test_save_db.json', msg).then(()=>{
+          send(socket, {
+            type : msg.type,
+            id : msg.id,
+            success : true
+          });
         });
-        break;
+        // send(socket, {
+        //   type : msg.type,
+        //   id : msg.id,
+        //   success : true
+        // });
+        // break;
     }
   });
 

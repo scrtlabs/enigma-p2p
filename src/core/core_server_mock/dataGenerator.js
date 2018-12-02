@@ -13,22 +13,31 @@ const ADDR_SIZE = 32;
 const BCODE_SIZE = 1500;
 const DELTA_SIZE = 450;
 
-// const fs = require('fs');
-//
-// module.exports.saveToFile = ()=>{
-//
-// };
-// function _saveToFile(){
-//
-// }
-// fs.writeFile('./here.js', file, function(err) {
-//   if (err) {
-//     return console.log(err);
-//   }
-//   console.log('The file was saved!');
-// });
+const fs = require('fs');
 
-
+module.exports.saveToFile = (path,file)=>{
+  console.log('11111111');
+  return new Promise((res,rej)=>{
+    console.log('222222222222222222');
+    _saveToFile(path,file,(err)=>{
+      console.log('555555555555555555')
+      if(err){
+        console.log('errrrrrrrrrrrrrrrrrrrrrrrrT')
+        rej(err);
+      }else{
+        console.log('6666666666666666666666')
+        res();
+      }
+    });
+  });
+};
+function _saveToFile(path,file,callback){
+  console.log('3333333333333333333333333')
+  fs.writeFile(path, file, function(err) {
+    console.log('4444444444444444444')
+    callback(err);
+  });
+}
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
