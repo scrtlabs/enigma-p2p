@@ -47,7 +47,8 @@ module.exports.runServer = (uri)=>{
         break;
       case MsgTypes.UpdateNewContract:
       case MsgTypes.UpdateDeltas:
-        require('./dataGenerator').saveToFile('./test_save_db.json', msg).then(()=>{
+        console.log('saving');
+        require('./dataGenerator').appendToFile('./'+msg.type +'_'+msg.id+'.json', JSON.stringify(msg)).then(()=>{
           send(socket, {
             type : msg.type,
             id : msg.id,

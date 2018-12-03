@@ -300,6 +300,9 @@ class SyncBcodeResMsg extends SyncMsg {
   deployedBytecode() {
     return this._rawMsg.deployedBytecode;
   }
+  bytecode(){
+    return this._rawMsg.bytecode;
+  }
 }
 
 

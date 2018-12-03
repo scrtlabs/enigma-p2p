@@ -19,6 +19,15 @@ class DbRequestAction{
       onResponse("invalid queryType" +queryType );
       return;
     }
+    if(input !== undefined && input.type === 'undefined'){
+
+    }else if(input !== undefined && input.type !== 'undefined' && input.type !== undefined){
+      if(input.type()==='SYNC_BCODE_RES'{
+        console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
+        console.log(input.bytecode().length);
+        console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
+      }
+    }
     let requestEnvelop = new Envelop(true
         ,{type : queryType, input : input}
         ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);

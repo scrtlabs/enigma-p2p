@@ -15,26 +15,19 @@ const DELTA_SIZE = 450;
 
 const fs = require('fs');
 
-module.exports.saveToFile = (path,file)=>{
-  console.log('11111111');
+module.exports.appendToFile = (path,file)=>{
   return new Promise((res,rej)=>{
-    console.log('222222222222222222');
-    _saveToFile(path,file,(err)=>{
-      console.log('555555555555555555')
+    _appendToFile(path,file,(err)=>{
       if(err){
-        console.log('errrrrrrrrrrrrrrrrrrrrrrrrT')
         rej(err);
       }else{
-        console.log('6666666666666666666666')
         res();
       }
     });
   });
 };
-function _saveToFile(path,file,callback){
-  console.log('3333333333333333333333333')
-  fs.writeFile(path, file, function(err) {
-    console.log('4444444444444444444')
+function _appendToFile(path,file,callback){
+  fs.appendFile(path, file, function(err) {
     callback(err);
   });
 }
