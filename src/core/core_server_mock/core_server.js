@@ -47,20 +47,12 @@ module.exports.runServer = (uri)=>{
         break;
       case MsgTypes.UpdateNewContract:
       case MsgTypes.UpdateDeltas:
-        console.log('saving');
-        require('./dataGenerator').appendToFile('./'+msg.type +'_'+msg.id+'.json', JSON.stringify(msg)).then(()=>{
-          send(socket, {
-            type : msg.type,
-            id : msg.id,
-            success : true
-          });
+        send(socket, {
+          type : msg.type,
+          id : msg.id,
+          success : true
         });
-        // send(socket, {
-        //   type : msg.type,
-        //   id : msg.id,
-        //   success : true
-        // });
-        // break;
+        break;
     }
   });
 
