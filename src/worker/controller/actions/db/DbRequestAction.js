@@ -22,7 +22,7 @@ class DbRequestAction{
     if(input !== undefined && input.type === 'undefined'){
 
     }else if(input !== undefined && input.type !== 'undefined' && input.type !== undefined){
-      if(input.type()==='SYNC_BCODE_RES'{
+      if(input.type()==='SYNC_BCODE_RES'){
         console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^");
         console.log(input.bytecode().length);
         console.log("@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
