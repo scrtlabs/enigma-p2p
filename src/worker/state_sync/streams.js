@@ -35,6 +35,14 @@ module.exports.setGlobalState = (state)=>{
  * Actuall streams implementation
  * */
 
+// TODO:: lena, verification stream here is the "consensus" this stream is verifying deltas/bytecode.
+// TODO:: lena, the 'read' variable this function takes as input is a response object.
+// TODO:: lena, read is an array of encoded msgpack bytes, inside this code if you'll look there are 3 lines that decode, and turn it into an actuall using the SyncMsgBuilder.
+// TODO:: lena,this verification stream should take the object which is a response of a range of deltas or 1 bytecode, hash it and verify it against whats in ethereum
+// TODO:: lena, THERE IS NO NEED to actually go to ethem because that your StateSync (your function that returns all the missing states) already has that data
+// TODO:: lena, so it should be passed here, so just to emphesize: there is no need to go to ethereum here, we already have the data for verification.
+// TODO:: lena, you will need this stream to have access to that missing states object obviously so the way you do it is with an Action that does everything and returns a callback.
+// TODO:: lena, the best example of this is fakeSaveToDb() stream and _fakeFromDbStream() (to see how to trigger a command and callback when done)
 /**
  * from providerStream => verify (consensus)
  * @param {stream} read
