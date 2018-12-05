@@ -51,6 +51,127 @@ To launch a worker(s) in a different terminal type:
 <img src="docs/overview3.jpg"
      alt="Implementation 3" />
 
+## General concepts.
+
+The enigma-p2p is asynchronous in its nature and has different concepts that are applied in the architecture.
+
+### Event driven - notifications  
+
+Everything is based on notifications and responses to those notifications. 
+Notifications in the project come in 2 forms: 
+
+1) EventEmitter 
+    - are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124)
+    - for example the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js#L299) will notify on a finished handshake and let the `NodeController` decide [what to do with it](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L72).
+
+2) Channels and communicators
+
+    -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless. 
+
+
+### Command pattern - Actions 
+
+Since everything is Event driven it means that we want to trigger different things once some event occurd. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modidications to fit NodeJS style. 
+Terminology wise, it's called **Actions**. 
+Everywhere in the project `notifications` lead to `Actions`. 
+The rational here is that objects hold the **concrete implementation**  and Actions are the **operational logic**. 
+
+Actions are everywhere: 
+- [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions)
+- [MainController](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/main_controller/actions)
+- [CoreRuntime](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/core/actions)
+  
+Actions must implement `execute(params)` function and usually take `context` object in their constructor. 
+
+To summarize, `Actions` are holding the **operational logic** when to call functions and in which order and it seperates the `invokation` from the `execution`. 
+
+**Pipelines**
+
+Sometimes different functions needs to be called together, those are called `PipelineAction` and they will be only respnsible for calling the other Actions and parsed input/output between them. [Example ReceiveAllPipelineAction](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/worker/controller/actions/sync/ReceiveAllPipelineAction.js).
+
+### Controllers
+
+There are a lot of componenets that need to talk to each other. 
+So there is a hirarchy. The controllers are mapping `notifications` that was emitted to `Actions` that needs to be executed. 
+
+For example, the [NodeController](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller). 
+
+**!!! Every controller also exposes a [FACADE](https://en.wikipedia.org/wiki/Facade_pattern) to the other things in the project. !!!**
+
+This is how user can call direct `Actions` such as `connect to peers` etc. 
+
+### Constants 
+
+All the constants go [here](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/common/constants.js). 
+
+
+## Runtimes and the main controller. 
+
+Each component such as the Worker, CoreRuntime etc are `Runtimes` and there is a main controller that connects between them. 
+
+The reasoning here is again, seperation of concerns.
+
+### Main controller 
+
+The [MainController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/MainController.js#L1) documented in a comment, it is also based on `Actions` with slightly different concepts. 
+
+### Runtimes 
+
+The different Runtimes need to implement 2 methods: 
+
+`type() : string`
+    
+This method returns the Runtime [name](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/common/constants.js#L97). 
+
+`setChannel(Communicator)` 
+
+This method sets the communicator for each Runtime to talk with the MainController ([example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L208)).
+
+The "big" innovation here is the `sendAndReceive(envelop)` method.
+
+example:
+
+```javascript
+const Envelop = require('./Envelop');
+let communicators = Channel.biDirectChannel();
+let c1 = communicators.channel1;
+let c2 = communicators.channel2;
+
+c1.setOnMessage((envelop)=>{
+    console.log(envelop);
+    let e = new Envelop(envelop.id(),{msg : 'this is lena '}, 'target runtime action');
+    c1.send(e);
+});
+  // envelop
+let e1 = new Envelop(true,{msg : 'who is it? '}, 'target runtime action');
+
+let responseEnvelop = await c2.sendAndReceive(e1);
+console.log("response: " + responseEnvelop);
+```
+### Channels and Communicators 
+
+Runtimes communication is usually `request/response` which is why simple `EventEmmitter` is not enough. 
+
+For example, `Worker` component needs something from the DB it will use a `Channel` and wait for response.
+
+The [Channel](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Channel.js) class is responsible for creating 2 [Communicator](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Communicator.js) instances.
+The message types between 2 Communicators are of type [Envelop](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/channels/Envelop.js#L3) class.
+
+### Api controller 
+
+The MainController exposes a [FACADE](https://en.wikipedia.org/wiki/Facade_pattern) to all the Runtimes. 
+This is what the **CLI is speaking to**.
+
+**TODO::**
+
+The Facade is implemented in [FacadeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L12) and should be adding [concrete methods](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L10) there that will define the general API, currently this is very unstable which is why the CLI calls the [componenets directly](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L196). 
+
+### Creating main controller instance 
+
+There is a [Builder](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/EnvironmentBuilder.js#L9) :-) 
+
+[Example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L180) of how the CLI uses the builder to create an instance. 
+
 ## Prerequisites
 * TBD
 ## Installing
