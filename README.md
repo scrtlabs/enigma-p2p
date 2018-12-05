@@ -127,6 +127,15 @@ This method returns the Runtime [name](https://github.com/enigmampc/enigma-p2p/b
 
 This method sets the communicator for each Runtime to talk with the MainController ([example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L208)).
 
+### Channels and Communicators 
+
+Runtimes communication is usually `request/response` which is why simple `EventEmmitter` is not enough. 
+
+For example, `Worker` component needs something from the DB it will use a `Channel` and wait for response.
+
+The [Channel](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Channel.js) class is responsible for creating 2 [Communicator](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Communicator.js) instances.
+The message types between 2 Communicators are of type [Envelop](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/channels/Envelop.js#L3) class.
+
 The "big" innovation here is the `sendAndReceive(envelop)` method.
 
 example:
@@ -148,14 +157,6 @@ let e1 = new Envelop(true,{msg : 'who is it? '}, 'target runtime action');
 let responseEnvelop = await c2.sendAndReceive(e1);
 console.log("response: " + responseEnvelop);
 ```
-### Channels and Communicators 
-
-Runtimes communication is usually `request/response` which is why simple `EventEmmitter` is not enough. 
-
-For example, `Worker` component needs something from the DB it will use a `Channel` and wait for response.
-
-The [Channel](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Channel.js) class is responsible for creating 2 [Communicator](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/main_controller/channels/Communicator.js) instances.
-The message types between 2 Communicators are of type [Envelop](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/channels/Envelop.js#L3) class.
 
 ### Api controller 
 
@@ -172,6 +173,78 @@ There is a [Builder](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d
 
 [Example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L180) of how the CLI uses the builder to create an instance. 
 
+## The Worker - everything libp2p. 
+
+The worker runtime is everything that related to messaging and the p2p. 
+
+### Libp2p configuration 
+
+besides the configuration in common/constants.js there are specific libp2p configurations [PeerBundle](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/libp2p-bundle.js#L12). 
+
+### EnigmaNode
+
+The [EnigmaNode](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/EnigmaNode.js#L20) is a wrapper to the `PeerBundle` from above. It implements specific p2p functions for enigma. Nothing should talk directly to the `PeerBundle` everything low-level that requires `PeerBundle` directly should go through this class instead.
+
+Just to emphasize: if one needs some specific function for libp2p-dht that does not exist yet in the `EnigmaNode` class it should be implemented here and wrapped. 
+
+### P2P Messages 
+
+The messages are used as [concrete classes](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/policy/p2p_messages) they are documented [here](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/docs) along side with `IPC_MESSAGES.md`. There might be minor differences between what is documented and what is implemented. 
+
+
+### Incoming requests 
+
+All the inbound messages gets accepted by the [ProtocolHandler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L18) class. 
+Building on top of libp2p terminology, different messages are different protocols and each one get's its own [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L42). 
+
+### PeerBank 
+
+[PeerBank](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/PeerBank.js#L5) is a class that holds **potential** peers. Once the node connects to some `peer_x` it will be removed from the `PeerBank`.
+This is used to collect peers via `findpeers` message and the `seeds` that come from `Pong` message.
+
+### Discovery and bootstrap 
+
+The login of what to do is implemented in the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js) but the operational logic is implemented in [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js), usage [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L290).
+
+### State synchronization
+
+**Receiver**
+
+A [class](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/receiver/Receiver.js#L13) that responsible for the content receiving logic.
+
+**Provider**
+
+A [class](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/provider/Provider.js#L9) that responsible for the content providing logic.
+
+**Streams**
+
+All the streams are in [one place](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/streams.js) if a stream needs a statefull reference for example the ability to query the database it should be initialized in the `setGlobalState()` method. 
+
+**Related Actions**
+
+The [Actions](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions/sync) with the operational logic inside `NodeController`. 
+
+### PubSub - how to "broadcast"
+
+This is a great way of communicating with Nodes in the network using the DHT. Essentially this is a `Multicast` based on `publish/subscribe` architechture. 
+
+Nodes can subscribe to different topics and publish messages to those topics. 
+
+An [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L298) (`$broadcast <msg>` in the cli) of publishing to `broadcast` topic. 
+
+Subscribe [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/EnigmaNode.js#L199) and the [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L92) for a message. 
+
+**This functionality is great for the JSONRPC api to propagate messages to the netwrok from a proxy node the dApp user is connected to**.
+
+### Connecting it all - controller 
+
+There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) and all of them are managed by the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L43) that maps `notifications` to `Actions`.
+
+**The NodeController exposes the Facade API for the Worker p2p things**
+
+### creating NodeController instance 
+
+`initDefaultTemplate(options,logger)` is for creating a new [instance](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L102). 
 ## Prerequisites
 * TBD
 ## Installing
