@@ -280,8 +280,6 @@
                 return {
                     taskId: event.returnValues.taskId,
                     fee: parseInt(event.returnValues.fee),
-                    tokenAddress: event.returnValues.token,
-                    tokenValue: parseInt(event.returnValues.tokenValue),
                     senderAddress: event.returnValues.sender
                 };
             },
@@ -294,15 +292,9 @@
                 event.returnValues.fees.forEach(function(element) {
                     parsedFees.push(parseInt(element));
                   });
-                let parsedTokenValues = [];
-                event.returnValues.tokenValues.forEach(function(element) {
-                    parsedTokenValues.push(parseInt(element));
-                  });
                 return {
                     taskIds: event.returnValues.taskIds,
                     fees: parsedFees,
-                    tokenAddresses: event.returnValues.tokens,
-                    tokenValues: parsedTokenValues,
                     senderAddress: event.returnValues.sender
                 };
             },

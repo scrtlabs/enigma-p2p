@@ -97,9 +97,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         })
     }
     /**
-     * Irrelevant for workers -> users create tasks with it
+     * login a worker
+     * @return {Promise} receipt 
      * */
-    createTaskRecord(taskId, fee, token, tokenValue, txParams) {
+    login(txParams) {
         return new Promise((resolve, reject) => {
             let defaultOptions = config.default;
             let transactionOptions = defaultOptions;
@@ -112,7 +113,56 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
                 }
                 transactionOptions = defaultsDeep(txParams,defaultOptions);
             }
-            this._enigmaContract.methods.createTaskRecord(taskId, fee, token, tokenValue).send(transactionOptions, (error, receipt)=> {
+            this._enigmaContract.methods.login().send(transactionOptions, (error, receipt)=> {
+                if (error) {
+                    reject(error);
+                }
+                resolve(receipt);
+            });
+        })
+    }
+    /**
+     * login a worker
+     * @return {Promise} receipt 
+     * */
+    logout(txParams) {
+        return new Promise((resolve, reject) => {
+            let defaultOptions = config.default;
+            let transactionOptions = defaultOptions;
+            if (txParams !== undefined && txParams !== null) {
+                let error = this._validateTxParams(txParams)
+                if (error !== null)
+                {
+                    reject(error);
+                    return;
+                }
+                transactionOptions = defaultsDeep(txParams,defaultOptions);
+            }
+            this._enigmaContract.methods.logout().send(transactionOptions, (error, receipt)=> {
+                if (error) {
+                    reject(error);
+                }
+                resolve(receipt);
+            });
+        })
+    }
+    /**
+     * Irrelevant for workers -> users create tasks with it
+     * */
+    createTaskRecord(taskId, fee, txParams) {
+        return new Promise((resolve, reject) => {
+            let defaultOptions = config.default;
+            let transactionOptions = defaultOptions;
+            if (txParams !== undefined && txParams !== null) {
+                let error = this._validateTxParams(txParams)
+                if (error !== null)
+                {
+                    reject(error);
+                    return;
+                }
+                transactionOptions = defaultsDeep(txParams,defaultOptions);
+            }
+            this._enigmaContract.methods.createTaskRecord(taskId, fee).send(transactionOptions, (error, receipt)=> {
                 if (error) {
                     reject(error);
                 }
@@ -124,7 +174,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     /**
      * Same as above
      * */
-    createTaskRecords(taskIds, fees, tokens, tokenValues, txParams) {
+    createTaskRecords(taskIds, fees, txParams) {
         return new Promise((resolve, reject) => {
             let defaultOptions = config.default;
             let transactionOptions = defaultOptions;
@@ -137,7 +187,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
                 }
                 transactionOptions = defaultsDeep(txParams,defaultOptions);
             }
-            this._enigmaContract.methods.createTaskRecords(taskIds, fees, tokens, tokenValues).send(transactionOptions, (error, receipt)=> {
+            this._enigmaContract.methods.createTaskRecords(taskIds, fees).send(transactionOptions, (error, receipt)=> {
                 if (error) {
                     reject(error);
                 }
