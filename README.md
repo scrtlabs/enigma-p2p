@@ -245,6 +245,7 @@ There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/m
 ### creating NodeController instance 
 
 `initDefaultTemplate(options,logger)` is for creating a new [instance](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L102). 
+
 ## Prerequisites
 * TBD
 ## Installing
