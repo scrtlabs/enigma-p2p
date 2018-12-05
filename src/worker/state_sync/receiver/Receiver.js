@@ -115,15 +115,19 @@ class Receiver extends EventEmitter {
           streams.verificationStream,
           streams.throughDbStream,
           pull.map(data=>{
-            //TODO:: parse the data to minimal version
-            //TODO:: the .collect function below takes the full array
-            //TODO:: so in order for it to be minimal in memory reduce here
-            //TODO:: to something in the form of List: {range: {} ,requesrsynct_status:success/err}
-            return data;
+            let status = {};
+            status.ipcType = data.status.type;
+            status.msgType = data.data.type();
+            status.success = data.status.success;
+            status.payload = data.data;
+            console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6');
+            console.log(status);
+            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
+            return status;
           }),
           pull.collect((err,resultList)=>{
             if(err){
-              console.log("collection err ", err );
+              this._logger.error("collection err " + err);
               return callback(err,resultList);
             }else{
               return callback(null,resultList);

@@ -171,7 +171,7 @@ function _fakeFromDbStream(syncReqMsg, callback){
     queryType = constants.CORE_REQUESTS.GetDeltas;
   }else{
     // TODO:: handle error
-    console.log("[-] error in _fakeFromDbStream");
+    globalState.logger.error('error in _fakeFromDbStream');
   }
   globalState.providerContext.dbRequest({
     dbQueryType : queryType,
