@@ -218,12 +218,14 @@
                 let result = this._eventParsers[eventName](event, this._web3);
                 callback(null ,result);
             })
-            .on('changed', (e)=> {
-                console.log("received a change of the event ", e);
+            .on('changed', (event)=> {
+                console.log("received a change of the event ", event);
                 if (eventName in this._activeEventSubscriptions) {
                     delete(this._activeEventSubscriptions[eventName]);
                 }})
-            .on('error', callback);
+            .on('error', (err)=>{
+                callback(err);   
+            });
 
         this._activeEventSubscriptions[eventName] = eventWatcher;
     }
