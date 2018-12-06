@@ -84,7 +84,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
     c1.sendAndReceive(reqEnv)
     .then(resEnv=>{
       assert.strictEqual(Quote,resEnv.content().quote ,"quote don't match");
-      assert.strictEqual(signingKey, resEnv.content().signingKey, 'signing key dont match');
+      assert.strictEqual(signingKey.length, resEnv.content().signingKey.length, 'signing key dont match');
       coreRuntime.disconnect();
       CoreServer.disconnect();
       resolve();

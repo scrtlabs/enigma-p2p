@@ -286,14 +286,39 @@ Update the DHT registries with the content available (i.e deltas) for other peer
 
 * Background Services 
 
-Such as Ethereum listener, JSonRpcAPI etc.
+Such as Ethereum listener, JsonRpcAPI etc.
 
 * Register 
 
 Register with Enigma.sol with all the required steps including Enclave Report.
 
-## Peer Discovery
-* TBD
+## Persistent Peer Discovery
+
+**The goal:** 
+
+reach **optimal DHT** which [defaults to 8 outbound connections](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/common/constants.js#L65).
+
+The persistent peer discovery can be tested with `$discover` cli command. 
+This will trigger `CONSISTENT_DISCOVERY` notification which maps to [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js) with the following default params: 
+```json
+'delay': 500,
+'maxRetry': 10,
+'timeout': 100000,
+```
+
+This can be called upon everytime a [disconnect event](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/worker/handlers/ProtcolHandler.js#L300) happens. 
+
+
+First, Bootstrapping the network (happens before `ConsistentPeerDiscovery`). 
+We start handshaking `Bootstrap nodes` that are hardcoded into the code or added manually in the [cli](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/cli/cli_app.js#L171).
+
+<img src="docs/DiscoveryBoot.png"
+     alt="Implementation 5" />
+
+Then we do persistent discovery based on Visitor Pattern.
+
+<img src="docs/PersistentDiscovery.png"
+     alt="Implementation 6" />
 ## Syncing a Worker
 
 Worker synchronization is done using libp2p content routing mechanisms. 
@@ -422,7 +447,8 @@ The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/
 
 ## JSON RPC API
 
-* TBD
+<img src="docs/jsonrpc.png"
+     alt="streams flow " />
 
 ## Built With
 
