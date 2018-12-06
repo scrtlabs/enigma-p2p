@@ -1,6 +1,7 @@
 const NodeController = require('../worker/controller/NodeController');
 const MainController = require('../main_controller/FacadeController');
 const CoreRuntime = require('../core/CoreRuntime');
+const JsonRpcServer = require('../client_api/JsonRpcServer');
 const Logger = require('../common/logger');
 /**
  * let builder = new EnvironmentBuilder();
@@ -19,6 +20,7 @@ class EnvironmentBuilder{
     this._nodeConfig = false;
     this._ipcConfig = false;
     this._loggerConfig = false;
+    this._jsonRpcConfig = false;
     return this;
   }
   /**
@@ -26,6 +28,10 @@ class EnvironmentBuilder{
    * */
   setNodeConfig(nodeConfig){
     this._nodeConfig = nodeConfig;
+    return this;
+  }
+  setJsonRpcConfig(jsonRpcConfig){
+    this._jsonRpcConfig = jsonRpcConfig;
     return this;
   }
   /**
@@ -56,6 +62,14 @@ class EnvironmentBuilder{
     if(this._ipcConfig){
       let coreRuntime = new CoreRuntime(this._ipcConfig);
       runtimes.push(coreRuntime);
+    }
+    // init jsonrpc
+    if(this._jsonRpcConfig){
+      let port = this._jsonRpcConfig.port;
+      let peerId = this._jsonRpcConfig.peerId;
+      let clientApi = new JsonRpcServer({port : port, peerId : peerId});
+      clientApi.listen();
+      runtimes.push(clientApi);
     }
     // init main controller
     let mainController = new MainController(runtimes);

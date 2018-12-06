@@ -16,6 +16,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'BOOTSTRAP_FINISH': 'b_update_finish', // update of the connection manager bootstrap finished state
   'CONSISTENT_DISCOVERY': 'c_discover', // run consistent discovery mechanism
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
+  'PUBSUB_SUB' : 'subscribe' , // subscribe to topic
   'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
@@ -30,6 +31,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_CONTRACT_BCODE' : 'getcbc',// get the bytecode of some contract
   'SYNC_RECEIVER_PIPELINE' : 'srpl', // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
   'UPDATE_DB' : 'udb', // request to save a new delta or bytecode in core, usually used by the receiver during sync
+  'PROXY' : 'proxy',  // proxy request from jsonrpc api
+  'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -104,7 +107,8 @@ module.exports.RUNTIME_TYPE = {
 
 /** All the notificatiosn that the MainController can handle */
 module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
-  DbRequest : 'dbreq'
+  DbRequest : 'dbreq',
+  Proxy : 'proxy',
 };
 /** IPC core message types
  * in /docs there is  a README called IPC_MESSAGES.md

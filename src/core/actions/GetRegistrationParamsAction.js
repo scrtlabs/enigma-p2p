@@ -1,6 +1,6 @@
-const Envelop = require('../../../main_controller/channels/Envelop');
-const nodeUtils = require('../../../common/utils');
-const Msg = require('../../../common/constants').CORE_REQUESTS;
+const Envelop = require('../../main_controller/channels/Envelop');
+const nodeUtils = require('../../common/utils');
+const Msg = require('../../common/constants').CORE_REQUESTS;
 
 class GetRegistrationParamsAction{
   constructor(coreRuntime){

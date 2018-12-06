@@ -42,6 +42,9 @@ class CLI{
     this._node = null;
     this._mainController = null;
     this._commands = {
+      'getRegistration' : (args)=>{
+        this._node.subscribeSelfSigningKey();
+      },
       'addPeer': (args)=>{
         const ma = args[1];
         this._node.addPeer(ma);
@@ -104,6 +107,17 @@ class CLI{
       'rsync' : ()=>{
         this._node.syncReceiverPipeline();
       },
+      'selfSub': ()=>{
+        this._node.subscribeSelfSigningKey();
+      },
+      'subscribe' : (args)=>{
+        const topic = args[1];
+        this._node.subscribe(topic);
+      },
+      'publish' : (args) =>{
+        const topic = args[1];
+        this._node.publish(topic,JSON.stringify({msg : "hello my friend!!!!!! "}));
+      },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
         console.log(hsPeers);
@@ -131,6 +145,7 @@ class CLI{
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
+        console.log('$getRegistration : get the registration params of the node. ');
         console.log('$addPeer <address> : connect to a new peer manualy.');
         console.log('$getAddr : get the multiaddress of the node. ');
         console.log('$getOutConnections : get id list of the outbound connections ');
@@ -168,6 +183,9 @@ class CLI{
     .option('-c, --core [value]', '[TEST] specify port and start with core mock server',(portStr)=>{
       this._corePort = portStr;
     })
+    .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
+      this._rpcPort = portStr;
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -178,6 +196,24 @@ class CLI{
     return finalConfig;
   }
   async _initEnvironment(){
+    let builder = new EnviornmentBuilder();
+    if(this._corePort){
+      let uri ='tcp://127.0.0.1:' + this._corePort;
+      // start the mock server first
+      CoreServer.setProvider(true);
+      CoreServer.runServer(uri);
+      builder.setIpcConfig({uri : uri});
+    }
+    if(this._rpcPort){
+      builder.setJsonRpcConfig({
+        port : parseInt(this._rpcPort),
+        peerId : 'no_id_yet'
+      });
+    }
+    this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
+    this._node = this._mainController.getNode();
+  }
+  async _initEnvironment_OLD(){
     if(this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first

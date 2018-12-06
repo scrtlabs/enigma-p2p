@@ -25,6 +25,7 @@ const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
+const PubsubSubscribeAction = require('./actions/PubsubSubscribeAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
@@ -39,6 +40,8 @@ const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
+const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
+const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -74,6 +77,7 @@ class NodeController {
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
+      [NOTIFICATION.PUBSUB_SUB] : new PubsubSubscribeAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
@@ -88,6 +92,8 @@ class NodeController {
       [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
+      [NOTIFICATION.PROXY] : new GetWorkerEncryptionKeyAction(this), // proxy request
+      [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
     };
   }
   /**
@@ -187,6 +193,12 @@ class NodeController {
   /** start the node */
   async start(){
     await this.engNode().syncRun();
+    // sleep require because it involves other components i.e main controller and core server
+    // it does not depend only on this local
+    // TODO:: do it somewhere else once core server is alive
+    setTimeout(()=>{
+      this.subscribeSelfSigningKey();
+    },1000);
   }
   /*** stop the node */
   async stop(){
@@ -301,8 +313,61 @@ class NodeController {
       'message': content,
     });
   }
-
-  /** temp - is connection (no handshake related simple libp2p
+  /** subscribe to to self ethereum signing key topic - useful for jsonrpc api
+   * @param {string} topic , topic name
+   * @param {Function} onPublish , (msg)=>{}
+   * @param {Function} onSubscribed, ()=>{}
+   * */
+  subscribe(topic){
+    this._actions[NOTIFICATION.PUBSUB_SUB].execute({
+      topic : topic,
+      onPublish : (msg) =>{
+        console.log("GET MESSAGE ON TOPIC " + topic);
+        console.log(JSON.stringify(JSON.parse(msg.data)));
+      },
+      onSubscribed : ()=>{this._logger.debug('subscribed to ' + topic)}
+    });
+  };
+  publish(topic,message){
+    this._actions[NOTIFICATION.PUBSUB_PUB].execute({
+      topic : topic,
+      message : message,
+    });
+  }
+  subscribeSelfSigningKey(){
+    this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({
+      onResponse : (err,regParams)=>{
+        if(err){
+          return this._logger.error('error getting registration params ' + err);
+        }
+        let signKey = regParams.signingKey;
+        let quote = regParams.quote;
+        this._actions[NOTIFICATION.PUBSUB_SUB].execute({
+          topic : signKey,
+          onPublish : (msg) =>{
+            let from = msg.from;
+            let data = JSON.parse(msg.data);
+            let targetTopic = data.targetTopic;
+            let sequence = data.sequence;
+            let libp2pSequenceNum = msg.seqno;
+            // get encryption key and other params for the specific user
+            let workerEncryptionKey = '0061d93b5412c0c99c3c7867db13c4e13e51292bd52565d002ecf845bb0cfd8adfa5459173364ea8aff3fe24054cca88581f6c3c5e928097b9d4d47fce12ae47';
+            let workerSig = 'mySig';
+            let msgId = 'msgId1';
+            // publish back the result on the target topic
+            this.publish(targetTopic, JSON.stringify({
+              senderKey : signKey,
+              workerEncryptionKey : workerEncryptionKey,
+              workerSig : workerSig,
+              msgId : msgId,
+            }));
+          },
+          onSubscribed : ()=>{this._logger.debug('subscribed to ' + signKey + ' self signKey')}
+        });
+      }
+    });
+  }
+  /** temp should delete - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
   isSimpleConnected(nodeId) {

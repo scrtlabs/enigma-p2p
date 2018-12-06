@@ -17,6 +17,7 @@
     "commander": "^2.18.0",
     "config": "^2.0.1",
     "fs": "0.0.1-security",
+    "jayson": "^2.1.0",
     "jsonschema": "^1.2.4",
     "level": "^4.0.0",
     "libp2p": "^0.23.0",

@@ -8,7 +8,7 @@ const IpcClient = require('./ipc');
 const constants = require('../common/constants');
 
 //actions
-const GetRegistrationParamsAction = require('./actions/DbRead/GetRegistrationParamsAction');
+const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
 const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
