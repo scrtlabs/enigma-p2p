@@ -16,8 +16,8 @@ class UpdateDbAction{
       request.deltas = msgObj.deltas();
     }else if(msgObj.type() === constants.P2P_MESSAGES.SYNC_BCODE_RES){
       request.type = constants.CORE_REQUESTS.UpdateNewContract;
-      request.address = msgObj.contractAddress();
-      request.bytecode = msgObj.deployedBytecode();
+      request.address = msgObj.address();
+      request.bytecode = msgObj.bytecode();
     }
     if(request.type)
       return request;

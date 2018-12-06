@@ -294,11 +294,19 @@ class SyncBcodeResMsg extends SyncMsg {
   constructor(rawMsg) {
     super(rawMsg);
   }
+  /** @deprecated */
   contractAddress() {
     return this._rawMsg.contractAddress;
   }
+  /** @deprecated */
   deployedBytecode() {
     return this._rawMsg.deployedBytecode;
+  }
+  bytecode(){
+    return this._rawMsg.bytecode;
+  }
+  address(){
+    return this._rawMsg.address;
   }
 }
 

@@ -34,7 +34,7 @@ class Communicator extends EventEmitter {
 }
 
 module.exports = Communicator;
-
+//
 // async function test(){
 //
 //   let c1 = new Communicator();

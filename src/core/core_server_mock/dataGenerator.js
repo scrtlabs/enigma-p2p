@@ -13,6 +13,24 @@ const ADDR_SIZE = 32;
 const BCODE_SIZE = 1500;
 const DELTA_SIZE = 450;
 
+const fs = require('fs');
+
+module.exports.appendToFile = (path,file)=>{
+  return new Promise((res,rej)=>{
+    _appendToFile(path,file,(err)=>{
+      if(err){
+        rej(err);
+      }else{
+        res();
+      }
+    });
+  });
+};
+function _appendToFile(path,file,callback){
+  fs.appendFile(path, file, function(err) {
+    callback(err);
+  });
+}
 function getRandomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }

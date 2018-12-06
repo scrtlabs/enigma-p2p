@@ -27,6 +27,16 @@ class IdentifyMissingStatesAction{
       this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS,{
         cache : useCache,
         onResponse : (err,localTips)=>{
+          // TODO:: lena, here the local tips are coming from the db
+          // TODO:: lena, _tempBuildMissingStatesResult() is a temporary method because i ignore the local tips
+          // TODO:: lena, what ypu need to do is use the ignored localTips params from this method
+          // TODO:: lena, and use this as input to your method in StateSync of ethereum.
+          // TODO:: lena, the output from your StateSync method should go into finalCallback
+          // TODO:: lena, and replace the msgMap from _tempBuildMissingStatesResult() essentially
+          // TODO:: lena, regarding the web3 instance your function takes: it should be initialized somewhere else.
+          // TODO:: lena, the way this scope should access the web3/api instance is via this._controller.ethereum()
+          // TODO:: lena, same way as above does this._controller.cache()
+          // TODO:: lena, for testing: you should remember that the localTips returned and remote deltas are correlated and should be generated with that tought
           // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
           //TODO:: pass to ethereum anaylzer the localTips
           let msgsMap = IdentifyMissingStatesAction._tempBuildMissingStatesResult();
