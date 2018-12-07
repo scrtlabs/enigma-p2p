@@ -1,6 +1,6 @@
 # JSON RPC Server
 
-This module implements a JSON-RPC 2.0 compliant server using the [jayson](https://www.npmjs.com/package/jayson) package.
+This module implements a [JSON-RPC 2.0](https://www.jsonrpc.org/specification_)-compliant server using the [jayson](https://www.npmjs.com/package/jayson) package.
 
 This module implements the following methods:
 
