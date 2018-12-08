@@ -15,6 +15,7 @@ const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
 const DbAction = require('./actions/DbAction');
 const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
 const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
+const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 
 class CoreRuntime{
   constructor(config){
@@ -36,6 +37,7 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
       [constants.CORE_REQUESTS.GetContract] : new GetContractCodeAction(this),
       [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : new NewTaskEncryptionKeyAction(this),
     };
   }
   /**
