@@ -42,8 +42,14 @@ class CLI{
     this._node = null;
     this._mainController = null;
     this._commands = {
-      'getRegistration' : (args)=>{
-        this._node.subscribeSelfSigningKey();
+      'init' : (args)=>{
+        this._node.initializeWorkerProcess((err)=>{
+          if(err){
+            console.log("[-] ERROR $init ", err);
+          }
+          let uri  ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          console.log('please visit %s for more info', uri);
+        });
       },
       'addPeer': (args)=>{
         const ma = args[1];
@@ -98,25 +104,44 @@ class CLI{
         const msg = args[1];
         this._node.broadcast(msg);
       },
-      'tryAnnounce' : ()=>{
+      'announce' : ()=>{
         this._node.tryAnnounce();
       },
       'identify' : ()=>{
         this._node.identifyMissingStates();
       },
-      'rsync' : ()=>{
+      'sync' : ()=>{
         this._node.syncReceiverPipeline();
       },
-      'selfSub': ()=>{
-        this._node.subscribeSelfSigningKey();
-      },
-      'subscribe' : (args)=>{
+      'monitorSubscribe' : (args)=>{
+        if(args.length < 2 ){
+          return console.log("error please use $monitorSubscribe <topic str name>");
+        }
         const topic = args[1];
-        this._node.subscribe(topic);
+        this._node.monitorSubscribe(topic);
       },
       'publish' : (args) =>{
+        if(args.length <3){
+          return console.log("error please $publish <topic> <str msg>");
+        }
         const topic = args[1];
-        this._node.publish(topic,JSON.stringify({msg : "hello my friend!!!!!! "}));
+        const message = args[2];
+        this._node.publish(topic,JSON.stringify(message));
+      },
+      'selfSubscribe' : (args)=>{
+        this._node.selfSubscribeAction();
+      },
+      'getRegistration' : (args)=>{
+        this._node.getRegistrationParams((err,result)=>{
+          if(err){
+            console.log('err in getRegistration' + err);
+          }else{
+            let out = {};
+            out.quote = result.quote;
+            out.singingKey = result.signingKey;
+            console.log(out);
+          }
+        });
       },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
@@ -139,12 +164,13 @@ class CLI{
           });
         });
       },
-      'simpleCon': (args)=>{
+      '$isConnected': (args)=>{
         const id = args[1];
         this._node.isSimpleConnected(id);
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
+        console.log('$init : init all the required steps for the worker');
         console.log('$getRegistration : get the registration params of the node. ');
         console.log('$addPeer <address> : connect to a new peer manualy.');
         console.log('$getAddr : get the multiaddress of the node. ');
@@ -155,8 +181,12 @@ class CLI{
         console.log('$inCount : number of inbound connections');
         console.log('$outCount : number of outbound connections');
         console.log('$broadcast <message> : broadcast a message to the whole network');
-        console.log('$provide : announce the network the content the node provides');
-        console.log('$simpleCon <multiaddr>: check if some addr is simple connected');
+        console.log('$identify : output to std all the missing state, i.e what needs to be synced');
+        console.log('$announce : announce the network worker synchronized on states');
+        console.log('$sync : sync the worker from the network and get all the missing states');
+        console.log('$isConnected <PeerId>: check if some peer is connected');
+        console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
+        console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$help : help');
         console.log('>------------------------<');
       },
@@ -199,7 +229,7 @@ class CLI{
     let builder = new EnviornmentBuilder();
     if(this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
-      // start the mock server first
+      // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       CoreServer.setProvider(true);
       CoreServer.runServer(uri);
       builder.setIpcConfig({uri : uri});
