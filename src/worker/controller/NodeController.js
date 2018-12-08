@@ -362,7 +362,7 @@ class NodeController {
               msgId : msgId,
             }));
           },
-          onSubscribed : ()=>{this._logger.debug('subscribed to ' + signKey + ' self signKey')}
+          onSubscribed : ()=>{this._logger.debug('subscribed to [' + signKey + '] self signKey')}
         });
       }
     });

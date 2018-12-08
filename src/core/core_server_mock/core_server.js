@@ -8,6 +8,7 @@ const randomize = require('randomatic');
 let socket;
 let globalUri;
 let isProvider = false;
+let signKey = null;
 
 module.exports.setProvider= (_isProvider)=>{
   isProvider = _isProvider;
@@ -54,10 +55,15 @@ module.exports.runServer = (uri)=>{
           success : true
         });
         break;
+      case MsgTypes.NewTaskEncryptionKey:
+        let encKeyMsg = getNewTaskEncryptionKey(msg);
+        send(socket,encKeyMsg);
+        break;
     }
   });
 
 };
+
 
 function send(socket,msg){
   let error = {"error" : "from server error"};
@@ -66,6 +72,21 @@ function send(socket,msg){
   }else{
     socket.send(JSON.stringify(error));
   }
+}
+
+
+function getNewTaskEncryptionKey(msg){
+  if(signKey === null){
+    signKey = randomize('Aa0',40 );
+  }
+  return{
+    id : msg.id,
+    type : msg.type,
+    senderKey : signKey,
+    msgId : randomize('Aa0',12),
+    workerEncryptionKey : '0061d93b5412c0c99c3c7867db13c4e13e51292bd52565d002ecf845bb0cfd8adfa5459173364ea8aff3fe24054cca88581f6c3c5e928097b9d4d47fce12ae47',
+    workerSig : 'worker-signature-with-signed-by-the-private-key-of-the-sender-key'
+  };
 }
 
 
@@ -152,10 +173,13 @@ function getAllTips(msg){
   }
 }
 function getRegistrationParams(msg) {
+  if(signKey === null){
+    signKey = randomize('Aa0',40 );
+  }
   return {
     type: msg.type,
     id: msg.id,
-    signingKey: randomize('Aa0',40 ),
+    signingKey: signKey,
     quote: Quote
   }
 }

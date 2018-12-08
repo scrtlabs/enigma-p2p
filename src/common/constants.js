@@ -129,4 +129,5 @@ module.exports.CORE_REQUESTS = {
   UpdateNewContract : 'UpdateNewContract',
   UpdateDeltas : 'UpdateDeltas',
   UpdateDb : 'UpdateDb',
+  NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
 };

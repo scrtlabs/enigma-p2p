@@ -158,9 +158,6 @@ it('#3 Should test persistent discovery', async function() {
     });
 
   });
-
-
-
 });
 
 

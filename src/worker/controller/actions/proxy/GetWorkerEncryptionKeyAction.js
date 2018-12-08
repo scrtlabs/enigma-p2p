@@ -1,6 +1,10 @@
+/**
+ * This action is performed by the requester worker.
+ * i.e some user asks his node for some remote workers keys.
+ * this local now triggers this action. (in other words this is request action not response)
+ * TODO:: unsubscribe from temp event once got thte result. (not too important)
+ * */
 const constants = require('../../../../common/constants');
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
 const Envelop = require('../../../../main_controller/channels/Envelop');
 
 class GetWorkerEncryptionKeyAction{
@@ -8,7 +12,6 @@ class GetWorkerEncryptionKeyAction{
     this._controller = controller;
   }
   execute(requestEnvelop){
-
     let workerSignKey = requestEnvelop.content().workerSignKey;
     let sequence = requestEnvelop.content().sequence;
     let selfId = this._controller.engNode().getSelfIdB58Str();

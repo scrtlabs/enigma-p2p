@@ -213,24 +213,6 @@ class CLI{
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
     this._node = this._mainController.getNode();
   }
-  async _initEnvironment_OLD(){
-    if(this._corePort){
-      let uri ='tcp://127.0.0.1:' + this._corePort;
-      // start the mock server first
-      CoreServer.setProvider(true);
-      CoreServer.runServer(uri);
-      // init the rest
-      this._mainController = await new EnviornmentBuilder()
-          .setIpcConfig({uri : uri})
-          .setNodeConfig(this._getFinalConfig())
-          .build();
-    }else{
-      this._mainController = await new EnviornmentBuilder()
-      .setNodeConfig(this._getFinalConfig())
-      .build();
-    }
-    this._node = this._mainController.getNode();
-  }
   start() {
     console.log(Parsers.opener);
     let cmds = this._commands;
@@ -249,7 +231,7 @@ class CLI{
     return this;
   }
 }
-
+//TODO:: the CLI starts automatically for now
 let cli = new CLI().start();
 
 module.exports = CLI;
