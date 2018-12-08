@@ -19,6 +19,7 @@ const Stats = require('../Stats');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
+const TaskManager = require('../task_manager/TaskManager');
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
@@ -70,9 +71,14 @@ class NodeController {
     // stats
     this._stats = new Stats();
 
+    // TODO:: taskManager see this._initTaskManager()
+    this._taskManager = null;
+
+    //TODO:: lena, ethereum api set in this class using this._initEthereumApi()
+    this._enigmaContractApi = null;
+
     // init logic
     this._initController();
-
     // actions
     this._actions = {
       [NOTIFICATION.INIT_WORKER] : new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
@@ -139,7 +145,16 @@ class NodeController {
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
+    //TODO:: task manager is dummy at the moment
+    this._initTaskManager();
+    this._initEthereumApi();
     // this._initCache();
+
+  }
+  //TODO:: lena, init the api here using the builder and everything
+  //TODO:: lena, all the actions and relevant classes should acces the instance using this.etheruem() method
+  _initEthereumApi(){
+    this._enigmaContractApi = null;
   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
@@ -153,6 +168,10 @@ class NodeController {
         this._actions[notification].execute(params);
       }
     });
+  }
+  _initTaskManager(){
+    //TODO:: should subscribed here to events and initialize whats needed like the web3 instance
+    this._taskManager = new TaskManager();
   }
   _initCache(){
     //TODO:: start the cache service
@@ -251,6 +270,10 @@ class NodeController {
    * */
   cache(){
     return this._cache;
+  }
+  //TODO:: return initialized api here
+  ethereum(){
+    return this._enigmaContractApi;
   }
   logger(){
     return this._logger;
