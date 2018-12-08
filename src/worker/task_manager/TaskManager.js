@@ -67,4 +67,4 @@ class TaskManager extends EventEmitter{
    * */
   commitTasks(taskIds){}
 }
-module.exporors = TaskManager;
+module.exports = TaskManager;
