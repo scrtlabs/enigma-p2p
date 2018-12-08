@@ -24,7 +24,6 @@
 
 
 const constants = require('../../../common/constants');
-const nodeUtils = require('../../../common/utils');
 const waterfall = require('async/waterfall');
 class InitWorkerAction {
   constructor(controller) {
