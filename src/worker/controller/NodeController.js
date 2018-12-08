@@ -20,6 +20,7 @@ const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
 // actions
+const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
@@ -42,6 +43,8 @@ const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineActio
 const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
 const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
+const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
+const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -72,6 +75,7 @@ class NodeController {
 
     // actions
     this._actions = {
+      [NOTIFICATION.INIT_WORKER] : new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
       [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
       [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
@@ -94,6 +98,8 @@ class NodeController {
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
       [NOTIFICATION.PROXY] : new GetWorkerEncryptionKeyAction(this), // proxy request
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // on startup of a worker for jsonrpc topic
     };
   }
   /**
@@ -193,12 +199,17 @@ class NodeController {
   /** start the node */
   async start(){
     await this.engNode().syncRun();
-    // sleep require because it involves other components i.e main controller and core server
-    // it does not depend only on this local
-    // TODO:: do it somewhere else once core server is alive
-    setTimeout(()=>{
-      this.subscribeSelfSigningKey();
-    },1000);
+  }
+  /** init worker processes
+   * once this done the worker can start receiving task
+   * i.e already registred and sync
+   * should be called after start() method was called
+   * @param {Function} callback - optinal , (err)=>{} once done
+   * */
+  initializeWorkerProcess(callback){
+    this._actions[NOTIFICATION.INIT_WORKER].execute({
+      callback : callback
+    });
   }
   /*** stop the node */
   async stop(){
@@ -307,65 +318,37 @@ class NodeController {
       'callback': callback,
     });
   }
-  broadcast(content) {
-    this._actions[NOTIFICATION['PUBSUB_PUB']].execute({
-      'topic': TOPICS.BROADCAST,
-      'message': content,
-    });
-  }
-  /** subscribe to to self ethereum signing key topic - useful for jsonrpc api
-   * @param {string} topic , topic name
-   * @param {Function} onPublish , (msg)=>{}
-   * @param {Function} onSubscribed, ()=>{}
+  /**
+   * monitor some topic, simply prints to std whenever some peer publishes to that topic
+   * @param {string} topic
    * */
-  subscribe(topic){
+  monitorSubscribe(topic){
     this._actions[NOTIFICATION.PUBSUB_SUB].execute({
       topic : topic,
-      onPublish : (msg) =>{
-        console.log("GET MESSAGE ON TOPIC " + topic);
-        console.log(JSON.stringify(JSON.parse(msg.data)));
+      onPublish : (msg)=>{
+        let from = msg.from;
+        let data = JSON.parse(msg.data);
+        let out = '->MONITOR published on:' + topic + '\n->from: ' + from + '\n->payload: ' + JSON.stringify(data);
+        this._logger.info(out);
       },
-      onSubscribed : ()=>{this._logger.debug('subscribed to ' + topic)}
+      onSubscribed : ()=>{
+        this._logger.info('Monitor subscribed to [' + topic +']');
+      }
     });
-  };
+  }
+  broadcast(content) {
+    this.publish(TOPICS.BROADCAST, content);
+  }
   publish(topic,message){
     this._actions[NOTIFICATION.PUBSUB_PUB].execute({
       topic : topic,
       message : message,
     });
   }
-  subscribeSelfSigningKey(){
-    this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({
-      onResponse : (err,regParams)=>{
-        if(err){
-          return this._logger.error('error getting registration params ' + err);
-        }
-        let signKey = regParams.signingKey;
-        let quote = regParams.quote;
-        this._actions[NOTIFICATION.PUBSUB_SUB].execute({
-          topic : signKey,
-          onPublish : (msg) =>{
-            let from = msg.from;
-            let data = JSON.parse(msg.data);
-            let targetTopic = data.targetTopic;
-            let sequence = data.sequence;
-            let libp2pSequenceNum = msg.seqno;
-            // get encryption key and other params for the specific user
-            let workerEncryptionKey = '0061d93b5412c0c99c3c7867db13c4e13e51292bd52565d002ecf845bb0cfd8adfa5459173364ea8aff3fe24054cca88581f6c3c5e928097b9d4d47fce12ae47';
-            let workerSig = 'mySig';
-            let msgId = 'msgId1';
-            // publish back the result on the target topic
-            this.publish(targetTopic, JSON.stringify({
-              senderKey : signKey,
-              workerEncryptionKey : workerEncryptionKey,
-              workerSig : workerSig,
-              msgId : msgId,
-            }));
-          },
-          onSubscribed : ()=>{this._logger.debug('subscribed to [' + signKey + '] self signKey')}
-        });
-      }
-    });
+
+  /** temp run self subscribe command */
+  selfSubscribeAction(){
+    this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({});
   }
   /** temp should delete - is connection (no handshake related simple libp2p
    * @param {string} nodeId
@@ -403,6 +386,17 @@ class NodeController {
       dbQueryType : constants.CORE_REQUESTS.GetAllTips,
       onResponse : onResponse,
       cache : fromCache
+    });
+  }
+  /** get the registration params from core
+   * @param {Function} callback , (err,result)=>{}
+   * Result object - {signingKey,quote}
+   * */
+  getRegistrationParams(callback){
+    this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({
+      onResponse : (err,result)=>{
+        callback(err,result);
+    }
     });
   }
   /**
