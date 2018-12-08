@@ -1,6 +1,5 @@
 const constants = require('../../../common/constants');
-const TOPICS = constants.PUBSUB_TOPICS;
-
+const nodeUtils = require('../../../common/utils');
 
 class PubsubPublishAction {
   constructor(controller) {
