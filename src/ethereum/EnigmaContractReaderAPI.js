@@ -218,12 +218,14 @@
                 let result = this._eventParsers[eventName](event, this._web3);
                 callback(null ,result);
             })
-            .on('changed', (e)=> {
-                console.log("received a change of the event ", e);
+            .on('changed', (event)=> {
+                console.log("received a change of the event ", event);
                 if (eventName in this._activeEventSubscriptions) {
                     delete(this._activeEventSubscriptions[eventName]);
                 }})
-            .on('error', callback);
+            .on('error', (err)=>{
+                callback(err);   
+            });
 
         this._activeEventSubscriptions[eventName] = eventWatcher;
     }
@@ -278,8 +280,6 @@
                 return {
                     taskId: event.returnValues.taskId,
                     fee: parseInt(event.returnValues.fee),
-                    tokenAddress: event.returnValues.token,
-                    tokenValue: parseInt(event.returnValues.tokenValue),
                     senderAddress: event.returnValues.sender
                 };
             },
@@ -292,15 +292,9 @@
                 event.returnValues.fees.forEach(function(element) {
                     parsedFees.push(parseInt(element));
                   });
-                let parsedTokenValues = [];
-                event.returnValues.tokenValues.forEach(function(element) {
-                    parsedTokenValues.push(parseInt(element));
-                  });
                 return {
                     taskIds: event.returnValues.taskIds,
                     fees: parsedFees,
-                    tokenAddresses: event.returnValues.tokens,
-                    tokenValues: parsedTokenValues,
                     senderAddress: event.returnValues.sender
                 };
             },
