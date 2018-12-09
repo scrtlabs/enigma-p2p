@@ -16,6 +16,7 @@ const globalState = {
   receiverContext : null,
   logger : null,
 };
+
 /**
  * Set the global state, this function will be executed only once
  * regardless of the amount of times it is being called.

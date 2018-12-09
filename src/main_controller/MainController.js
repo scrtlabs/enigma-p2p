@@ -45,7 +45,7 @@ const Channel = require('./channels/Channel');
 const constants = require('../common/constants');
 const DummyAction = require('./actions/DummyAction');
 const DbAction = require('./actions/DbAction');
-
+const ProxyAction = require('./actions/ProxyAction');
 class MainController {
   constructor(runtimes) {
     let notifications = constants.MAIN_CONTROLLER_NOTIFICATIONS;
@@ -53,6 +53,7 @@ class MainController {
     // actions
     this._actions = {
       'dummy': new DummyAction(this),
+      [notifications.Proxy] : new ProxyAction(this),
       [notifications.DbRequest] : new DbAction(this),
     };
     // runtime communicators

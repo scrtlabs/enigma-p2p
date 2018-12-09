@@ -225,19 +225,34 @@ Response:
 
 ## Computation related
 
-### `DeploySecretContract` message
+### `NewTaskEncryptionKey` message
+
+The result of the rpc call `GetWorkerEncryptionKey`.
+
+Request:
+```
+{
+    id : <unique_request_id>
+    type : NewTaskEncryptionKey
+}
+```
+
+Response:
+
+```
+{
+    id : <unique_request_id>
+    type : NewTaskEncryptionKey
+    senderKey : 'the-enclave-sign-key'
+    msgId : 'some-id-to-link-to-encryption-key',
+    workerEncryptionKey : 'some-encryption-key',
+    workerSig : 'sign(response params)',
+}
+```
+
+### `DeploySecretContract` messages
 
 ### `ComputeTask` message
-
-
-
-
-
-
-
-
-
-
 
 
 

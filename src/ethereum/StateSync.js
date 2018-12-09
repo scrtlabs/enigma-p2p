@@ -4,14 +4,16 @@ const util = require('util')
 
 const _ = require('underscore');
 
-
+//TODO:: lena, return also the bytecode of each contract if the address is missing.
+//TODO:: lena, so if delta 0 is missing this means that the byte code is missing as well.
+//TODO:: lena, then we fetch the code hash using getCodeHash () and return [{address, bytecode , deltas : [deltaHash, index]}]
 /**
- * Queries the Enigma contract and returns the missing states in comparison to the local tips  
+ * Queries the Enigma contract and returns the missing states in comparison to the local tips
  * @param {EnigmaContractReaderAPI} api
  * @param {Array} localTips [{address,key,delta},...}]
  * @param {Function} callback (err, results)=>{}
  * @return {Array} missing states [{address, deltas : [deltaHash, index]}]
- * TODO: as async function returns a Promise, apply both options: return the data using the callback and return the data using the promise 
+ * TODO: as async function returns a Promise, apply both options: return the data using the callback and return the data using the promise
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
     // create a hashmap from the localTipa array
@@ -22,7 +24,7 @@ async function getRemoteMissingStates(api, localTips, callback) {
 
     try {
         let remoteSecretContractNumber = await api.countSecretContracts();
-        
+
         try {
             let remoteSecretContractsAddresses = await api.getSecretContractAddresses(0, remoteSecretContractNumber);
 
@@ -37,10 +39,10 @@ async function getRemoteMissingStates(api, localTips, callback) {
                             if (secretContractAddress in tipsHashMaps) {
                                 firstMissingIndex = tipsHashMaps[secretContractAddress] + 1;
                             }
-                            // there are no missing deltas for this secret contract address 
+                            // there are no missing deltas for this secret contract address
                             if (deltasNumber === firstMissingIndex) {
                                 return cb(null);
-                            } 
+                            }
                             else {// (deltasNumber > firstMissingIndex) {
                                 api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
                                     .then((deltasArray)=>{
@@ -73,7 +75,7 @@ async function getRemoteMissingStates(api, localTips, callback) {
         }
     } catch (err) {
         callback(err);
-    } 
+    }
 }
 
 module.exports = {getRemoteMissingStates: getRemoteMissingStates};

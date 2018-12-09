@@ -19,12 +19,15 @@ const Stats = require('../Stats');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
+const TaskManager = require('../task_manager/TaskManager');
 // actions
+const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
+const PubsubSubscribeAction = require('./actions/PubsubSubscribeAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
@@ -39,6 +42,10 @@ const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
+const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
+const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
+const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
+const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -64,16 +71,23 @@ class NodeController {
     // stats
     this._stats = new Stats();
 
+    // TODO:: taskManager see this._initTaskManager()
+    this._taskManager = null;
+
+    //TODO:: lena, ethereum api set in this class using this._initEthereumApi()
+    this._enigmaContractApi = null;
+
     // init logic
     this._initController();
-
     // actions
     this._actions = {
+      [NOTIFICATION.INIT_WORKER] : new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
       [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
       [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
+      [NOTIFICATION.PUBSUB_SUB] : new PubsubSubscribeAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
@@ -88,6 +102,10 @@ class NodeController {
       [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
+      [NOTIFICATION.PROXY] : new GetWorkerEncryptionKeyAction(this), // proxy request
+      [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // on startup of a worker for jsonrpc topic
     };
   }
   /**
@@ -127,7 +145,16 @@ class NodeController {
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
+    //TODO:: task manager is dummy at the moment
+    this._initTaskManager();
+    this._initEthereumApi();
     // this._initCache();
+
+  }
+  //TODO:: lena, init the api here using the builder and everything
+  //TODO:: lena, all the actions and relevant classes should acces the instance using this.etheruem() method
+  _initEthereumApi(){
+    this._enigmaContractApi = null;
   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
@@ -141,6 +168,10 @@ class NodeController {
         this._actions[notification].execute(params);
       }
     });
+  }
+  _initTaskManager(){
+    //TODO:: should subscribed here to events and initialize whats needed like the web3 instance
+    this._taskManager = new TaskManager();
   }
   _initCache(){
     //TODO:: start the cache service
@@ -188,6 +219,17 @@ class NodeController {
   async start(){
     await this.engNode().syncRun();
   }
+  /** init worker processes
+   * once this done the worker can start receiving task
+   * i.e already registred and sync
+   * should be called after start() method was called
+   * @param {Function} callback - optinal , (err)=>{} once done
+   * */
+  initializeWorkerProcess(callback){
+    this._actions[NOTIFICATION.INIT_WORKER].execute({
+      callback : callback
+    });
+  }
   /*** stop the node */
   async stop(){
     await this.engNode().syncStop();
@@ -228,6 +270,10 @@ class NodeController {
    * */
   cache(){
     return this._cache;
+  }
+  //TODO:: return initialized api here
+  ethereum(){
+    return this._enigmaContractApi;
   }
   logger(){
     return this._logger;
@@ -295,14 +341,39 @@ class NodeController {
       'callback': callback,
     });
   }
+  /**
+   * monitor some topic, simply prints to std whenever some peer publishes to that topic
+   * @param {string} topic
+   * */
+  monitorSubscribe(topic){
+    this._actions[NOTIFICATION.PUBSUB_SUB].execute({
+      topic : topic,
+      onPublish : (msg)=>{
+        let from = msg.from;
+        let data = JSON.parse(msg.data);
+        let out = '->MONITOR published on:' + topic + '\n->from: ' + from + '\n->payload: ' + JSON.stringify(data);
+        this._logger.info(out);
+      },
+      onSubscribed : ()=>{
+        this._logger.info('Monitor subscribed to [' + topic +']');
+      }
+    });
+  }
   broadcast(content) {
-    this._actions[NOTIFICATION['PUBSUB_PUB']].execute({
-      'topic': TOPICS.BROADCAST,
-      'message': content,
+    this.publish(TOPICS.BROADCAST, content);
+  }
+  publish(topic,message){
+    this._actions[NOTIFICATION.PUBSUB_PUB].execute({
+      topic : topic,
+      message : message,
     });
   }
 
-  /** temp - is connection (no handshake related simple libp2p
+  /** temp run self subscribe command */
+  selfSubscribeAction(){
+    this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({});
+  }
+  /** temp should delete - is connection (no handshake related simple libp2p
    * @param {string} nodeId
    */
   isSimpleConnected(nodeId) {
@@ -338,6 +409,17 @@ class NodeController {
       dbQueryType : constants.CORE_REQUESTS.GetAllTips,
       onResponse : onResponse,
       cache : fromCache
+    });
+  }
+  /** get the registration params from core
+   * @param {Function} callback , (err,result)=>{}
+   * Result object - {signingKey,quote}
+   * */
+  getRegistrationParams(callback){
+    this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({
+      onResponse : (err,result)=>{
+        callback(err,result);
+    }
     });
   }
   /**

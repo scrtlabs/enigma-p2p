@@ -8,6 +8,7 @@ module.exports.LOG_CONFIG = {
   'cli': true,
 };
 module.exports.NODE_NOTIFICATIONS = {
+  'INIT_WORKER' : 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
   'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
   // (ready to be discovered) -> 'peer:discovery' event.
   'HANDSHAKE_OUTBOUND': 'hs_outbound', // performed handshake with node as outbound operation, e.g. outbound connection
@@ -16,6 +17,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'BOOTSTRAP_FINISH': 'b_update_finish', // update of the connection manager bootstrap finished state
   'CONSISTENT_DISCOVERY': 'c_discover', // run consistent discovery mechanism
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
+  'PUBSUB_SUB' : 'subscribe' , // subscribe to topic
   'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
@@ -30,6 +32,10 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_CONTRACT_BCODE' : 'getcbc',// get the bytecode of some contract
   'SYNC_RECEIVER_PIPELINE' : 'srpl', // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
   'UPDATE_DB' : 'udb', // request to save a new delta or bytecode in core, usually used by the receiver during sync
+  'PROXY' : 'proxy',  // proxy request from jsonrpc api
+  'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
+  'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
+  'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -69,6 +75,11 @@ module.exports.MSG_STATUS = {
   ERR_SELF_DIAL: 3,
 };
 
+module.exports.CONSISTENT_DISCOVERY_PARAMS = {
+  MAX_RETRY: 10, // stop if more than 10 tries
+  TIMEOUT: 100000, // stop if timeout millis
+  DELAY: 500, // delay between each try millis
+};
 module.exports.CONTENT_ROUTING = {
   // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
   RANGE_LIMIT : 10,
@@ -104,7 +115,8 @@ module.exports.RUNTIME_TYPE = {
 
 /** All the notificatiosn that the MainController can handle */
 module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
-  DbRequest : 'dbreq'
+  DbRequest : 'dbreq',
+  Proxy : 'proxy',
 };
 /** IPC core message types
  * in /docs there is  a README called IPC_MESSAGES.md
@@ -125,4 +137,5 @@ module.exports.CORE_REQUESTS = {
   UpdateNewContract : 'UpdateNewContract',
   UpdateDeltas : 'UpdateDeltas',
   UpdateDb : 'UpdateDb',
+  NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
 };

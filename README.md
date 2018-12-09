@@ -10,28 +10,33 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 
 ## Quick CLI
 
+
 First:
 
 `cd ./src/cli`
 
 For help and list of flags:
 
-`node cli.js -h`
+`$node cli_app.js -h`
 
-For launching the CLI with 1 bootstrap node type:
+For interactive-options help type `$help` while running. 
 
-`node cli.js -n dns -i B1 -b B1 -p B1`
+For quick launching with default the CLI with 1 bootstrap node type:
+
+`node cli_app.js -n dns -i B1 -b B1 -p B1 --core <port> --proxy <port>`
 
 For the run-time commands the node can do:
 
 **While already running type**  `help`
 
-To launch a worker(s) in a different terminal type:
+for quick launch with default worker(s) in a different terminal type:
 
-(The nickname is for debugging, pick any string i.e peer1)
+`node cli_app.js -b B1 --core <port> --proxy <port>`
 
-`node cli.js -b B1 -n <nickname>`
+`--core <port>` flag will start a mock server on the given port and connect to it. 
 
+`--proxy <port>` will start up the JSONrpc server as well.
+ 
 # Architechture
 
 ## Core, Enigma-P2P and the outside world
@@ -286,14 +291,39 @@ Update the DHT registries with the content available (i.e deltas) for other peer
 
 * Background Services 
 
-Such as Ethereum listener, JSonRpcAPI etc.
+Such as Ethereum listener, JsonRpcAPI etc.
 
 * Register 
 
 Register with Enigma.sol with all the required steps including Enclave Report.
 
-## Peer Discovery
-* TBD
+## Persistent Peer Discovery
+
+**The goal:** 
+
+reach **optimal DHT** which [defaults to 8 outbound connections](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/common/constants.js#L65).
+
+The persistent peer discovery can be tested with `$discover` cli command. 
+This will trigger `CONSISTENT_DISCOVERY` notification which maps to [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js) with the following default params: 
+```json
+'delay': 500,
+'maxRetry': 10,
+'timeout': 100000,
+```
+
+This can be called upon everytime a [disconnect event](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/worker/handlers/ProtcolHandler.js#L300) happens. 
+
+
+First, Bootstrapping the network (happens before `ConsistentPeerDiscovery`). 
+We start handshaking `Bootstrap nodes` that are hardcoded into the code or added manually in the [cli](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/cli/cli_app.js#L171).
+
+<img src="docs/DiscoveryBoot.png"
+     alt="Implementation 5" />
+
+Then we do persistent discovery based on Visitor Pattern.
+
+<img src="docs/PersistentDiscovery.png"
+     alt="Implementation 6" />
 ## Syncing a Worker
 
 Worker synchronization is done using libp2p content routing mechanisms. 
@@ -422,7 +452,8 @@ The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/
 
 ## JSON RPC API
 
-* TBD
+<img src="docs/jsonrpc.png"
+     alt="streams flow " />
 
 ## Built With
 
