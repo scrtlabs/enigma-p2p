@@ -4,15 +4,13 @@ const util = require('util')
 
 const _ = require('underscore');
 
-//TODO:: lena, return also the bytecode of each contract if the address is missing.
-//TODO:: lena, so if delta 0 is missing this means that the byte code is missing as well.
-//TODO:: lena, then we fetch the code hash using getCodeHash () and return [{address, bytecode , deltas : [deltaHash, index]}]
 /**
  * Queries the Enigma contract and returns the missing states in comparison to the local tips
  * @param {EnigmaContractReaderAPI} api
  * @param {Array} localTips [{address,key,delta},...}]
  * @param {Function} callback (err, results)=>{}
- * @return {Array} missing states [{address, deltas : [deltaHash, index]}]
+ * @return {Array} missing states [{address, deltas : [deltaHash, index]}]. 
+ *                 In case the entire contract is missing, the bytecode is returned as well: [{address, bytecode , deltas : [deltaHash, index]}]
  * TODO: as async function returns a Promise, apply both options: return the data using the callback and return the data using the promise
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
@@ -33,28 +31,44 @@ async function getRemoteMissingStates(api, localTips, callback) {
             remoteSecretContractsAddresses.forEach((secretContractAddress)=>{
                 jobs.push((cb)=>{
                     api.countStateDeltas(secretContractAddress)
-                        .then((deltasNumber)=>{
-                            let firstMissingIndex = 0;
+                        .then(async (deltasNumber)=>{
+                            let missingAddress = false;
+                            let firstMissingIndex;
+                            let missingCodeHash;
                             // get the local tip index, if exists; otherwise 0
                             if (secretContractAddress in tipsHashMaps) {
                                 firstMissingIndex = tipsHashMaps[secretContractAddress] + 1;
-                            }
-                            // there are no missing deltas for this secret contract address
-                            if (deltasNumber === firstMissingIndex) {
-                                return cb(null);
-                            }
-                            else {// (deltasNumber > firstMissingIndex) {
-                                api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
-                                    .then((deltasArray)=>{
-                                        let parsedDeltasArray = [];
-                                        deltasArray.forEach((deltaHash, index, arr)=>{
-                                            parsedDeltasArray.push({deltaHash : deltaHash, index : index + firstMissingIndex});
-                                        });
-                                        return cb(null, {address : secretContractAddress, deltas : parsedDeltasArray});
-                                    })
-                                    .catch((err)=>{cb(err)});;
+                                // TODO:: lena: once newly deployed contracts will hold a first delta, this should be removed
+                                if (deltasNumber === firstMissingIndex) {
+                                    return cb(null);
                                 }
-                            })
+                            }
+                            // the address does not exist at the local db, set the firstMissingIndex to 0 and request the codehash
+                            else {
+                                firstMissingIndex = 0;
+                                missingAddress = true;
+                                missingCodeHash = await api.getCodeHash(secretContractAddress);
+                            }
+                            // TODO:: lena: once newly deployed contracts will hold a first delta, this should be un-commented
+                            // there are no missing deltas for this secret contract address
+                            // if (deltasNumber === firstMissingIndex) {
+                            //     return cb(null);
+                            // }
+                            // else {// (deltasNumber > firstMissingIndex) {
+                            api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
+                                .then((deltasArray)=>{
+                                    let parsedDeltasArray = [];
+                                    deltasArray.forEach((deltaHash, index, arr)=>{
+                                        parsedDeltasArray.push({deltaHash : deltaHash, index: index + firstMissingIndex});
+                                    });
+                                    if (missingAddress === true) {
+                                        return cb(null, {address : secretContractAddress, deltas : parsedDeltasArray, bytecode: missingCodeHash});
+                                    }
+                                    return cb(null, {address : secretContractAddress, deltas : parsedDeltasArray});
+                                })
+                                .catch((err)=>{cb(err)});;
+                            //}
+                        })
                         .catch((err)=>{cb(err)});
                 });
             });

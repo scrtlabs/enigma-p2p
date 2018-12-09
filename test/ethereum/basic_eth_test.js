@@ -5,6 +5,7 @@ const envInitializer = require('./scripts/env_initializer');
 const EnigmaContractWriterAPI = require(path.join(__dirname, '../../src/ethereum/EnigmaContractWriterAPI'));
 const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));;
 const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices'));;
+const util = require('util')
 
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 
@@ -430,11 +431,14 @@ describe('Ethereum tests', function() {
                 assert.strictEqual(results[0].deltas[2].index, 2);
                 assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
                 assert.strictEqual(results[0].deltas.length, 3);
+                
+                assert.strictEqual(results[0].bytecode, codeHash);
 
                 assert.strictEqual(results[1].address, secretContractAddress2);
                 assert.strictEqual(results[1].deltas[0].index, 0);
                 assert.strictEqual(results[1].deltas[0].deltaHash, stateDeltaHash4);
                 assert.strictEqual(results[1].deltas.length, 1);
+                assert.strictEqual(results[1].bytecode, codeHash);
 
                 api.unsubscribeAll();
                 resolve();
@@ -456,16 +460,17 @@ describe('Ethereum tests', function() {
             const workerReport = JSON.stringify(testParameters.report);//"0x123456";
             const secretContractAddress1 = accounts[5];
             const secretContractAddress2 = accounts[4];
-            const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+            const codeHash1 = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+            const codeHash2 = web3.utils.sha3(web3.utils.randomHex(32));
 
             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
 
             await api.login({from: workerAddress});
             
             await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress, 
-                codeHash, workerAddress);
+                codeHash1, workerAddress);
             await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-                codeHash, workerAddress);
+                codeHash2, workerAddress);
 
             const taskId1 = web3.utils.randomHex(32);
             const taskFee1 = 5;
@@ -508,11 +513,14 @@ describe('Ethereum tests', function() {
                 assert.strictEqual(results[0].deltas[1].index, 2);
                 assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
                 assert.strictEqual(results[0].deltas.length, 2);
+                assert.strictEqual("bytecode" in results[0], false);
 
                 assert.strictEqual(results[1].address, secretContractAddress2);
                 assert.strictEqual(results[1].deltas[0].index, 0);
                 assert.strictEqual(results[1].deltas[0].deltaHash, stateDeltaHash4);
                 assert.strictEqual(results[1].deltas.length, 1);
+                assert.strictEqual(results[1].bytecode, codeHash2);
+                
 
                 api.unsubscribeAll();
                 resolve();
@@ -587,6 +595,7 @@ describe('Ethereum tests', function() {
                 assert.strictEqual(results[0].deltas[1].index, 2);
                 assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
                 assert.strictEqual(results[0].deltas.length, 2);
+                assert.strictEqual("bytecode" in results[0], false);
 
                 api.unsubscribeAll();
                 resolve();
