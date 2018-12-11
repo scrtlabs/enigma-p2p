@@ -20,6 +20,7 @@ const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
 const TaskManager = require('../task_manager/TaskManager');
+const EnigmaContractAPIBuilder = require('../../ethereum/EnigmaContractAPIBuilder');;
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
@@ -74,8 +75,9 @@ class NodeController {
     // TODO:: taskManager see this._initTaskManager()
     this._taskManager = null;
 
-    //TODO:: lena, ethereum api set in this class using this._initEthereumApi()
-    this._enigmaContractApi = null;
+    // // init ethereum api
+    this._enigmaContractApi = null; //enigmaContractHandler.api;
+    this._enigmaContractEnv = null; //enigmaContractHandler.environment;
 
     // init logic
     this._initController();
@@ -134,8 +136,16 @@ class NodeController {
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
+    // const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(); 
+    // let enigmaContractHandler = {};
+    // if(options.enigmaContractAddress){
+    //   enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed({enigmaContractAddress: options.enigmaContractAddress}).build();
+    // }else{
+    //   enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
+    // }
+     
     // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode,_logger);
+    const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
@@ -147,15 +157,14 @@ class NodeController {
     this._initContentReceiver();
     //TODO:: task manager is dummy at the moment
     this._initTaskManager();
-    this._initEthereumApi();
     // this._initCache();
 
   }
   //TODO:: lena, init the api here using the builder and everything
   //TODO:: lena, all the actions and relevant classes should acces the instance using this.etheruem() method
-  _initEthereumApi(){
-    this._enigmaContractApi = null;
-  }
+//   _initEthereumApi(){
+//     this._enigmaContractApi = null;
+//   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
 
@@ -229,6 +238,27 @@ class NodeController {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
       callback : callback
     });
+  }
+  /** init Ethereum API
+   * */
+  async initializeEthereum(enigmaContractAddress){
+    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(); 
+    let enigmaContractHandler = {};
+    if(enigmaContractAddress){
+      enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed({enigmaContractAddress: enigmaContractAddress}).build();
+    }else{
+      enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
+    }
+    // init ethereum api
+    this._enigmaContractApi = enigmaContractHandler.api;
+    this._enigmaContractEnv = enigmaContractHandler.environment;
+  }
+  /** stop Ethereum Env, if needed
+   * */
+  async stopEthereum(enigmaContractAddress){
+    if(this._enigmaContractEnv){
+      await this._enigmaContractEnv.destroy();
+    }
   }
   /*** stop the node */
   async stop(){

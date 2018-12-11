@@ -52,7 +52,15 @@ class EnigmaContractAPIBuilder {
         this.useDeployedFlag = true;
         if (config !== undefined && config !== null) {
              this.config = defaultsDeep(config, this.config);
-         }
+        }
+        // TODO: improve this code!
+        // console.log('here');
+        // console.log(this.config.enigmaContractABI === undefined);
+        if (this.config.enigmaContractABI === undefined){
+            const EnigmaContractJson = require(path.join(this.config.truffleDirectory, "build/contracts/EnigmaMock.json"));
+            this.config.enigmaContractABI = EnigmaContractJson.abi;
+            //console.log(this.config.enigmaContractABI);
+        }
         return this;
      }
     /**
@@ -160,12 +168,13 @@ class EnigmaContractAPIBuilder {
 
         this.enigmaContractAddress = enigmaContractInstance.options.address;
         this.enigmaContractABI = EnigmaContractJson.abi;
+        console.log("Deployed the Enigma Mock Contract in the following address: " + this.enigmaContractAddress);
     }
 
     _connectToContract() {
         this._initWeb3();
 
-        // TODO: should a cpntract instance be created?!
+        // TODO: should a contract instance be created?!
         this.enigmaContractAddress = this.config.enigmaContractAddress;
         this.enigmaContractABI = this.config.enigmaContractABI;
     }
@@ -204,7 +213,6 @@ class EnigmaContractAPIBuilder {
     async stop() {
         await this.environment.subprocess.kill();
     }
-
 
     async disconnect() {
         await this.web3.currentProvider.disconnect();

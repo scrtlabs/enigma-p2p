@@ -7,6 +7,7 @@ const nodeUtils = require('../common/utils');
 const NodeController = require('../worker/controller/NodeController');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
+
 class CLI{
   constructor(){
     // mock server
@@ -50,6 +51,13 @@ class CLI{
           let uri  ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
           console.log('please visit %s for more info', uri);
         });
+      },
+      'initEthereum' : (args)=>{
+        let enigmaContractAddress = null;
+        if (args.length > 1){
+          enigmaContractAddress = args[1];
+        }  
+        this._node.initializeEthereum(enigmaContractAddress);
       },
       'addPeer': (args)=>{
         const ma = args[1];
@@ -216,6 +224,9 @@ class CLI{
     .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
       this._rpcPort = portStr;
     })
+    // .option('-e, --contract-address [value]', 'specify the Enigma contract address to start with',(address)=>{
+    //   Parsers.enigmaContractAddress(address, this._globalWrapper);
+    // })
     .parse(process.argv);
   }
   _getFinalConfig() {
