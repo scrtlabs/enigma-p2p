@@ -198,7 +198,9 @@ Response:
     id : <unique_request_id>
     type : UpdateNewContract
     address : ...
-    status : 0 or err code
+    result : {
+        status : 0 or err code
+    }
 }
 ```
 
@@ -208,7 +210,7 @@ Request:
 {
     id : <unique_request_id>
     type : UpdateDeltas
-    deltas : [{address,index,data : []}, ...]
+    deltas : [{address,key,data : []}, ...]
 }
 ```
 Response:
@@ -216,8 +218,10 @@ Response:
 {
     id : <unique_request_id>
     type : UpdateDeltas
-    general_status : 0 or err code
-    statuses : [{address,index,status : }, ...]
+    result : {
+        status: 0 or err code
+        errors: [{address,key,status : }, ...]
+    }
 }
 ```
 
@@ -243,25 +247,15 @@ Response:
 {
     id : <unique_request_id>
     type : NewTaskEncryptionKey
-    senderKey : 'the-enclave-sign-key'
-    msgId : 'some-id-to-link-to-encryption-key',
-    workerEncryptionKey : 'some-encryption-key',
-    workerSig : 'sign(response params)',
+    result : {
+        senderKey : 'the-enclave-sign-key'
+        msgId : 'some-id-to-link-to-encryption-key',
+        workerEncryptionKey : 'some-encryption-key',
+        workerSig : 'sign(response params)',
+    }
 }
 ```
 
 ### `DeploySecretContract` messages
 
 ### `ComputeTask` message
-
-
-
-
-
-
-
-
-
-
-
-
