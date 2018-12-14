@@ -21,8 +21,10 @@ Response:
 {
     id : <unique_request_id>
     type : GetRegistrationParams
-    signingKey : hex
-    quote : base64
+    result : {
+        signingKey : hex
+        quote : base64
+    }
 }
 ```
 
@@ -74,7 +76,7 @@ Request:
 ```
 {
     id : <unique_request_id>
-    type : Ge:tTips
+    type : GetTips
     input : [Array<Secret Contract Address>]
 }
 ```
@@ -149,7 +151,7 @@ Request:
 {
     id : <unique_request_id>,
     type : GetDelta
-    input : [{address, from:key,to:key},...]
+    input : [{address, from:key, to:key},...]
 }
 ```
 Response:
@@ -157,7 +159,9 @@ Response:
 {
     id : <unique_request_id>
     type : GetDeltas
-    deltas : [{address,key,data},...]
+    result : {
+        deltas : [{address, key, data},...]
+    }
 }
 ```
 ### `GetContract` message
@@ -210,7 +214,7 @@ Request:
 {
     id : <unique_request_id>
     type : UpdateDeltas
-    deltas : [{address,key,data : []}, ...]
+    deltas : [{address, key, data : []}, ...]
 }
 ```
 Response:
