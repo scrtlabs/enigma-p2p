@@ -25,7 +25,7 @@ module.exports.runServer = (uri)=>{
 
   socket.on('message', msg=>{
     msg = JSON.parse(msg);
-    console.log("[Mock Server] got msg! ", msg.type);
+    console.log("[Mock Server] got msg! ", msg);
     switch(msg.type){
       case MsgTypes.GetRegistrationParams:
         let response = getRegistrationParams(msg);

@@ -12,7 +12,7 @@ class GetContractCodeAction{
     let queryMsg = params.requestMsg;
     // make query
     let addr = queryMsg.contractAddress();
-    let input = [addr];
+    let input = addr;
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
       dbQueryType : constants.CORE_REQUESTS.GetContract,
       input : input,

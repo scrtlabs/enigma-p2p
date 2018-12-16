@@ -152,8 +152,8 @@ Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDelta
-    input : [{address, from:key, to:key},...]
+    type : GetDeltas
+    input : [{address, from:key, to:key}, ...]
 }
 ```
 Response:
@@ -172,7 +172,7 @@ Request:
 {
     id : <unique_request_id>
     type : GetContract
-    input : [address]
+    input : address
 }
 ```
 Response:
