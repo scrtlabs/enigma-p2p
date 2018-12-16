@@ -27,7 +27,7 @@ class AnnounceLocalStateAction{
           /**
            * do the announcement
            * */
-          let parsedEngCids = allAddrsResponse.addresses.map(addr=>{
+          let parsedEngCids = allAddrsResponse.result.addresses.map(addr=>{
             let ecid = EngCid.createFromSCAddress(addr);
             if(ecid){
               return ecid;
