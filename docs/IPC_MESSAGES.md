@@ -44,8 +44,10 @@ Response:
 {
     id : <unique_request_id>
     type : IdentityChallenge
-    nonce :
-    signature :
+    result : {
+        nonce : hex
+        signature : hex
+    }
 }
 ```
 ## Enclave Read only Database related
