@@ -263,7 +263,7 @@ function _verificationStream(read) {
         }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
-        new Verifier().verify(data, (isOk)=>{
+        new Verifier().verify(globalState.receiverContext.getRemoteMissingStatesMap(), data, (isOk)=>{
           if (isOk) {
             return cb(end, data);
           } else {

@@ -98,7 +98,7 @@ function buildP2ReqPMsgsOneContract(contractData){
  * */
 module.exports.createP2PReqMsgsMap = (missingList)=>{
   //* [{address,deltas:[{deltaHash,index},...]},...]
-  sortAll(missingList);
+  //sortAll(missingList); TOOD:: lena: verify indeed that the list is already sorted
   let output = {};
   for(let i=0;i<missingList.length;++i){
     let reqMsgs = buildP2ReqPMsgsOneContract(missingList[i]);
