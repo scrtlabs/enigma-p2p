@@ -56,7 +56,7 @@ class CLI{
         let enigmaContractAddress = null;
         if (args.length > 1){
           enigmaContractAddress = args[1];
-        }  
+        }
         this._node.initializeEthereum(enigmaContractAddress);
       },
       'addPeer': (args)=>{
@@ -241,8 +241,9 @@ class CLI{
     if(this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      CoreServer.setProvider(true);
-      CoreServer.runServer(uri);
+      let coreServer = new CoreServer();
+      coreServer.setProvider(true);
+      coreServer.runServer(uri);
       builder.setIpcConfig({uri : uri});
     }
     if(this._rpcPort){

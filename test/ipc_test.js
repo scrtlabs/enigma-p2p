@@ -71,7 +71,8 @@ it('#2 GetRegistrationParams - mock server', async function() {
   return new Promise(async resolve => {
     //start the server
     const uri = 'tcp://127.0.0.1:5556';
-    CoreServer.runServer(uri);
+    let coreServer = new CoreServer();
+    coreServer.runServer(uri);
     await nodeUtils.sleep(1000);
 // start the client
     let channels = Channel.biDirectChannel();
@@ -86,7 +87,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
       assert.strictEqual(Quote,resEnv.content().quote ,"quote don't match");
       assert.strictEqual(signingKey.length, resEnv.content().signingKey.length, 'signing key dont match');
       coreRuntime.disconnect();
-      CoreServer.disconnect();
+      coreServer.disconnect();
       resolve();
     });
   });
@@ -105,7 +106,8 @@ it('#3 GetAllTips - mock server', async function() {
   const uri = 'tcp://127.0.0.1:5454';
   return new Promise(async resolve => {
     // start the server (core)
-    CoreServer.runServer(uri);
+    let coreServer = new CoreServer();
+    coreServer.runServer(uri);
     await nodeUtils.sleep(1500);
     // start the client (enigma-p2p)
     let builder = new EnvironmentBuilder();
@@ -123,7 +125,7 @@ it('#3 GetAllTips - mock server', async function() {
       assert.strictEqual(0, missingStates.tips[2].key, 'key not 0');
       await mainController.getNode().stop();
       mainController.getIpcClient().disconnect();
-      CoreServer.disconnect();
+      coreServer.disconnect();
       resolve();
     });
   });
