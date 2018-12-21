@@ -1,8 +1,8 @@
 /**
- * This action is performed by the requester worker.
- * i.e some user asks his node for some remote workers keys.
- * this local now triggers this action. (in other words this is request action not response)
- * TODO:: unsubscribe from temp event once got thte result. (not too important)
+ * This action is performed by the requested worker.
+ * i.e some user asks his node for some remote worker's keys.
+ * this local now triggers this action. (in other words this is a request action not a response)
+ * TODO:: unsubscribe from temp event once got the result. (not too important)
  * */
 const constants = require('../../../../common/constants');
 const Envelop = require('../../../../main_controller/channels/Envelop');
