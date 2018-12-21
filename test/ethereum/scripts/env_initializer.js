@@ -12,7 +12,7 @@ function buildEnv(truffleDirectory) {
         const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
         exec(command, (err, stdout, stderr) => {
             if (err) {
-                reject();
+                reject('env_initializer.buildEnv ' + stdout);
             }
             //console.log(stdout);
             resolve(stderr, stdout);
