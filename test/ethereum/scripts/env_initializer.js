@@ -25,9 +25,8 @@ function resetEnv(truffleDirectory) {
         const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
         exec(command, (err, stdout, stderr) => {
             if (err) {
-                reject();
+                reject('env_initalizer.resetEnv ' + stdout);
             }
-            //console.log(stdout);
             resolve(stderr, stdout);
         })
     })
@@ -87,7 +86,7 @@ async function startNetwork(truffleDirectory) {
         shell: true,
         detached: true,
     });
-        
+
     subprocess.unref();
 
     await testUtils.sleep(3000);
