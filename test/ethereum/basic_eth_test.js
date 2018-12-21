@@ -49,7 +49,7 @@ describe('Ethereum tests', function() {
 
         // let web3 = new Web3(provider);
         api = await new EnigmaContractWriterAPI(enigmaContractAddress, enigmaContractABI, web3);
-    }, 30000);
+    }, 60000);
 
     afterEach(async function() {
         // runs after each test in this block
