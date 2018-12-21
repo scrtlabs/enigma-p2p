@@ -21,7 +21,7 @@ class ProtocolHandler extends EventEmitter {
 
     // initialize logger
     if (logger) {
-      this._logger =logger;
+      this._logger = logger;
     } else {
       this._logger = new Logger({
         'level': 'debug',
@@ -216,7 +216,7 @@ class ProtocolHandler extends EventEmitter {
             // TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
             conn.getPeerInfo((err, peerInfo)=>{
               if (err) {
-                this._logger('[-] err retrieving peer info from connection on handshake ' + err);
+                worker.getProtocolHandler()._logger.error('[-] err retrieving peer info from connection on handshake ' + err);
                 return;
               }
               worker.getProtocolHandler().notify({

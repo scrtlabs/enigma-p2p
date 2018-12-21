@@ -20,7 +20,7 @@ describe('Ethereum tests', function() {
     let enigmaContractAddress;
     let enigmaContractABI;
 
-    before(async function() {
+    beforeAll(async function() {
       let tree = TEST_TREE.ethereum;
       if(!tree['all']){
         this.skip();
@@ -30,7 +30,7 @@ describe('Ethereum tests', function() {
 
     });
 
-    after(async function() {
+    afterAll(async function() {
       let tree = TEST_TREE.ethereum;
       if(!tree['all']){
         this.skip();
@@ -47,9 +47,9 @@ describe('Ethereum tests', function() {
 
         web3 = result.web3;
 
-        //     let web3 = new Web3(provider);
+        // let web3 = new Web3(provider);
         api = await new EnigmaContractWriterAPI(enigmaContractAddress, enigmaContractABI, web3);
-    });
+    }, 60000);
 
     afterEach(async function() {
         // runs after each test in this block
@@ -204,7 +204,7 @@ describe('Ethereum tests', function() {
             await envInitializer.start(truffleDir);
             resolve();
         }).catch(console.log);
-    });
+    }, 50000);
 
     it('Register, login, deploy secret contract, create tasks and commit reciepts using the BUILDER ', async function(){
         let tree = TEST_TREE.ethereum;
@@ -518,7 +518,7 @@ describe('Ethereum tests', function() {
                 resolve();
             });
         });
-    });
+    }, 7000);
 
     it('State sync - partial local tips 2', async function(){
         let tree = TEST_TREE.ethereum;
@@ -592,7 +592,7 @@ describe('Ethereum tests', function() {
                 resolve();
             });
         });
-    });
+    }, 7000);
 
     it('State sync - full local tips', async function(){
         let tree = TEST_TREE.ethereum;
@@ -659,7 +659,7 @@ describe('Ethereum tests', function() {
                 resolve();
             });
         });
-    });
+    }, 7000);
 
     it('Test ethereum services ', async function(){
         let tree = TEST_TREE.ethereum;
@@ -771,5 +771,5 @@ describe('Ethereum tests', function() {
             resolve();
 
         });
-    });
+    }, 7000);
 });
