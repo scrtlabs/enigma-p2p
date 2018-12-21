@@ -204,7 +204,7 @@ describe('Ethereum tests', function() {
             await envInitializer.start(truffleDir);
             resolve();
         }).catch(console.log);
-    }, 30000);
+    }, 50000);
 
     it('Register, login, deploy secret contract, create tasks and commit reciepts using the BUILDER ', async function(){
         let tree = TEST_TREE.ethereum;
