@@ -21,11 +21,14 @@ const globalState = {
  * Set the global state, this function will be executed only once
  * regardless of the amount of times it is being called.
  * */
+
+// TODO: remove this all together and move to a local state
+//  (due to binding between tests, the following lines had to be commented out)
 module.exports.setGlobalState = (state)=>{
-  if(state.providerContext && globalState.providerContext === null){
+  if(state.providerContext){// && globalState.providerContext === null){
     globalState.providerContext = state.providerContext;
   }
-  if(state.receiverContext && globalState.receiverContext === null){
+  if(state.receiverContext){// && globalState.receiverContext === null){
     globalState.receiverContext = state.receiverContext;
   }
   if(state.logger && globalState.logger === null){
