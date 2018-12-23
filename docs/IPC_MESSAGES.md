@@ -21,8 +21,10 @@ Response:
 {
     id : <unique_request_id>
     type : GetRegistrationParams
-    signingKey : hex
-    quote : base64
+    result : {
+        signingKey : hex
+        quote : base64
+    }
 }
 ```
 
@@ -42,8 +44,10 @@ Response:
 {
     id : <unique_request_id>
     type : IdentityChallenge
-    nonce :
-    signature :
+    result : {
+        nonce : hex
+        signature : hex
+    }
 }
 ```
 ## Enclave Read only Database related
@@ -74,7 +78,7 @@ Request:
 ```
 {
     id : <unique_request_id>
-    type : Ge:tTips
+    type : GetTips
     input : [Array<Secret Contract Address>]
 }
 ```
@@ -148,8 +152,8 @@ Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDelta
-    input : [{address, from:key,to:key},...]
+    type : GetDeltas
+    input : [{address, from:key, to:key}, ...]
 }
 ```
 Response:
@@ -157,7 +161,9 @@ Response:
 {
     id : <unique_request_id>
     type : GetDeltas
-    deltas : [{address,key,data},...]
+    result : {
+        deltas : [{address, key, data},...]
+    }
 }
 ```
 ### `GetContract` message
@@ -166,7 +172,7 @@ Request:
 {
     id : <unique_request_id>
     type : GetContract
-    input : [address]
+    input : address
 }
 ```
 Response:
@@ -198,7 +204,9 @@ Response:
     id : <unique_request_id>
     type : UpdateNewContract
     address : ...
-    status : 0 or err code
+    result : {
+        status : 0 or err code
+    }
 }
 ```
 
@@ -208,7 +216,7 @@ Request:
 {
     id : <unique_request_id>
     type : UpdateDeltas
-    deltas : [{address,index,data : []}, ...]
+    deltas : [{address, key, data : []}, ...]
 }
 ```
 Response:
@@ -216,8 +224,10 @@ Response:
 {
     id : <unique_request_id>
     type : UpdateDeltas
-    general_status : 0 or err code
-    statuses : [{address,index,status : }, ...]
+    result : {
+        status: 0 or err code
+        errors: [{address,key,status : }, ...]
+    }
 }
 ```
 
@@ -243,25 +253,15 @@ Response:
 {
     id : <unique_request_id>
     type : NewTaskEncryptionKey
-    senderKey : 'the-enclave-sign-key'
-    msgId : 'some-id-to-link-to-encryption-key',
-    workerEncryptionKey : 'some-encryption-key',
-    workerSig : 'sign(response params)',
+    result : {
+        senderKey : 'the-enclave-sign-key'
+        msgId : 'some-id-to-link-to-encryption-key',
+        workerEncryptionKey : 'some-encryption-key',
+        workerSig : 'sign(response params)',
+    }
 }
 ```
 
 ### `DeploySecretContract` messages
 
 ### `ComputeTask` message
-
-
-
-
-
-
-
-
-
-
-
-

@@ -25,7 +25,7 @@ module.exports.runServer = (uri)=>{
 
   socket.on('message', msg=>{
     msg = JSON.parse(msg);
-    console.log("[Mock Server] got msg! ", msg.type);
+    console.log("[Mock Server] got msg! ", msg);
     switch(msg.type){
       case MsgTypes.GetRegistrationParams:
         let response = getRegistrationParams(msg);
@@ -162,7 +162,9 @@ function getAllAddrs(msg){
   return {
     type : msg.type,
     id : msg.id,
-    addresses : addresses
+    result: {
+      addresses : addresses,
+    },
   }
 }
 function getAllTips(msg){
