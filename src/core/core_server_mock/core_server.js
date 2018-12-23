@@ -162,7 +162,9 @@ function getAllAddrs(msg){
   return {
     type : msg.type,
     id : msg.id,
-    addresses : addresses
+    result: {
+      addresses : addresses,
+    },
   }
 }
 function getAllTips(msg){

@@ -4,7 +4,7 @@ node_js:
   - "10.12"
 
 install:
-  - npm install -g truffle 
+  - npm install -g truffle@4.1.14
   - npm install
 
 script:
