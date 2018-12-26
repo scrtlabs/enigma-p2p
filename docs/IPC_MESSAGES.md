@@ -254,7 +254,6 @@ Response:
     id : <unique_request_id>
     type : NewTaskEncryptionKey
     result : {
-        senderKey : 'the-enclave-sign-key'
         msgId : 'some-id-to-link-to-encryption-key',
         workerEncryptionKey : 'some-encryption-key',
         workerSig : 'sign(response params)',

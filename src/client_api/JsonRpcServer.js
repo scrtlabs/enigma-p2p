@@ -44,7 +44,6 @@ class JsonRpcServer extends EventEmitter{
           .sendAndReceive(envelop)
           .then(resEnv=>{
             let result = {};
-            result.targetWorkerKey = resEnv.content().result.senderKey;
             result.workerEncryptionKey = resEnv.content().result.workerEncryptionKey;
             result.workerSig = resEnv.content().result.workerSig;
             result.msgId = resEnv.content().result.msgId;
