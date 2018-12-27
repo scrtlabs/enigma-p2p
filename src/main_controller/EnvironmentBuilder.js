@@ -61,14 +61,14 @@ class EnvironmentBuilder{
     }
     // init ipc
     if(this._ipcConfig){
-      let coreRuntime = new CoreRuntime(this._ipcConfig);
+      let coreRuntime = new CoreRuntime(this._ipcConfig, logger);
       runtimes.push(coreRuntime);
     }
     // init jsonrpc
     if(this._jsonRpcConfig){
       let port = this._jsonRpcConfig.port;
       let peerId = this._jsonRpcConfig.peerId;
-      let jsonRpc = new JsonRpcServer({port : port, peerId : peerId});
+      let jsonRpc = new JsonRpcServer({port : port, peerId : peerId}, logger);
       jsonRpc.listen();
       runtimes.push(jsonRpc);
     }

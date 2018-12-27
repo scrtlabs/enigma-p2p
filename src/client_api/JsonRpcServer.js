@@ -7,20 +7,27 @@ const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
 // const nodeUtils = require('../common/utils');
 const jayson = require('jayson');
+const cors = require('cors');
+const connect = require('connect');
+const bodyParser = require('body-parser');
+
+
 const PROXY_FLAG = constants.MAIN_CONTROLLER_NOTIFICATIONS.Proxy;
 const Envelop = require('../main_controller/channels/Envelop');
 
 // class QuoteAction {}
 
 class JsonRpcServer extends EventEmitter {
-  constructor(config) {
+  constructor(config, logger) {
     super();
     this._communicator = null;
-    this._port = config.port || constants.JSON_RPC_SERVER.port;;
+    this._logger = logger;
+    this._port = config.port || constants.JSON_RPC_SERVER.port; ;
     this._peerId = config.peerId;
 
     this._pendingSequence = {};
 
+    this._app = connect();
     this._server = jayson.server({
       getInfo: (args, callback)=>{
         console.log('getInfo request...');
@@ -46,7 +53,6 @@ class JsonRpcServer extends EventEmitter {
           this.getCommunicator()
               .sendAndReceive(envelop)
               .then((resEnv)=>{
-                console.log('GOT SOMETHING');
                 const result = {};
                 console.log(resEnv);
                 result.targetWorkerKey = resEnv.content().result.senderKey;
@@ -69,18 +75,25 @@ class JsonRpcServer extends EventEmitter {
       // Placeholder.
       // TODO: Implement proper callback
       getTaskStatus: function(args, callback) {
-        callback(null, [2])
-      }
+        callback(null, [2]);
+      },
     });
-
   }
   listen() {
-    console.log('JsonRpcServer listening on port ' + this._port);
-    this._server.http().listen(this._port);
+    this._logger.debug('JsonRpcServer listening on port ' + this._port);
+    this._app.use(cors({methods: ['POST']}));
+    this._app.use(bodyParser.json());
+    this._app.use(this._server.middleware());
+    this._serverInstance = this._app.listen(this._port);
   }
-  /** MUST for runtime manager (main controller)*/
+  close(done) {
+    this._serverInstance.close(done);
+  }
+  /** MUST for runtime manager (main controller)
+   * @return {string} constants.RUNTIME_TYPE.JsonRpc
+   * */
   type() {
-    return constants.RUNTIME_TYPE.JsonRpcApi;
+    return constants.RUNTIME_TYPE.JsonRpc;
   }
   /**
    * Returns the Channel communicator, used by Actions
@@ -93,9 +106,9 @@ class JsonRpcServer extends EventEmitter {
   setChannel(communicator) {
     this._communicator = communicator;
     this._communicator.setOnMessage((envelop)=>{
-      let concreteCmd = envelop.content().type;
-      let action = this._actions[concreteCmd];
-      if(action){
+      const concreteCmd = envelop.content().type;
+      const action = this._actions[concreteCmd];
+      if (action) {
         action.execute(envelop);
       }
     });
@@ -106,7 +119,6 @@ class JsonRpcServer extends EventEmitter {
   //     action.execute(params);
   //   }
   // }
-
 }
 
 module.exports = JsonRpcServer;

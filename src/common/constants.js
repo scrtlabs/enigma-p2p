@@ -110,7 +110,7 @@ module.exports.RUNTIME_TYPE = {
     Core : 'core',
     Node : 'node',
     Ethereum : 'eth',
-    JsonRpcApi : 'rpcApi'
+    JsonRpc : 'jsonRpc'
 };
 
 /** All the notificatiosn that the MainController can handle */
