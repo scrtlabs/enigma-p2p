@@ -37,7 +37,7 @@ class MockCoreServer {
 
     this._socket.on('message', (msg)=>{
       msg = JSON.parse(msg);
-      console.log('[Mock Server] got msg! ', msg.type);
+      console.log('[Mock Server] got msg! ', msg);
       switch(msg.type){
         case MsgTypes.GetRegistrationParams:
           let response = this._getRegistrationParams(msg);
@@ -169,7 +169,9 @@ class MockCoreServer {
     return {
       type: msg.type,
       id: msg.id,
-      addresses: addresses
+      result: {
+        addresses: addresses,
+      }
     }
   }
   _getAllTips(msg){

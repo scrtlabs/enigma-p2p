@@ -60,7 +60,6 @@ it('#1 send acks to each other', async function(){
   });
 });
 
-
 it('#2 GetRegistrationParams - mock server', async function() {
   let tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#2']) {
@@ -92,6 +91,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
     });
   });
 });
+
 it('#3 GetAllTips - mock server', async function() {
   let tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#3']) {
@@ -129,4 +129,4 @@ it('#3 GetAllTips - mock server', async function() {
       resolve();
     });
   });
-});
+}, 30000);

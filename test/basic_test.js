@@ -88,7 +88,7 @@ it('#2 Should test handshake with 1 node', async function(){
         await peerController.engNode().syncStop();
         resolve();
     });
-});
+}, 30000);
 
 
 
@@ -158,7 +158,7 @@ it('#3 Should test persistent discovery', async function() {
     });
 
   });
-});
+}, 100000);
 
 
 

@@ -5,25 +5,25 @@ class TaskManager extends EventEmitter{
   }
   /**
    * add a task to the task queue, task can be both secret contract deployment or computation
-   * the task is unconfirmed untill ethereum event will pop and then confirmTask(taskId) should be called.
+   * the task is unconfirmed until Ethereum event will pop and then confirmTask(taskId) should be called.
    * @param {string} taskId
    * @param {TODO::Task} unconfirmedTask,
    * @param {Function} callback - once done.
    * */
   addUnconfirmedTaskToQueue(taskId,unconfirmedTask,callback){}
   /**
-   * once a task request is confirmed on ethereum
+   * once a task request is confirmed on Ethereum
    * @param {string} taskId
    * */
   confirmTask(taskId){}
   /**
    * Task status can be:
-   * - unconfirmed, waiting for confirmation from ethereum
-   * -pending, at the queue didnt start yet in core
-   * -started, passed to core
-   * -finished_error, finished with error
-   * -finished_pending_ethereum, finished but pending for ethereum commit (has ethereum callback)
-   * -finished_success, finished with success
+   * - unconfirmed, waiting for confirmation from Ethereum
+   * - pending, in the queue; didn't start yet in core
+   * - started, passed to core
+   * - finished_error, finished with error
+   * - finished_pending_ethereum, finished but pending for Ethereum commit (has Ethereum callback)
+   * - finished_success, finished with success
    *
    * @param {string} taskId
    * @return {string} status
@@ -36,7 +36,7 @@ class TaskManager extends EventEmitter{
    * */
   getTask(taskId){}
   /**
-   * remove some task from queue or ignore when the result comes back if started
+   * remove some task from the queue or ignore when the result comes back if started
    * @param {string} taskId
    * */
   removeTask(taskId){}
@@ -52,17 +52,17 @@ class TaskManager extends EventEmitter{
   getTaskResult(taskId){}
   /**
    * @param {string} taskId
-   * @return {bool} true - has an ethereum callback , false - no ethereum callback
+   * @return {bool} true - has an Ethereum callback , false - no Ethereum callback
    * */
   isEthereumCallback(taskId){}
   /**
-   * @param {Array<string>} taskIds , optional if null should commit all callbacks to ethereum
-   * i.e functions with a call to ethereum
+   * @param {Array<string>} taskIds , optional if null should commit all callbacks to Ethereum
+   * i.e functions with a call to Ethereum
    * */
   commitEthereumCallbacks(taskIds){}
   /**
-   * commit a batch of computations back to ethereum to collect fee.
-   * optional if null should commit all results to ethereum
+   * commit a batch of computations back to Ethereum to collect fee.
+   * optional if null should commit all results to Ethereum
    * @param {Array<string>} tasksIds
    * */
   commitTasks(taskIds){}

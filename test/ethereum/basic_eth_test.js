@@ -3,9 +3,8 @@ const assert = require('assert');
 const TEST_TREE = require(path.join(__dirname, '../test_tree')).TEST_TREE;
 const envInitializer = require('./scripts/env_initializer');
 const EnigmaContractWriterAPI = require(path.join(__dirname, '../../src/ethereum/EnigmaContractWriterAPI'));
-const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder')); ;
-const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices')); ;
-const util = require('util');
+const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));
+const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices'));
 
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 
@@ -21,7 +20,7 @@ describe('Ethereum tests', function() {
   let enigmaContractAddress;
   let enigmaContractABI;
 
-  before(async function() {
+  beforeAll(async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all']) {
       this.skip();
@@ -30,7 +29,7 @@ describe('Ethereum tests', function() {
     await envInitializer.start(truffleDir);
   });
 
-  after(async function() {
+  afterAll(async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all']) {
       this.skip();
@@ -49,7 +48,7 @@ describe('Ethereum tests', function() {
 
     //     let web3 = new Web3(provider);
     api = await new EnigmaContractWriterAPI(enigmaContractAddress, enigmaContractABI, web3);
-  });
+  }, 60000);
 
   afterEach(async function() {
     // runs after each test in this block
@@ -204,7 +203,7 @@ describe('Ethereum tests', function() {
       await envInitializer.start(truffleDir);
       resolve();
     }).catch(console.log);
-  });
+  }, 50000);
 
   it('Register, login, deploy secret contract, create tasks and commit reciepts using the BUILDER ', async function() {
     const tree = TEST_TREE.ethereum;
@@ -524,7 +523,7 @@ describe('Ethereum tests', function() {
         resolve();
       });
     });
-  });
+  }, 7000);
 
   it('State sync - partial local tips 2', async function() {
     const tree = TEST_TREE.ethereum;
@@ -599,7 +598,7 @@ describe('Ethereum tests', function() {
         resolve();
       });
     });
-  });
+  }, 7000);
 
   it('State sync - full local tips', async function() {
     const tree = TEST_TREE.ethereum;
@@ -666,7 +665,7 @@ describe('Ethereum tests', function() {
         resolve();
       });
     });
-  });
+  }, 7000);
 
   it('Test ethereum services ', async function() {
     const tree = TEST_TREE.ethereum;
@@ -775,5 +774,5 @@ describe('Ethereum tests', function() {
 
       resolve();
     });
-  });
+  }, 7000);
 });

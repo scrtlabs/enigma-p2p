@@ -5,7 +5,7 @@ const runtimesTypes = constants.RUNTIME_TYPE;
 /**
  * Exposes a concrete API to all the components
  * Should be instantiated instead of MainController (general implementation)
- * This exposes an API that a CLI can for example.
+ * This exposes an API that a CLI can interface with, for example.
  * TODO:: implement concrete methods
  * TODO:: for now can use getNode(), getIpcClient() etc...
  * */
