@@ -6,8 +6,8 @@ const CoreServer = require('../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const testUtils = require('./testUtils/utils');
 
-const B1Path = path.join(__dirname, "testUtils/id-l");
-const B1Port = "10300";
+const B1Path = path.join(__dirname, "testUtils/id-d");
+const B1Port = "10301";
 
 
 it('#1 should tryAnnounce action from mock-db no-cache', async function(){
@@ -66,7 +66,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function(){
       resolve();
     });
   });
-});
+}, 20000);
 
 
 it('#2 should perform a full sync scenario (using mock-db)', async function(){
@@ -78,7 +78,7 @@ it('#2 should perform a full sync scenario (using mock-db)', async function(){
 
     //await testUtils.sleep(5000);
 
-    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B1Port + "/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"];
 
     const dnsConfig = {
       'bootstrapNodes': bootstrapNodes,
@@ -152,6 +152,6 @@ it('#2 should perform a full sync scenario (using mock-db)', async function(){
       resolve();
     });
   });
-});
+}, 20000);
 
 
