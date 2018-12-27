@@ -107,7 +107,20 @@ describe('JsonRPC tests', () => {
     });
   });
 
-  it('#1 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
+  it('#1 Should getInfo', async function() {
+    const response = await new Promise((resolve, reject) => {
+      JsonRpcClient.request('getInfo', [], (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(res);
+      });
+    });
+    expect(response.peerId).toBeDefined();
+    expect(response.status).toBe('ok');  
+  })
+
+  it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
     // const tree = TEST_TREE['basic'];
     // if (!tree['all'] || !tree['#2']) {
     //   this.skip();
@@ -137,4 +150,5 @@ describe('JsonRPC tests', () => {
     expect(response.workerSig).toBeDefined();
     expect(response.msgId).toBeDefined();
   }, 10000);
+
 });
