@@ -36,18 +36,21 @@ describe('JsonRPC tests', () => {
         headers: {
           'Content-Type': 'application/json',
           'credentials': 'include',
-          'Access-Control-Allow-Origin': '*',
+          //'Access-Control-Allow-Origin': '*',
         },
       };
       axios.post('http://localhost:'+JsonRpcPort, JSON.parse(request), config)
           .then((response) => {
+            if ('error' in response.data) {
+              throw (response.data.error);
+            }
             return JSON.stringify(response.data.result);
           })
           .then((text) => {
             callback(null, text);
           })
-          .catch(function(err) {
-            callback(err, null);
+          .catch((error) => {
+            callback(error, null);
           });
     };
 
@@ -117,7 +120,7 @@ describe('JsonRPC tests', () => {
       });
     });
     expect(response.peerId).toBeDefined();
-    expect(response.status).toBe('ok');  
+    expect(response.status).toBe('ok');
   })
 
   it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
@@ -151,4 +154,53 @@ describe('JsonRPC tests', () => {
     expect(response.msgId).toBeDefined();
   }, 10000);
 
+  it('#3 Should fail sendTaskInput', async function(){
+    expect.assertions(2);
+    // JSON RPC fails with no taskInput parameter
+    await expect(new Promise((resolve, reject) => {
+      JsonRpcClient.request('sendTaskInput', {}, (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    })).rejects.toEqual({code: -32602, message: "Invalid params"});
+    // JSON RPC fails with taskInput but missing properties
+    await expect(new Promise((resolve, reject) => {
+      JsonRpcClient.request('sendTaskInput', {taskId:'0x0', creationBlockNumber: 0}, (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve();
+      });
+    })).rejects.toEqual({code: -32602, message: "Invalid params"});
+  });
+
+
+  it('#4 Should sendTaskInput', async function(){
+    const taskInput = { taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+      creationBlockNumber: 189,
+      sender: '0x627306090abaB3A6e1400e9345bC60c78a8BEf57',
+      scAddr: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+      encryptedFn:
+       'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+      encryptedEncodedArgs:
+       'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+      userTaskSig:
+       '0x0e8164325637767bea77b5615f174a67ec055bdf7cca3c8f696020b0cf2928a32a69a66d378e853f909e1f8d57d05e9a103467771756cabbe7577ee7329ad3fa01',
+      userPubKey:
+       '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+      fee: 30000000000,
+      msgId: 'ldotj6nghv7a' }
+
+    const response = await new Promise((resolve, reject) => {
+      JsonRpcClient.request('sendTaskInput', taskInput, (err, res) => {
+        if (err) {
+          reject(err);
+        }
+        resolve(res);
+      });
+    });
+    expect(response).toBe(true);
+  });
 });

@@ -69,14 +69,43 @@ class JsonRpcServer extends EventEmitter {
       },
       // Placeholder.
       // TODO: Implement proper callback
-      sendTaskInputs: function(args, callback) {
-        callback(null, [true]);
+      sendTaskInput: function(args, callback) {
+        if(typeof args === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.taskId === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.creationBlockNumber === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.sender === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.scAddr === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.encryptedFn === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.encryptedEncodedArgs === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.userTaskSig === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.userPubKey === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.fee === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else if (typeof args.msgId === "undefined") {
+          callback({code: -32602, message: "Invalid params"});
+        } else {
+          // send to the network and return true
+          callback(null, [true]);
+        }
+
       },
       // Placeholder.
       // TODO: Implement proper callback
       getTaskStatus: function(args, callback) {
         callback(null, [2]);
       },
+    },
+    {
+      collect: true // collect params in a single argument
     });
   }
   listen() {
