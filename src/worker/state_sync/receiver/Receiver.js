@@ -121,9 +121,9 @@ class Receiver extends EventEmitter {
             status.msgType = data.data.type();
             status.success = data.status.success;
             status.payload = data.data;
-            console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6');
-            console.log(status);
-            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
+            // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6');
+            // console.log(status);
+            // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
             return status;
           }),
           pull.collect((err,resultList)=>{

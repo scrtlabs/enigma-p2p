@@ -14,6 +14,97 @@ const testParameters = require('./test_parameters.json');
 
 const testUtils = require('../testUtils/utils');
 
+const DB_PROVIDER = require('../../src/core/core_server_mock/data/provider_db');
+
+//const B1Path = path.join(__dirname, "../testUtils/id-l");
+//const B1Port = "10300";
+const B2Path = path.join(__dirname, "../testUtils/id-l");
+const B2Port = "10301";
+const CoreServer = require('../../src/core/core_server_mock/core_server');
+const EnvironmentBuilder = require('../../src/main_controller/EnvironmentBuilder');
+const waterfall = require('async/waterfall');
+
+const SYNC_SCENARIOS = {EMPTY_DB: 1, PARTIAL_DB: 2, FULL_DB: 3};
+
+// async function initEthereumStuff() {
+//   await envInitializer.start(truffleDir);
+//   const result = await envInitializer.init(truffleDir);
+//   const enigmaContractAddress = result.contractAddress;
+//   const enigmaContractABI = result.contractABI;
+//   const web3 = result.web3;
+//   const enigmaContractApi = await new EnigmaContractWriterAPI(enigmaContractAddress, enigmaContractABI, web3);
+//
+//   const accounts = await web3.eth.getAccounts();
+//   const workerEnclaveSigningAddress = accounts[0];
+//   const workerAddress = accounts[1];
+//   const workerReport = "0x123456";
+//
+//   await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
+//
+//   await enigmaContractApi.login({from: workerAddress});
+//
+//   // await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
+//   //  codeHash, workerAddress);
+//   return {enigmaContractAddress: enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
+//     workerEnclaveSigningAddress: workerEnclaveSigningAddress,
+//     workerAddress: workerAddress};
+// }
+//
+// async function stopEthereumStuff(web3) {
+//   await envInitializer.disconnect(web3);
+//   await envInitializer.stop(web3);
+// }
+
+function transformStatesListToMap(statesList) {
+  let statesMap = {};
+  for (let i=0; i<statesList.length; ++i) {
+    const address = statesList[i].address;
+    if (address in statesMap) {
+      const key = statesList[i].key;
+      const delta = statesList[i].delta;
+      statesMap[address][key] = delta;
+    } else {
+      statesMap[address] = {};
+    }
+  }
+  return statesMap;
+}
+
+const PROVIDERS_DB_MAP = transformStatesListToMap(DB_PROVIDER);
+
+async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress) {
+  for (const address in PROVIDERS_DB_MAP) {
+    const secretContractData = PROVIDERS_DB_MAP[address];
+    var adressInByteArray = address.split(',').map(function(item) {
+      return parseInt(item, 10);
+    });
+    const hexAddress = web3.utils.toChecksumAddress(web3.utils.bytesToHex(adressInByteArray));
+    console.log("address=" + address);
+    console.log("hexAddress=" + hexAddress);
+
+    await api.deploySecretContract(hexAddress, secretContractData[-1], workerAddress,
+      workerEnclaveSigningAddress, {from: workerAddress});
+
+    let i = 0;
+    let prevDeltaHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
+    while (i in secretContractData) {
+      const taskId = web3.utils.randomHex(32);
+      const fee = 5;
+      const ethCall = web3.utils.randomHex(32);
+      const delta = secretContractData[i];
+      await api.createTaskRecord(taskId, fee, {from: workerAddress});
+      const stateDeltaHash = web3.utils.kecckak256Hash(delta)
+      await api.commitReceipt(hexAddress, taskId, prevDeltaHash, stateDeltaHash, ethCall,
+        workerEnclaveSigningAddress,{from: workerAddress});
+      prevDeltaHash = stateDeltaHash;
+      i++;
+    }
+  }
+}
+
+
+
 describe('Ethereum tests', function() {
   let web3;
   let api;
@@ -775,4 +866,114 @@ describe('Ethereum tests', function() {
       resolve();
     });
   }, 7000);
+
+  it('Perform a full sync scenario - from scratch', async function(){
+    // const tree = TEST_TREE['sync_basic'];
+    // if (!tree['all'] || !tree['#1']) {
+    //   this.skip();
+    // }
+    const tree = TEST_TREE.ethereum;
+    if (!tree['all'] || !tree['#8']) {
+      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
+      this.skip();
+    }
+    return new Promise(async (resolve)=>{
+
+      //await testUtils.sleep(5000);
+
+      //let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B1Port + "/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"];
+      //let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+
+      let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+
+      const dnsConfig = {
+        'bootstrapNodes': bootstrapNodes,
+        'port': B2Port,
+        'nickname': 'dns',
+        'idPath': B2Path,
+      };
+      const peerConfig = {
+        'bootstrapNodes': bootstrapNodes,
+        'nickname': 'peer',
+      };
+      const dnsMockUri = 'tcp://127.0.0.1:4444';
+      const peerMockUri = 'tcp://127.0.0.1:5555';
+
+      let dnsMockCore = new CoreServer();
+      let peerMockCore = new CoreServer();
+
+      // start the dns mock server (core)
+      dnsMockCore.setProvider(true);
+      dnsMockCore.runServer(dnsMockUri);
+
+      // start the peer mock server (core)
+      peerMockCore.runServer(peerMockUri);
+      // set empty tips array
+      peerMockCore.setReceiverTips([]);
+
+      const accounts = await web3.eth.getAccounts();
+      const workerEnclaveSigningAddress = accounts[0];
+      const workerAddress = accounts[1];
+      const workerReport = "0x123456";
+
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
+
+      await api.login({from: workerAddress});
+
+      //await testUtils.sleep(1500);
+      //const ethereumInfo = await initEthereumStuff();
+      // {enigmaContractApi: enigmaContractApi, web3: web3, workerEnclaveSigningAddress: workerEnclaveSigningAddress,
+      //  workerAddress: workerAddress};
+
+      // start the dns
+      let dnsBuilder = new EnvironmentBuilder();
+      let dnsController = await dnsBuilder
+        .setNodeConfig(dnsConfig)
+        .setIpcConfig({uri: dnsMockUri})
+        .build();
+
+      // start the dns
+      let peerBuilder = new EnvironmentBuilder();
+      let peerController = await peerBuilder
+        .setNodeConfig(peerConfig)
+        .setIpcConfig({uri: peerMockUri})
+        .build();
+
+      await peerController.getNode().initializeEthereum(enigmaContractAddress);
+
+      //await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
+
+      await testUtils.sleep(5000);
+
+      waterfall([
+        (cb)=>{
+          // announce
+          dnsController.getNode().tryAnnounce((err, ecids)=>{
+            assert.strictEqual(null, err, 'error announcing' + err);
+            cb(null);
+          });
+        },
+        (cb)=>{
+          // sync
+          peerController.getNode().syncReceiverPipeline((err, statusResult)=>{
+            assert.strictEqual(null,err, 'error syncing' + err);
+            // console.log("statusResult=" + JSON.stringify(statusResult));
+            cb(null, statusResult);
+          });
+        }
+      ],async (err, statusResult)=>{
+        assert.strictEqual(null,err, 'error in waterfall ' + err);
+        await dnsController.getNode().stop();
+        dnsController.getIpcClient().disconnect();
+
+        await peerController.getNode().stop();
+        peerController.getIpcClient().disconnect();
+
+        dnsMockCore.disconnect();
+        peerMockCore.disconnect();
+        resolve();
+      });
+    });
+  }, 20000);
+
 });
