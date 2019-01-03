@@ -221,8 +221,8 @@ describe('Ethereum tests', function() {
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
       const depositValue = 1000;
-      const secretContractAddress = accounts[5];
-      const secretContractAddress2 = accounts[6];
+      const secretContractAddress = api.w3().utils.randomHex(32); //accounts[5];
+      const secretContractAddress2 = api.w3().utils.randomHex(32); //accounts[6];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       eventSubscribe(api, 'Registered', {}, getEventRecievedFunc('Registered',
@@ -315,7 +315,7 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = accounts[5];
+      const secretContractAddress = web3_2.utils.randomHex(32);//accounts[5];
       const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       await registerWorker(api2, workerEnclaveSigningAddress, workerReport, workerAddress);
@@ -462,8 +462,8 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = accounts[5];
-      const secretContractAddress2 = accounts[4];
+      const secretContractAddress1 = web3.utils.randomHex(32); //accounts[5];
+      const secretContractAddress2 = web3.utils.randomHex(32); //accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
@@ -546,8 +546,8 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = accounts[5];
-      const secretContractAddress2 = accounts[4];
+      const secretContractAddress1 = web3.utils.randomHex(32);//accounts[5];
+      const secretContractAddress2 = web3.utils.randomHex(32); //accounts[4];
       const codeHash1 = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const codeHash2 = web3.utils.sha3(web3.utils.randomHex(32));
 
@@ -628,8 +628,8 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = accounts[5];
-      const secretContractAddress2 = accounts[4];
+      const secretContractAddress1 = web3.utils.randomHex(32); //accounts[5];
+      const secretContractAddress2 = web3.utils.randomHex(32); //accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
@@ -703,8 +703,8 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = accounts[5];
-      const secretContractAddress2 = accounts[4];
+      const secretContractAddress1 = web3.utils.randomHex(32);//accounts[5];
+      const secretContractAddress2 = web3.utils.randomHex(32);//accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
@@ -779,7 +779,7 @@ describe('Ethereum tests', function() {
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = accounts[5];
+      const secretContractAddress = web3.utils.randomHex(32); //accounts[5];
       const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
 
       await registerWorker(api2, workerEnclaveSigningAddress, workerReport, workerAddress);
