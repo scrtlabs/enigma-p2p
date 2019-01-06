@@ -113,7 +113,7 @@ class MockCoreServer {
     let bcode = null;
     let contractAddr = null;
     DB_PROVIDER.forEach(entry=>{
-      if(msg.input[0] === DbUtils.toHexString(entry.address) && entry.key === -1){
+      if(msg.input === DbUtils.toHexString(entry.address) && entry.key === -1){
         bcode = entry.delta;
         contractAddr = DbUtils.toHexString(entry.address);
       }
