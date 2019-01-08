@@ -251,11 +251,11 @@ Response:
 
 ```
 {
-    id : <unique_request_id>
-    type : NewTaskEncryptionKey
+    id: <unique_request_id>
+    type: NewTaskEncryptionKey,
+    userPubKey: 'the-user-dh-pubkey'
     result : {
-        senderKey : 'the-enclave-sign-key'
-        msgId : 'some-id-to-link-to-encryption-key',
+        msgId : 'some-id-to-link-to-encryption-key', // This is going to be removed
         workerEncryptionKey : 'some-encryption-key',
         workerSig : 'sign(response params)',
     }
