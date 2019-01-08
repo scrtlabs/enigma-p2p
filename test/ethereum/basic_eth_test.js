@@ -975,7 +975,7 @@ describe('Ethereum tests', function() {
 
       await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
 
-      await testUtils.sleep(7000);
+      await testUtils.sleep(2000);
 
       waterfall([
         (cb)=>{
@@ -989,8 +989,11 @@ describe('Ethereum tests', function() {
           // sync
           peerController.getNode().syncReceiverPipeline(async (err, statusResult)=>{
             assert.strictEqual(null,err, 'error syncing' + err);
-            console.log("statusResult=" + util.inspect(statusResult));//,{showHidden: false, depth: null}));
-            await testUtils.sleep(10000);
+            statusResult.forEach((result)=> {
+              assert.strictEqual(true, result.success);
+            })
+
+            //await testUtils.sleep(10000);
             cb(null, statusResult);
           });
         }
@@ -999,15 +1002,10 @@ describe('Ethereum tests', function() {
 
         // validate the results
         const missingstatesMap = syncResultMsgToStatesMap(statusResult);
-        // console.log("JSON.stringify missingstatesMap=", JSON.stringify(missingstatesMap));
-        // console.log("JSON.stringify PROVIDERS_DB_MAP=", JSON.stringify(PROVIDERS_DB_MAP));
-        //assert.strictEqual(JSON.stringify(missingstatesMap) === JSON.stringify(PROVIDERS_DB_MAP));
         assert.strictEqual(missingstatesMap.size, PROVIDERS_DB_MAP.size);
         for (const [address, data] of Object.entries(missingstatesMap)) {
           assert.strictEqual(missingstatesMap[address].size, PROVIDERS_DB_MAP[address].size);
           for (const [key, delta] of Object.entries(missingstatesMap[address])) {
-            // console.log("missingstatesMap[address][key]=", missingstatesMap[address][key]);
-            // console.log("PROVIDERS_DB_MAP[address][key]=", PROVIDERS_DB_MAP[address][key]);
             assert.notStrictEqual(missingstatesMap[address][key], PROVIDERS_DB_MAP[address][key]);
           }
         }
