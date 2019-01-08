@@ -30,43 +30,28 @@ class IdentifyMissingStatesAction {
       this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS, {
         cache: useCache,
         onResponse: (err, localTips) => {
-          // TODO:: lena, here the local tips are coming from the db
-          // TODO:: lena, _tempBuildMissingStatesResult() is a temporary method because i ignore the local tips
-          // TODO:: lena, what ypu need to do is use the ignored localTips params from this method
-          // TODO:: lena, and use this as input to your method in StateSync of ethereum.
-          // TODO:: lena, the output from your StateSync method should go into finalCallback
-          // TODO:: lena, and replace the msgMap from _tempBuildMissingStatesResult() essentially
-          // TODO:: lena, regarding the web3 instance your function takes: it should be initialized somewhere else.
-          // TODO:: lena, the way this scope should access the web3/api instance is via this._controller.ethereum()
-          // TODO:: lena, same way as above does this._controller.cache()
-          // TODO:: lena, for testing: you should remember that the localTips returned and remote deltas are correlated and should be generated with that tought
           // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
-          //TODO:: pass to ethereum anaylzer the localTips
+          if (err) {
+            return finalCallback(err);
+          }
 
-          //let res = IdentifyMissingStatesAction._buildMissingStatesResult(this._controller.ethereum(), localTips);
-          //return finalCallback(err, res);
-
-          let res = IdentifyMissingStatesAction._tempBuildMissingStatesResult();
-          return finalCallback(err, res);
-        }
+          IdentifyMissingStatesAction._buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
+            if (err) {
+              return finalCallback(err);
+            }
+            return finalCallback(null, res);
+          });
+        },
       });
     }
   }
 
-  static _buildMissingStatesResult(enigmaContractApi, localTips) {
-    // generate fake local tips
-    // let addr1 = '4cd6ab04431776c3543867c76115e237dc36d4f6aecb33ab1c1e3f9e8340b521'; // 0,1,2
-    // let addr2 ='0bd6ab04431776c3542267c76115e237dc8fd4f6aecb33ab1c1e3f9e8340b5c8'; // 0
-    // let addr3 = '0dd6ab04431776c3543867c76115e237dc36d4f6aecb33ab1c1e3f9e8340b52a'; // 0,1
-    // let mockMissing = [
-    //   {address : addr1, deltas : [{deltaHash : 'hash1_0',index:0},{deltaHash : 'hash1_1',index:1},{deltaHash : 'hash1_2',index:2}]},
-    //   {address : addr2, deltas : [{deltaHash : 'hash2_0',index:0}]},
-    //   {address : addr3, deltas : [{deltaHash : 'hash3_0',index:0},{deltaHash : 'hash3_1',index:1}]},
-    // ];
-    const remoteMissingStatesList = StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
-      let res = {missingStatesMsgsMap: {}, missingStateList: []};
+  static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
+    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
+      let res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
+
       if (err) {
-        return res;
+        return cb(err);
       }
 
       let result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
@@ -80,35 +65,9 @@ class IdentifyMissingStatesAction {
       }
       res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(missingList);
       res.missingStatesMsgsMap = finalOutput;
-      return res;
-    })
+      return cb(null, res);
+    });
   }
-
-  static _tempBuildMissingStatesResult() {
-    // generate fake local tips
-    let addr1 = '4cd6ab04431776c3543867c76115e237dc36d4f6aecb33ab1c1e3f9e8340b521'; // 0,1,2
-    let addr2 = '0bd6ab04431776c3542267c76115e237dc8fd4f6aecb33ab1c1e3f9e8340b5c8'; // 0
-    let addr3 = '0dd6ab04431776c3543867c76115e237dc36d4f6aecb33ab1c1e3f9e8340b52a'; // 0,1
-    let mockMissing = [
-      {address: addr1, deltas: [{deltaHash: 'hash1_0', index: 0}, {deltaHash: 'hash1_1', index: 1}, {deltaHash: 'hash1_2', index: 2}]},
-      {address: addr2, deltas: [{deltaHash: 'hash2_0', index: 0}]},
-      {address: addr3, deltas: [{deltaHash: 'hash3_0', index: 0}, {deltaHash: 'hash3_1', index: 1}]},
-    ];
-    let result = LocalMissingStateResult.createP2PReqMsgsMap(mockMissing);
-    let finalOutput = {};
-    for (let addrKey in result) {
-      let obj = result[addrKey];
-      if (obj.bcodeReq) {
-        obj.deltasReq.push(obj.bcodeReq);
-      }
-      finalOutput[addrKey] = obj.deltasReq;
-    }
-    const res = {missingStatesMap: IdentifyMissingStatesAction._transformMissingStatesListToMap(mockMissing), missingStatesMsgsMap: finalOutput};
-    // res.missingStateList = mockMissing;
-    // res.missingStatesMsgsMap = finalOutput;
-    return res;
-  }
-
   static _transformMissingStatesListToMap(missingStatesList) {
     let missingStatesMap = {};
     for (let i=0; i<missingStatesList.length; ++i) {

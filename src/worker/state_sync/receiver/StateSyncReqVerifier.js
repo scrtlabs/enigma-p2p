@@ -5,10 +5,6 @@ const MSG_TYPES = constants.P2P_MESSAGES;
 
 class StateSyncReqVerifier {
   verify(remoteMissingStates, syncMessage, callback) {
-    //TODO:: lena, here you should hash each delta/byte code received and compare
-    //TODO:: lena, to the missing states from previous, if math return true else false.
-    //TODO:: lena, here you should pass the ethereum states from remote to use them as the ground truth
-    return callback(true);
     let res = true;
 
     const msgType = syncMessage.type();
@@ -21,38 +17,45 @@ class StateSyncReqVerifier {
         const index = deltas[i].key;
         if (!(address in remoteMissingStates)) {
           // TODO:: lena : error handling
+          //console.log("mismatch with address %s %s", address, remoteMissingStates);
           res = false;
           break;
         }
-        if (!(index in remoteMissingStates[address])) {
+        if (!(index in remoteMissingStates[address].deltas)) {
           // TODO:: lena : error handling
+          //console.log("mismatch with index %s %s %s", index, address, JSON.stringify(remoteMissingStates[address].deltas));
           res = false;
           break;
         }
-        if (remoteMissingStates[address][index] != DbUtils.kecckak256Hash(data)) {
+        if (remoteMissingStates[address].deltas[index] != DbUtils.kecckak256Hash(data)) {
           // TODO:: lena : error handling
+          //console.log("mismatch with delta %s %s", DbUtils.kecckak256Hash(data), remoteMissingStates[address].deltas[index]);
           res = false;
           break;
         }
       }
     } else {
-      if (msgType === MSG_TYPES.SYNC_STATE_RES) {
+      if (msgType === MSG_TYPES.SYNC_BCODE_RES) {
         const address = syncMessage.address();
-        const bytecode = syncMessage.bytecode();
+        const bytecodeHash = DbUtils.kecckak256Hash(syncMessage.bytecode());
         if (!(address in remoteMissingStates)) {
           // TODO:: lena : error handling
+          //console.log("mismatch with address %s %s", address, remoteMissingStates);
           res = false;
         }
         if (!('bytecode' in remoteMissingStates[address])) {
           // TODO:: lena : error handling
+          //console.log("no bytecode %s", remoteMissingStates[address]);
           res = false;
         }
-        if (remoteMissingStates[address].bytecode != bytecode) {
+        if (remoteMissingStates[address].bytecode != bytecodeHash) {
           // TODO:: lena : error handling
+          //console.log("mismatch with bytecode hash %s %s", bytecodeHash, remoteMissingStates[address].bytecode);
           res = false;
         }
       } else {
         // TODO:: lena : error handling
+        //console.log("wrong msg type %s", msgType);
         res = false;
       }
     }

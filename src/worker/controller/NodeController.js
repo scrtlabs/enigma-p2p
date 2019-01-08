@@ -136,14 +136,14 @@ class NodeController {
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
-    // const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(); 
+    // const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
     // let enigmaContractHandler = {};
     // if(options.enigmaContractAddress){
     //   enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed({enigmaContractAddress: options.enigmaContractAddress}).build();
     // }else{
     //   enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
     // }
-     
+
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
@@ -242,11 +242,12 @@ class NodeController {
   /** init Ethereum API
    * */
   async initializeEthereum(enigmaContractAddress){
-    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(); 
+    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
     let enigmaContractHandler = {};
-    if(enigmaContractAddress){
-      enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed({enigmaContractAddress: enigmaContractAddress}).build();
-    }else{
+    if (enigmaContractAddress) {
+      enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(
+          {enigmaContractAddress: enigmaContractAddress}).build();
+    } else {
       enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
     }
     // init ethereum api
@@ -255,7 +256,7 @@ class NodeController {
   }
   /** stop Ethereum Env, if needed
    * */
-  async stopEthereum(enigmaContractAddress){
+  async stopEthereum(){
     if(this._enigmaContractEnv){
       await this._enigmaContractEnv.destroy();
     }

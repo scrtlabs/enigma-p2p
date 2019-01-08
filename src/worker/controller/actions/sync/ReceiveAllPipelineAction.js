@@ -34,7 +34,7 @@ class ReceiveAllPipelineAction {
               cache: cache,
               onResponse: (err, res) => {
                 cb(err, res.missingStatesMsgsMap, res.missingStatesMap);
-              }
+              },
             });
       },
       (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {

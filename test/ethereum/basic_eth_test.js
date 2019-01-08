@@ -24,7 +24,13 @@ const CoreServer = require('../../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../../src/main_controller/EnvironmentBuilder');
 const waterfall = require('async/waterfall');
 
+const util = require('util');
+
 const SYNC_SCENARIOS = {EMPTY_DB: 1, PARTIAL_DB: 2, FULL_DB: 3};
+
+const constants = require('../../src/common/constants');
+const MsgTypes = constants.P2P_MESSAGES;
+const DbUtils = require('../../src/common/DbUtils');
 
 // async function initEthereumStuff() {
 //   await envInitializer.start(truffleDir);
@@ -57,14 +63,43 @@ const SYNC_SCENARIOS = {EMPTY_DB: 1, PARTIAL_DB: 2, FULL_DB: 3};
 
 function transformStatesListToMap(statesList) {
   let statesMap = {};
-  for (let i=0; i<statesList.length; ++i) {
+  for (let i = 0; i < statesList.length; ++i) {
     const address = statesList[i].address;
-    if (address in statesMap) {
-      const key = statesList[i].key;
-      const delta = statesList[i].delta;
-      statesMap[address][key] = delta;
-    } else {
+    if (!(address in statesMap)) {
       statesMap[address] = {};
+    }
+    const key = statesList[i].key;
+    const delta = statesList[i].delta;
+    statesMap[address][key] = delta;
+  }
+  return statesMap;
+}
+
+function syncResultMsgToStatesMap(resultMsgs) {
+  let statesMap = {};
+
+  for (let i = 0; i < resultMsgs.length; ++i) {
+    for (let j = 0; j < resultMsgs[i].resultList.length; ++j) {
+      const msg = resultMsgs[i].resultList[j].payload;
+      if (msg.type() == MsgTypes.SYNC_STATE_RES) {
+        const deltas = msg.deltas();
+        for (let k = 0; k < deltas.length; ++k) {
+          const address = DbUtils.hexToBytes((deltas[k].address));
+          if (!(address in statesMap)) {
+            statesMap[address] = {};
+          }
+          const key = deltas[k].key;
+          const delta = deltas[k].data;
+          statesMap[address][key] = delta;
+        }
+      }
+      else { //(msg.type() == MsgTypes.SYNC_BCODE_RES)
+        const address = DbUtils.hexToBytes(msg.address());
+        if (!(address in statesMap)) {
+          statesMap[address] = {};
+        }
+        statesMap[address][-1] = msg.bytecode();
+      }
     }
   }
   return statesMap;
@@ -75,15 +110,22 @@ const PROVIDERS_DB_MAP = transformStatesListToMap(DB_PROVIDER);
 async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress) {
   for (const address in PROVIDERS_DB_MAP) {
     const secretContractData = PROVIDERS_DB_MAP[address];
-    var adressInByteArray = address.split(',').map(function(item) {
+    var addressInByteArray = address.split(',').map(function(item) {
       return parseInt(item, 10);
     });
-    const hexAddress = web3.utils.toChecksumAddress(web3.utils.bytesToHex(adressInByteArray));
-    console.log("address=" + address);
-    console.log("hexAddress=" + hexAddress);
+    // let hexString = '0x';
+    // for (let i = 0; i < addressInByteArray.length; i += 1) {
+    //   hexString += addressInByteArray[i].toString(16);
+    // }
 
-    await api.deploySecretContract(hexAddress, secretContractData[-1], workerAddress,
-      workerEnclaveSigningAddress, {from: workerAddress});
+    let hexString = '0x' + DbUtils.toHexString(addressInByteArray);
+
+    console.log('addres=%s, length=%s', hexString, hexString.length);
+
+    //console.log("PROVIDERS_DB_MAP=%s", util.inspect(PROVIDERS_DB_MAP));
+
+    const codeHash = web3.utils.keccak256(secretContractData[-1]);
+    await api.deploySecretContract(hexString, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
     let i = 0;
     let prevDeltaHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
@@ -94,8 +136,8 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
       const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
       await api.createTaskRecord(taskId, fee, {from: workerAddress});
-      const stateDeltaHash = web3.utils.kecckak256Hash(delta)
-      await api.commitReceipt(hexAddress, taskId, prevDeltaHash, stateDeltaHash, ethCall,
+      const stateDeltaHash = web3.utils.keccak256(delta);
+      await api.commitReceipt(hexString, taskId, prevDeltaHash, stateDeltaHash, ethCall,
         workerEnclaveSigningAddress,{from: workerAddress});
       prevDeltaHash = stateDeltaHash;
       i++;
@@ -511,7 +553,7 @@ describe('Ethereum tests', function() {
         // DONE results == [{address, deltas : [deltaHash, index]}]
         assert.strictEqual(results.length, 2);
 
-        assert.strictEqual(results[0].address, secretContractAddress1);
+        assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
         assert.strictEqual(results[0].deltas[0].index, 0);
         assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
         assert.strictEqual(results[0].deltas[1].index, 1);
@@ -522,7 +564,7 @@ describe('Ethereum tests', function() {
 
         assert.strictEqual(results[0].bytecode, codeHash);
 
-        assert.strictEqual(results[1].address, secretContractAddress2);
+        assert.strictEqual(results[1].address, secretContractAddress2.slice(2, secretContractAddress2.length));
         assert.strictEqual(results[1].deltas[0].index, 0);
         assert.strictEqual(results[1].deltas[0].deltaHash, stateDeltaHash4);
         assert.strictEqual(results[1].deltas.length, 1);
@@ -595,7 +637,7 @@ describe('Ethereum tests', function() {
         // DONE results == [{address, deltas : [deltaHash, index]}]
         assert.strictEqual(results.length, 2);
 
-        assert.strictEqual(results[0].address, secretContractAddress1);
+        assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
         assert.strictEqual(results[0].deltas[0].index, 1);
         assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
         assert.strictEqual(results[0].deltas[1].index, 2);
@@ -603,7 +645,7 @@ describe('Ethereum tests', function() {
         assert.strictEqual(results[0].deltas.length, 2);
         assert.strictEqual('bytecode' in results[0], false);
 
-        assert.strictEqual(results[1].address, secretContractAddress2);
+        assert.strictEqual(results[1].address, secretContractAddress2.slice(2, secretContractAddress2.length));
         assert.strictEqual(results[1].deltas[0].index, 0);
         assert.strictEqual(results[1].deltas[0].deltaHash, stateDeltaHash4);
         assert.strictEqual(results[1].deltas.length, 1);
@@ -677,7 +719,7 @@ describe('Ethereum tests', function() {
         // DONE results == [{address, deltas : [deltaHash, index]}]
         assert.strictEqual(results.length, 1);
 
-        assert.strictEqual(results[0].address, secretContractAddress1);
+        assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
         assert.strictEqual(results[0].deltas[0].index, 1);
         assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
         assert.strictEqual(results[0].deltas[1].index, 2);
@@ -868,22 +910,12 @@ describe('Ethereum tests', function() {
   }, 7000);
 
   it('Perform a full sync scenario - from scratch', async function(){
-    // const tree = TEST_TREE['sync_basic'];
-    // if (!tree['all'] || !tree['#1']) {
-    //   this.skip();
-    // }
     const tree = TEST_TREE.ethereum;
     if (!tree['all'] || !tree['#8']) {
       await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
       this.skip();
     }
     return new Promise(async (resolve)=>{
-
-      //await testUtils.sleep(5000);
-
-      //let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B1Port + "/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"];
-      //let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
-
       let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
 
       const dnsConfig = {
@@ -899,8 +931,8 @@ describe('Ethereum tests', function() {
       const dnsMockUri = 'tcp://127.0.0.1:4444';
       const peerMockUri = 'tcp://127.0.0.1:5555';
 
-      let dnsMockCore = new CoreServer();
-      let peerMockCore = new CoreServer();
+      let dnsMockCore = new CoreServer("dns");
+      let peerMockCore = new CoreServer("peer");
 
       // start the dns mock server (core)
       dnsMockCore.setProvider(true);
@@ -941,9 +973,9 @@ describe('Ethereum tests', function() {
 
       await peerController.getNode().initializeEthereum(enigmaContractAddress);
 
-      //await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
+      await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
 
-      await testUtils.sleep(5000);
+      await testUtils.sleep(7000);
 
       waterfall([
         (cb)=>{
@@ -955,25 +987,44 @@ describe('Ethereum tests', function() {
         },
         (cb)=>{
           // sync
-          peerController.getNode().syncReceiverPipeline((err, statusResult)=>{
+          peerController.getNode().syncReceiverPipeline(async (err, statusResult)=>{
             assert.strictEqual(null,err, 'error syncing' + err);
-            // console.log("statusResult=" + JSON.stringify(statusResult));
+            console.log("statusResult=" + util.inspect(statusResult));//,{showHidden: false, depth: null}));
+            await testUtils.sleep(10000);
             cb(null, statusResult);
           });
         }
       ],async (err, statusResult)=>{
         assert.strictEqual(null,err, 'error in waterfall ' + err);
+
+        // validate the results
+        const missingstatesMap = syncResultMsgToStatesMap(statusResult);
+        // console.log("JSON.stringify missingstatesMap=", JSON.stringify(missingstatesMap));
+        // console.log("JSON.stringify PROVIDERS_DB_MAP=", JSON.stringify(PROVIDERS_DB_MAP));
+        //assert.strictEqual(JSON.stringify(missingstatesMap) === JSON.stringify(PROVIDERS_DB_MAP));
+        assert.strictEqual(missingstatesMap.size, PROVIDERS_DB_MAP.size);
+        for (const [address, data] of Object.entries(missingstatesMap)) {
+          assert.strictEqual(missingstatesMap[address].size, PROVIDERS_DB_MAP[address].size);
+          for (const [key, delta] of Object.entries(missingstatesMap[address])) {
+            // console.log("missingstatesMap[address][key]=", missingstatesMap[address][key]);
+            // console.log("PROVIDERS_DB_MAP[address][key]=", PROVIDERS_DB_MAP[address][key]);
+            assert.notStrictEqual(missingstatesMap[address][key], PROVIDERS_DB_MAP[address][key]);
+          }
+        }
+
         await dnsController.getNode().stop();
         dnsController.getIpcClient().disconnect();
 
         await peerController.getNode().stop();
         peerController.getIpcClient().disconnect();
 
+        peerController.getNode().stopEthereum();
+
         dnsMockCore.disconnect();
         peerMockCore.disconnect();
         resolve();
       });
     });
-  }, 20000);
+  }, 40000);
 
 });

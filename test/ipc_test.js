@@ -119,10 +119,10 @@ it('#3 GetAllTips - mock server', async function() {
     let fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache,async (err,missingStates)=>{
       assert.strictEqual(null,err,'some error in response [' + err + ' ]');
-      assert.strictEqual(3, missingStates.tips.length, 'len not 3');
-      assert.strictEqual(10, missingStates.tips[0].key, 'key not 10');
-      assert.strictEqual(34, missingStates.tips[1].key, 'key not 34');
-      assert.strictEqual(0, missingStates.tips[2].key, 'key not 0');
+      assert.strictEqual(3, missingStates.length, 'len not 3');
+      assert.strictEqual(10, missingStates[0].key, 'key not 10');
+      assert.strictEqual(34, missingStates[1].key, 'key not 34');
+      assert.strictEqual(0, missingStates[2].key, 'key not 0');
       await mainController.getNode().stop();
       mainController.getIpcClient().disconnect();
       coreServer.disconnect();

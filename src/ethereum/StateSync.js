@@ -1,7 +1,5 @@
 const parallel = require('async/parallel');
 
-const _ = require('underscore');
-
 /**
  * Queries the Enigma contract and returns the missing states in comparison to the local tips
  * @param {EnigmaContractReaderAPI} api
@@ -14,9 +12,16 @@ const _ = require('underscore');
  * and return the data using the promise
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
+  //let removeHexPrefix = false;
   // create a hashmap from the localTips array
   const tipsHashMaps = localTips.reduce((obj, item) => {
-    obj[item.address] = item.key;
+    let address = item.address;
+    // add '0x' to be able to compare the addresses with Ethereum
+    if (address.slice(0, 2) != '0x') {
+      address = '0x' + address;
+      //removeHexPrefix = true;
+    }
+    obj[address] = item.key;
     return obj;
   }, {});
 
@@ -68,7 +73,8 @@ async function getRemoteMissingStates(api, localTips, callback) {
                       return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray});
                     })
                     .catch((err)=>{
-                      cb(err);
+                      console.log("error=" + err);
+                      //cb(err);
                     });
                 // }
               })
@@ -82,9 +88,14 @@ async function getRemoteMissingStates(api, localTips, callback) {
         if (err) {
           return callback(err);
         }
-        // Filter out undefined - due to synced addresses
-        const filtered = _.filter(results, function(x) {
-          return (x===undefined ? false : true);
+        // 1. Filter out undefined - due to synced addresses
+        // 2. Remove the '0x' from the secret contract addresses
+        let filtered = [];
+        results.forEach((result)=>{
+          if (result !== undefined) {
+            result.address = result.address.slice(2, result.address.length);
+            filtered.push(result);
+          }
         });
         return callback(null, filtered);
       });
@@ -97,18 +108,3 @@ async function getRemoteMissingStates(api, localTips, callback) {
 }
 
 module.exports = {getRemoteMissingStates: getRemoteMissingStates};
-
-
-//   function asyncGetMissingStates(eth,localTips){
-//     return new Promise((resolve,reject)=>{
-//       getMissingStates(eth,localTips,(err,result)=>{
-//         if(err){
-//           reject(err);
-//         }else{
-//           resolve(result);
-//         }
-//       }).catch(e=>{
-//         reject(e);
-//       });
-//     });
-//   }

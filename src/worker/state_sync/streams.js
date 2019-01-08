@@ -261,7 +261,7 @@ function _verificationStream(read) {
         data = EncoderUtil.decode(data);
         data = JSON.parse(data);
         data = SyncMsgBuilder.msgResFromObjNoValidation(data);
-        if(data == null){
+        if (data == null) {
           return cb(true, null);
         }
         // TODO:: placeholder for future ethereum veirfier.
@@ -270,7 +270,7 @@ function _verificationStream(read) {
           if (isOk) {
             return cb(end, data);
           } else {
-            return cb(true, null);
+            return cb("Error in verification with Ethereum", null);
           }
         });
       } else {

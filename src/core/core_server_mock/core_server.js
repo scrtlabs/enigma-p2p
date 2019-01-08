@@ -43,7 +43,7 @@ class MockCoreServer {
     this._socket.on('message', (msg)=>{
       msg = JSON.parse(msg);
       if (this._name) {
-        console.log('[Mock %s Server] got msg! ', this._name, msg);
+        console.log('[Mock %s Server] got msg! ', this._name, msg.type);
       }
       else {
         console.log('[Mock Server] got msg! ', msg.type);
@@ -112,8 +112,12 @@ class MockCoreServer {
   static _getContract(msg){
     let bcode = null;
     let contractAddr = null;
+    let address = msg.input;
+    // if (address.slice(0, 2) === '0x') {
+    //   address = address.slice(2, address.length);
+    // }
     DB_PROVIDER.forEach(entry=>{
-      if(msg.input === DbUtils.toHexString(entry.address) && entry.key === -1){
+      if (address === DbUtils.toHexString(entry.address) && entry.key === -1) {
         bcode = entry.delta;
         contractAddr = DbUtils.toHexString(entry.address);
       }
@@ -131,14 +135,15 @@ class MockCoreServer {
   static _getDeltas(msg) {
     let response = [];
     let input = msg.input;
-    let reqAddrs = input.map(r => {
-      return r.address;
-    });
     let inputMap = {};
-    input.forEach(r => {
-      inputMap[r.address] = r;
+    input.forEach((r) => {
+      let address = r.address;
+      // if (address.slice(0, 2) === '0x') {
+      //   address = address.slice(2, address.length);
+      // }
+      inputMap[address] = r;
     });
-    DB_PROVIDER.forEach(entry => {
+    DB_PROVIDER.forEach((entry) => {
       let dbAddr = DbUtils.toHexString(entry.address);
       let dbIndex = entry.key;
       if (inputMap[dbAddr]) {
@@ -172,7 +177,7 @@ class MockCoreServer {
         return o.length > 0;
       });
     } else{
-      addresses = this._receiverTips.map(tip=>{
+      addresses = this._receiverTips.map((tip)=>{
         return DbUtils.toHexString(tip.address);
       });
     }
