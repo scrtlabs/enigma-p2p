@@ -243,7 +243,8 @@ Request:
 ```
 {
     id : <unique_request_id>
-    type : NewTaskEncryptionKey
+    type : NewTaskEncryptionKey,
+    userPubKey: 'the-user-dh-pubkey'
 }
 ```
 
@@ -253,9 +254,7 @@ Response:
 {
     id: <unique_request_id>
     type: NewTaskEncryptionKey,
-    userPubKey: 'the-user-dh-pubkey'
     result : {
-        msgId : 'some-id-to-link-to-encryption-key', // This is going to be removed
         workerEncryptionKey : 'some-encryption-key',
         workerSig : 'sign(response params)',
     }
