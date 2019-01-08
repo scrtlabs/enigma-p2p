@@ -7,10 +7,7 @@ class GetRegistrationParamsAction{
     this._coreRuntime = coreRuntime;
   }
   execute(envelop){
-    let request = {
-      id : nodeUtils.randId(),
-      type : Msg.GetRegistrationParams
-    };
+    let request = envelop._obj;
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,
