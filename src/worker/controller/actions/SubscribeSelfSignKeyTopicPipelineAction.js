@@ -41,7 +41,6 @@ class SubscribeSelfSignKeyTopicPipelineAction{
               this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
                 topic : targetTopic,
                 message : JSON.stringify({
-                  senderKey : regParams.signingKey,
                   workerEncryptionKey : encKeyResult.workerEncryptionKey,
                   workerSig : encKeyResult.workerSig,
                   msgId : encKeyResult.msgId,
