@@ -202,46 +202,7 @@ describe('Ethereum tests', function() {
       resolve(event);
     };
   }
-
-  async function registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress) {
-    const regTx = await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
-    // console.log("worker " + workerAddress + " registred; reciept=" + regTx);
-  }
-
-  async function deposit(api, workerAddress, amount) {
-    const reciept = await api.deposit(workerAddress, amount, {from: workerAddress});
-    // console.log("worker " + workerAddress + " deposited; reciept=" + reciept);
-  }
-
-  async function deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress, codeHash, workerAddress) {
-    const depTx = await api.deploySecretContract(secretContractAddress, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
-    // console.log("secret contracts " + secretContractAddress + " deployed. reciept=" + depTx);
-  }
-
-  async function createTaskRecord(api, taskId, fee, senderAddress) {
-    const reciept = await api.createTaskRecord(taskId, fee, {from: senderAddress});
-    // console.log("task record created. reciept=" + reciept);
-  }
-
-  async function createTaskRecords(api, taskIds, fees, senderAddress) {
-    const reciept = await api.createTaskRecords(taskIds, fees, {from: senderAddress});
-    // console.log("task records created. reciept=" + reciept);
-  }
-
-  async function commitReceipt(api, secretContractAddress, taskId, inStateDeltaHash, outStateDeltaHash,
-      ethCall, signature, senderAddress) {
-    const reciept = await api.commitReceipt(secretContractAddress, taskId, inStateDeltaHash, outStateDeltaHash,
-        ethCall, signature, {from: senderAddress});
-    // console.log("task records created. reciept=" + reciept);
-  }
-
-  async function commitReceipts(api, secretContractAddress, taskIds, inStateDeltaHashes, outStateDeltaHashes,
-      ethCall, signature, senderAddress) {
-    const reciept = await api.commitReceipts(secretContractAddress, taskIds, inStateDeltaHashes, outStateDeltaHashes,
-        ethCall, signature, {from: senderAddress});
-    // console.log("task records created. reciept=" + reciept);
-  }
-
+  
   it('Register a worker, deposit and deploy a secret contract using the BUILDER ', async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all'] || !tree['#1']) {
@@ -285,8 +246,9 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.codeHash, codeHash);
           }));
 
-      await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
-      await deposit(api, workerAddress, depositValue);
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress})
+
+      await api.deposit(workerAddress, depositValue, {from: workerAddress});
 
       // Verify worker's report
       const result = await api.getReport(workerAddress);
@@ -296,8 +258,7 @@ describe('Ethereum tests', function() {
       const countBefore = await api.countSecretContracts();
       assert.strictEqual(countBefore, 0);
 
-      await deploySecretContract(api, secretContractAddress, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api.deploySecretContract(secretContractAddress, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of secret-accounts after deploying one
       const countAfter = await api.countSecretContracts();
@@ -315,8 +276,7 @@ describe('Ethereum tests', function() {
 
       api.unsubscribeAll();
 
-      await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api.deploySecretContract(secretContractAddress2, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of secret-accounts after deploying another one
       const observedCount = await api.countSecretContracts();
@@ -360,32 +320,24 @@ describe('Ethereum tests', function() {
       const secretContractAddress = web3_2.utils.randomHex(32);//accounts[5];
       const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-      await registerWorker(api2, workerEnclaveSigningAddress, workerReport, workerAddress);
-      await deploySecretContract(api2, secretContractAddress, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api2.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
+
+      await api.deploySecretContract(secretContractAddress, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3_2.utils.randomHex(32);
       const taskFee1 = 5;
-      // const taskTokenValue1 = 10;
-      // const taskTokenAddress1 = accounts[6];
       const taskSenderAddress1 = accounts[9];
 
       const taskId2 = web3_2.utils.randomHex(32);
       const taskFee2 = 19;
-      // const taskTokenValue2 = 100;
-      // const taskTokenAddress2 = accounts[7];
       const taskId3 = web3_2.utils.randomHex(32);
       const taskFee3 = 58;
-      // const taskTokenValue3 = 1000;
-      // const taskTokenAddress3 = accounts[8];
 
       eventSubscribe(api2, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
           (result)=> {
             assert.strictEqual(result.taskId, taskId1);
             assert.strictEqual(result.fee, taskFee1);
-            // assert.strictEqual(result.tokenAddress, taskTokenAddress1);
             assert.strictEqual(result.senderAddress, taskSenderAddress1);
-            // assert.strictEqual(result.tokenValue, taskTokenValue1);
           }));
 
       eventSubscribe(api2, 'TaskRecordsCreated', {}, getEventRecievedFunc('TaskRecordsCreated',
@@ -394,24 +346,16 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.taskIds[1], taskId3);
             assert.strictEqual(result.taskIds.length, 2);
 
-            // assert.strictEqual(result.tokenValues[0], taskTokenValue2);
-            // assert.strictEqual(result.tokenValues[1], taskTokenValue3);
-            // assert.strictEqual(result.tokenValues.length, 2);
-
             assert.strictEqual(result.fees[0], taskFee2);
             assert.strictEqual(result.fees[1], taskFee3);
             assert.strictEqual(result.fees.length, 2);
 
-            // assert.strictEqual(result.tokenAddresses[0], taskTokenAddress2);
-            // assert.strictEqual(result.tokenAddresses[1], taskTokenAddress3);
-            // assert.strictEqual(result.tokenAddresses.length, 2);
-
             assert.strictEqual(result.senderAddress, workerAddress);
           }));
 
+      await api2.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
 
-      await createTaskRecord(api2, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api2, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
+      await api2.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3_2.utils.randomHex(32);
@@ -455,8 +399,8 @@ describe('Ethereum tests', function() {
 
       // Login the worker before commmitting receipts
       await api2.login({from: workerAddress});
-      await commitReceipt(api2, secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api2.commitReceipt(secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of state deltas after one commit
       const count2 = await api2.countStateDeltas(secretContractAddress);
@@ -466,8 +410,8 @@ describe('Ethereum tests', function() {
       const observedValidAfter = await api2.isValidDeltaHash(secretContractAddress, stateDeltaHash1);
       assert.strictEqual(observedValidAfter, true);
 
-      await commitReceipts(api2, secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api2.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of state deltas after a batch commit
       const count3 = await api2.countStateDeltas(secretContractAddress);
@@ -508,14 +452,12 @@ describe('Ethereum tests', function() {
       const secretContractAddress2 = web3.utils.randomHex(32); //accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-      await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
 
       await api.login({from: workerAddress});
 
-      await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
-      await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api.deploySecretContract(secretContractAddress1, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContract(secretContractAddress2, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3.utils.randomHex(32);
       const taskFee1 = 5;
@@ -528,9 +470,11 @@ describe('Ethereum tests', function() {
       const taskId4 = web3.utils.randomHex(32);
       const taskFee4 = 580;
 
-      await createTaskRecord(api, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
-      await createTaskRecord(api, taskId4, taskFee4, workerAddress);
+      await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
+
+      await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
+
+      await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3.utils.randomHex(32);
@@ -539,15 +483,14 @@ describe('Ethereum tests', function() {
       const stateDeltaHash4 = web3.utils.randomHex(32);
       const ethCall = web3.utils.randomHex(32);
 
-      await commitReceipt(api, secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipts(api, secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipt(api, secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
-
+      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       StateSync.getRemoteMissingStates(api, [], (err, results)=>{
         // DONE results == [{address, deltas : [deltaHash, index]}]
@@ -593,14 +536,12 @@ describe('Ethereum tests', function() {
       const codeHash1 = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const codeHash2 = web3.utils.sha3(web3.utils.randomHex(32));
 
-      await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
 
       await api.login({from: workerAddress});
 
-      await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
-          codeHash1, workerAddress);
-      await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-          codeHash2, workerAddress);
+      await api.deploySecretContract(secretContractAddress1, codeHash1, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContract(secretContractAddress2, codeHash2, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3.utils.randomHex(32);
       const taskFee1 = 5;
@@ -613,9 +554,11 @@ describe('Ethereum tests', function() {
       const taskId4 = web3.utils.randomHex(32);
       const taskFee4 = 580;
 
-      await createTaskRecord(api, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
-      await createTaskRecord(api, taskId4, taskFee4, workerAddress);
+      await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
+
+      await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
+
+      await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3.utils.randomHex(32);
@@ -624,14 +567,14 @@ describe('Ethereum tests', function() {
       const stateDeltaHash4 = web3.utils.randomHex(32);
       const ethCall = web3.utils.randomHex(32);
 
-      await commitReceipt(api, secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipts(api, secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipt(api, secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}], (err, results)=>{
         // DONE results == [{address, deltas : [deltaHash, index]}]
@@ -674,14 +617,12 @@ describe('Ethereum tests', function() {
       const secretContractAddress2 = web3.utils.randomHex(32); //accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-      await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
 
       await api.login({from: workerAddress});
 
-      await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
-      await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api.deploySecretContract(secretContractAddress1, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContract(secretContractAddress2, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3.utils.randomHex(32);
       const taskFee1 = 5;
@@ -694,9 +635,11 @@ describe('Ethereum tests', function() {
       const taskId4 = web3.utils.randomHex(32);
       const taskFee4 = 580;
 
-      await createTaskRecord(api, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
-      await createTaskRecord(api, taskId4, taskFee4, workerAddress);
+      await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
+
+      await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
+
+      await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3.utils.randomHex(32);
@@ -705,15 +648,14 @@ describe('Ethereum tests', function() {
       const stateDeltaHash4 = web3.utils.randomHex(32);
       const ethCall = web3.utils.randomHex(32);
 
-      await commitReceipt(api, secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipts(api, secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipt(api, secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
-
+      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}, {address: secretContractAddress2, key: 0}], (err, results)=>{
         // DONE results == [{address, deltas : [deltaHash, index]}]
@@ -749,14 +691,12 @@ describe('Ethereum tests', function() {
       const secretContractAddress2 = web3.utils.randomHex(32);//accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-      await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
+      await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
 
       await api.login({from: workerAddress});
 
-      await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
-      await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+      await api.deploySecretContract(secretContractAddress1, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContract(secretContractAddress2, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3.utils.randomHex(32);
       const taskFee1 = 5;
@@ -769,9 +709,11 @@ describe('Ethereum tests', function() {
       const taskId4 = web3.utils.randomHex(32);
       const taskFee4 = 580;
 
-      await createTaskRecord(api, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
-      await createTaskRecord(api, taskId4, taskFee4, workerAddress);
+      await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
+
+      await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
+
+      await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3.utils.randomHex(32);
@@ -780,15 +722,14 @@ describe('Ethereum tests', function() {
       const stateDeltaHash4 = web3.utils.randomHex(32);
       const ethCall = web3.utils.randomHex(32);
 
-      await commitReceipt(api, secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipts(api, secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipt(api, secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
-
+      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash0, stateDeltaHash4,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 2}, {address: secretContractAddress2, key: 0}], (err, results)=>{
         // DONE results == [{address, deltas : [deltaHash, index]}]
@@ -824,11 +765,11 @@ describe('Ethereum tests', function() {
       const secretContractAddress = web3.utils.randomHex(32); //accounts[5];
       const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
 
-      await registerWorker(api2, workerEnclaveSigningAddress, workerReport, workerAddress);
+      await api2.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
       // Login the worker before commmitting receipts
       await api2.login({from: workerAddress});
-      await deploySecretContract(api2, secretContractAddress, workerEnclaveSigningAddress,
-          codeHash, workerAddress);
+
+      await api2.deploySecretContract(secretContractAddress, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3_2.utils.randomHex(32);
       const taskFee1 = 5;
@@ -863,8 +804,8 @@ describe('Ethereum tests', function() {
         }
       });
 
-      await createTaskRecord(api2, taskId1, taskFee1, taskSenderAddress1);
-      await createTaskRecords(api2, [taskId2, taskId3], [taskFee2, taskFee3], workerAddress);
+      await api2.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
+      await api2.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
 
       const stateDeltaHash0 = '0x0000000000000000000000000000000000000000000000000000000000000000';
       const stateDeltaHash1 = web3_2.utils.randomHex(32);
@@ -895,11 +836,11 @@ describe('Ethereum tests', function() {
         }
       });
 
-      await commitReceipt(api2, secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
-          ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api2.commitReceipt(secretContractAddress, taskId1, stateDeltaHash0, stateDeltaHash1,
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
-      await commitReceipts(api2, secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2],
-          [stateDeltaHash2, stateDeltaHash3], ethCall, workerEnclaveSigningAddress, workerAddress);
+      await api2.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash1, stateDeltaHash2], [stateDeltaHash2, stateDeltaHash3],
+        ethCall, workerEnclaveSigningAddress, {from: workerAddress});
 
       api2.unsubscribeAll();
 
@@ -951,11 +892,6 @@ describe('Ethereum tests', function() {
       await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
 
       await api.login({from: workerAddress});
-
-      //await testUtils.sleep(1500);
-      //const ethereumInfo = await initEthereumStuff();
-      // {enigmaContractApi: enigmaContractApi, web3: web3, workerEnclaveSigningAddress: workerEnclaveSigningAddress,
-      //  workerAddress: workerAddress};
 
       // start the dns
       let dnsBuilder = new EnvironmentBuilder();
@@ -1024,5 +960,121 @@ describe('Ethereum tests', function() {
       });
     });
   }, 40000);
+
+  // it('Perform a full sync scenario - from mid-with-some-addresses', async function(){
+  //   const tree = TEST_TREE.ethereum;
+  //   if (!tree['all'] || !tree['#8']) {
+  //     await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
+  //     this.skip();
+  //   }
+  //   return new Promise(async (resolve)=>{
+  //     let bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+  //
+  //     const dnsConfig = {
+  //       'bootstrapNodes': bootstrapNodes,
+  //       'port': B2Port,
+  //       'nickname': 'dns',
+  //       'idPath': B2Path,
+  //     };
+  //     const peerConfig = {
+  //       'bootstrapNodes': bootstrapNodes,
+  //       'nickname': 'peer',
+  //     };
+  //     const dnsMockUri = 'tcp://127.0.0.1:4444';
+  //     const peerMockUri = 'tcp://127.0.0.1:5555';
+  //
+  //     let dnsMockCore = new CoreServer("dns");
+  //     let peerMockCore = new CoreServer("peer");
+  //
+  //     // start the dns mock server (core)
+  //     dnsMockCore.setProvider(true);
+  //     dnsMockCore.runServer(dnsMockUri);
+  //
+  //     // start the peer mock server (core)
+  //     peerMockCore.runServer(peerMockUri);
+  //     // set empty tips array
+  //     peerMockCore.setReceiverTips([]);
+  //
+  //     const accounts = await web3.eth.getAccounts();
+  //     const workerEnclaveSigningAddress = accounts[0];
+  //     const workerAddress = accounts[1];
+  //     const workerReport = "0x123456";
+  //
+  //     await api.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
+  //
+  //     await api.login({from: workerAddress});
+  //
+  //     //await testUtils.sleep(1500);
+  //     //const ethereumInfo = await initEthereumStuff();
+  //     // {enigmaContractApi: enigmaContractApi, web3: web3, workerEnclaveSigningAddress: workerEnclaveSigningAddress,
+  //     //  workerAddress: workerAddress};
+  //
+  //     // start the dns
+  //     let dnsBuilder = new EnvironmentBuilder();
+  //     let dnsController = await dnsBuilder
+  //       .setNodeConfig(dnsConfig)
+  //       .setIpcConfig({uri: dnsMockUri})
+  //       .build();
+  //
+  //     // start the dns
+  //     let peerBuilder = new EnvironmentBuilder();
+  //     let peerController = await peerBuilder
+  //       .setNodeConfig(peerConfig)
+  //       .setIpcConfig({uri: peerMockUri})
+  //       .build();
+  //
+  //     await peerController.getNode().initializeEthereum(enigmaContractAddress);
+  //
+  //     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
+  //
+  //     await testUtils.sleep(2000);
+  //
+  //     waterfall([
+  //       (cb)=>{
+  //         // announce
+  //         dnsController.getNode().tryAnnounce((err, ecids)=>{
+  //           assert.strictEqual(null, err, 'error announcing' + err);
+  //           cb(null);
+  //         });
+  //       },
+  //       (cb)=>{
+  //         // sync
+  //         peerController.getNode().syncReceiverPipeline(async (err, statusResult)=>{
+  //           assert.strictEqual(null,err, 'error syncing' + err);
+  //           statusResult.forEach((result)=> {
+  //             assert.strictEqual(true, result.success);
+  //           })
+  //
+  //           //await testUtils.sleep(10000);
+  //           cb(null, statusResult);
+  //         });
+  //       }
+  //     ],async (err, statusResult)=>{
+  //       assert.strictEqual(null,err, 'error in waterfall ' + err);
+  //
+  //       // validate the results
+  //       const missingstatesMap = syncResultMsgToStatesMap(statusResult);
+  //       assert.strictEqual(missingstatesMap.size, PROVIDERS_DB_MAP.size);
+  //       for (const [address, data] of Object.entries(missingstatesMap)) {
+  //         assert.strictEqual(missingstatesMap[address].size, PROVIDERS_DB_MAP[address].size);
+  //         for (const [key, delta] of Object.entries(missingstatesMap[address])) {
+  //           assert.notStrictEqual(missingstatesMap[address][key], PROVIDERS_DB_MAP[address][key]);
+  //         }
+  //       }
+  //
+  //       await dnsController.getNode().stop();
+  //       dnsController.getIpcClient().disconnect();
+  //
+  //       await peerController.getNode().stop();
+  //       peerController.getIpcClient().disconnect();
+  //
+  //       peerController.getNode().stopEthereum();
+  //
+  //       dnsMockCore.disconnect();
+  //       peerMockCore.disconnect();
+  //       resolve();
+  //     });
+  //   });
+  // }, 40000);
 
 });
