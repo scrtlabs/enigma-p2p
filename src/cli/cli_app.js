@@ -359,8 +359,9 @@ class CLI {
       await n.stop();
       process.exit();
     });
-    this._node.selfSubscribeAction();
-
+    if(this._corePort){
+      this._node.selfSubscribeAction();
+    }
   }
   start() {
     console.log(Parsers.opener);
