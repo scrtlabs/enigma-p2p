@@ -7,6 +7,7 @@
 const constants = require('../../../common/constants');
 const msgs = constants.CORE_REQUESTS;
 const waterfall = require('async/waterfall');
+var fs = require('fs');
 
 
 class SubscribeSelfSignKeyTopicPipelineAction {
@@ -58,6 +59,11 @@ class SubscribeSelfSignKeyTopicPipelineAction {
         },
         onSubscribed: ()=>{
           this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
+          fs.writeFile('signKey.txt', regParams.result.signingKey, 'utf8', function(err) {
+            if(err) {
+                this._controller.logger().error('Error writing to file: '+err);
+            }
+          });
           if (params.onResponse) {
             if(err){
               return params.onResponse(err);
