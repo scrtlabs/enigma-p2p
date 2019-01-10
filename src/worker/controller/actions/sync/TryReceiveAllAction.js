@@ -23,6 +23,11 @@ class TryReceiveAllAction{
     let remoteMissingStatesMap = params.remoteMissingStatesMap;
     let onFinish = params.onFinish;
     let receiver = this._controller.receiver();
+    
+    if (allMissingDataList.length === 0) {
+      return onFinish("no providers were found");
+    }
+
     let jobs = [];
     let firstJob = allMissingDataList[0];
 

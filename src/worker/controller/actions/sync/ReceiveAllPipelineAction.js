@@ -33,7 +33,10 @@ class ReceiveAllPipelineAction {
             NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
               cache: cache,
               onResponse: (err, res) => {
-                cb(err, res.missingStatesMsgsMap, res.missingStatesMap);
+                if (err) {
+                  return cb(err);
+                }
+                return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
               },
             });
       },
