@@ -325,9 +325,9 @@ class CLI {
     if (this._coreAddressPort) {
       const uri ='tcp://' + this._coreAddressPort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      const coreServer = new CoreServer();
-      coreServer.setProvider(true);
-      coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      // const coreServer = new CoreServer();
+      // coreServer.setProvider(true);
+      // coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
       builder.setIpcConfig({uri: uri});
     }
     if (this._rpcPort) {
