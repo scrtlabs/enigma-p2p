@@ -1,4 +1,5 @@
 const parallel = require('async/parallel');
+const DbUtils = require('../common/DbUtils');
 
 /**
  * Queries the Enigma contract and returns the missing states in comparison to the local tips
@@ -12,18 +13,20 @@ const parallel = require('async/parallel');
  * and return the data using the promise
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
-  //let removeHexPrefix = false;
   // create a hashmap from the localTips array
   const tipsHashMaps = localTips.reduce((obj, item) => {
     let address = item.address;
+    if (typeof address !== 'string') {
+      address = DbUtils.toHexString(address);
+    }
     // add '0x' to be able to compare the addresses with Ethereum
     if (address.slice(0, 2) != '0x') {
       address = '0x' + address;
-      //removeHexPrefix = true;
     }
     obj[address] = item.key;
     return obj;
   }, {});
+
 
   try {
     const remoteSecretContractNumber = await api.countSecretContracts();
