@@ -459,8 +459,8 @@ The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/
 
 ## Built With
 
-* [NodeJS](https://nodejs.org/en/)
-* [Libp2p](https://libp2p.io/) - Networking library
+* [NodeJS](https://nodejs.org/en)
+* [Libp2p](https://libp2p.io) - Networking library
 
 ## Authors
 
