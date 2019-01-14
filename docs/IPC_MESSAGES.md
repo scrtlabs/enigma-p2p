@@ -12,17 +12,17 @@ Request:
 
 ```
 {
-    id : <unique_request_id>
+    id : <unique_request_id>,
     type : GetRegistrationParams
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetRegistrationParams
+    id : <unique_request_id>,
+    type : GetRegistrationParams,
     result : {
-        signingKey : hex
+        signingKey : hex,
         quote : base64
     }
 }
@@ -34,18 +34,18 @@ Request:
 
 ```
 {
-    id : <unique_request_id>
-    type : IdentityChallenge
+    id : <unique_request_id>,
+    type : IdentityChallenge,
     nonce :
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : IdentityChallenge
+    id : <unique_request_id>,
+    type : IdentityChallenge,
     result : {
-        nonce : hex
+        nonce : hex,
         signature : hex
     }
 }
@@ -56,19 +56,19 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
-    type : GetTip
+    id : <unique_request_id>,
+    type : GetTip,
     input : [Secret Contract Address]
 }
 ```
 Response:
 ```
 {
-   id : <unique_request_id>
-   type : GetTip
+   id : <unique_request_id>,
+   type : GetTip,
    result : {
        key : [],
-       delta : [],
+       delta : []
    }
 }
 ```
@@ -77,16 +77,16 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
-    type : GetTips
+    id : <unique_request_id>,
+    type : GetTips,
     input : [Array<Secret Contract Address>]
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetTips
+    id : <unique_request_id>,
+    type : GetTips,
     result : {
         tips : [Array<{address,key,delta}>]
     }
@@ -96,15 +96,15 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
+    id : <unique_request_id>,
     type : GetAllTips
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type: GetAllTips
+    id : <unique_request_id>,
+    type: GetAllTips,
     result : {
         tips : [Array<{address,key,delta}>]
     }
@@ -114,15 +114,15 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
+    id : <unique_request_id>,
     type : GetAllAddrs
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetAllAddrs
+    id : <unique_request_id>,
+    type : GetAllAddrs,
     result : {
         addresses : [Array<Secret contract Addrs>]
     }
@@ -133,15 +133,15 @@ Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDelta
+    type : GetDelta,
     input : [{address, key}]
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetDelta
+    id : <unique_request_id>,
+    type : GetDelta,
     result : {
         delta : []
     }
@@ -152,15 +152,15 @@ Request:
 ```
 {
     id : <unique_request_id>,
-    type : GetDeltas
+    type : GetDeltas,
     input : [{address, from:key, to:key}, ...]
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetDeltas
+    id : <unique_request_id>,
+    type : GetDeltas,
     result : {
         deltas : [{address, key, data},...]
     }
@@ -170,16 +170,16 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
-    type : GetContract
+    id : <unique_request_id>,
+    type : GetContract,
     input : address
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : GetContract
+    id : <unique_request_id>,
+    type : GetContract,
     result : {
         bytecode : []
     }
@@ -192,18 +192,18 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
-    type : UpdateNewContract
-    address : ...
+    id : <unique_request_id>,
+    type : UpdateNewContract,
+    address : ...,
     bytecode : [Secret Contract Address]
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : UpdateNewContract
-    address : ...
+    id : <unique_request_id>,
+    type : UpdateNewContract,
+    address : ...,
     result : {
         status : 0 or err code
     }
@@ -214,18 +214,18 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>
-    type : UpdateDeltas
+    id : <unique_request_id>,
+    type : UpdateDeltas,
     deltas : [{address, key, data : []}, ...]
 }
 ```
 Response:
 ```
 {
-    id : <unique_request_id>
-    type : UpdateDeltas
+    id : <unique_request_id>,
+    type : UpdateDeltas,
     result : {
-        status: 0 or err code
+        status: 0 or err code,
         errors: [{address,key,status : }, ...]
     }
 }
@@ -242,7 +242,7 @@ The result of the rpc call `GetWorkerEncryptionKey`.
 Request:
 ```
 {
-    id : <unique_request_id>
+    id : <unique_request_id>,
     type : NewTaskEncryptionKey,
     userPubKey: 'the-user-dh-pubkey'
 }
@@ -252,11 +252,11 @@ Response:
 
 ```
 {
-    id: <unique_request_id>
+    id: <unique_request_id>,
     type: NewTaskEncryptionKey,
     result : {
         workerEncryptionKey : 'some-encryption-key',
-        workerSig : 'sign(response params)',
+        workerSig : 'sign(response params)'
     }
 }
 ```
