@@ -65,7 +65,7 @@ class JsonRpcServer extends EventEmitter {
       // Placeholder.
       // TODO: Implement proper callback
       deploySecretContract: function(args, callback) {
-        callback(null, [true]);
+        callback(null, true);
       },
       // Placeholder.
       // TODO: Implement proper callback
@@ -94,7 +94,7 @@ class JsonRpcServer extends EventEmitter {
           callback({code: -32602, message: "Invalid params"});
         } else {
           // send to the network and return true
-          callback(null, [true]);
+          callback(null, true);
         }
 
       },

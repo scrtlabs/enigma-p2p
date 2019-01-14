@@ -24,6 +24,8 @@ const workerConfig = {
   'nickname': 'worker',
 };
 const JsonRpcPort = 40000;
+const userPubKey = '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f9' +
+  '8771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99';
 
 describe('JsonRPC tests', () => {
   let proxyController;
@@ -97,7 +99,7 @@ describe('JsonRPC tests', () => {
         resolve();
       });
     });
-  }, 15000);
+  }, 30000);
 
   afterAll(() => {
     return new Promise(async (resolve)=>{
@@ -140,7 +142,7 @@ describe('JsonRPC tests', () => {
     id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
 
     const response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request('getWorkerEncryptionKey', [id], (err, res) => {
+      JsonRpcClient.request('getWorkerEncryptionKey', [id, userPubKey], (err, res) => {
         if (err) {
           reject(err);
         }
@@ -148,10 +150,8 @@ describe('JsonRPC tests', () => {
       });
     });
 
-    expect(response.targetWorkerKey).toBe(id);
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
-    expect(response.msgId).toBeDefined();
   }, 10000);
 
   it('#3 Should fail sendTaskInput', async function(){
