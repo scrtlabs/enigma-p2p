@@ -7,54 +7,56 @@
 const constants = require('../../../common/constants');
 const waterfall = require('async/waterfall');
 
-class SubscribeSelfSignKeyTopicPipelineAction{
+class SubscribeSelfSignKeyTopicPipelineAction {
   constructor(controller) {
     this._controller = controller;
   }
   execute(params) {
     waterfall([
-        cb=>{
+      (cb)=>{
         // get registration params of the worker from core
-          this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
-          {
-                onResponse : (err,regParams)=>{
-                  cb(err,regParams);
-                }
-          });
+        this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
+            {
+              onResponse: (err, regParams)=>{
+                cb(err, regParams);
+              },
+            });
+      },
+    ], (err, regParams)=>{
+      if (err) {
+        this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {%s}', err);
+        if (params.onResponse) {
+          return params.onResponse(err);
         }
-    ],(err,regParams)=>{
-      if(err){
-        this._controller.logger().error("[-] err in SubscribeSelfSignKeyTopicPipelineAction {%s}",err);
-        if(params.onResponse){return params.onResponse(err);}
       }
-
       // subscribe to topic
-      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB,{
-        topic : regParams.signingKey,
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB, {
+        topic: regParams.result.signingKey,
         // onPublish will be called everytime something is published to the topic param
         onPublish: (msg) =>{
-          let data = JSON.parse(msg.data);
-          let targetTopic = data.targetTopic;
-          this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY,{
-            onResponse : (err,encKeyResult)=>{
-              this._controller.logger().debug("published msgId=[" + encKeyResult.msgId + "] encryption key");
-              this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
-                topic : targetTopic,
-                message : JSON.stringify({
-                  workerEncryptionKey : encKeyResult.workerEncryptionKey,
-                  workerSig : encKeyResult.workerSig,
-                  msgId : encKeyResult.msgId,
+          const data = JSON.parse(msg.data);
+          const request = data.request;
+          const targetTopic = data.targetTopic;
+          this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
+            request,
+            onResponse: (err, encKeyResult)=>{
+              this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
+              this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
+                topic: targetTopic,
+                message: JSON.stringify({
+                  workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
+                  workerSig: encKeyResult.result.workerSig,
                 }),
               });
             },
           });
         },
-        onSubscribed : ()=>{
-          this._controller.logger().debug('subscribed to [' + regParams.signingKey + '] self signKey');
-          if(params.onResponse){
+        onSubscribed: ()=>{
+          this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
+          if (params.onResponse) {
             return params.onResponse(err);
           }
-        }
+        },
       });
     });
   }
