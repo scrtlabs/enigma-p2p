@@ -492,6 +492,10 @@ describe('Ethereum tests', function() {
       this.skip();
     }
     return new Promise(async function(resolve) {
+      if (web3 === undefined) {
+        console.log("web3 not yet initialized");
+        await testUtils.sleep(2000);
+      }
       await envInitializer.disconnect(web3);
       await envInitializer.stop(web3);
 
