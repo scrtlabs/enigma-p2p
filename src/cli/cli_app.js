@@ -137,7 +137,8 @@ class CLI{
             console.log('err in getRegistration' + err);
           }else{
             let out = {};
-            out.quote = result.quote;
+            out.report = result.report;
+            out.signature = result.signature;
             out.singingKey = result.signingKey;
             console.log(out);
           }
