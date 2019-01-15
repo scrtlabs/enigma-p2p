@@ -4,8 +4,8 @@
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "index.js",
   "scripts": {
-    "test": "jest",
-    "report-coverage": "codecov",
+    "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 500000",
+    "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src"
   },
@@ -16,6 +16,7 @@
     "async": "^2.6.1",
     "commander": "^2.18.0",
     "config": "^2.0.1",
+    "expect": "^23.6.0",
     "fs": "0.0.1-security",
     "jayson": "^2.1.0",
     "jsonschema": "^1.2.4",
@@ -33,6 +34,7 @@
     "libp2p-websockets": "^0.12.0",
     "load-json-file": "^5.1.0",
     "log": "^1.4.0",
+    "mocha": "^5.2.0",
     "msgpack-lite": "^0.1.26",
     "openzeppelin-solidity": "^1.11.0",
     "package.json": "^2.0.1",
@@ -55,19 +57,6 @@
     "connect": "^3.6.6",
     "eslint": "^5.7.0",
     "eslint-config-google": "^0.11.0",
-    "eslint-plugin-babel": "^5.2.1",
-    "jest": "^23.6.0"
-  },
-  "jest": {
-    "collectCoverage": true,
-    "coverageDirectory": "./coverage/",
-    "collectCoverageFrom": [
-      "src/**/*.{js,jsx}"
-    ],
-    "testMatch": [
-      "**/__tests__/**/*.js?(x)",
-      "**/?(*.)+(spec|test).js?(x)",
-      "**/test/**/*_test.js"
-    ]
+    "eslint-plugin-babel": "^5.2.1"
   }
 }
