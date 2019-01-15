@@ -435,7 +435,7 @@ describe('Ethereum tests', function() {
   let enigmaContractAddress;
   let enigmaContractABI;
 
-  beforeAll(async function() {
+  before(async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all']) {
       this.skip();
@@ -444,7 +444,7 @@ describe('Ethereum tests', function() {
     await envInitializer.start(truffleDir);
   });
 
-  afterAll(async function() {
+  after(async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all']) {
       this.skip();
@@ -1148,19 +1148,19 @@ describe('Ethereum tests', function() {
 
   it('Perform a full sync scenario - from mid-with-some-addresses', async function() {
     const tree = TEST_TREE.ethereum;
-    // if (!tree['all'] || !tree['#9']) {
-    //   await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
-    //   this.skip();
-    // }
+    if (!tree['all'] || !tree['#9']) {
+      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
+      this.skip();
+    }
     return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES, web3, enigmaContractAddress, api);
   }, 40000);
 
   it('Perform a full sync scenario - from mid-with-all-addresses', async function() {
     const tree = TEST_TREE.ethereum;
-    // if (!tree['all'] || !tree['#9']) {
-    //   await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
-    //   this.skip();
-    // }
+    if (!tree['all'] || !tree['#10']) {
+      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
+      this.skip();
+    }
     return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES, web3, enigmaContractAddress, api);
   }, 40000);
 });

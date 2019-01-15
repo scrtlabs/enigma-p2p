@@ -9,7 +9,7 @@ const Channel = require('../src/main_controller/channels/Channel');
 const constants = require('../src/common/constants');
 const nodeUtils = require('../src/common/utils');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
-
+const expect = require('expect');
 it('#1 send acks to each other', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#1']) {
