@@ -51,15 +51,15 @@ class JsonRpcServer extends EventEmitter {
           );
 
           this.getCommunicator()
-              .sendAndReceive(envelop)
-              .then((resEnv)=>{
-                const result = {};
-                console.log(resEnv);
-                result.targetWorkerKey = resEnv.content().result.senderKey;
-                result.workerEncryptionKey = resEnv.content().result.workerEncryptionKey;
-                result.workerSig = resEnv.content().result.workerSig;
-                callback(null, result);
-              });
+          .sendAndReceive(envelop)
+          .then(resEnv=>{
+            console.log('GOT SOMETHING');
+            let result = {};
+            console.log(resEnv);
+            result.workerEncryptionKey = resEnv.content().result.workerEncryptionKey;
+            result.workerSig = resEnv.content().result.workerSig;
+            callback(null, result);
+          });
         }
       },
       // Placeholder.
