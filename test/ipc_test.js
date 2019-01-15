@@ -104,7 +104,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
           resolve();
         });
   });
-});
+}, 20000);
 
 it('#3 GetAllTips - mock server', async function() {
   const tree = TEST_TREE['ipc'];
