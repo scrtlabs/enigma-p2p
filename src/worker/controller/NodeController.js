@@ -241,12 +241,15 @@ class NodeController {
   }
   /** init Ethereum API
    * */
-  async initializeEthereum(enigmaContractAddress){
+  async initializeEthereum(enigmaContractAddress, websocketProvider){
     const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
     let enigmaContractHandler = {};
     if (enigmaContractAddress) {
-      enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(
-          {enigmaContractAddress: enigmaContractAddress}).build();
+      let config = {enigmaContractAddress: enigmaContractAddress};
+      if (websocketProvider) {
+        config.websocket = websocketProvider;
+      }
+      enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
     } else {
       enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
     }

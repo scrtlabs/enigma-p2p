@@ -54,10 +54,14 @@ class CLI{
       },
       'initEthereum' : (args)=>{
         let enigmaContractAddress = null;
-        if (args.length > 1){
+        let websocketProvider = null;
+        if (args.length > 1) {
           enigmaContractAddress = args[1];
+          if (args.length > 2) {
+            websocketProvider = args[2];
+          }
         }
-        this._node.initializeEthereum(enigmaContractAddress);
+        this._node.initializeEthereum(enigmaContractAddress, websocketProvider);
       },
       'addPeer': (args)=>{
         const ma = args[1];

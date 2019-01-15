@@ -132,7 +132,6 @@ it('#3 GetAllTips - mock server', async function() {
     await nodeUtils.sleep(2000);
     const fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates)=>{
-      console.log("missingStates=", missingStates);
       expect(err).toBeNull();
       expect(missingStates.length).toBe(3);
       expect(missingStates[0].key).toBe(10);
