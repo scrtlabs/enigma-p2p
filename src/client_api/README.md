@@ -11,12 +11,12 @@ Requests the public encryption key for the worker node assigned to a given contr
 **Parameters**
 
 `workerAddress` (String) - The address for the selected worker
+`userPubKey` (String) - 64 bytes pubkey for DH 
 
 **Returns**
 
 - `workerEncryptionKey` (String) - The requested public encryption key of the worker node
 - `workerSig` (String) - The signature of the worker node
-- `msgId` (String) - 12 bytes representing the key with the request
 
 **Example**
 
@@ -45,7 +45,6 @@ Deploys a Secret Contract onto the Enigma Network.
 - `compiledBytecodeHash` (String) - The hash of the compiled bytecode
 - `encryptedEncodedArgs` (String) - Encrypted RLP-encoded args needed for the secret contract's constructor 
 - `userDeploySig` (String) - Signature of the compiled bytecode hash and encrypted RLP-encoded args using the user's ETH keys
-- `msgId` (String) - 12 bytes received from `getWorkerEncryptionKey` request.
 
 **Returns**
 
@@ -83,7 +82,6 @@ Sends the encrypted inputs for a given Task to the Enigma network for computatio
 - `userTaskSig` (String) - Signature of the encrypted function signature and encrypted RLP-encoded args using the user's ETH keys
 - `userPubKey` (String) - User's public key
 - `fee` (Int) - Task computation fee
-- `msgId` (String) - 12 bytes received from `getWorkerEncryptionKey` request.
 
 **Returns**
 
