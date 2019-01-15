@@ -27,6 +27,9 @@ class FacadeController extends MainController{
   getIpcClient(){
     return this._runtimesMap[runtimesTypes.Core];
   }
+  getJsonRpcServer(){
+    return this._runtimesMap[runtimesTypes.JsonRpc];
+  }
 }
 
 module.exports = FacadeController;

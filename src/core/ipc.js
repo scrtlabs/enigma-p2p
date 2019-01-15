@@ -2,12 +2,24 @@ const nodeUtils = require('../common/utils');
 const zmq = require('zeromq');
 const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
+const Logger = require('../common/logger');
+
 
 class IpcClient extends EventEmitter {
-  constructor(uri) {
+  constructor(uri, logger) {
     super();
     this._socket = zmq.socket('req');
     this._uri = uri;
+
+    if (logger) {
+      this._logger = logger;
+    } else {
+      this._logger = new Logger({
+        'level': 'debug',
+        'cli': true,
+      });
+    }
+
     // map msg id's for sequential tasks
     // delete the callbacks after use.
     this._msgMapping = {};
@@ -15,7 +27,7 @@ class IpcClient extends EventEmitter {
   }
   connect() {
     this._socket.connect(this._uri);
-    console.log('IPC connected to %s', this._uri );
+    this._logger.debug('IPC connected to ' + this._uri );
   }
   disconnect() {
     this._socket.disconnect(this._uri);
