@@ -287,7 +287,7 @@ Response:
     result : {
         exeCode: 'the-deployed-bytecode',
         preCodeHash: 'hash-of-the-precode-bytecode',
-        delta: 'the-encrypted-delta',
+        delta: {0, delta},
         usedGas: 'amount-of-gas-used',
         signature: 'enclave-signature',
     }
