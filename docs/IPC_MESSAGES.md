@@ -23,7 +23,8 @@ Response:
     type : GetRegistrationParams,
     result : {
         signingKey : hex,
-        quote : base64
+        report: hex,
+        signature: hex,
     }
 }
 ```
