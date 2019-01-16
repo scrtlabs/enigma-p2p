@@ -302,6 +302,7 @@ Request:
     id: <unique_request_id>,
     type: ComputeTask,
     input: {
+        taskID: 'the ID of the task'
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
         userPubKey: 'the-user-dh-pubkey',
