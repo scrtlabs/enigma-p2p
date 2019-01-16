@@ -18,14 +18,15 @@ const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 
 class CoreRuntime{
-  constructor(config){
+  constructor(config, logger){
     if(config.uri)
-      this._ipcClient = new IpcClient(config.uri);
+      this._ipcClient = new IpcClient(config.uri, logger);
     else
       throw new Error("Must pass uri to CoreRuntime");
 
     this._initIpcClient();
     this._communicator = null;
+    this._logger = logger;
     this._actions = {
       [constants.CORE_REQUESTS.CORE_DB_ACTION] : new DbAction(this),
       [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),

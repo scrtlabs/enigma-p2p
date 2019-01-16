@@ -40,7 +40,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
           this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
             request,
             onResponse: (err, encKeyResult)=>{
-              this._controller.logger().debug('published msgId=[' + encKeyResult.msgId + '] encryption key');
+              this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
               this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
                 topic: targetTopic,
                 message: JSON.stringify({
