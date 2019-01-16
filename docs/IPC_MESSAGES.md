@@ -268,11 +268,13 @@ Request:
 {
     id: <unique_request_id>,
     type: DeploySecretContract,
-    preCode: 'the-bytecode',
-    encryptedArgs: 'hex of the encrypted args',
-    encryptedFn: 'hex of the encrypted function signature',
-    userPubKey: 'the-user-dh-pubkey',
-    contractAddress: 'the-address-of-the-contract'
+    input: {
+        preCode: 'the-bytecode',
+        encryptedArgs: 'hex of the encrypted args',
+        encryptedFn: 'hex of the encrypted function signature',
+        userPubKey: 'the-user-dh-pubkey',
+        contractAddress: 'the-address-of-the-contract'
+    }
 }
 ```
 
@@ -298,11 +300,14 @@ Request:
 {
     id: <unique_request_id>,
     type: ComputeTask,
-    encryptedArgs: 'hex of the encrypted args',
-    encryptedFn: 'hex of the encrypted function signature',
-    userPubKey: 'the-user-dh-pubkey',
-    gasLimit: 'the-user-selected-gaslimit',
-    contractAddress: 'the-address-of-the-contract'
+    input: {
+        encryptedArgs: 'hex of the encrypted args',
+        encryptedFn: 'hex of the encrypted function signature',
+        userPubKey: 'the-user-dh-pubkey',
+        gasLimit: 'the-user-selected-gaslimit',
+        contractAddress: 'the-address-of-the-contract'
+    }
+
 }
 ```
 
