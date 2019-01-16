@@ -232,7 +232,7 @@ class CLI{
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       CoreServer.setProvider(true);
-      CoreServer.runServer(uri); // TODO: Remove this to use real core.
+      CoreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
       builder.setIpcConfig({uri : uri});
     }
     if(this._rpcPort){
