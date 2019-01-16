@@ -263,5 +263,60 @@ Response:
 ```
 
 ### `DeploySecretContract` messages
+Request:
+```
+{
+    id: <unique_request_id>,
+    type: DeploySecretContract,
+    preCode: 'the-bytecode',
+    encryptedArgs: 'hex of the encrypted args',
+    encryptedFn: 'hex of the encrypted function signature',
+    userPubKey: 'the-user-dh-pubkey',
+    contractAddress: 'the-address-of-the-contract'
+}
+```
+
+Response:
+```
+{
+    id: <unique_request_id>,
+    type: DeploySecretContract,
+    result : {
+        exeCode: 'the-deployed-bytecode',
+        preCodeHash: 'hash-of-the-precode-bytecode',
+        delta: 'the-encrypted-delta',
+        usedGas: 'amount-of-gas-used',
+        signature: 'enclave-signature',
+    }
+    
+}
+```
 
 ### `ComputeTask` message
+Request:
+```
+{
+    id: <unique_request_id>,
+    type: ComputeTask,
+    encryptedArgs: 'hex of the encrypted args',
+    encryptedFn: 'hex of the encrypted function signature',
+    userPubKey: 'the-user-dh-pubkey',
+    gasLimit: 'the-user-selected-gaslimit',
+    contractAddress: 'the-address-of-the-contract'
+}
+```
+
+Response:
+```
+{
+    id: <unique_request_id>,
+    type: ComputeTask,
+    result : {
+        output: 'the-output-of-the-execution',
+        delta: {key, delta},
+        usedGas: 'amount-of-gas-used',
+        signature: 'enclave-signature',
+    }
+    
+}
+```
