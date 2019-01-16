@@ -7,11 +7,12 @@ const waterfall = require('async/waterfall');
 // const TEST_TREE = require('./test_tree').TEST_TREE;
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const CoreServer = require('../src/core/core_server_mock/core_server');
+const expect = require('expect');
 
 // const B1Path = path.join(__dirname, 'testUtils/id-l');
 // const B1Port = '10300';
 const B2Path = '../../test/testUtils/id-d';
-const B2Port = '10301';                           
+const B2Port = '10301';
 const bootstrapNodes = ['/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP'];
 const proxyConfig = {
   'bootstrapNodes': bootstrapNodes,
@@ -32,7 +33,7 @@ describe('JsonRPC tests', () => {
   let workerController;
   let JsonRpcClient;
 
-  beforeAll(() => {
+  before(() => {
     const callServer = function(request, callback) {
       const config = {
         headers: {
@@ -101,7 +102,7 @@ describe('JsonRPC tests', () => {
     });
   }, 30000);
 
-  afterAll(() => {
+  after(() => {
     return new Promise(async (resolve)=>{
       proxyController.getJsonRpcServer().close();
       await proxyController.getNode().stop();
@@ -121,6 +122,9 @@ describe('JsonRPC tests', () => {
         resolve(res);
       });
     });
+    // assert.strictEqual(response.status,'ok');
+    // assert.notStrictEqual(response,peerId,undefined);
+    // assert.notStrictEqual(response,peerId,null);
     expect(response.peerId).toBeDefined();
     expect(response.status).toBe('ok');
   })
@@ -150,11 +154,15 @@ describe('JsonRPC tests', () => {
       });
     });
 
+    // assert.notStrictEqual(response.workerSig,null);
+    // assert.notStrictEqual(response.workerSig,undefined);
+    // assert.strictEqual(128,response.workerEncryptionKey.length)
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
 
   it('#3 Should fail sendTaskInput', async function(){
+
     expect.assertions(2);
     // JSON RPC fails with no taskInput parameter
     await expect(new Promise((resolve, reject) => {
@@ -201,6 +209,7 @@ describe('JsonRPC tests', () => {
         resolve(res);
       });
     });
+    // assert.strictEqual(true,response);
     expect(response).toBe(true);
   });
 });

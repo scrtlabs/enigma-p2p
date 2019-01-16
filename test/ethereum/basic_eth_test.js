@@ -20,7 +20,7 @@ describe('Ethereum tests', function() {
     let enigmaContractAddress;
     let enigmaContractABI;
 
-    beforeAll(async function() {
+    before(async function() {
       let tree = TEST_TREE.ethereum;
       if(!tree['all']){
         this.skip();
@@ -30,7 +30,7 @@ describe('Ethereum tests', function() {
 
     });
 
-    afterAll(async function() {
+    after(async function() {
       let tree = TEST_TREE.ethereum;
       if(!tree['all']){
         this.skip();
@@ -113,7 +113,7 @@ describe('Ethereum tests', function() {
     it('Register a worker, deposit and deploy a secret contract using the BUILDER ', async function(){
         let tree = TEST_TREE.ethereum;
         if(!tree['all'] || !tree['#1']){
-            await envInitializer.disconnect(web3); 
+            await envInitializer.disconnect(web3);
             this.skip();
         }
         return new Promise(async function (resolve) {
@@ -125,7 +125,7 @@ describe('Ethereum tests', function() {
             let builder = new EnigmaContractAPIBuilder();
             res = await builder.createNetwork().deploy().build();
             let api = res.api;
-            
+
             const accounts = await api.w3().eth.getAccounts();
             const workerEnclaveSigningAddress = accounts[3];
             const workerAddress = accounts[4];
@@ -199,7 +199,7 @@ describe('Ethereum tests', function() {
             let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
             assert.strictEqual(observedAddressesArray[0], secretContractAddress);
             assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
-  
+
             await res.environment.destroy();
             await envInitializer.start(truffleDir);
             resolve();
@@ -212,7 +212,7 @@ describe('Ethereum tests', function() {
             await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
             this.skip();
         }
-        
+
         return new Promise(async function (resolve) {
             const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI}
             let builder = new EnigmaContractAPIBuilder();
@@ -380,8 +380,8 @@ describe('Ethereum tests', function() {
             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
 
             await api.login({from: workerAddress});
-            
-            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress, 
+
+            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
             await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
@@ -461,8 +461,8 @@ describe('Ethereum tests', function() {
             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
 
             await api.login({from: workerAddress});
-            
-            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress, 
+
+            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
             await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
@@ -539,8 +539,8 @@ describe('Ethereum tests', function() {
             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
 
             await api.login({from: workerAddress});
-            
-            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress, 
+
+            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
             await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
@@ -613,8 +613,8 @@ describe('Ethereum tests', function() {
             await registerWorker(api, workerEnclaveSigningAddress, workerReport, workerAddress);
 
             await api.login({from: workerAddress});
-            
-            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress, 
+
+            await deploySecretContract(api, secretContractAddress1, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
             await deploySecretContract(api, secretContractAddress2, workerEnclaveSigningAddress,
                 codeHash, workerAddress);
@@ -667,7 +667,7 @@ describe('Ethereum tests', function() {
             await envInitializer.disconnect(web3); //due to: https://github.com/mochajs/mocha/issues/2546
             this.skip();
         }
-        
+
         return new Promise(async function (resolve) {
             const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI}
             let builder = new EnigmaContractAPIBuilder();
@@ -675,7 +675,7 @@ describe('Ethereum tests', function() {
 
             let api2 = res.api;
             let web3_2 = api.w3();
-            
+
             let services = new EthereumServices(api2);
 
             const accounts = await web3_2.eth.getAccounts();

@@ -9,7 +9,7 @@ const Channel = require('../src/main_controller/channels/Channel');
 const constants = require('../src/common/constants');
 const nodeUtils = require('../src/common/utils');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
-
+const expect = require('expect');
 it('#1 send acks to each other', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#1']) {
@@ -53,6 +53,9 @@ it('#1 send acks to each other', async function() {
       } else {
         expect(serverOk).toBeTruthy();
         expect(clientOk).toBeTruthy();
+        // assert.strictEqual(true,serverOk);
+        // assert.strictEqual(true,clientOk);
+
         resolve();
       }
     });
@@ -85,6 +88,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
           expect(resEnv.content().result.report).toBe(report);
           expect(resEnv.content().result.signature).toBe(report_sig);
           expect(resEnv.content().result.signingKey.length).toBe(42);
+      
           coreRuntime.disconnect();
           CoreServer.disconnect();
           resolve();
@@ -118,10 +122,15 @@ it('#3 GetAllTips - mock server', async function() {
     const fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates)=>{
       expect(err).toBeNull();
+      // assert.strictEqual(err,null);
       expect(missingStates.tips.length).toBe(3);
+      // assert.strictEqual(3,missingStates.tips.length);
       expect(missingStates.tips[0].key).toBe(10);
+      // assert.strictEqual(10,missingStates.tips[0].key);
       expect(missingStates.tips[1].key).toBe(34);
+      // assert.strictEqual(34,missingStates.tips[0].key);
       expect(missingStates.tips[2].key).toBe(0);
+      // assert.strictEqual(0,missingStates.tips[0].key);
       await mainController.getNode().stop();
       mainController.getIpcClient().disconnect();
       CoreServer.disconnect();
@@ -154,8 +163,11 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
     c1.sendAndReceive(reqEnv)
         .then((resEnv)=>{
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
+          // assert.strictEqual(resEnv.content().type, constants.CORE_REQUESTS.NewTaskEncryptionKey);
           expect(resEnv.content().id).toBe(reqEnv._id);
-          expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
+          // assert.strictEqual(resEnv.content().id,reqEnv._id);
+          // expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
+
           expect(resEnv.content().result.workerSig).toBeTruthy();
           coreRuntime.disconnect();
           CoreServer.disconnect();
