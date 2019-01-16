@@ -144,4 +144,19 @@ module.exports.CORE_REQUESTS = {
  */
 module.exports.JSON_RPC_SERVER = {
   port: 3000,
-}
+};
+
+/**
+ * Task different status (deploy,compute etc)
+ * - UN unverified , pre ethereum verification (chosen worker, inputHash,payment are the 3 things that needs to be verified)
+ * - IP in-progress , passed to core
+ * - S - success , contains output
+ * - F - failure , contains error status (failed computation, returned from Core)
+ * */
+module.exports.TASK_STATUS = {
+  UNVERIFIED : 'UN',
+  IN_PROGRESS : 'IP',
+  SUCCESS : 'S',
+  FAILED : 'F'
+};
+
