@@ -8,7 +8,7 @@ class ComputeTask extends Task{
   static buildTask(computeReqMsg){
     let expected = ['taskId','encryptedArgs','encryptedFn','userPubKey','gasLimit','contractAddress'];
     let isMissing = expected.some(attr=>{
-      return !(attr in deployReqMsg);
+      return !(attr in computeReqMsg);
     });
     //TODO:: check more stuff in each field when building the task
     if(isMissing){
@@ -48,3 +48,4 @@ class ComputeTask extends Task{
     return this._contractAddr
   }
 }
+module.exports = ComputeTask;

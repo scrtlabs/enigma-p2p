@@ -29,8 +29,8 @@ class TaskManager extends EventEmitter {
   /*
   * Saves a task to the db
   * trigger task action to core and pass this as a result class callback
-  * //TODO:: currently if taskId exists longer than 24 hours overite otherwise ignore. (?)
-  * */
+  * //TODO:: currently if taskId exists it cannot be overwritten
+  */
   addTask(unverifiedTask){
     if(this._isOkToAdd(unverifiedTask)){
       // add to pool
@@ -65,12 +65,11 @@ class TaskManager extends EventEmitter {
    * checks:
    * - if instance of Task
    * AND
-   * - if not existing or if existing then if more than 24 hours unverified
+   * - if not existing
    * */
   _isOkToAdd(unverifiedTask){
     return (unverifiedTask instanceof Task &&
-    (!this.isUnverifiedInPool(unverifiedTask.getTaskId()) ||
-        !this.isKeepAlive(unverifiedTask.getTaskId())));
+    (!this.isUnverifiedInPool(unverifiedTask.getTaskId())));
   }
   /**
    * try verify the task

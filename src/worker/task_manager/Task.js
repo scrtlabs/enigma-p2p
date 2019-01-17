@@ -7,22 +7,27 @@ class Task extends EventEmitter{
     this._taskId = taskId;
     this._status = constants.TASK_STATUS.UNVERIFIED;
   }
-  setStatus(status){
-    if(status in constants.TASK_STATUS){
+  _setStatus(status){
       this._status = status;
       this.emit('status',{taskId : this._taskId, status : status });
-    }else{
-      console.log("[-] Err status %s doesn't exist ",status);
     }
-  }
   setInProgressStatus(){
-    this.setStatus(constants.TASK_STATUS.IN_PROGRESS);
+    this._setStatus(constants.TASK_STATUS.IN_PROGRESS);
+    return this;
+  }
+  setSuccessStatus(){
+    this._setStatus(constants.TASK_STATUS.SUCCESS);
+    return this;
+  }
+  setFailedStatus(){
+    this._setStatus(constants.TASK_STATUS.FAILED);
+    return this;
   }
   getStatus(){
     return this._status;
   }
   getTaskId(){
-    return this.taskId;
+    return this._taskId;
   }
   isUnverified(){
     return (this._status === constants.TASK_STATUS.UNVERIFIED);
