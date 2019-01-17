@@ -15,6 +15,9 @@ class Task extends EventEmitter{
       console.log("[-] Err status %s doesn't exist ",status);
     }
   }
+  setInProgressStatus(){
+    this.setStatus(constants.TASK_STATUS.IN_PROGRESS);
+  }
   getStatus(){
     return this._status;
   }

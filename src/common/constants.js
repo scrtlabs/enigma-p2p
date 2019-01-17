@@ -36,6 +36,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
+  // task computation related
+  DO_WORK : 'dwork', // request to perform a deploySecretContract or computeTask tasks.
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
