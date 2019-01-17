@@ -148,15 +148,15 @@ module.exports.JSON_RPC_SERVER = {
 
 /**
  * Task different status (deploy,compute etc)
- * - UN unverified , pre ethereum verification (chosen worker, inputHash,payment are the 3 things that needs to be verified)
- * - IP in-progress , passed to core
- * - S - success , contains output
- * - F - failure , contains error status (failed computation, returned from Core)
+ * - 0 unverified , pre ethereum verification (chosen worker, inputHash,payment are the 3 things that needs to be verified)
+ * - 1 in-progress , passed to core
+ * - 2 - success , contains output
+ * - 3 - failure , contains error status (failed computation, returned from Core)
  * */
 module.exports.TASK_STATUS = {
-  UNVERIFIED : 'UN',
-  IN_PROGRESS : 'IP',
-  SUCCESS : 'S',
-  FAILED : 'F'
+  UNVERIFIED : '0',
+  IN_PROGRESS : '1',
+  SUCCESS : '2',
+  FAILED : '3'
 };
 

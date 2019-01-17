@@ -21,5 +21,8 @@ class Task extends EventEmitter{
   getTaskId(){
     return this.taskId;
   }
+  isUnverified(){
+    return (this._status === constants.TASK_STATUS.UNVERIFIED);
+  }
 }
 module.exports = Task;

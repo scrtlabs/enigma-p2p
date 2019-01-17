@@ -154,6 +154,12 @@ module.exports.applyDelta= function(main, patch) {
 module.exports.unixTimestamp = function() {
   return timestamp.now();
 };
+/**
+ * get 24 hours in unixtimes stamp
+ * */
+module.exports.unixDay = ()=>{
+  return timestamp.Day;
+};
 /** Turn a 1 level distionary to a list
  * @param {dictionary} dictionary
  * @return {Array}
