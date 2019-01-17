@@ -21,7 +21,7 @@ class DeployTask extends Task{
             deployReqMsg.encryptedFn,
             deployReqMsg.userPubKey,
             deployReqMsg.gasLimit,
-            deployReqMsg.contractAddr,
+            deployReqMsg.contractAddress,
         )
       }
     }
@@ -53,3 +53,4 @@ class DeployTask extends Task{
       return this._contractAddr
     }
 }
+module.exports = DeployTask;
