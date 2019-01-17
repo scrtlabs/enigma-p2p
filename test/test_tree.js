@@ -36,6 +36,10 @@ module.exports.TEST_TREE = {
     'all': true,
     '#1': true,
   },
+  'task_manager' : {
+    'all' : true,
+    '#1' : true,
+  }
 };
 
 

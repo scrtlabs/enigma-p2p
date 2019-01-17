@@ -4,6 +4,8 @@ const path = require('path');
 const Task = require('./Task');
 const EventEmitter = require('events').EventEmitter;
 const nodeUtils = require('../../common/utils');
+const DeployTask = require('./DeployTask');
+const ComputeTask = require('./ComputeTask');
 
 class TaskManager extends EventEmitter {
   constructor(dbPath,logger) {
@@ -13,10 +15,9 @@ class TaskManager extends EventEmitter {
     }else{
       this._dbPath = path.join(__dirname, '/task_manager_db');
     }
-
+    this._DB_MAPPER = 'mapper';
     this._db = new DbApi(this._dbPath);
     this._db.open();
-
     if(logger){
       this._logger = logger;
     }
@@ -59,6 +60,73 @@ class TaskManager extends EventEmitter {
     }else{
       this._logger.error("TaskManager: Task is not not ok to add");
     }
+  }
+  /**
+   * Save a task into the db
+   * @param {DeployTask/ComputeTask} task,
+   * @param {Function} callback (err)=>{}
+   * */
+  _storeTask(task,callback){
+    this._db.get(this._DB_MAPPER,(err,potentialIdsList)=>{
+      // append the task id to list
+      let idsList = [];
+      if(!err){
+        idsList = potentialIdsList;
+      }
+      idsList.push(task.getTaskId());
+      // store back
+      this._db.push(this._DB_MAPPER, JSON.stringify(idsList),(err)=>{
+        if(err){
+          return callback(err);
+        }
+        // store the new task
+      this._db.put(task.getTaskId(),task.toDbJson(),callback);
+      });
+    });
+  }
+  /**
+   * Load a task from the db
+   * @param {string} taskId
+   * @param {Function} callback (err,Task)=>{}
+   * */
+  _readTask(taskId, callback){
+    this._db.get(taskId,(err,res)=>{
+      if(err) return callback(err);
+      let task = null;
+      // deploy task
+      if(res.preCode){
+        task = DeployTask.fromDbJson(res);
+      }else{
+        task = ComputeTask.fromDbJson(res);
+      }
+      if(task){
+        callback(null,task);
+      }else{
+        return callback('error loading task from db');
+      }
+    });
+  }
+  /**
+   * read and delete task from db
+   * */
+  _readAndDelete(taskId, callback){
+    this._readTask(taskId,(err,task)=>{
+      
+    });
+  }
+  /**
+   * delete a Task
+   * @param {string} taskId
+   * @param {Function} callback(err)=>{};
+   * */
+  removeTask(taskId,callback){
+    if(this._unverifiedPool[taskId]){
+      this._unverifiedPool[taskId] = null;
+      this._logger.debug('[UNVERIFIED-DELETE] task ' + taskId + 'deleted');
+    }
+    this._db.delete(taskId,(err)=>{
+      callback(err);
+    });
   }
   /**
    * validation if its ok to add the task to the unverifiedPool
@@ -132,3 +200,4 @@ class TaskManager extends EventEmitter {
   }
 }
 
+module.exports = TaskManager;

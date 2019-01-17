@@ -23,6 +23,13 @@ class LevelDbApi {
       }
     });
   }
+  delete(key,callback){
+    if(this._isOpen()){
+      this._db.del(key,(err)=>{callback(err)});
+    }else{
+      callback('db closed');
+    }
+  }
   put(key, value, callback) {
     if (this._isOpen()) {
       this._db.put(key, value, (err)=>{

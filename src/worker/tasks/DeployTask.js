@@ -52,5 +52,25 @@ class DeployTask extends Task{
     getContractAddr(){
       return this._contractAddr
     }
+    toDbJson(){
+      return JSON.stringify({
+        status : this.getStatus(),
+        taskId : this.getTaskId(),
+        preCode : this.getPreCode(),
+        encryptedArgs : this.getEncyptedArgs(),
+        encryptedFn : this.getEncryptedFn(),
+        userPubKey : this.getUserPubKey(),
+        gasLimit : this.getGasLimit(),
+        contractAddress : this.getContractAddr(),
+      });
+    }
+    static fromDbJson(taskObj){
+      if(taskObj.status){
+        let task = DeployTask.buildTask(taskObj);
+        task._setStatus(taskObj.status);
+        return task;
+      }
+      return null;
+    }
 }
 module.exports = DeployTask;
