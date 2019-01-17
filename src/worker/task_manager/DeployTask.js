@@ -34,9 +34,6 @@ class DeployTask extends Task{
       this._gasLimit = gasLimit;
       this._contractAddr = contractAddr;
     }
-    getTaskId(){
-      return this.taskId;
-    }
     getPreCode(){
       return this._preCode;
     }

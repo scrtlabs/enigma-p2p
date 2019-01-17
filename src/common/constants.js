@@ -119,7 +119,7 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
   Proxy : 'proxy',
 };
 /** IPC core message types
- * in /docs there is  a README called IPC_MESSAGES.md
+ * in /docs there is  a README called IPC_MESSAGES.md# Task Result Propagation in the network
  * describing each message
  * */
 // all the different requests that can be made to Core via the Ipc client

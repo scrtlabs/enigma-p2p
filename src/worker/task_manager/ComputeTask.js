@@ -32,9 +32,6 @@ class ComputeTask extends Task{
     this._gasLimit = gasLimit;
     this._contractAddr = contractAddr;
   }
-  getTaskId(){
-    return this.taskId;
-  }
   getEncyptedArgs(){
     return this._encryptedArgs;
   }

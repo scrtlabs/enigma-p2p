@@ -18,5 +18,8 @@ class Task extends EventEmitter{
   getStatus(){
     return this._status;
   }
+  getTaskId(){
+    return this.taskId;
+  }
 }
 module.exports = Task;
