@@ -111,7 +111,16 @@ class TaskManager extends EventEmitter {
    * */
   _readAndDelete(taskId, callback){
     this._readTask(taskId,(err,task)=>{
-      
+      if(err) return callback(err);
+      this._db.get(this._DB_MAPPER,(err,idsList)=>{
+        if(err) return callback(err);
+        let idx = idsList.indexOf(taskId);
+        if(idx>-1){
+          //TODO:: HW
+          //TODO:: I STOPPED HERE
+          //TODO:: delete the id from the last and store back, then delete the object itself
+        }
+      });
     });
   }
   /**
