@@ -41,6 +41,24 @@ function destroyDb(dbPath,resolve){
     resolve();
   });
 }
+//TODO:: HW stopped at taskId not inclusive
+function generateDeployTasks(num){
+  let tasks = [];
+  for(let i =0;i<num;i++){
+    const user2 = {
+      userEthAddr : '0x' + testUtils.randLenStr(40),
+      userNonce : testUtils.getRandomInt(100),
+      // H(userEthAddr|userNonce)
+      taskId : 'aaac488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02cc',
+      encryptedArgs : '4ff8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e5274f4',
+      encryptedFn : '0b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd',
+      userPubKey : '4343eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741aa',
+      contractAddress : '0x322c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b0233',
+      gasLimit : 24344 ,
+      preCode : 'ab36658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741ba',
+    };
+  }
+}
 describe('TaskManager isolated tests', ()=>{
 
 
@@ -114,6 +132,12 @@ describe('TaskManager isolated tests', ()=>{
       destroyDb(dbPath,resolve);
       });
     });
+  it('#3 Should test onTaskVerify',async function(){
+    if (!tree['all'] || !tree['#3']) {
+      this.skip();
+    }
+
+  });
   // end of suite
 });
 
