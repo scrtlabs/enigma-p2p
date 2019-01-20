@@ -1,5 +1,5 @@
 const level = require('level');
-
+const nodeUtils = require('../common/utils');
 class LevelDbApi {
   constructor(dbName) {
     this._dbName = dbName;
@@ -12,14 +12,16 @@ class LevelDbApi {
     return false;
   }
   open() {
-    this._db = level(this._dbName);
+      this._db = level(this._dbName);
   }
   close(callback) {
     return this._db.close((err)=>{
       if (callback) {
         callback(err);
-      } else {
+      } else if(err){
         console.log('[-] err closing db', err);
+      }else{
+        console.log('[+] success closing db.');
       }
     });
   }
@@ -45,7 +47,10 @@ class LevelDbApi {
         if (err) {
           callback(err, value);
         } else {
-          callback(err, JSON.parse(value));
+          if(nodeUtils.isString(value)){
+            value = JSON.parse(value);
+          }
+          callback(err, value);
         }
       });
     } else {

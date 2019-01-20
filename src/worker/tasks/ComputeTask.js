@@ -60,7 +60,7 @@ class ComputeTask extends Task{
   }
   static fromDbJson(taskObj){
     if(taskObj.status){
-      let task = DeployTask.buildTask(taskObj);
+      let task = ComputeTask.buildTask(taskObj);
       task._setStatus(taskObj.status);
       return task;
     }
