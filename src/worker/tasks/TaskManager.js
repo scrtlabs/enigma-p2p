@@ -72,13 +72,9 @@ class TaskManager extends EventEmitter {
       return callback(err);
     }
   }
-  /*
-  * Saves a task to the db
-  * trigger task action to core and pass this as a result class callback
-  * @param {Task} unverifiedTask
-  * @param {Function} callback(err,isVerified=>{})
-  * //TODO:: currently if taskId exists it cannot be overwritten
-  */
+  /**
+   * @deprecated Since version 0
+   */
   addTask(unverifiedTask,callback){
     if(this._isOkToAdd(unverifiedTask)){
       // add to pool
