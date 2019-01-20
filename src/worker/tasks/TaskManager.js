@@ -40,6 +40,39 @@ class TaskManager extends EventEmitter {
     });
   }
   /*
+  * Promise based version of addTaskUnverified()
+  * **/
+  async asyncAddTaskUnverified(unverifiedTask){
+    return new Promise((res,rej)=>{
+      this.addTaskUnverified(unverifiedTask,err=>{
+        if(err) rej(err);
+        else res();
+      });
+    });
+  }
+  /**
+   * add a new task to the unverified (in-memory) pool.
+   * @param {Task} unverifiedTask
+   * @param {Function} callback (err)=>{}
+   * */
+  addTaskUnverified(unverifiedTask,callback){
+    let err = null;
+    if(this._isOkToAdd(unverifiedTask)){
+      // add to pool
+      this._unverifiedPool[unverifiedTask.getTaskId()] = {
+        time : nodeUtils.unixTimestamp(),
+        task : unverifiedTask,
+      };
+      this.notify({notification : constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, task : unverifiedTask});
+    }else{
+      let err = "TaskManager: Task is not not ok to add";
+      this._logger.error(err);
+    }
+    if(callback){
+      return callback(err);
+    }
+  }
+  /*
   * Saves a task to the db
   * trigger task action to core and pass this as a result class callback
   * @param {Task} unverifiedTask
@@ -114,28 +147,6 @@ class TaskManager extends EventEmitter {
       });
     });
   }
-  /**
-   * Load a task from the db
-   * @param {string} taskId
-   * @param {Function} callback (err,Task)=>{}
-   * */
-  _readTask(taskId, callback){
-    this._db.get(taskId,(err,res)=>{
-      if(err) return callback(err);
-      let task = null;
-      // deploy task
-      if(res.preCode){
-        task = DeployTask.fromDbJson(res);
-      }else{
-        task = ComputeTask.fromDbJson(res);
-      }
-      if(task){
-        callback(null,task);
-      }else{
-        return callback('error loading task from db');
-      }
-    });
-  }
 
   /**
    * Promise based removeTask
@@ -185,11 +196,96 @@ class TaskManager extends EventEmitter {
     let allTasks = [];
     let keys = Object.keys(this._unverifiedPool);
     // add all unverified tasks
-    keys.forEach(_=>{allTasks.push(this._unverifiedPool.task);});
+    keys.forEach(key=>{allTasks.push(this._unverifiedPool[key].task);});
     // add all db tasks
     this._getAllDbTasks((err,tasks)=>{
-      if(err) return callback(err);
-      callback(null,allTasks.concat(tasks));
+      if(err instanceof Error && err.type === "NotFoundError"){
+        return callback(null,allTasks);
+      }else if(err){
+        return callback(err);
+      }else{
+        return callback(null,allTasks.concat(tasks));
+      }
+    });
+  }
+  /**
+   * try verify the task
+   * @param {Task} unverifiedTask
+   * @return {Promise<bool>} true - task verified, false - otherwise
+   * */
+  static async tryVerifyTask(unverifiedTask){
+    return true;
+  }
+  /**
+   * get task
+   * @param {Function} callback(err,Task)=>{}
+   * */
+  getTask(taskId,callback){
+    if(this.isUnverifiedInPool(taskId)){
+      return this._unverifiedPool[taskId].task;
+    }
+    this._readTask(taskId,(err,task)=>{
+      callback(err,task);
+    });
+  }
+  /**
+   * Check the Task status
+   * @param {string} taskId
+   * @return {Function} callback(status or null)
+   * */
+  getTaskStatus(taskId,callback){
+    this.getTask((err,task)=>{
+      if(err) return callback(null);
+      else callback(task.getStatus());
+    });
+  }
+  /**
+   * returns all the tasks from the pull
+   * @return {Array<Task>} unverifiedTasks
+   * */
+  getUnverifiedTasks(){
+    let taskIds  = Object.keys(this._unverifiedPool);
+    return taskIds.map(id=>{
+      return this._unverifiedPool[id].task;
+    });
+  }
+  /**
+   * callback by an action that finished computation
+   *
+   */
+  onFinishTask(taskStatus,taskResult){
+
+  }
+  /**
+   * callback by an action that verified a task
+   * */
+  onVerifyTask(verificationStatus){
+
+  }
+  /** check if task is in unverified explicitly and in pool */
+  isUnverifiedInPool(taskId){
+    return this._unverifiedPool[taskId] && true;
+    // return (this._unverifiedPool[taskId] && this._unverifiedPool[taskId].task.isUnverified());
+  }
+  /**
+   * 24 hours currently
+   * check if the TTL is still ok
+   * i.e if false, then task can be overiden or removed
+   * */
+  isKeepAlive(taskId){
+    let now = nodeUtils.unixTimestamp();
+    return this._unverifiedPool[taskId] &&
+        (now - this._unverifiedPool[taskId].time) < nodeUtils.unixDay();
+  }
+  /**
+   * Promise based version of async
+   * */
+  async asyncStop(){
+    return new Promise((res,rej)=>{
+      this.stop(err=>{
+        if(err) rej(err);
+        else res();
+      });
     });
   }
   /** stop the task manager
@@ -200,6 +296,29 @@ class TaskManager extends EventEmitter {
       callback(err);
     });
   }
+  /**
+   * Load a task from the db
+   * @param {string} taskId
+   * @param {Function} callback (err,Task)=>{}
+   * */
+  _readTask(taskId, callback){
+    this._db.get(taskId,(err,res)=>{
+      if(err) return callback(err);
+      let task = null;
+      // deploy task
+      if(res.preCode){
+        task = DeployTask.fromDbJson(res);
+      }else{
+        task = ComputeTask.fromDbJson(res);
+      }
+      if(task){
+        callback(null,task);
+      }else{
+        return callback('error loading task from db');
+      }
+    });
+  }
+
   /**
    * read and delete task from db
    * */
@@ -294,75 +413,6 @@ class TaskManager extends EventEmitter {
   _isOkToAdd(unverifiedTask){
     return (unverifiedTask instanceof Task &&
     (!this.isUnverifiedInPool(unverifiedTask.getTaskId())));
-  }
-  /**
-   * try verify the task
-   * @param {Task} unverifiedTask
-   * @return {Promise<bool>} true - task verified, false - otherwise
-   * */
-  static async tryVerifyTask(unverifiedTask){
-    return true;
-  }
-  /**
-   * get task
-   * @param {Function} callback(err,Task)=>{}
-   * */
-  getTask(taskId,callback){
-    if(this.isUnverifiedInPool(taskId)){
-      return this._unverifiedPool[taskId].task;
-    }
-    this._readTask(taskId,(err,task)=>{
-      callback(err,task);
-    });
-  }
-  /**
-   * Check the Task status
-   * @param {string} taskId
-   * @return {Function} callback(status or null)
-   * */
-  getTaskStatus(taskId,callback){
-    this.getTask((err,task)=>{
-      if(err) return callback(null);
-      else callback(task.getStatus());
-    });
-  }
-  /**
-   * returns all the tasks from the pull
-   * @return {Array<Task>} unverifiedTasks
-   * */
-  getUnverifiedTasks(){
-    let taskIds  = Object.keys(this._unverifiedPool);
-    return taskIds.map(id=>{
-      return this._unverifiedPool[id].task;
-    });
-  }
-  /**
-   * callback by an action that finished computation
-   *
-   */
-  onFinishTask(taskStatus,taskResult){
-
-  }
-  /**
-   * callback by an action that verified a task
-   * */
-  onVerifyTask(verificationStatus){
-
-  }
-  /** check if task is in unverified explicitly and in pool */
-  isUnverifiedInPool(taskId){
-    return this._unverifiedPool[taskId] && true;
-    // return (this._unverifiedPool[taskId] && this._unverifiedPool[taskId].task.isUnverified());
-  }
-  /**
-   * 24 hours currently
-   * check if the TTL is still ok
-   * i.e if false, then task can be overiden or removed
-   * */
-  isKeepAlive(taskId){
-    let now = nodeUtils.unixTimestamp();
-    return this._unverifiedPool[taskId] &&
-        (now - this._unverifiedPool[taskId].time) < nodeUtils.unixDay();
   }
   /**
    * Notify observer (Some controller subscribed)
