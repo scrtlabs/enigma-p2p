@@ -85,40 +85,9 @@ describe('TaskManager isolated tests', ()=>{
       taskManager.addTaskUnverified(t);
     });
   });
-  it('#2 Should get all ids pointer from db', async function(){
-    if (!tree['all'] || !tree['#3']) {
-      this.skip();
-    }
-    return new Promise(async resolve=>{
-      // init task manager
-      let taskManager = new TaskManager(dbPath, logger);
-      // add tasks
-      let t1 = ComputeTask.buildTask(user1);
-      let t2 = DeployTask.buildTask(user2);
-      let isVerified = await taskManager.asyncAddTask(t1);
-      let storedIds = await taskManager._asyncGetAllStoredIds();
-      assert.strictEqual(1,storedIds.length, "not 1, actually = " + storedIds);
-      assert.strictEqual(true,isVerified,"t1 not verified");
-      let tasks = await taskManager.asyncGetAllTasks();
-      assert.strictEqual(1, tasks.length, "not 1 tasks");
-      isVerified = await taskManager.asyncAddTask(t2);
-      assert.strictEqual(true,isVerified,"t2 not verified");
-      tasks = await taskManager.asyncGetAllTasks();
-      assert.strictEqual(2, tasks.length, "not 2 tasks");
-      // check ids num
-      taskManager._getAllStoredIds((err,ids)=>{
-        assert.ifError(err);
-        assert.strictEqual(2,ids.length,"not 2 id's, actuall = " + ids.length);
-        taskManager.stop((err)=>{
-          assert.ifError(err);
-          destroyDb(dbPath,resolve);
-        });
-      });
-    });
-  });
 
-  it('#3 Should remove Task from db', async function(){
-    if (!tree['all'] || !tree['#3']) {
+  it('#2 Should remove Task from db', async function(){
+    if (!tree['all'] || !tree['#2']) {
       this.skip();
     }
     return new Promise(async resolve => {
@@ -127,31 +96,22 @@ describe('TaskManager isolated tests', ()=>{
       // add tasks
       let t1 = ComputeTask.buildTask(user1);
       let t2 = DeployTask.buildTask(user2);
-      let isVerified = await taskManager.asyncAddTask(t1);
-      assert.strictEqual(true,isVerified,"t1 not verified");
+      await taskManager.asyncAddTaskUnverified(t1);
       let tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(1, tasks.length, "not 1 tasks");
-      isVerified = await taskManager.asyncAddTask(t2);
-      assert.strictEqual(true,isVerified,"t2 not verified");
+      await taskManager.asyncAddTaskUnverified(t2);
       tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(2, tasks.length, "not 2 tasks");
-      let storedIds = await taskManager._asyncGetAllStoredIds();
-      assert.strictEqual(2,storedIds.length,"not 2 stored ids in pointer table, actually = " + storedIds.length);
       // the actuall test - remove 1 task
       await taskManager.asyncRemoveTask(t1.getTaskId());
-      storedIds = await taskManager._asyncGetAllStoredIds();
-      assert.strictEqual(1,storedIds.length,"not 1 stored ids in pointer table, actually = " + storedIds.length);
       tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(1, tasks.length, "not 1 tasks in deletion, now exist: " + tasks.length);
       // remove the second task
       await taskManager.asyncRemoveTask(t2.getTaskId());
       tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(0, tasks.length, "not 0 tasks in deletion, now exist: " + tasks.length);
-
-      taskManager.stop((err)=>{
-        assert.ifError(err);
-        destroyDb(dbPath,resolve);
-      });
+      await taskManager.asyncStop();
+      destroyDb(dbPath,resolve);
       });
     });
   // end of suite

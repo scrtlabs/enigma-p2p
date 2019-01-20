@@ -325,8 +325,12 @@ class TaskManager extends EventEmitter {
   _readAndDelete(taskId, callback){
     this._readTask(taskId,(err,task)=>{
       if(err) {
-        this._logger("error reading task");
-        return callback(err);
+        if(err instanceof Error && err.type === "NotFoundError"){
+          callback(null);
+        }else{
+          this._logger.error("error reading task " + err);
+          return callback(err);
+        }
       }
       this._db.get(this._DB_MAPPER,(err,idsList)=>{
         if(err) return callback(err);
