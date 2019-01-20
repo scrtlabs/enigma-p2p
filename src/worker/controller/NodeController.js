@@ -159,7 +159,7 @@ class NodeController {
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
 
-    this._connectionManager.on('_notify', (params)=>{
+    this._connectionManager.on('notify', (params)=>{
       const notification = params.notification;
 
       const action = this._actions[notification];
@@ -178,12 +178,12 @@ class NodeController {
     // this._cache.start()
   };
   _initEnigmaNode() {
-    this._engNode.on('_notify', (params)=>{
+    this._engNode.on('notify', (params)=>{
       this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
     });
   }
   _initProtocolHandler() {
-    this._protocolHandler.on('_notify', (params)=>{
+    this._protocolHandler.on('notify', (params)=>{
       const notification = params.notification;
       const action = this._actions[notification];
 
@@ -194,7 +194,7 @@ class NodeController {
   }
   _initContentProvider() {
     this._provider = new Provider(this._engNode, this._logger);
-    this._provider.on('_notify',(params)=>{
+    this._provider.on('notify',(params)=>{
       const notification = params.notification;
       const action = this._actions[notification];
       if(action !== undefined){
@@ -204,7 +204,7 @@ class NodeController {
   }
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
-    this._receiver.on('_notify',(params)=>{
+    this._receiver.on('notify',(params)=>{
       const notification = params.notification;
       const action = this._actions[notification];
       if(action !== undefined){

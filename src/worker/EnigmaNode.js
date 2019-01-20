@@ -451,8 +451,8 @@ class EnigmaNode extends EventEmitter {
             if (!pongMsg.isValidMsg()) {
               err = '[-] Err bad pong msg recieved.';
             }
-            // TODO:: REPLACE THAT with normal _notify,
-            // TODO:: The question is - where do I _notify forall inbound/outbound handshakes
+            // TODO:: REPLACE THAT with normal notify,
+            // TODO:: The question is - where do I notify forall inbound/outbound handshakes
             //see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
             this.emit('notify', pongMsg);
             onHandshake(err, peerInfo, ping, pongMsg);

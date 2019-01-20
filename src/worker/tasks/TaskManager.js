@@ -61,7 +61,7 @@ class TaskManager extends EventEmitter {
           if(isVerified){
             this._logger.info("[IN_PROGRESS] verified task " + unverifiedTask.getTaskId());
             unverifiedTask.setInProgressStatus();
-            // save to db & _notify
+            // save to db & notify
             this._storeTask(unverifiedTask,(err)=>{
               if(err){
                 this._logger.error('db error saving verified task to db' + err);
@@ -70,7 +70,7 @@ class TaskManager extends EventEmitter {
                 }
               }
               this._logger.debug("[addTask] saved to db task " + unverifiedTask.getTaskId());
-              this._notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : unverifiedTask});
+              this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : unverifiedTask});
               if(callback) return callback(null,isVerified);
             });
           }else{ // failed to verify
@@ -368,8 +368,8 @@ class TaskManager extends EventEmitter {
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAINT notification field
    */
-  _notify(params) {
-    this.emit('_notify', params);
+  notify(params) {
+    this.emit('notify', params);
   }
 }
 

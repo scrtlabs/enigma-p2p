@@ -71,7 +71,7 @@ describe('TaskManager isolated tests', ()=>{
     return new Promise(resolve => {
       // initialize the taskManager
       let taskManager = new TaskManager(dbPath, logger);
-      taskManager.on('_notify',(obj)=>{
+      taskManager.on('notify',(obj)=>{
         if(constants.NODE_NOTIFICATIONS.TASK_VERIFIED === obj.notification){
           // task added
           console.log("task added!");
