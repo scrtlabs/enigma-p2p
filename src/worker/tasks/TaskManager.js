@@ -254,9 +254,31 @@ class TaskManager extends EventEmitter {
   }
   /**
    * callback by an action that verified a task
+   * - change the task status
+   * - clean from unverified pool
+   * - save to db
+   * - notify (pass to core)
    * */
-  onVerifyTask(verificationStatus){
-
+  onVerifyTask(taskId,isVerified,optionalCb){
+    if(!this.isUnverifiedInPool(taskId)){
+      return this._logger.debug('[VERIFY:] task ' + taskId + ' not in pool.');
+    }
+    if(!isVerified){
+      return this._logger.debug('[VERIFY:] task ' + taskId + ' not verified');
+    }
+    task.setInProgressStatus();
+    this._storeTask(task,(err)=>{
+      if(err){
+        this._logger.error('db error saving verified task to db' + err);
+        if(optionalCb) {
+          return optionalCb(err);
+        }
+      }
+      delete this._unverifiedPool[task.getTaskId()];
+      this._logger.debug("[onVerifyTask] saved to db task " + unverifiedTask.getTaskId());
+      this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : task});
+      if(optionalCb) return optionalCb(null,isVerified);
+    });
   }
   /** check if task is in unverified explicitly and in pool */
   isUnverifiedInPool(taskId){
