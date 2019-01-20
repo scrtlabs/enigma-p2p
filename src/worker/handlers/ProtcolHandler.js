@@ -168,7 +168,7 @@ class ProtocolHandler extends EventEmitter {
     }
     // if currently not connected to discoverd peer
     if (!params.worker.isConnected(params.peer.id.toB58String())) {
-      params.worker.getProtocolHandler().notify({'notification': NOTIFICATION['DISCOVERED'], 'params': params});
+      params.worker.getProtocolHandler()._notify({'notification': NOTIFICATION['DISCOVERED'], 'params': params});
     }
   }
   /** handle when all bootstrap nodes returned peers.
@@ -211,15 +211,15 @@ class ProtocolHandler extends EventEmitter {
               'to': pingMsg.from(),
               'status': STATUS['OK'],
               'seeds': parsed});
-            // notify
+            // _notify
             // TODO:: Below commented code
-            // TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
+            // TODO:: Need to _notify BUT to change and define this is !!!inbound connection!!!
             conn.getPeerInfo((err, peerInfo)=>{
               if (err) {
                 worker.getProtocolHandler()._logger.error('[-] err retrieving peer info from connection on handshake ' + err);
                 return;
               }
-              worker.getProtocolHandler().notify({
+              worker.getProtocolHandler()._notify({
                 'notification': NOTIFICATION.HANDSHAKE_UPDATE,
                 'connectionType': 'inbound',
                 'status': pong.status(),
@@ -308,7 +308,7 @@ class ProtocolHandler extends EventEmitter {
    */
   onStateSync(nodeBundle, params) {
     const self = params.worker.getProtocolHandler();
-    self.notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
+    self._notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
   }
   /**
    * This function is a response when subscribed to pubsub BROADCAST topic

@@ -61,7 +61,7 @@ class TaskManager extends EventEmitter {
           if(isVerified){
             this._logger.info("[IN_PROGRESS] verified task " + unverifiedTask.getTaskId());
             unverifiedTask.setInProgressStatus();
-            // save to db & notify
+            // save to db & _notify
             this._storeTask(unverifiedTask,(err)=>{
               if(err){
                 this._logger.error('db error saving verified task to db' + err);
@@ -70,7 +70,7 @@ class TaskManager extends EventEmitter {
                 }
               }
               this._logger.debug("[addTask] saved to db task " + unverifiedTask.getTaskId());
-              this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : unverifiedTask});
+              this._notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : unverifiedTask});
               if(callback) return callback(null,isVerified);
             });
           }else{ // failed to verify
@@ -79,10 +79,6 @@ class TaskManager extends EventEmitter {
               return callback(null,isVerified);
             }
           }
-          // if(callback){
-          //   console.log("2 --- i call callback");
-          //   return callback(null,isVerified);
-          // }
         }).catch(e=>{
           this._logger.error("[INTERNAL] error verifying task with Ethereum " + e);
           return callback(e);
@@ -140,33 +136,7 @@ class TaskManager extends EventEmitter {
       }
     });
   }
-  /**
-   * read and delete task from db
-   * */
-  _readAndDelete(taskId, callback){
-    this._readTask(taskId,(err,task)=>{
-      if(err) {
-        this._logger("error reading task");
-        return callback(err);
-      }
-      this._db.get(this._DB_MAPPER,(err,idsList)=>{
-        if(err) return callback(err);
-        let idx = idsList.indexOf(taskId);
-        if(idx>-1){
-          let deletedId = idsList.splice(idx,1);
-          this._db.put(this._DB_MAPPER, JSON.stringify(idsList),(err)=>{
-            if(err) return callback(err);
-            // delete the task object
-            this._db.delete(taskId,(err)=>{
-              return callback(err,task);
-            });
-          });
-        }else{
-          this._logger.debug('[ERROR] cant find taskId,skipping');
-        }
-      });
-    });
-  }
+
   /**
    * Promise based removeTask
    * */
@@ -230,6 +200,33 @@ class TaskManager extends EventEmitter {
       callback(err);
     });
   }
+  /**
+   * read and delete task from db
+   * */
+  _readAndDelete(taskId, callback){
+    this._readTask(taskId,(err,task)=>{
+      if(err) {
+        this._logger("error reading task");
+        return callback(err);
+      }
+      this._db.get(this._DB_MAPPER,(err,idsList)=>{
+        if(err) return callback(err);
+        let idx = idsList.indexOf(taskId);
+        if(idx>-1){
+          let deletedId = idsList.splice(idx,1);
+          this._db.put(this._DB_MAPPER, JSON.stringify(idsList),(err)=>{
+            if(err) return callback(err);
+            // delete the task object
+            this._db.delete(taskId,(err)=>{
+              return callback(err,task);
+            });
+          });
+        }else{
+          this._logger.debug('[ERROR] cant find taskId,skipping');
+        }
+      });
+    });
+  }
   /**promise based get all stored ids */
   async _asyncGetAllStoredIds(){
     return new Promise((resolve,reject)=>{
@@ -239,6 +236,7 @@ class TaskManager extends EventEmitter {
       });
     });
   }
+
   /** get all stored task ids
    * @param {Function} callback(err,Array<string>)=>{}
    * */
@@ -285,6 +283,7 @@ class TaskManager extends EventEmitter {
     }
     //TODO continue here HW
   }
+
   /**
    * validation if its ok to add the task to the unverifiedPool
    * checks:
@@ -305,11 +304,27 @@ class TaskManager extends EventEmitter {
     return true;
   }
   /**
+   * get task
+   * @param {Function} callback(err,Task)=>{}
+   * */
+  getTask(taskId,callback){
+    if(this.isUnverifiedInPool(taskId)){
+      return this._unverifiedPool[taskId].task;
+    }
+    this._readTask(taskId,(err,task)=>{
+      callback(err,task);
+    });
+  }
+  /**
    * Check the Task status
    * @param {string} taskId
-   * @return {string} taskStatus
+   * @return {Function} callback(status or null)
    * */
-  getTaskStatus(taskId){
+  getTaskStatus(taskId,callback){
+    this.getTask((err,task)=>{
+      if(err) return callback(null);
+      else callback(task.getStatus());
+    });
   }
   /**
    * returns all the tasks from the pull
@@ -353,8 +368,8 @@ class TaskManager extends EventEmitter {
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAINT notification field
    */
-  notify(params) {
-    this.emit('notify', params);
+  _notify(params) {
+    this.emit('_notify', params);
   }
 }
 

@@ -67,7 +67,7 @@ class ConnectionManager extends EventEmitter {
   }
   /**
    * When the persistent discovery is done, change search state => false
-   * and notify the controller (this._ctx)
+   * and _notify the controller (this._ctx)
    * @param {Json} status , {"success" ; bool}
    * @param {Json} result , {} CURRENTLY IGNORED. TODO:: Add result or delete
    */
@@ -318,7 +318,7 @@ class ConnectionManager extends EventEmitter {
    */
   _updateState() {
     if (this._state === this.NOT_BOOTSTRAPPED) {
-      // check if should be changed + notify
+      // check if should be changed + _notify
       const currentNum = this._handshakedDiscovery.length;
 
       if (this._policy.isEnoughBNodes(currentNum)) {

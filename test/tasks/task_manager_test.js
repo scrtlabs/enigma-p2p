@@ -71,7 +71,7 @@ describe('TaskManager isolated tests', ()=>{
     return new Promise(resolve => {
       // initialize the taskManager
       let taskManager = new TaskManager(dbPath, logger);
-      taskManager.on('notify',(obj)=>{
+      taskManager.on('_notify',(obj)=>{
         if(constants.NODE_NOTIFICATIONS.TASK_VERIFIED === obj.notification){
           // task added
           console.log("task added!");
@@ -154,7 +154,7 @@ describe('TaskManager isolated tests', ()=>{
       await taskManager.asyncRemoveTask(t2.getTaskId());
       tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(0, tasks.length, "not 0 tasks in deletion, now exist: " + tasks.length);
-      
+
       taskManager.stop((err)=>{
         assert.ifError(err);
         destroyDb(dbPath,resolve);
