@@ -71,25 +71,32 @@ describe('TaskManager isolated tests', ()=>{
     return new Promise(resolve => {
       // initialize the taskManager
       let taskManager = new TaskManager(dbPath, logger);
-      taskManager.on('notify',(obj)=>{
-        if(constants.NODE_NOTIFICATIONS.TASK_VERIFIED === obj.notification){
-          // task added
-          console.log("task added!");
-          taskManager.getAllTasks((err,tasks)=>{
-            assert.strictEqual(1,tasks.length,"more than 1 task");
-            assert.strictEqual(user1.taskId,tasks[0].getTaskId(),"task id not equal");
-            assert.strictEqual(constants.TASK_STATUS.IN_PROGRESS,tasks[0].getStatus(), "task not in progress");
-            // close the db
-            taskManager.stop((err)=>{
-              assert.ifError(err);
-              destroyDb(dbPath,resolve);
-            });
-          });
-        }
+      taskManager.on('notify',async (obj)=>{
+        assert.strictEqual(constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, obj.notification, "wrong notification");
+        let tasks = await taskManager.asyncGetAllTasks();
+        assert.strictEqual(1,tasks.length,"not 1, current tasks len = "+tasks.length);
+        assert.strictEqual(user1.taskId,tasks[0].getTaskId(),"task id not equal");
+        assert.strictEqual(constants.TASK_STATUS.UNVERIFIED,tasks[0].getStatus(), "task not unverified");
+        await taskManager.asyncStop();
+        destroyDb(dbPath,resolve);
+        // if(constants.NODE_NOTIFICATIONS.TASK_VERIFIED === obj.notification){
+        //   // task added
+        //   console.log("task added!");
+        //   taskManager.getAllTasks((err,tasks)=>{
+        //     assert.strictEqual(1,tasks.length,"more than 1 task");
+        //     assert.strictEqual(user1.taskId,tasks[0].getTaskId(),"task id not equal");
+        //     assert.strictEqual(constants.TASK_STATUS.IN_PROGRESS,tasks[0].getStatus(), "task not in progress");
+        //     // close the db
+        //     taskManager.stop((err)=>{
+        //       assert.ifError(err);
+        //       destroyDb(dbPath,resolve);
+        //     });
+        //   });
+        // }
       });
       // add task
       let t = ComputeTask.buildTask(user1);
-      taskManager.addTask(t)
+      taskManager.addTaskUnverified(t);
     });
   });
   it('#2 Should get all ids pointer from db', async function(){
