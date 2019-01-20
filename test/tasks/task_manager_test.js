@@ -41,23 +41,24 @@ function destroyDb(dbPath,resolve){
     resolve();
   });
 }
-//TODO:: HW stopped at taskId not inclusive
+
 function generateDeployTasks(num){
   let tasks = [];
   for(let i =0;i<num;i++){
-    const user2 = {
+    tasks.push(DeployTask.buildTask({
       userEthAddr : '0x' + testUtils.randLenStr(40),
       userNonce : testUtils.getRandomInt(100),
       // H(userEthAddr|userNonce)
-      taskId : 'aaac488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02cc',
-      encryptedArgs : '4ff8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e5274f4',
-      encryptedFn : '0b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd',
-      userPubKey : '4343eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741aa',
-      contractAddress : '0x322c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b0233',
-      gasLimit : 24344 ,
-      preCode : 'ab36658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741ba',
-    };
+      taskId : '0x'+testUtils.randLenStr(64),
+      encryptedArgs : testUtils.randLenStr(200),
+      encryptedFn : testUtils.randLenStr(200),
+      userPubKey : testUtils.randLenStr(130),
+      contractAddress : '0x'+testUtils.randLenStr(40),
+      gasLimit : testUtils.getRandomInt(100) ,
+      preCode : testUtils.randLenStr(1000),
+    }));
   }
+  return tasks;
 }
 describe('TaskManager isolated tests', ()=>{
 
@@ -114,10 +115,10 @@ describe('TaskManager isolated tests', ()=>{
       // add tasks
       let t1 = ComputeTask.buildTask(user1);
       let t2 = DeployTask.buildTask(user2);
-      await taskManager.asyncAddTaskUnverified(t1);
+      taskManager.addTaskUnverified(t1);
       let tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(1, tasks.length, "not 1 tasks");
-      await taskManager.asyncAddTaskUnverified(t2);
+      taskManager.addTaskUnverified(t2);
       tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(2, tasks.length, "not 2 tasks");
       // the actuall test - remove 1 task
@@ -136,8 +137,40 @@ describe('TaskManager isolated tests', ()=>{
     if (!tree['all'] || !tree['#3']) {
       this.skip();
     }
-
+    return new Promise(async resolve =>{
+      let tasksNum = 30;
+      let taskManager = new TaskManager(dbPath,logger);
+      let tasks = generateDeployTasks(tasksNum);
+      tasks.forEach(task=>{
+        taskManager.addTaskUnverified(task);
+      });
+      let uvTasks = taskManager.getUnverifiedTasks();
+      // verify exactly 30 tasks in unverified state
+      assert.strictEqual(tasksNum, uvTasks.length,"tasks unverified not " + tasksNum );
+      let allTasks = await taskManager.asyncGetAllTasks();
+      assert.strictEqual(tasksNum, allTasks.length, "tasks total not " + tasksNum);
+      // make all in-progress
+      for(let i=0;i<tasksNum;++i){
+        let isVerified = true;
+        await taskManager.asyncOnVerifyTask(tasks[i].getTaskId(), isVerified)
+      }
+      // verify 0 unverified and 30 in-progress
+      uvTasks = taskManager.getUnverifiedTasks();
+      assert.strictEqual(0, uvTasks.length,"tasks unverified not zero" );
+      allTasks = await taskManager.asyncGetAllTasks();
+      assert.strictEqual(tasksNum, allTasks.length, "tasks total not " + tasksNum);
+      // validate all in-progress state
+      let isError = allTasks.some(t=>{
+        return t.getStatus() !== constants.TASK_STATUS.IN_PROGRESS;
+      });
+      assert.ifError(isError);
+      // finish test
+      await taskManager.asyncStop();
+      destroyDb(dbPath,resolve);
+    });
   });
+
+
   // end of suite
 });
 

@@ -39,23 +39,11 @@ class TaskManager extends EventEmitter {
       });
     });
   }
-  /*
-  * Promise based version of addTaskUnverified()
-  * **/
-  async asyncAddTaskUnverified(unverifiedTask){
-    return new Promise((res,rej)=>{
-      this.addTaskUnverified(unverifiedTask,err=>{
-        if(err) rej(err);
-        else res();
-      });
-    });
-  }
   /**
    * add a new task to the unverified (in-memory) pool.
    * @param {Task} unverifiedTask
-   * @param {Function} callback (err)=>{}
    * */
-  addTaskUnverified(unverifiedTask,callback){
+  addTaskUnverified(unverifiedTask){
     let err = null;
     if(this._isOkToAdd(unverifiedTask)){
       // add to pool
@@ -68,10 +56,9 @@ class TaskManager extends EventEmitter {
       let err = "TaskManager: Task is not not ok to add";
       this._logger.error(err);
     }
-    if(callback){
-      return callback(err);
-    }
+    return err;
   }
+
   /**
    * @deprecated Since version 0
    */
@@ -252,6 +239,18 @@ class TaskManager extends EventEmitter {
   onFinishTask(taskStatus,taskResult){
 
   }
+
+  /***
+   * promise based version of onVerifyTask
+   */
+  async asyncOnVerifyTask(taskId,isVerified){
+    return new Promise((res,rej)=>{
+      this.onVerifyTask(taskId,isVerified,(err)=>{
+        if(err) rej(err);
+        else res();
+      });
+    });
+  }
   /**
    * callback by an action that verified a task
    * - change the task status
@@ -261,11 +260,16 @@ class TaskManager extends EventEmitter {
    * */
   onVerifyTask(taskId,isVerified,optionalCb){
     if(!this.isUnverifiedInPool(taskId)){
-      return this._logger.debug('[VERIFY:] task ' + taskId + ' not in pool.');
+      this._logger.debug('[VERIFY:] task ' + taskId + ' not in pool.');
+      if(optionalCb) return optionalCb(null);
+      return;
     }
     if(!isVerified){
-      return this._logger.debug('[VERIFY:] task ' + taskId + ' not verified');
+      this._logger.debug('[VERIFY:] task ' + taskId + ' not verified');
+      if(optionalCb) return optionalCb(null);
+      return;
     }
+    let task = this._unverifiedPool[taskId].task;
     task.setInProgressStatus();
     this._storeTask(task,(err)=>{
       if(err){
@@ -275,9 +279,9 @@ class TaskManager extends EventEmitter {
         }
       }
       delete this._unverifiedPool[task.getTaskId()];
-      this._logger.debug("[onVerifyTask] saved to db task " + unverifiedTask.getTaskId());
+      this._logger.debug("[onVerifyTask] saved to db task " + task.getTaskId());
       this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : task});
-      if(optionalCb) return optionalCb(null,isVerified);
+      if(optionalCb) return optionalCb(null);
     });
   }
   /** check if task is in unverified explicitly and in pool */
