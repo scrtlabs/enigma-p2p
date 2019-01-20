@@ -79,20 +79,6 @@ describe('TaskManager isolated tests', ()=>{
         assert.strictEqual(constants.TASK_STATUS.UNVERIFIED,tasks[0].getStatus(), "task not unverified");
         await taskManager.asyncStop();
         destroyDb(dbPath,resolve);
-        // if(constants.NODE_NOTIFICATIONS.TASK_VERIFIED === obj.notification){
-        //   // task added
-        //   console.log("task added!");
-        //   taskManager.getAllTasks((err,tasks)=>{
-        //     assert.strictEqual(1,tasks.length,"more than 1 task");
-        //     assert.strictEqual(user1.taskId,tasks[0].getTaskId(),"task id not equal");
-        //     assert.strictEqual(constants.TASK_STATUS.IN_PROGRESS,tasks[0].getStatus(), "task not in progress");
-        //     // close the db
-        //     taskManager.stop((err)=>{
-        //       assert.ifError(err);
-        //       destroyDb(dbPath,resolve);
-        //     });
-        //   });
-        // }
       });
       // add task
       let t = ComputeTask.buildTask(user1);
