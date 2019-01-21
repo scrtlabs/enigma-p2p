@@ -258,7 +258,7 @@ Response:
 The request is a signed messagepack that looks like this: 
 ```
 {
-    prefix: [u8; 14],
+    prefix: b"Enigma Message",
     data: [addresses],
     pubkey: 'DH pubkey',
     id: '12-bytes-msgID',
@@ -277,7 +277,7 @@ Request:
 The response is a signed messagepack that looks like this: 
 ```
 {
-    prefix: [u8; 14],
+    prefix: b"Enigma Message",
     data: enc([(address, stateKey)]),
     pubkey: 'DH pubkey',
     id: '12-bytes-msgID',
