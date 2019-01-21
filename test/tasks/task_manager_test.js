@@ -37,7 +37,6 @@ const user2 = {
 
 function destroyDb(dbPath,resolve){
   testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
-    console.log("[task_mananger] deleted db.");
     resolve();
   });
 }
@@ -73,13 +72,12 @@ describe('TaskManager isolated tests', ()=>{
     // runs before all tests in this block
      logger = new Logger({
       'level': 'debug',
-      'cli': true,
+      'cli': false,
     });
     dbPath = path.join(__dirname, '/tasks_temp_db');
   });
   after((done)=>{
     testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
-      console.log("[task_mananger:AfterAll] deleted db.");
       done();
     });
   });
