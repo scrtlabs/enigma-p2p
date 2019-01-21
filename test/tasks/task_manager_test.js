@@ -152,7 +152,7 @@ describe('TaskManager isolated tests', ()=>{
       // make all in-progress
       for(let i=0;i<tasksNum;++i){
         let isVerified = true;
-        await taskManager.asyncOnVerifyTask(tasks[i].getTaskId(), isVerified)
+        await taskManager.asyncOnVerifyTask(tasks[i].getTaskId(), isVerified);
       }
       // verify 0 unverified and 30 in-progress
       uvTasks = taskManager.getUnverifiedTasks();
