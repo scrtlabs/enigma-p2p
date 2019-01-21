@@ -255,6 +255,15 @@ Response:
     }
 }
 ```
+The request is a signed messagepack that looks like this: 
+```
+{
+    prefix: [u8; 14],
+    data: [addresses],
+    pubkey: 'DH pubkey',
+    id: '12-bytes-msgID',
+}
+```
 
 ### `PTTResponse` message
 Request:
@@ -265,6 +274,16 @@ Request:
     response: 'the-encrypted-response'
 }
 ```
+The response is a signed messagepack that looks like this: 
+```
+{
+    prefix: [u8; 14],
+    data: enc([(address, stateKey)]),
+    pubkey: 'DH pubkey',
+    id: '12-bytes-msgID',
+}
+```
+
 
 Response:
 ```
