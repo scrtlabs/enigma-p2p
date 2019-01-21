@@ -12,6 +12,10 @@ const NODE_NOTIY = constants.NODE_NOTIFICATIONS;
  * - get remote tips
  * - parse them into a format class "MissingStatesMap"
  * - and return the result to the caller.
+ * @return {JSON} res:
+ * { missingStatesMap - a map of the missing states, indexed by the address - address : {deltas: {index: deltaHash}, bytecodeHash},
+ *   missingStatesMsgsMap -  a map of the messages requesting the missing states, indexed by the address - address : [Array<SyncResMsg>]
+ * }
  * */
 class IdentifyMissingStatesAction {
   constructor(controller) {
@@ -77,8 +81,8 @@ class IdentifyMissingStatesAction {
         const deltaHash = missingStatesList[i].deltas[j].deltaHash;
         deltasMap[index] = deltaHash;
       }
-      if ('bytecode' in missingStatesList[i]) {
-        missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap, bytecode: missingStatesList[i].bytecode};
+      if ('bytecodeHash' in missingStatesList[i]) {
+        missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap, bytecodeHash: missingStatesList[i].bytecodeHash};
       }
       else {
         missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap};

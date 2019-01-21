@@ -7,7 +7,7 @@ const EngCid = require('../../../common/EngCID');
 const SyncMsgBuilder = require('../../../policy/p2p_messages/sync_messages').SyncMsgBuilder;
 const constants = require('../../../common/constants');
 
-//TODO:: come to conclusion that this function is unnesceary and delete it.
+// TODO:: come to conclusion that this function is unnesceary and delete it.
 //   /**
 //    * add to this._missingList a another field `ecid`
 //    * we need ecid to be attached and computed heer
@@ -30,15 +30,15 @@ const constants = require('../../../common/constants');
  * @param {JSON} contractData,
  * @return {Boolean} isBcodeRequest
  * */
-function isBCodeRequest(contractData){
+function isBCodeRequest(contractData) {
   return contractData.deltas[0].index === 0;
 }
-function sortAll(missingList){
-    missingList.forEach(contractData=>{
-      contractData.deltas.sort((d1,d2)=>{
-        return d1.index - d2.index;
-      });
+function sortAll(missingList) {
+  missingList.forEach((contractData)=>{
+    contractData.deltas.sort((d1, d2)=>{
+      return d1.index - d2.index;
     });
+  });
 }
 /**
  * parse requests into a SyncMsgBuilder format
@@ -53,23 +53,23 @@ function sortAll(missingList){
       toHash : '0x...'
     };
  * */
-function parseStateReqMsgs(contractData){
-  let parsedReqs = [];
-  let deltas = contractData.deltas;
-  let bucketSize = constants.CONTENT_ROUTING.RANGE_LIMIT;
-  let totalAmount = deltas.length;
-  let bucketsNum = Math.ceil((totalAmount / bucketSize));
+function parseStateReqMsgs(contractData) {
+  const parsedReqs = [];
+  const deltas = contractData.deltas;
+  const bucketSize = constants.CONTENT_ROUTING.RANGE_LIMIT;
+  const totalAmount = deltas.length;
+  const bucketsNum = Math.ceil((totalAmount / bucketSize));
   let begin = 0;
-  for(let i=0;i<bucketsNum;++i){
-    let end = Math.min(begin+bucketSize,totalAmount);
-    let slice = deltas.slice(begin,end);
+  for (let i=0; i<bucketsNum; ++i) {
+    const end = Math.min(begin+bucketSize, totalAmount);
+    const slice = deltas.slice(begin, end);
     // build request
     parsedReqs.push({
-      contractAddress : contractData.address,
-      fromIndex : slice[0].index,
-      fromHash : slice[0].deltaHash,
-      toIndex : slice[slice.length-1].index,
-      toHash : slice[slice.length-1].deltaHash
+      contractAddress: contractData.address,
+      fromIndex: slice[0].index,
+      fromHash: slice[0].deltaHash,
+      toIndex: slice[slice.length-1].index,
+      toHash: slice[slice.length-1].deltaHash,
     });
     begin = end;
   }
@@ -81,27 +81,26 @@ function parseStateReqMsgs(contractData){
  * @param {JSON} contractData , instance of this._missingList
  * @return {Function} callback , (err,res)=>{} // res = {bcodeReq,deltasReq}
  * */
-function buildP2ReqPMsgsOneContract(contractData){
-  let result = {};
-  let reqMsgs = parseStateReqMsgs(contractData);
+function buildP2ReqPMsgsOneContract(contractData) {
+  const result = {};
+  const reqMsgs = parseStateReqMsgs(contractData);
   result.deltasReq = SyncMsgBuilder.batchStateReqFromObjsNoValidation(reqMsgs);
-  if(isBCodeRequest(contractData)){
-    result.bcodeReq = SyncMsgBuilder.bCodeReqFromObjNoValidation({contractAddress : contractData.address});
+  if (isBCodeRequest(contractData)) {
+    result.bcodeReq = SyncMsgBuilder.bCodeReqFromObjNoValidation({contractAddress: contractData.address});
   }
   return result;
 }
 /** create all the missing state messages according to the definitions of a message structure
  * @param {Array<JSON>} missingContent - [{address,deltas:[{deltaHash,index},...]},...]
+ *   Note that the deltas array assumed to be sorted!
  * @return (JSON} result
  * - result param definition:
  *  - EngCID.hash() => {bcodeReq: SyncBcodeReqMsg, deltasReq : [Array<SyncStateResMsg>]}
  * */
 module.exports.createP2PReqMsgsMap = (missingList)=>{
-  //* [{address,deltas:[{deltaHash,index},...]},...]
-  //sortAll(missingList); TOOD:: lena: verify indeed that the list is already sorted
-  let output = {};
-  for(let i=0;i<missingList.length;++i){
-    let reqMsgs = buildP2ReqPMsgsOneContract(missingList[i]);
+  const output = {};
+  for (let i=0; i<missingList.length; ++i) {
+    const reqMsgs = buildP2ReqPMsgsOneContract(missingList[i]);
     output[missingList[i].address] = reqMsgs;
   }
   return output;

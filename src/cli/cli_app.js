@@ -8,10 +8,14 @@ const NodeController = require('../worker/controller/NodeController');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
 
-class CLI{
-  constructor(){
+class CLI {
+  constructor() {
     // mock server
     this._corePort = null;
+
+    // Ethereum stuff
+    this._initEthereum = false;
+    this._enigmaContractAddress = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -228,9 +232,14 @@ class CLI{
     .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
       this._rpcPort = portStr;
     })
-    // .option('-e, --contract-address [value]', 'specify the Enigma contract address to start with',(address)=>{
-    //   Parsers.enigmaContractAddress(address, this._globalWrapper);
-    // })
+    .option('--contract-address [value]', 'specify the Enigma contract address to start with',(address)=>{
+      //Parsers.enigmaContractAddress(address, this._globalWrapper);
+      this._enigmaContractAddress = address;
+    })
+    .option('--ethereum', 'specify the Enigma contract address to start with',()=>{
+      //Parsers.enigmaContractAddress(address, this._globalWrapper);
+      this._initEthereum = true;
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -242,7 +251,7 @@ class CLI{
   }
   async _initEnvironment(){
     let builder = new EnviornmentBuilder();
-    if(this._corePort){
+    if (this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       let coreServer = new CoreServer();
@@ -250,10 +259,16 @@ class CLI{
       coreServer.runServer(uri);
       builder.setIpcConfig({uri : uri});
     }
-    if(this._rpcPort){
+    if (this._rpcPort){
       builder.setJsonRpcConfig({
-        port : parseInt(this._rpcPort),
-        peerId : 'no_id_yet'
+        port: parseInt(this._rpcPort),
+        peerId: 'no_id_yet'
+      });
+    }
+    if (this._initEthereum){
+      builder.setJsonRpcConfig({
+        port: parseInt(this._rpcPort),
+        peerId: 'no_id_yet'
       });
     }
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();

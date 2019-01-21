@@ -4,8 +4,15 @@ const MSG_TYPES = constants.P2P_MESSAGES;
 
 
 class StateSyncReqVerifier {
-  verify(remoteMissingStates, syncMessage, callback) {
+  /**
+   * Verifies the syncMessage contents with the remoteMissingStates that was requested from Ethereum
+   * @param {JSON} remoteMissingStates {address : {deltas: {index: deltaHash}, bytecodeHash: hash}}
+   * @param {SyncMsg} syncMessage
+   * @param {Function} callback (err, isOk)=>{} - isOk is a flag indicating whether the syncMessage is corresponding to the missing information
+   * */
+  static verify(remoteMissingStates, syncMessage, callback) {
     let res = true;
+    let err = null;
 
     const msgType = syncMessage.type();
 
@@ -16,20 +23,17 @@ class StateSyncReqVerifier {
         const data = deltas[i].data;
         const index = deltas[i].key;
         if (!(address in remoteMissingStates)) {
-          // TODO:: lena : error handling
-          //console.log("mismatch with address %s %s", address, remoteMissingStates);
+          err = 'received an unknown address ' + address + ' in SyncStateRes';
           res = false;
           break;
         }
         if (!(index in remoteMissingStates[address].deltas)) {
-          // TODO:: lena : error handling
-          //console.log("mismatch with index %s %s %s", index, address, JSON.stringify(remoteMissingStates[address].deltas));
+          err = 'received an unknown index ' + index + ' for address ' + address;
           res = false;
           break;
         }
         if (remoteMissingStates[address].deltas[index] != DbUtils.kecckak256Hash(data)) {
-          // TODO:: lena : error handling
-          //console.log("mismatch with delta %s %s", DbUtils.kecckak256Hash(data), remoteMissingStates[address].deltas[index]);
+          err = 'delta received for address ' + address + ' in index ' + index + ' does not match remote hash';
           res = false;
           break;
         }
@@ -39,27 +43,23 @@ class StateSyncReqVerifier {
         const address = syncMessage.address();
         const bytecodeHash = DbUtils.kecckak256Hash(syncMessage.bytecode());
         if (!(address in remoteMissingStates)) {
-          // TODO:: lena : error handling
-          //console.log("mismatch with address %s %s", address, remoteMissingStates);
+          err = 'received an unknown address ' + address + ' in SyncBcodeRes';
           res = false;
         }
-        if (!('bytecode' in remoteMissingStates[address])) {
-          // TODO:: lena : error handling
-          //console.log("no bytecode %s", remoteMissingStates[address]);
+        else if (!('bytecodeHash' in remoteMissingStates[address])) {
+          err = 'received a bytecodeHash for unknown address ' + address;
           res = false;
         }
-        if (remoteMissingStates[address].bytecode != bytecodeHash) {
-          // TODO:: lena : error handling
-          //console.log("mismatch with bytecode hash %s %s", bytecodeHash, remoteMissingStates[address].bytecode);
+        else if (remoteMissingStates[address].bytecodeHash != bytecodeHash) {
+          err = 'bytecodeHash received for address ' + address + ' does not match remote hash';
           res = false;
         }
       } else {
-        // TODO:: lena : error handling
-        //console.log("wrong msg type %s", msgType);
+        err = 'received an unknown msgType ' + msgType;
         res = false;
       }
     }
-    callback(res);
+    callback(err, res);
   }
 }
 module.exports = StateSyncReqVerifier;

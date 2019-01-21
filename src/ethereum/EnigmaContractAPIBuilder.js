@@ -11,7 +11,7 @@ function sleep(ms) {
 
 
 const defaultConfig = {
-  websocket: 'ws://127.0.0.1:9545',
+  url: 'ws://127.0.0.1:9545',
   truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
 };
 
@@ -36,9 +36,10 @@ class EnigmaContractAPIBuilder {
      * deploy a smart contract
      * @param {JSON} config - optional
      * {
-     *  websocket - the transport uri
+     *  url - the transport url
      *  truffleDirectory - the root of truffle workspace
      * }
+   * @return {EnigmaContractAPIBuilder} this
      * */
   deploy(config) {
     this.deployFlag = true;
@@ -47,30 +48,33 @@ class EnigmaContractAPIBuilder {
     }
     return this;
   }
-
+  /**
+   * deploy a smart contract
+   * @param {JSON} config - optional
+   * {
+   *  url - the transport url
+   *  truffleDirectory - the root of truffle workspace
+   * }
+   * */
   useDeployed(config) {
     this.useDeployedFlag = true;
     if (config !== undefined && config !== null) {
       this.config = defaultsDeep(config, this.config);
     }
-    // TODO: improve this code!
-    // console.log('here');
-    // console.log(this.config.enigmaContractABI === undefined);
     if (this.config.enigmaContractABI === undefined) {
       const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/EnigmaMock.json'));
       this.config.enigmaContractABI = EnigmaContractJson.abi;
-      // console.log(this.config.enigmaContractABI);
     }
     return this;
   }
   /**
-     * initialize a network instance
-     * @param {JSON} config
-     * {
-     *  websocket - the transport uri
-     *  truffleDirectory - the root of truffle workspace
-     * }
-     * */
+   * initialize a network instance
+   * @param {JSON} config
+   * {
+   *  url - the transport url
+   *  truffleDirectory - the root of truffle workspace
+   * }
+   * */
   createNetwork(config) {
     this.createNetworkFlag = true;
     if (config !== undefined && config !== null) {
@@ -79,6 +83,10 @@ class EnigmaContractAPIBuilder {
     return this;
   }
 
+  /**
+   * build the api instance
+   * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
+   * */
   async build() {
     if (this.createNetworkFlag) {
       await this._startNetwork();
@@ -104,11 +112,9 @@ class EnigmaContractAPIBuilder {
       const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          // console.log(err);
-          reject();
+          reject('ApiBuilder.resetEnv ' + stdout);
         }
         resolve(stderr, stdout);
-        // console.log(stdout);
       });
     });
   }
@@ -118,11 +124,9 @@ class EnigmaContractAPIBuilder {
       const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          // console.log(err);
-          reject();
+          reject('ApiBuilder.buildEnv ' + stdout);
         }
         resolve(stderr, stdout);
-        // console.log(stdout);
       });
     });
   }
@@ -146,7 +150,8 @@ class EnigmaContractAPIBuilder {
 
     const enigmaTokenContract = new this.web3.eth.Contract(EnigmaTokenContractJson.abi);
 
-    const enigmaTokenContractInstance = await enigmaTokenContract.deploy({data: EnigmaTokenContractJson.bytecode, arguments: []})
+    const enigmaTokenContractInstance = await enigmaTokenContract.deploy(
+        {data: EnigmaTokenContractJson.bytecode, arguments: []})
         .send({
           from: sender1,
           gas: 1500000,
@@ -177,7 +182,11 @@ class EnigmaContractAPIBuilder {
   }
 
   _initWeb3() {
-    const websocketProvider = this.config.websocket;
+    if (!this.config.url.startsWith('ws:')) {
+      throw new Error("wrong transport config. Only websocket is currently supported");
+    }
+
+    const websocketProvider = this.config.url;
     const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
     // from https://github.com/ethereum/web3.js/issues/1354
@@ -202,16 +211,16 @@ class EnigmaContractAPIBuilder {
 
   async destroy() {
     if (this.createNetworkFlag) {
-      await this.stop();
+      await this._stop();
     }
-    await this.disconnect();
+    await this._disconnect();
   }
 
-  async stop() {
+  async _stop() {
     await this.environment.subprocess.kill();
   }
 
-  async disconnect() {
+  async _disconnect() {
     await this.web3.currentProvider.disconnect();
   }
 }
