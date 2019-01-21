@@ -289,6 +289,8 @@ Response:
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {0, delta},
         usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
     
@@ -322,6 +324,8 @@ Response:
         output: 'the-output-of-the-execution',
         delta: {key, delta},
         usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
     
