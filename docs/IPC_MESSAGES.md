@@ -234,6 +234,48 @@ Response:
 
 ## Master Node Key-Exchange related
 
+### `GetPTTRequest` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    addresses: [addrress]
+}
+```
+
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    result: {
+        request: 'the-message-packed-request'
+    }
+}
+```
+
+### `PTTResponse` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : PTTResponse,
+    response: 'the-encrypted-response'
+}
+```
+
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    result: {
+        errors: [{address, status}]
+    }
+}
+```
+
 ## Computation related
 
 ### `NewTaskEncryptionKey` message
