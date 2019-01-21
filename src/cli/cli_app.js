@@ -1,12 +1,11 @@
-const constants = require('../common/constants');
 const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
-const NodeController = require('../worker/controller/NodeController');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
+const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
 
 class CLI {
   constructor() {
@@ -16,6 +15,7 @@ class CLI {
     // Ethereum stuff
     this._initEthereum = false;
     this._enigmaContractAddress = null;
+    this._ethereumWebsocketProvider = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -55,17 +55,6 @@ class CLI {
           let uri  ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
           console.log('please visit %s for more info', uri);
         });
-      },
-      'initEthereum' : (args)=>{
-        let enigmaContractAddress = null;
-        let websocketProvider = null;
-        if (args.length > 1) {
-          enigmaContractAddress = args[1];
-          if (args.length > 2) {
-            websocketProvider = args[2];
-          }
-        }
-        this._node.initializeEthereum(enigmaContractAddress, websocketProvider);
       },
       'addPeer': (args)=>{
         const ma = args[1];
@@ -232,13 +221,14 @@ class CLI {
     .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
       this._rpcPort = portStr;
     })
-    .option('--contract-address [value]', 'specify the Enigma contract address to start with',(address)=>{
-      //Parsers.enigmaContractAddress(address, this._globalWrapper);
-      this._enigmaContractAddress = address;
+    .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider',(provider)=>{
+      this._ethereumWebsocketProvider = provider;
     })
-    .option('--ethereum', 'specify the Enigma contract address to start with',()=>{
-      //Parsers.enigmaContractAddress(address, this._globalWrapper);
+    .option('--init-ethereum', 'init Ethereum, optionally provide the Enigma contract address to start with',(address)=>{
       this._initEthereum = true;
+      if (address !== undefined) {
+        this._enigmaContractAddress = address;
+      }
     })
     .parse(process.argv);
   }
@@ -265,15 +255,27 @@ class CLI {
         peerId: 'no_id_yet'
       });
     }
-    if (this._initEthereum){
-      builder.setJsonRpcConfig({
-        port: parseInt(this._rpcPort),
-        peerId: 'no_id_yet'
-      });
-    }
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
     this._node = this._mainController.getNode();
+
+    if (this._initEthereum){
+      /** init Ethereum API
+       * */
+      const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
+      let enigmaContractHandler;
+      if (this._enigmaContractAddress) {
+        let config = {enigmaContractAddress: this._enigmaContractAddress};
+        if (this._ethereumWebsocketProvider) {
+          config.websocket = this._ethereumWebsocketProvider;
+        }
+        enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
+      } else {
+        enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
+      }
+      this._node.setEthereumApi(enigmaContractHandler);
+    }
   }
+
   start() {
     console.log(Parsers.opener);
     let cmds = this._commands;

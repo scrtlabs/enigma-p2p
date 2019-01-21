@@ -25,8 +25,7 @@ const truffleDir = path.join(__dirname, './ethereum/scripts');
 const Verifier = require('../src/worker/state_sync/receiver/StateSyncReqVerifier');
 const Web3 = require('web3');
 
-const defaultsDeep = require('@nodeutils/defaults-deep');
-
+const EnigmaContractAPIBuilder = require('../src/ethereum/EnigmaContractAPIBuilder');
 const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncMsgBuilder;
 
 const parallel = require('async/parallel');
@@ -372,7 +371,11 @@ function syncTest(scenario) {
         .setIpcConfig({uri: peerMockUri})
         .build();
 
-    await peerController.getNode().initializeEthereum(enigmaContractAddress);
+    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
+    const config = {enigmaContractAddress: enigmaContractAddress};
+    const enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
+
+    await peerController.getNode().setEthereumApi(enigmaContractHandler);
 
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
 
@@ -447,8 +450,6 @@ function createSyncMsgForVerifierTest(type, data) {
     rawMsg.type = 'GetContract';
     rawMsg.address = data.address;
     rawMsg.bytecode = data.bytecode;
-    // rawMsg = defaultsDeep(rawMsg, data);
-    console.log('rawMsg=' + JSON.stringify(rawMsg));
   } else {
     return SyncMsgBuilder.msgReqFromObjNoValidation(rawMsg);
   }

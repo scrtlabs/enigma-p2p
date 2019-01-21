@@ -88,7 +88,7 @@ describe('Ethereum tests', function() {
 
       const builder = new EnigmaContractAPIBuilder();
       res = await builder.createNetwork().deploy().build();
-      const api = res.api;
+      const api = res.api();
 
       const accounts = await api.w3().eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
@@ -163,7 +163,7 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedAddressesArray[0], secretContractAddress);
       assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
 
-      await res.environment.destroy();
+      await res.destroy();
       await envInitializer.start(truffleDir);
       resolve();
     }).catch(console.log);
@@ -181,7 +181,7 @@ describe('Ethereum tests', function() {
       const builder = new EnigmaContractAPIBuilder();
       res = await builder.useDeployed(config).build();
 
-      const api2 = res.api;
+      const api2 = res.api();
       const web3_2 = api.w3();
 
       const accounts = await web3_2.eth.getAccounts();
@@ -301,7 +301,7 @@ describe('Ethereum tests', function() {
 
       await api.logout({from: workerAddress});
 
-      await res.environment.destroy();
+      await res.destroy();
 
       resolve();
     });
@@ -641,7 +641,7 @@ describe('Ethereum tests', function() {
       const builder = new EnigmaContractAPIBuilder();
       res = await builder.useDeployed(config).build();
 
-      const api2 = res.api;
+      const api2 = res.api();
       const web3_2 = api.w3();
 
       const services = new EthereumServices(api2);
@@ -732,7 +732,7 @@ describe('Ethereum tests', function() {
 
       api2.unsubscribeAll();
 
-      await res.environment.destroy();
+      await res.destroy();
 
       resolve();
     });

@@ -9,11 +9,23 @@ function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-
 const defaultConfig = {
   url: 'ws://127.0.0.1:9545',
   truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
 };
+
+class EnigmaContractHandler {
+  constructor(api, environment) {
+    this._api = api;
+    this._environment = environment;
+  }
+  api() {
+    return this._api;
+  }
+  async destroy() {
+    await this._environment.destroy();
+  }
+}
 
 class EnigmaContractAPIBuilder {
   constructor() {
@@ -104,7 +116,7 @@ class EnigmaContractAPIBuilder {
       this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
     }
 
-    return {api: this.api, environment: this};
+    return new EnigmaContractHandler(this.api, this);
   }
 
   _resetEnv(truffleDirectory) {
