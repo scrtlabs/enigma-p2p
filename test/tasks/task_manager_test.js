@@ -170,7 +170,6 @@ describe('TaskManager isolated tests', ()=>{
     });
   });
 
-
   // end of suite
 });
 
