@@ -7,22 +7,24 @@ const Envelop = require('../../../../../main_controller/channels/Envelop');
  This action returns all the tips
  either from cache or directly from core.
  * */
-class GetAllTipsAction{
-  constructor(controller){
+class GetAllTipsAction {
+  constructor(controller) {
     this._controller = controller;
   }
-  execute(params){
-    let useCache = params.cache;
-    let onResult = params.onResponse;
-    if(useCache){
-      this._controller.cache().getAllTips((err,tipsList)=>{
+  execute(params) {
+    const useCache = params.cache;
+    const onResult = params.onResponse;
+    if (useCache) {
+      this._controller.cache().getAllTips((err, tipsList)=>{
         //TODO:: implement cache logic
         //TODO:: if cache empty still query core since maybe it was deleted or first time
       });
-    }else{
+    } else {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
-        dbQueryType : constants.CORE_REQUESTS.GetAllTips,
-        onResponse : (err,result)=>{return onResult(err,result);}
+        dbQueryType: constants.CORE_REQUESTS.GetAllTips,
+        onResponse: (err, result)=>{
+          return onResult(err, result.tips);
+        },
       });
     }
   }
