@@ -250,7 +250,8 @@ Response:
     id : <unique_request_id>,
     type : GetPTTRequest,
     result: {
-        request: 'the-message-packed-request'
+        request: 'the-message-packed-request',
+        workerSig: 'the-worker-sig'
     }
 }
 ```
