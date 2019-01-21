@@ -420,7 +420,7 @@ class NodeController {
   }
   /** get the registration params from core
    * @param {Function} callback , (err,result)=>{}
-   * Result object - {signingKey,quote}
+   * Result object - {signingKey,report, signature}
    * */
   getRegistrationParams(callback){
     this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({

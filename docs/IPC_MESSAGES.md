@@ -23,7 +23,8 @@ Response:
     type : GetRegistrationParams,
     result : {
         signingKey : hex,
-        quote : base64
+        report: hex,
+        signature: hex,
     }
 }
 ```
@@ -262,5 +263,71 @@ Response:
 ```
 
 ### `DeploySecretContract` messages
+Request:
+```
+{
+    id: <unique_request_id>,
+    type: DeploySecretContract,
+    input: {
+        preCode: 'the-bytecode',
+        encryptedArgs: 'hex of the encrypted args',
+        encryptedFn: 'hex of the encrypted function signature',
+        userPubKey: 'the-user-dh-pubkey',
+        gasLimit: 'the-user-selected-gaslimit',
+        contractAddress: 'the-address-of-the-contract'
+    }
+}
+```
+
+Response:
+```
+{
+    id: <unique_request_id>,
+    type: DeploySecretContract,
+    result : {
+        exeCode: 'the-deployed-bytecode',
+        preCodeHash: 'hash-of-the-precode-bytecode',
+        delta: {0, delta},
+        usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
+        signature: 'enclave-signature',
+    }
+    
+}
+```
 
 ### `ComputeTask` message
+Request:
+```
+{
+    id: <unique_request_id>,
+    type: ComputeTask,
+    input: {
+        taskID: 'the ID of the task'
+        encryptedArgs: 'hex of the encrypted args',
+        encryptedFn: 'hex of the encrypted function signature',
+        userPubKey: 'the-user-dh-pubkey',
+        gasLimit: 'the-user-selected-gaslimit',
+        contractAddress: 'the-address-of-the-contract'
+    }
+
+}
+```
+
+Response:
+```
+{
+    id: <unique_request_id>,
+    type: ComputeTask,
+    result : {
+        output: 'the-output-of-the-execution',
+        delta: {key, delta},
+        usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
+        signature: 'enclave-signature',
+    }
+    
+}
+```

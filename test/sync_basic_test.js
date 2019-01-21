@@ -430,8 +430,6 @@ function syncTest(scenario) {
       await stopEthereumStuff(web3);
 
       await testUtils.sleep(2000);
-
-      console.log('before resolveing');
       resolve();
     });
   });
