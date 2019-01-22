@@ -74,8 +74,8 @@ class NodeController {
     // TODO:: taskManager see this._initTaskManager()
     this._taskManager = null;
 
-    //TODO:: lena, ethereum api set in this class using this._initEthereumApi()
-    this._enigmaContractApi = null;
+    // // init ethereum api
+    this._enigmaContractHandler = null;
 
     // init logic
     this._initController();
@@ -134,8 +134,9 @@ class NodeController {
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig,_logger);
+
     // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode,_logger);
+    const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
   }
@@ -147,14 +148,8 @@ class NodeController {
     this._initContentReceiver();
     //TODO:: task manager is dummy at the moment
     this._initTaskManager();
-    this._initEthereumApi();
     // this._initCache();
 
-  }
-  //TODO:: lena, init the api here using the builder and everything
-  //TODO:: lena, all the actions and relevant classes should acces the instance using this.etheruem() method
-  _initEthereumApi(){
-    this._enigmaContractApi = null;
   }
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
@@ -230,6 +225,19 @@ class NodeController {
       callback : callback
     });
   }
+  /** set Ethereum API
+   * @param {EnigmaContractHandler} handler
+   * */
+  setEthereumApi(handler) {
+    this._enigmaContractHandler = handler;
+  }
+  /** stop Ethereum, if needed
+   * */
+  async stopEthereum(){
+    if (this._enigmaContractHandler){
+      await this._enigmaContractHandler.destroy();
+    }
+  }
   /*** stop the node */
   async stop(){
     await this.engNode().syncStop();
@@ -271,9 +279,8 @@ class NodeController {
   cache(){
     return this._cache;
   }
-  //TODO:: return initialized api here
   ethereum(){
-    return this._enigmaContractApi;
+    return this._enigmaContractHandler.api();
   }
   logger(){
     return this._logger;

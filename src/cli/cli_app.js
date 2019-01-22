@@ -1,16 +1,21 @@
-const constants = require('../common/constants');
 const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
-const NodeController = require('../worker/controller/NodeController');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
-class CLI{
-  constructor(){
+const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
+
+class CLI {
+  constructor() {
     // mock server
     this._corePort = null;
+
+    // Ethereum stuff
+    this._initEthereum = false;
+    this._enigmaContractAddress = null;
+    this._ethereumWebsocketProvider = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -217,6 +222,15 @@ class CLI{
     .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
       this._rpcPort = portStr;
     })
+    .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider',(provider)=>{
+      this._ethereumWebsocketProvider = provider;
+    })
+    .option('--init-ethereum', 'init Ethereum, optionally provide the Enigma contract address to start with',(address)=>{
+      this._initEthereum = true;
+      if (address !== undefined) {
+        this._enigmaContractAddress = address;
+      }
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -228,21 +242,39 @@ class CLI{
   }
   async _initEnvironment(){
     let builder = new EnviornmentBuilder();
-    if(this._corePort){
+    if (this._corePort){
       let uri ='tcp://127.0.0.1:' + this._corePort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      CoreServer.setProvider(true);
-      CoreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      let coreServer = new CoreServer();
+      coreServer.setProvider(true);
+      coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
       builder.setIpcConfig({uri : uri});
     }
-    if(this._rpcPort){
+    if (this._rpcPort){
       builder.setJsonRpcConfig({
-        port : parseInt(this._rpcPort),
-        peerId : 'no_id_yet'
+        port: parseInt(this._rpcPort),
+        peerId: 'no_id_yet'
       });
     }
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
     this._node = this._mainController.getNode();
+
+    if (this._initEthereum){
+      /** init Ethereum API
+       * */
+      const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
+      let enigmaContractHandler;
+      if (this._enigmaContractAddress) {
+        let config = {enigmaContractAddress: this._enigmaContractAddress};
+        if (this._ethereumWebsocketProvider) {
+          config.websocket = this._ethereumWebsocketProvider;
+        }
+        enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
+      } else {
+        enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
+      }
+      this._node.setEthereumApi(enigmaContractHandler);
+    }
   }
   start() {
     console.log(Parsers.opener);

@@ -20,41 +20,50 @@ class TryReceiveAllAction{
    * */
   execute(params){
     let allMissingDataList = params.allMissingDataList;
+    let remoteMissingStatesMap = params.remoteMissingStatesMap;
     let onFinish = params.onFinish;
     let receiver = this._controller.receiver();
+    
+    if (allMissingDataList.length === 0) {
+      return onFinish("no providers were found");
+    }
+
     let jobs = [];
     let firstJob = allMissingDataList[0];
+
+    // pass the missingStateList to the receiver
+    receiver.setRemoteMissingStatesMap(remoteMissingStatesMap);
     // init the first job
     jobs.push(cb=>{
       receiver.trySyncReceive(firstJob.providers,firstJob.requestMessages,
-          (err,isDone,resultList)=>{
-            if(err){
+          (err, isDone, resultList)=>{
+            if (err) {
               return cb(err);
-            }else{
+            } else {
               let allResults = [];
-              allResults.push({success:isDone, resultList : resultList , error : err});
-              return cb(null,allResults);
+              allResults.push({success: isDone, resultList: resultList, error: err});
+              return cb(null, allResults);
             }
-      });
+          });
     });
     // init the rest of the jobs
-    for(let i=1;i<allMissingDataList.length;++i){
+    for (let i=1; i<allMissingDataList.length; ++i) {
       let providers = allMissingDataList[i].providers;
       let requestMessages = allMissingDataList[i].requestMessages;
       jobs.push((allResults,cb)=>{
-        receiver.trySyncReceive(providers,requestMessages,(err,isDone,resultList)=>{
-          if(err){
+        receiver.trySyncReceive(providers, requestMessages,(err,isDone,resultList)=>{
+          if (err) {
             return cb(err);
-          }else{
-            allResults.push({success:isDone, resultList : resultList , error : err});
-            return cb(null,allResults);
+          } else {
+            allResults.push({success: isDone, resultList: resultList, error: err});
+            return cb(null, allResults);
           }
         });
       });
     }
     // execute all the jobs
-    waterfall(jobs,(err,allResults)=>{
-      onFinish(err,allResults);
+    waterfall(jobs, (err,allResults)=>{
+      onFinish(err, allResults);
     });
   }
 }
