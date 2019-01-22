@@ -1,6 +1,8 @@
 const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
+const DeployResult = require('../../src/worker/tasks/Result').DeployResult;
+const ComputeResult = require('../../src/worker/tasks/Result').ComputeResult;
 const assert = require('assert');
 const constants = require('../../src/common/constants');
 const userEthAddr = '0xce16109f8b49da5324ce97771b81247db6e17868';
@@ -76,3 +78,48 @@ it('#2 Should test DeployTask', function(done){
 });
 
 
+it('#3 Should test DeployResult and ComputeResult', function(done){
+  let taskRawObj = {
+    taskId : userTaskId,
+    preCode : preCode,
+    encryptedArgs : encryptedArgs,
+    encryptedFn : encryptedFn,
+    userPubKey : userPubKey,
+    gasLimit : 1200,
+    contractAddress : contractAddress
+  };
+
+  let deployTask = DeployTask.buildTask(taskRawObj);
+  let computeTask = ComputeTask.buildTask(taskRawObj);
+
+  let resultRawObj = {
+    taskId : deployTask.getTaskId(),
+    status : constants.TASK_STATUS.SUCCESS,
+    output : [123,22,4,55,66],
+    delta : {index : 2, delta : [96,22,4,55,66,88]},
+    usedGas : 213,
+    ethereumPayload : [233,46,78],
+    ethereumAddress : 'cc353334487696ebc3e15411e0b106186eba3c0c',
+    signature : [233,43,67,54],
+    preCodeHash : '87c2d362de99f75a4f2755cdaaad2d11bf6cc65dc71356593c445535ff28f43d'
+  };
+  // create deploy result
+  let deployResult = DeployResult.buildDeployResult(resultRawObj);
+  // set deploy result
+  deployTask.setResult(deployResult);
+  // create compute result
+  resultRawObj.status = constants.TASK_STATUS.FAILED;
+  let computeResult = ComputeResult.buildComputeResult(resultRawObj);
+  // set compute result
+  computeTask.setResult(computeResult);
+
+  // test compute result
+  assert.strictEqual(constants.TASK_STATUS.FAILED,computeTask.getStatus(),"status didnt change");
+  assert.strictEqual(true,computeResult.isFailed(),"result not success");
+  assert.strictEqual(false, computeTask.isUnverified(), "task is unverified");
+  // test deploy result
+  assert.strictEqual(constants.TASK_STATUS.SUCCESS,deployTask.getStatus(),"status didnt change");
+  assert.strictEqual(true,deployResult.isSuccess(),"result not success");
+  assert.strictEqual(false, deployTask.isUnverified(), "task is unverified");
+  done();
+});

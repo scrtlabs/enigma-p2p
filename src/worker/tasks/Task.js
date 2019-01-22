@@ -1,6 +1,6 @@
 const constants = require('../../common/constants');
 const EventEmitter = require('events').EventEmitter;
-const Result = require('./Result');
+const Result = require('./Result').Result;
 class Task extends EventEmitter{
   constructor(taskId){
     super();
