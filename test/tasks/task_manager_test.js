@@ -161,13 +161,12 @@ describe('TaskManager isolated tests', ()=>{
       let isError = allTasks.some(t=>{
         return t.getStatus() !== constants.TASK_STATUS.IN_PROGRESS;
       });
-      assert.ifError(isError);
+      assert.strictEqual(false,isError,"some task is not in-progress");
       // finish test
       await taskManager.asyncStop();
       destroyDb(dbPath,resolve);
     });
   });
-
   // end of suite
 });
 

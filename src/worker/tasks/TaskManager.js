@@ -274,9 +274,8 @@ class TaskManager extends EventEmitter {
     this._storeTask(task,(err)=>{
       if(err){
         this._logger.error('db error saving verified task to db' + err);
-        if(optionalCb) {
-          return optionalCb(err);
-        }
+        if(optionalCb) optionalCb(err);
+        return;
       }
       delete this._unverifiedPool[task.getTaskId()];
       this._logger.debug("[onVerifyTask] saved to db task " + task.getTaskId());
