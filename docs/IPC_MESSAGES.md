@@ -234,6 +234,68 @@ Response:
 
 ## Master Node Key-Exchange related
 
+### `GetPTTRequest` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    addresses: [addrress]
+}
+```
+
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    result: {
+        request: 'the-message-packed-request',
+        workerSig: 'the-worker-sig'
+    }
+}
+```
+The request is a signed messagepack that looks like this: 
+```
+{
+    prefix: b"Enigma Message",
+    data: [addresses],
+    pubkey: 'DH pubkey',
+    id: '12-bytes-msgID',
+}
+```
+
+### `PTTResponse` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : PTTResponse,
+    response: 'the-encrypted-response'
+}
+```
+The response is a signed messagepack that looks like this: 
+```
+{
+    prefix: b"Enigma Message",
+    data: enc([(address, stateKey)]),
+    pubkey: 'DH pubkey',
+    id: '12-bytes-msgID',
+}
+```
+
+
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : GetPTTRequest,
+    result: {
+        errors: [{address, status}]
+    }
+}
+```
+
 ## Computation related
 
 ### `NewTaskEncryptionKey` message
@@ -285,7 +347,7 @@ Response:
     id: <unique_request_id>,
     type: DeploySecretContract,
     result : {
-        exeCode: 'the-deployed-bytecode',
+        output: 'the-deployed-bytecode', // AKA preCode
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {0, delta},
         usedGas: 'amount-of-gas-used',
