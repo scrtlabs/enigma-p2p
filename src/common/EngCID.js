@@ -1,6 +1,8 @@
 const CIDUtil = require('./CIDUtil');
 const EncoderUtil = require('./EncoderUtil');
-
+/**
+ * Abstraction - wrapper to libp2p-cid 
+ * */
 class EngCID {
   constructor(encoder = EncoderUtil) {
     this._encoder = encoder;
