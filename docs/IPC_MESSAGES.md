@@ -347,7 +347,7 @@ Response:
     id: <unique_request_id>,
     type: DeploySecretContract,
     result : {
-        exeCode: 'the-deployed-bytecode',
+        output: 'the-deployed-bytecode', // AKA preCode
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {0, delta},
         usedGas: 'amount-of-gas-used',
