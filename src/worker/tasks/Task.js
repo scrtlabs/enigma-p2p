@@ -10,7 +10,7 @@ class Task extends EventEmitter{
   _setStatus(status){
       this._status = status;
       this.emit('status',{taskId : this._taskId, status : status });
-    }
+  }
   setInProgressStatus(){
     this._setStatus(constants.TASK_STATUS.IN_PROGRESS);
     return this;
