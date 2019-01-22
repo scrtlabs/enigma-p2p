@@ -12,7 +12,8 @@ const peerConfig = {
 async function test(){
   const uri = 'tcp://127.0.0.1:5555';
   // start the server (core)
-  CoreServer.runServer(uri);
+  let coreServer = new CoreServer();
+  coreServer.runServer(uri);
   await utils.sleep(1500);
   // start the client (enigma-p2p)
   let builder = new EnvironmentBuilder();

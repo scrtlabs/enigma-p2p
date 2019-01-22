@@ -32,6 +32,7 @@ describe('JsonRPC tests', () => {
   let proxyController;
   let workerController;
   let JsonRpcClient;
+  let coreServer;
 
   before(() => {
     const callServer = function(request, callback) {
@@ -66,8 +67,9 @@ describe('JsonRPC tests', () => {
       waterfall([
         (cb)=>{
           // start the mock server first
-          CoreServer.setProvider(true);
-          CoreServer.runServer(workerCoreUri);
+          coreServer = new CoreServer();
+          coreServer.setProvider(true);
+          coreServer.runServer(workerCoreUri);
           cb(null);
         },
         (cb)=>{
@@ -108,7 +110,7 @@ describe('JsonRPC tests', () => {
       await proxyController.getNode().stop();
       workerController.getIpcClient().disconnect();
       await workerController.getNode().stop();
-      CoreServer.disconnect();
+      coreServer.disconnect();
       resolve();
     });
   });

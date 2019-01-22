@@ -94,12 +94,12 @@ contract EnigmaMock {
     // An address-based index of all registered worker
     address[] public workerAddresses;
     // An address-based index of all secret contracts
-    address[] public scAddresses;
+    bytes32[] public scAddresses;
 
     // A registry of all registered workers with their attributes
     mapping(address => Worker) public workers;
     mapping(bytes32 => TaskRecord) public tasks;
-    mapping(address => SecretContract) public contracts;
+    mapping(bytes32 => SecretContract) public contracts;
 
     // A mapping of number of secret contract deployments for each address
     mapping(address => uint) public userSCDeployments;
@@ -117,7 +117,7 @@ contract EnigmaMock {
     event ReceiptVerified(bytes32 taskId, bytes32 inStateDeltaHash, bytes32 outStateDeltaHash, bytes ethCall, bytes sig);
     event ReceiptsVerified(bytes32[] taskIds, bytes32[] inStateDeltaHashes, bytes32[] outStateDeltaHashes, bytes ethCall, bytes sig);
     event DepositSuccessful(address from, uint value);
-    event SecretContractDeployed(address scAddr, bytes32 codeHash);
+    event SecretContractDeployed(bytes32 scAddr, bytes32 codeHash);
 
     constructor(address _tokenAddress, address _principal) public {
         engToken = ERC20(_tokenAddress);
@@ -150,7 +150,7 @@ contract EnigmaMock {
         _;
     }
 
-    modifier contractDeployed(address _scAddr) {
+    modifier contractDeployed(bytes32 _scAddr) {
         require(contracts[_scAddr].status == SecretContractStatus.Deployed, "Secret contract not deployed.");
         _;
     }
@@ -204,7 +204,7 @@ contract EnigmaMock {
 
     // TODO: should the scAddr be computed on-chain from the codeHash + some randomness
     // TODO: should any user deploy a secret contract or only a trusted enclave?
-    function deploySecretContract(address _scAddr, bytes32 _codeHash, address _owner, bytes _sig)
+    function deploySecretContract(bytes32 _scAddr, bytes32 _codeHash, address _owner, bytes _sig)
     public
     workerRegistered(msg.sender)
     {
@@ -224,7 +224,7 @@ contract EnigmaMock {
         emit SecretContractDeployed(_scAddr, _codeHash);
     }
 
-    function isDeployed(address _scAddr)
+    function isDeployed(bytes32 _scAddr)
     public
     view
     returns (bool)
@@ -236,7 +236,7 @@ contract EnigmaMock {
         }
     }
 
-    function getCodeHash(address _scAddr)
+    function getCodeHash(bytes32 _scAddr)
     public
     view
     contractDeployed(_scAddr)
@@ -259,12 +259,12 @@ contract EnigmaMock {
     function getSecretContractAddresses(uint _start, uint _stop)
     public
     view
-    returns (address[])
+    returns (bytes32[])
     {
         if (_stop == 0) {
             _stop = scAddresses.length;
         }
-        address[] memory addresses = new address[](_stop.sub(_start));
+        bytes32[] memory addresses = new bytes32[](_stop.sub(_start));
         uint pos = 0;
         for (uint i = _start; i < _stop; i++) {
             addresses[pos] = scAddresses[i];
@@ -273,7 +273,7 @@ contract EnigmaMock {
         return addresses;
     }
 
-    function countStateDeltas(address _scAddr)
+    function countStateDeltas(bytes32 _scAddr)
     public
     view
     contractDeployed(_scAddr)
@@ -282,7 +282,7 @@ contract EnigmaMock {
         return contracts[_scAddr].stateDeltaHashes.length;
     }
 
-    function getStateDeltaHash(address _scAddr, uint _index)
+    function getStateDeltaHash(bytes32 _scAddr, uint _index)
     public
     view
     contractDeployed(_scAddr)
@@ -294,7 +294,7 @@ contract EnigmaMock {
     /**
     * Selects state deltas from _start up to, but not including, the _stop number
     **/
-    function getStateDeltaHashes(address _scAddr, uint _start, uint _stop)
+    function getStateDeltaHashes(bytes32 _scAddr, uint _start, uint _stop)
     public
     view
     contractDeployed(_scAddr)
@@ -312,7 +312,7 @@ contract EnigmaMock {
         return deltas;
     }
 
-    function isValidDeltaHash(address _scAddr, bytes32 _stateDeltaHash)
+    function isValidDeltaHash(bytes32 _scAddr, bytes32 _stateDeltaHash)
     public
     view
     contractDeployed(_scAddr)
@@ -374,7 +374,7 @@ contract EnigmaMock {
     }
 
     function verifyReceipt(
-        address _scAddr,
+        bytes32 _scAddr,
         bytes32 _taskId,
         bytes32 _inStateDeltaHash,
         bytes32 _outStateDeltaHash,
@@ -408,7 +408,7 @@ contract EnigmaMock {
     * Commit the computation task results on chain
     */
     function commitReceipt(
-        address _scAddr,
+        bytes32 _scAddr,
         bytes32 _taskId,
         bytes32 _inStateDeltaHash,
         bytes32 _outStateDeltaHash,
@@ -428,7 +428,7 @@ contract EnigmaMock {
     }
 
     function verifyReceipts(
-        address _scAddr,
+        bytes32 _scAddr,
         bytes32[] _taskIds,
         bytes32[] _inStateDeltaHashes,
         bytes32[] _outStateDeltaHashes,
@@ -463,7 +463,7 @@ contract EnigmaMock {
     }
 
     function commitReceipts(
-        address _scAddr,
+        bytes32 _scAddr,
         bytes32[] _taskIds,
         bytes32[] _inStateDeltaHashes,
         bytes32[] _outStateDeltaHashes,
@@ -566,7 +566,7 @@ contract EnigmaMock {
         return (params.firstBlockNumber, params.seed, params.workers, params.balances);
     }
 
-    function compileTokens(uint _blockNumber, uint _paramIndex, address _scAddr, uint _nonce)
+    function compileTokens(uint _blockNumber, uint _paramIndex, bytes32 _scAddr, uint _nonce)
     internal
     view
     returns (address)
@@ -592,7 +592,7 @@ contract EnigmaMock {
         return params.workers[params.workers.length - 1];
     }
 
-    function getWorkerGroup(uint _blockNumber, address _scAddr)
+    function getWorkerGroup(uint _blockNumber, bytes32 _scAddr)
     public
     view
     returns (address[])

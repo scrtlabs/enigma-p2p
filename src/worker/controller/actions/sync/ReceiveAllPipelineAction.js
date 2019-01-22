@@ -2,6 +2,9 @@ const constants = require('../../../../common/constants');
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
 const waterfall = require('async/waterfall');
 const EngCid = require('../../../../common/EngCID');
+
+const util = require('util');
+
 /**
  * RECEIVER SIDE
  * Q: What does it do?
@@ -29,17 +32,20 @@ class ReceiveAllPipelineAction {
         this._controller.execCmd(
             NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
               cache: cache,
-              onResponse: (err, missingStatesMsgsMap) => {
-                cb(err, missingStatesMsgsMap);
-              }
+              onResponse: (err, res) => {
+                if (err) {
+                  return cb(err);
+                }
+                return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
+              },
             });
       },
-      (missingStatesMap, cb) => {
+      (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
         let err = null;
         let ecids = [];
         //TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
         let tempEcidToAddrMap = {};
-        for (let addrKey in missingStatesMap) {
+        for (let addrKey in missingStatesMsgsMap) {
           let ecid = EngCid.createFromSCAddress(addrKey);
           if (ecid) {
             //TODO:: every EngCid should expose the address as a built
@@ -50,18 +56,18 @@ class ReceiveAllPipelineAction {
             err = "error creating EngCid from " + addrKey;
           }
         }
-        return cb(err, ecids,missingStatesMap,tempEcidToAddrMap);
+        return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
       },
-      (ecidList,missingStatesMap, tempEcidToAddrMap,cb) => {
+      (ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
         this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
           descriptorsList: ecidList,
           isEngCid: true,
           next: (findProviderResult) => {
-            return cb(null, findProviderResult, ecidList,missingStatesMap,tempEcidToAddrMap);
+            return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
           }
         });
       },
-      (findProviderResult, ecids, missingStatesMap,tempEcidToAddrMap,cb) => {
+      (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
         if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
           cb("[-] some error finding providers !");
         }
@@ -74,11 +80,12 @@ class ReceiveAllPipelineAction {
             providers: findProviderResult.getProvidersFor(ecid)
           });
         });
-        return cb(null, allReceiveData);
+        return cb(null, allReceiveData, remoteMissingStatesMap);
       },
-      (allReceiveData, cb) => {
+      (allReceiveData, remoteMissingStatesMap, cb) => {
         this._controller.execCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
           allMissingDataList: allReceiveData,
+          remoteMissingStatesMap: remoteMissingStatesMap,
           onFinish: (err, allResults) => {
             cb(err, allResults)
           }

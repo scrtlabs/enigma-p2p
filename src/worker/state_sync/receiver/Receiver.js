@@ -17,6 +17,7 @@ class Receiver extends EventEmitter {
     this._policy = new Policy();
     this._engNode = enigmaNode;
     this._logger = logger;
+    this._remoteMissingStatesMap = null;
     streams.setGlobalState({logger : this._logger, receiverContext : this});
   }
 
@@ -120,9 +121,9 @@ class Receiver extends EventEmitter {
             status.msgType = data.data.type();
             status.success = data.status.success;
             status.payload = data.data;
-            console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6');
-            console.log(status);
-            console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
+            // console.log('^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^6');
+            // console.log(status);
+            // console.log('@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2');
             return status;
           }),
           pull.collect((err,resultList)=>{
@@ -159,10 +160,10 @@ class Receiver extends EventEmitter {
         if(err) {
           // general error - retry
           isDone = false;
-          cb(null,isDone, resultList);
-        }else{
+          cb(null, isDone, resultList);
+        } else {
           // were done.
-          cb(null,isDone,resultList);
+          cb(null, isDone,resultList);
         }
       });
     });
@@ -181,7 +182,7 @@ class Receiver extends EventEmitter {
               // general error - retry
               isDone = false;
             }
-              // were done.
+            // were done.
             return cb(null,isDone, resultList);
           });
         }
@@ -211,10 +212,22 @@ class Receiver extends EventEmitter {
       callback(err,isDone,resultList);
     });
   }
+  /**
+   * set the missing state needed for the sync scenario
+   * @param {Object} remoteMissingStatesMap
+   * */
+  setRemoteMissingStatesMap(remoteMissingStatesMap) {
+    this._remoteMissingStatesMap = remoteMissingStatesMap;
+  }
+  /**
+   * get the missing state needed for the sync scenario
+   * @return {Object} remoteMissingStatesMap
+   * */
+  getRemoteMissingStatesMap() {
+    return this._remoteMissingStatesMap;
+  }
 }
 module.exports = Receiver;
-
-
 
 
 
