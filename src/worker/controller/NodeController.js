@@ -207,6 +207,13 @@ class NodeController {
       }
     });
   }
+  /** stop Ethereum, if needed
+   * */
+  async _stopEthereum(){
+    if (this._enigmaContractHandler){
+      await this._enigmaContractHandler.destroy();
+    }
+  }
   /***********************
    * public methods
    *********************/
@@ -231,16 +238,10 @@ class NodeController {
   setEthereumApi(handler) {
     this._enigmaContractHandler = handler;
   }
-  /** stop Ethereum, if needed
-   * */
-  async stopEthereum(){
-    if (this._enigmaContractHandler){
-      await this._enigmaContractHandler.destroy();
-    }
-  }
   /*** stop the node */
-  async stop(){
+  async stop() {
     await this.engNode().syncStop();
+    await this._stopEthereum();
   }
   /**
    * "Runtime Id" required method for the main controller
