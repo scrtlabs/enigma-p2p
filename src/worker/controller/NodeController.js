@@ -231,16 +231,14 @@ class NodeController {
   setEthereumApi(handler) {
     this._enigmaContractHandler = handler;
   }
-  /** stop Ethereum, if needed
-   * */
-  async stopEthereum(){
+  /*** stop the node */
+  async stop(){
+    // stop libp2p services
+    await this.engNode().syncStop();
+    // stop ethereum services
     if (this._enigmaContractHandler){
       await this._enigmaContractHandler.destroy();
     }
-  }
-  /*** stop the node */
-  async stop(){
-    await this.engNode().syncStop();
   }
   /**
    * "Runtime Id" required method for the main controller
