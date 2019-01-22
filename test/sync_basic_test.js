@@ -422,8 +422,6 @@ function syncTest(scenario) {
       await peerController.getNode().stop();
       peerController.getIpcClient().disconnect();
 
-      peerController.getNode().stopEthereum();
-
       dnsMockCore.disconnect();
       peerMockCore.disconnect();
 

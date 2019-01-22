@@ -259,20 +259,13 @@ class CLI {
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
     this._node = this._mainController.getNode();
 
-    if (this._initEthereum){
-      /** init Ethereum API
-       * */
+    /** init Ethereum API
+     * */
+    if (this._initEthereum) {
       const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-      let enigmaContractHandler;
-      if (this._enigmaContractAddress) {
-        let config = {enigmaContractAddress: this._enigmaContractAddress};
-        if (this._ethereumWebsocketProvider) {
-          config.websocket = this._ethereumWebsocketProvider;
-        }
-        enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
-      } else {
-        enigmaContractHandler = await enigmaContractAPIbuilder.createNetwork().deploy().build();
-      }
+      const enigmaContractHandler = await enigmaContractAPIbuilder.setConfigAndBuild(
+          this._enigmaContractAddress, this._ethereumWebsocketProvider);
+
       this._node.setEthereumApi(enigmaContractHandler);
     }
   }

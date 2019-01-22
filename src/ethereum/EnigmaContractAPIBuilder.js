@@ -119,6 +119,27 @@ class EnigmaContractAPIBuilder {
     return new EnigmaContractHandler(this.api, this);
   }
 
+  /**
+   * configuraing and building the api instance
+   * @param {String} enigmaContractAddress - the deployed Enigm contract to connect to
+   * @param {String} url - the transport url
+   * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
+   * */
+  async setConfigAndBuild(enigmaContractAddress, url) {
+    let enigmaContractHandler;
+
+    if (enigmaContractAddress) {
+      let config = {enigmaContractAddress: this._enigmaContractAddress};
+      if (url) {
+        config.url = url;
+      }
+      enigmaContractHandler = await this.useDeployed(config).build();
+    } else {
+      enigmaContractHandler = await this.createNetwork().deploy().build();
+    }
+    return enigmaContractHandler;
+  }
+
   _resetEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
       const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
