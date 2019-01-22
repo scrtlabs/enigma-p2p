@@ -39,6 +39,7 @@ module.exports.NODE_NOTIFICATIONS = {
   // task computation related
   VERIFY_NEW_TASK : 'verifyreq', //request to perform verification of task
   TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
+  TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {

@@ -7,6 +7,7 @@ const nodeUtils = require('../../common/utils');
 const DeployTask = require('./DeployTask');
 const ComputeTask = require('./ComputeTask');
 const parallel = require('async/parallel');
+const Result = require('./Result');
 
 class TaskManager extends EventEmitter {
   constructor(dbPath,logger) {
@@ -130,7 +131,12 @@ class TaskManager extends EventEmitter {
       });
     });
   }
-
+  /**
+   * once a task is finished, i.e result is attached update needs to be made
+   * */
+  _storeFinishedTask(task,callback){
+    // this.getTask(task.getTaskId(),(err,task)=>}{})
+  }
   /**
    * Promise based removeTask
    * */
@@ -192,6 +198,7 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
+   * @depreacted
    * try verify the task
    * @param {Task} unverifiedTask
    * @return {Promise<bool>} true - task verified, false - otherwise
@@ -234,10 +241,21 @@ class TaskManager extends EventEmitter {
   }
   /**
    * callback by an action that finished computation
-   *
+   * update db
+   * notify
+   * @param {Result} taskResult
    */
-  onFinishTask(taskStatus,taskResult){
-
+  onFinishTask(taskResult,callback){
+    let id = taskResult.getTaskId();
+    this._readAndDelete(id,(err,task)=>{
+      if(err){return callback(err)};
+      task.setResult(taskResult);
+      this._storeTask(task,(err)=>{
+        if(err){return callback(err);}
+        callback();
+        this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_FINISHED, task : task});
+      });
+    });
   }
 
   /***
@@ -342,6 +360,8 @@ class TaskManager extends EventEmitter {
 
   /**
    * read and delete task from db
+   * @param {string} taskId
+   * @param {Function} callback (err,Task)=>{}
    * */
   _readAndDelete(taskId, callback){
     this._readTask(taskId,(err,task)=>{
