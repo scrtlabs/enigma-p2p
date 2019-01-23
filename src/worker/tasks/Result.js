@@ -1,4 +1,5 @@
 const constants = require('../../common/constants');
+const nodeUtils = require('../../common/utils');
 
 class Result{
   constructor(taskId,status){
@@ -29,6 +30,9 @@ class ComputeResult extends Result{
     this._signature = signature;
   }
   static buildComputeResult(result){
+    if(nodeUtils.isString(result)){
+      result = JSON.parse(result);
+    }
     let expected = ['taskId','status','output','delta','usedGas','ethereumPayload','ethereumAddress','signature'];
     let isMissing = expected.some(attr=>{
       return !(attr in result);
@@ -73,6 +77,9 @@ class DeployResult extends ComputeResult{
     this._preCodeHash = preCodeHash;
   }
   static buildDeployResult(result){
+    if(nodeUtils.isString(result)){
+      result = JSON.parse(result);
+    }
     let expected = ['taskId','status','output','delta','usedGas','ethereumPayload','ethereumAddress','signature','preCodeHash'];
     let isMissing = expected.some(attr=>{
       return !(attr in result);
@@ -114,6 +121,9 @@ class FailedResult extends Result{
     this._signature = signature;
   }
   static buildFailedResult(errRes){
+    if(nodeUtils.isString(errRes)){
+      errRes = JSON.parse(errRes);
+    }
     let expected = ['taskId','output','usedGas','signature'];
     let isMissing = expected.some(attr=>{
       return !(attr in errRes);
