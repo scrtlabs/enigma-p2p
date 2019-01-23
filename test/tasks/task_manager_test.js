@@ -192,15 +192,16 @@ describe('TaskManager isolated tests', ()=>{
       taskManager.addTaskUnverified(t1);
       // create result
       resultRawObj.taskId = t1.getTaskId();
-
-      let deployResult = Result.DeployResult.buildDeployResult(resultRawObj);
       // verify task
       await taskManager.asyncOnVerifyTask(t1.getTaskId(), true);
+      // create result
+      let deployResult = Result.DeployResult.buildDeployResult(resultRawObj);
       // trigger onFinish
       await taskManager.asyncOnFinishTask(deployResult);
       // validate
-      let tasks = taskManager.asyncGetAllTasks();
+      let tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(1,tasks.length,"not 1 task");
+      assert.strictEqual(constants.TASK_STATUS.SUCCESS, tasks[0].getStatus(), "status not success in task");
       // end test
       await taskManager.asyncStop();
       destroyDb(dbPath,resolve);
