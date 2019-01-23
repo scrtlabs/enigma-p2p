@@ -1,5 +1,5 @@
 const Task = require('./Task');
-
+let Result = require('./Result');
 class ComputeTask extends Task{
   /**
    * @param {JSON} computeReqMsg , all fields specified in the `expected` list in the func
@@ -48,7 +48,7 @@ class ComputeTask extends Task{
     return this._contractAddr
   }
   toDbJson(){
-    return JSON.stringify({
+    let output = {
       status : this.getStatus(),
       taskId : this.getTaskId(),
       encryptedArgs : this.getEncyptedArgs(),
@@ -56,12 +56,23 @@ class ComputeTask extends Task{
       userPubKey : this.getUserPubKey(),
       gasLimit : this.getGasLimit(),
       contractAddress : this.getContractAddr(),
-    });
+    };
+    if(this.isFinished()){
+      output.result = this._result.toDbJson();
+    }
+    return JSON.stringify(output);
   }
   static fromDbJson(taskObj){
     if(taskObj.status){
       let task = ComputeTask.buildTask(taskObj);
       task._setStatus(taskObj.status);
+      if(taskObj.result && taskObj.result.status === constants.TASK_STATUS.SUCCESS){
+        let result = Result.ComputeResult.buildComputeResult(taskObj.result);
+        task.setResult(result);
+      }else if(taskObj.result){
+        let result = Result.FailedResult.buildFailedResult(taskObj.result);
+        task.setResult(result);
+      }
       return task;
     }
     return null;

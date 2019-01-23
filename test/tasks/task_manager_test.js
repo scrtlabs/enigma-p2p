@@ -3,12 +3,25 @@ const path = require('path');
 const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
+const Result = require('../../src/worker/tasks/Result');
 const assert = require('assert');
 const constants = require('../../src/common/constants');
 const TaskManager = require('../../src/worker/tasks/TaskManager');
 const TEST_TREE = require('../test_tree').TEST_TREE;
 const testUtils = require('../testUtils/utils');
 let tree = TEST_TREE.task_manager;
+
+let resultRawObj = {
+  taskId : null,
+  status : constants.TASK_STATUS.SUCCESS,
+  output : [123,22,4,55,66],
+  delta : {index : 2, delta : [96,22,4,55,66,88]},
+  usedGas : 213,
+  ethereumPayload : [233,46,78],
+  ethereumAddress : 'cc353334487696ebc3e15411e0b106186eba3c0c',
+  signature : [233,43,67,54],
+  preCodeHash : '87c2d362de99f75a4f2755cdaaad2d11bf6cc65dc71356593c445535ff28f43d'
+};
 
 const user1 = {
    userEthAddr : '0xce16109f8b49da5324ce97771b81247db6e17868',
@@ -163,6 +176,32 @@ describe('TaskManager isolated tests', ()=>{
       });
       assert.strictEqual(false,isError,"some task is not in-progress");
       // finish test
+      await taskManager.asyncStop();
+      destroyDb(dbPath,resolve);
+    });
+  });
+
+  it('#4 Should test onFinishTask',async function(){
+    if (!tree['all'] || !tree['#4']) {
+      this.skip();
+    }
+    return new Promise(async resolve=>{
+      let taskManager = new TaskManager(dbPath,logger);
+      // create task
+      let t1 = DeployTask.buildTask(user1);
+      taskManager.addTaskUnverified(t1);
+      // create result
+      resultRawObj.taskId = t1.getTaskId();
+
+      let deployResult = Result.DeployResult.buildDeployResult(resultRawObj);
+      // verify task
+      await taskManager.asyncOnVerifyTask(t1.getTaskId(), true);
+      // trigger onFinish
+      await taskManager.asyncOnFinishTask(deployResult);
+      // validate
+      let tasks = taskManager.asyncGetAllTasks();
+      assert.strictEqual(1,tasks.length,"not 1 task");
+      // end test
       await taskManager.asyncStop();
       destroyDb(dbPath,resolve);
     });

@@ -2,6 +2,7 @@ const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
 const DeployResult = require('../../src/worker/tasks/Result').DeployResult;
+const FailedResult = require('../../src/worker/tasks/Result').FailedResult;
 const ComputeResult = require('../../src/worker/tasks/Result').ComputeResult;
 const assert = require('assert');
 const constants = require('../../src/common/constants');
@@ -121,5 +122,37 @@ it('#3 Should test DeployResult and ComputeResult', function(done){
   assert.strictEqual(constants.TASK_STATUS.SUCCESS,deployTask.getStatus(),"status didnt change");
   assert.strictEqual(true,deployResult.isSuccess(),"result not success");
   assert.strictEqual(false, deployTask.isUnverified(), "task is unverified");
+  done();
+});
+
+it('#4 Should test FailedResult', function(done) {
+  let taskRawObj = {
+    taskId : userTaskId,
+    preCode : preCode,
+    encryptedArgs : encryptedArgs,
+    encryptedFn : encryptedFn,
+    userPubKey : userPubKey,
+    gasLimit : 1200,
+    contractAddress : contractAddress
+  };
+
+  let deployTask = DeployTask.buildTask(taskRawObj);
+
+  let resultRawObj = {
+    taskId : deployTask.getTaskId(),
+    output : [123,22,4,55,66],
+    usedGas : 213,
+    signature : [233,43,67,54],
+  };
+  // create deploy result
+  let deployResult = FailedResult.buildFailedResult(resultRawObj);
+  // set deploy result
+  deployTask.setResult(deployResult);
+  // test deploy result
+  assert.strictEqual(constants.TASK_STATUS.FAILED,deployTask.getStatus(),"status didnt change");
+  assert.strictEqual(true,deployResult.isFailed(),"result is success");
+  assert.strictEqual(false, deployTask.isUnverified(), "task is unverified");
+  assert.strictEqual(true,deployTask.isFinished(), "task is not finished");
+  assert.strictEqual(true,deployTask.isFailed(), "task is not failed");
   done();
 });

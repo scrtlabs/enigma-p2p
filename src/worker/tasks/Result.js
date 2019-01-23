@@ -54,6 +54,8 @@ class ComputeResult extends Result{
   getSignature(){return this._signature};
   toDbJson(){
     return JSON.stringify({
+      taskId : this.getTaskId(),
+      status : this.getStatus(),
       output : this.getOutput(),
       delta : this.getDelta(),
       usedGas : this.getUsedGas(),
@@ -91,6 +93,8 @@ class DeployResult extends ComputeResult{
   getPreCodeHash(){return this._preCodeHash;}
   toDbJson(){
     return JSON.stringify({
+      taskId : this.getTaskId(),
+      status : this.getStatus(),
       preCodeHash : this.getPreCodeHash(),
       output : this.getOutput(),
       delta : this.getDelta(),
@@ -102,9 +106,49 @@ class DeployResult extends ComputeResult{
   }
 }
 
+class FailedResult extends Result{
+  constructor(taskId,status,output,usedGas,signature){
+    super(taskId,status);
+    this._output = output;
+    this._usedGas = usedGas;
+    this._signature = signature;
+  }
+  static buildFailedResult(errRes){
+    let expected = ['taskId','output','usedGas','signature'];
+    let isMissing = expected.some(attr=>{
+      return !(attr in errRes);
+    });
+    if(isMissing) return null;
+    return new FailedResult(
+        errRes.taskId,
+        constants.TASK_STATUS.FAILED,
+        errRes.output,
+        errRes.usedGas,
+        errRes.signature);
+  }
+  getOutput(){
+    return this._output;
+  }
+  getUsedGas(){
+    return this._usedGas;
+  }
+  getSignature(){
+    return this._signature;
+  }
+  toDbJson(){
+    return JSON.stringify({
+      taskId : this.getTaskId(),
+      status : this.getStatus(),
+      output : this.getOutput(),
+      usedGas : this.getUsedGas(),
+      signature : this.getSignature(),
+    });
+  }
+}
+
 module.exports.Result = Result;
 module.exports.DeployResult = DeployResult;
 module.exports.ComputeResult = ComputeResult;
-
+module.exports.FailedResult = FailedResult;
 
 

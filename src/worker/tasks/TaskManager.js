@@ -60,54 +60,7 @@ class TaskManager extends EventEmitter {
     return err;
   }
 
-  /**
-   * @deprecated Since version 0
-   */
-  addTask(unverifiedTask,callback){
-    if(this._isOkToAdd(unverifiedTask)){
-      // add to pool
-      this._unverifiedPool[unverifiedTask.getTaskId()] = {
-        time : nodeUtils.unixTimestamp(),
-        task : unverifiedTask,
-      };
-      // verify task & pass to code & save to db in-progress status & remove from unverifiedPool
-        TaskManager.tryVerifyTask(unverifiedTask)
-        .then(isVerified=>{
-          //remove from unverified pool
-          delete this._unverifiedPool[unverifiedTask.getTaskId()];
-          if(isVerified){
-            this._logger.info("[IN_PROGRESS] verified task " + unverifiedTask.getTaskId());
-            unverifiedTask.setInProgressStatus();
-            // save to db & notify
-            this._storeTask(unverifiedTask,(err)=>{
-              if(err){
-                this._logger.error('db error saving verified task to db' + err);
-                if(callback) {
-                  return callback(err);
-                }
-              }
-              this._logger.debug("[addTask] saved to db task " + unverifiedTask.getTaskId());
-              this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_VERIFIED , task : unverifiedTask});
-              if(callback) return callback(null,isVerified);
-            });
-          }else{ // failed to verify
-            // publish failed to verify
-            if(callback){
-              return callback(null,isVerified);
-            }
-          }
-        }).catch(e=>{
-          this._logger.error("[INTERNAL] error verifying task with Ethereum " + e);
-          return callback(e);
-        });
-    }else{
-      let errMsg = "TaskManager: Task is not not ok to add";
-      this._logger.error(errMsg);
-      if(callback){
-        return callback(errMsg);
-      }
-    }
-  }
+
   /**
    * Save a task into the db
    * @param {DeployTask/ComputeTask} task,
@@ -130,12 +83,6 @@ class TaskManager extends EventEmitter {
       this._db.put(task.getTaskId(),task.toDbJson(),callback);
       });
     });
-  }
-  /**
-   * once a task is finished, i.e result is attached update needs to be made
-   * */
-  _storeFinishedTask(task,callback){
-    // this.getTask(task.getTaskId(),(err,task)=>}{})
   }
   /**
    * Promise based removeTask
@@ -198,15 +145,6 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
-   * @depreacted
-   * try verify the task
-   * @param {Task} unverifiedTask
-   * @return {Promise<bool>} true - task verified, false - otherwise
-   * */
-  static async tryVerifyTask(unverifiedTask){
-    return true;
-  }
-  /**
    * get task
    * @param {Function} callback(err,Task)=>{}
    * */
@@ -240,6 +178,17 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
+   * promise based version of onFinishTask
+   * */
+  async asyncOnFinishTask(taskResult){
+    return new Promise((res,rej)=>{
+      this.onFinishTask(taskResult,(err)=>{
+        if(err) rej(err);
+        else res();
+      });
+    });
+  }
+  /**
    * callback by an action that finished computation
    * update db
    * notify
@@ -247,18 +196,27 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback (err)=>{}
    */
   onFinishTask(taskResult,callback){
+    // this should never happen.
+    if(this._unverifiedPool[taskResult.getTaskId()]){
+      let err = "[ON_FINISH_TASK] error task " + taskResult.getTaskId() + " was executed without verification.";
+      this._logger.error(err);
+      return callback(err);
+      }
     let id = taskResult.getTaskId();
     this._readAndDelete(id,(err,task)=>{
-      if(err){return callback(err)};
+      if(err){return callback(err);}
+      // attach a result
       task.setResult(taskResult);
+      // save the task again with the result attached
       this._storeTask(task,(err)=>{
         if(err){return callback(err);}
+        this._logger.info("[TASK_FINISHED] success ? " + taskResult.isSuccess() + " id: " + task.getTaskId());
+        // notify about the task change
         this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_FINISHED, task : task});
         return callback();
       });
     });
   }
-
   /***
    * promise based version of onVerifyTask
    */
@@ -440,14 +398,15 @@ class TaskManager extends EventEmitter {
   }
   /**
    * Update some task status
+   * TODO:: revisit if the is even needed
    * */
-  _updateTaskStatus(taskId,status,callback){
-    let theTask = null;
-    if(this.isUnverifiedInPool(taskId) && status !== constants.TASK_STATUS.UNVERIFIED){
-      theTask = this._unverifiedPool[taskId].task;
-    }
-    //TODO continue here HW
-  }
+  // _updateTaskStatus(taskId,status,callback){
+  //   let theTask = null;
+  //   if(this.isUnverifiedInPool(taskId) && status !== constants.TASK_STATUS.UNVERIFIED){
+  //     theTask = this._unverifiedPool[taskId].task;
+  //   }
+  //   //TODO continue here HW
+  // }
 
   /**
    * validation if its ok to add the task to the unverifiedPool
