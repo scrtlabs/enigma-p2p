@@ -54,5 +54,14 @@ class Task extends EventEmitter{
   isUnverified(){
     return (this._status === constants.TASK_STATUS.UNVERIFIED);
   }
+  isSuccess(){
+    return this._status === constants.TASK_STATUS.SUCCESS;
+  }
+  isFailed(){
+    return this._status === constants.TASK_STATUS.FAILED;
+  }
+  isFinished(){
+    return (this.isSuccess() || this.isFailed());
+  }
 }
 module.exports = Task;

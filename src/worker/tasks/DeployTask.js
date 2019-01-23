@@ -53,7 +53,7 @@ class DeployTask extends Task{
       return this._contractAddr
     }
     toDbJson(){
-      return JSON.stringify({
+      let output ={
         status : this.getStatus(),
         taskId : this.getTaskId(),
         preCode : this.getPreCode(),
@@ -62,7 +62,11 @@ class DeployTask extends Task{
         userPubKey : this.getUserPubKey(),
         gasLimit : this.getGasLimit(),
         contractAddress : this.getContractAddr(),
-      });
+      };
+      if(this.isFinished()){
+        output.result = this._result.toDbJson();
+      }
+      return JSON.stringify(output);
     }
     static fromDbJson(taskObj){
       if(taskObj.status){

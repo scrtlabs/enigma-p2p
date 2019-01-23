@@ -52,6 +52,16 @@ class ComputeResult extends Result{
   getEthPayload(){return this._ethereumPayload;}
   getEthAddr(){return this._ethereumAddress;}
   getSignature(){return this._signature};
+  toDbJson(){
+    return JSON.stringify({
+      output : this.getOutput(),
+      delta : this.getDelta(),
+      usedGas : this.getUsedGas(),
+      ethereumPayload : this.getEthPayload(),
+      ethereumAddress : this.getEthAddr(),
+      signature : this.getSignature()
+    });
+  }
 }
 
 
@@ -79,6 +89,17 @@ class DeployResult extends ComputeResult{
     );
   }
   getPreCodeHash(){return this._preCodeHash;}
+  toDbJson(){
+    return JSON.stringify({
+      preCodeHash : this.getPreCodeHash(),
+      output : this.getOutput(),
+      delta : this.getDelta(),
+      usedGas : this.getUsedGas(),
+      ethereumPayload : this.getEthPayload(),
+      ethereumAddress : this.getEthAddr(),
+      signature : this.getSignature()
+    });
+  }
 }
 
 module.exports.Result = Result;

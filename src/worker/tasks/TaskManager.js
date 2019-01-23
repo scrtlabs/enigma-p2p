@@ -244,6 +244,7 @@ class TaskManager extends EventEmitter {
    * update db
    * notify
    * @param {Result} taskResult
+   * @param {Function} callback (err)=>{}
    */
   onFinishTask(taskResult,callback){
     let id = taskResult.getTaskId();
@@ -252,8 +253,8 @@ class TaskManager extends EventEmitter {
       task.setResult(taskResult);
       this._storeTask(task,(err)=>{
         if(err){return callback(err);}
-        callback();
         this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_FINISHED, task : task});
+        return callback();
       });
     });
   }
