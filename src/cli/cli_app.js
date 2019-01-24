@@ -256,18 +256,17 @@ class CLI {
         peerId: 'no_id_yet'
       });
     }
+    /** init Ethereum API
+     * */
+    if (this._initEthereum){
+      builder.setEthereumConfig({
+        ethereumWebsocketProvider:  this._ethereumWebsocketProvider,
+        enigmaContractAddress : this._enigmaContractAddress,
+      });
+    }
     this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
     this._node = this._mainController.getNode();
 
-    /** init Ethereum API
-     * */
-    if (this._initEthereum) {
-      const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-      const enigmaContractHandler = await enigmaContractAPIbuilder.setConfigAndBuild(
-          this._enigmaContractAddress, this._ethereumWebsocketProvider);
-
-      this._node.setEthereumApi(enigmaContractHandler);
-    }
   }
   start() {
     console.log(Parsers.opener);
