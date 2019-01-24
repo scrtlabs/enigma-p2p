@@ -6,7 +6,7 @@ class ComputeTask extends Task{
    * @return {ComputeTask} task
    * */
   static buildTask(computeReqMsg){
-    let expected = ['taskId','encryptedArgs','encryptedFn','userPubKey','gasLimit','contractAddress'];
+    let expected = ['taskId','encryptedArgs','encryptedFn','userDHKey','gasLimit','contractAddress'];
     let isMissing = expected.some(attr=>{
       return !(attr in computeReqMsg);
     });
@@ -18,17 +18,17 @@ class ComputeTask extends Task{
           computeReqMsg.taskId,
           computeReqMsg.encryptedArgs,
           computeReqMsg.encryptedFn,
-          computeReqMsg.userPubKey,
+          computeReqMsg.userDHKey,
           computeReqMsg.gasLimit,
           computeReqMsg.contractAddress
       );
     }
   }
-  constructor(taskId,encryptedArgs,encryptedFn,userPubKey,gasLimit,contractAddr){
+  constructor(taskId,encryptedArgs,encryptedFn,userDHKey,gasLimit,contractAddr){
     super(taskId);
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
-    this._userPubKey = userPubKey;
+    this._userDHKey = userDHKey;
     this._gasLimit = gasLimit;
     this._contractAddr = contractAddr;
   }
@@ -38,8 +38,8 @@ class ComputeTask extends Task{
   getEncryptedFn(){
     return this._encryptedFn;
   }
-  getUserPubKey(){
-    return this._userPubKey;
+  getUserDHKey(){
+    return this._userDHKey;
   }
   getGasLimit(){
     return this._gasLimit;
@@ -53,7 +53,7 @@ class ComputeTask extends Task{
       taskId : this.getTaskId(),
       encryptedArgs : this.getEncyptedArgs(),
       encryptedFn : this.getEncryptedFn(),
-      userPubKey : this.getUserPubKey(),
+      userDHKey : this.getUserDHKey(),
       gasLimit : this.getGasLimit(),
       contractAddress : this.getContractAddr(),
     };
