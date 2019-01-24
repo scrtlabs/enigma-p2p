@@ -178,6 +178,70 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
+   * get all verified tasks (in-progress or finished)
+   * @return {Array<Task>} verifiedTasks
+   * */
+  async asyncGetVerifiedTasks(){
+    return new Promise((res,rej)=>{
+      this._getAllDbTasks((err,verifiedTasks)=>{
+        if(err) rej(err);
+        else res(verifiedTasks);
+      })
+    });
+  }
+  /**
+   * get all tasks that are finished in FAILED status
+   * @return {Array<Task>} failedTasks
+   * */
+  async asyncGetFailedTasks(){
+    return new Promise(async (res,rej)=>{
+      try{
+        let finished = await this.asyncGetFinishedTasks();
+        let failed = finished.filter(t=>{
+          return t.isFailed();
+        });
+        res(failed);
+      }catch(e){
+        rej(e);
+      }
+    });
+  }
+  /**
+   * get all tasks that are finished in SUCCESS status
+   * @return {Array<Task>} finishedTasks
+   * */
+  async asyncGetSuccessfullTasks(){
+    return new Promise(async (res,rej)=>{
+      try{
+        let finished = await this.asyncGetFinishedTasks();
+        let successfull = finished.filter(t=>{
+          return t.isSuccess();
+        });
+        res(successfull);
+      }catch(e){
+        rej(e);
+      }
+    });
+  }
+  /**
+   * get all tasks that are finished (success or failed)
+   * @return {Array<Task>} finishedTasks
+   * */
+  async asyncGetFinishedTasks(){
+    return new Promise((res,rej)=>{
+      this._getAllDbTasks((err,verifiedTasks)=>{
+        if(err) {
+          rej(err);
+        }else{
+          let finishedTasks = verifiedTasks.filter(t=>{
+            return t.isFinished();
+          });
+          res(finishedTasks);
+        }
+      });
+    });
+  }
+  /**
    * promise based version of onFinishTask
    * */
   async asyncOnFinishTask(taskResult){
