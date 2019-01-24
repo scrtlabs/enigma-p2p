@@ -30,28 +30,6 @@ Response:
 }
 ```
 
-### `IdentityChallenge` message
-
-Request:
-
-```
-{
-    id : <unique_request_id>,
-    type : IdentityChallenge,
-    nonce :
-}
-```
-Response:
-```
-{
-    id : <unique_request_id>,
-    type : IdentityChallenge,
-    result : {
-        nonce : hex,
-        signature : hex
-    }
-}
-```
 ## Enclave Read only Database related
 
 ### `GetTip` message
@@ -335,7 +313,7 @@ Request:
         preCode: 'the-bytecode',
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
-        userPubKey: 'the-user-dh-pubkey',
+        userDHKey: 'the-user-dh-pubkey',
         gasLimit: 'the-user-selected-gaslimit',
         contractAddress: 'the-address-of-the-contract'
     }
@@ -370,11 +348,10 @@ Request:
         taskID: 'the ID of the task'
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
-        userPubKey: 'the-user-dh-pubkey',
-        gasLimit: 'the-user-selected-gaslimit',
+        userDHKey: 'the-user-dh-pubkey',
+        gasLimit: 'the-user-selected-gaslimit', // from ethereum not rpc
         contractAddress: 'the-address-of-the-contract'
     }
-
 }
 ```
 
