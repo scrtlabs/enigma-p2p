@@ -5,6 +5,7 @@ The communication is done with `REQ` and `REP` sockets.
 
 # Message type
 
+
 ## Enclave identity related
 
 ### `GetRegistrationParams` message
@@ -391,5 +392,31 @@ Response:
         signature: 'enclave-signature',
     }
     
+}
+```
+
+### `FailedTask` error message 
+If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
+```
+{
+    id: <unique_request_id>,
+    type: FailedTask,
+    result : {
+        output: 'the-output-of-the-execution',
+        usedGas: 'amount-of-gas-used',
+        signature: 'enclave-signature',
+    }
+}
+```
+
+## General `Error` system message
+
+Any Code error: 
+
+```
+{
+    id: <unique_request_id>,
+    type: <the_request_type>,
+    msg : "some error message",
 }
 ```
