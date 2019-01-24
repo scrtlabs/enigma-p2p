@@ -33,6 +33,14 @@ module.exports.TEST_TREE = {
     '#7' : true,
     '#8' : true
   },
+  'task_manager' :{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
+    '#4' : true,
+    '#5' : true,
+  },
   'sync_basic' : {
     'all' : true,
     '#1' : true,

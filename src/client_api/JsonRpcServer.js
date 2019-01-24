@@ -142,12 +142,52 @@ class JsonRpcServer extends EventEmitter {
       }
     });
   }
-  // execCmd(cmd,params){
-  //   let action = this._actions[cmd];
-  //   if(action) {
-  //     action.execute(params);
-  //   }
-  // }
+  _isValidFields(msg){
+    // IPC
+    // preCode: 'the-bytecode',
+    //     encryptedArgs: 'hex of the encrypted args',
+    //     encryptedFn: 'hex of the encrypted function signature',
+    //     userPubKey: 'the-user-dh-pubkey',
+    //     gasLimit: 'the-user-selected-gaslimit',
+    //     contractAddress: 'the-address-of-the-contract'
+    // RPC
+    // preCode (String) - The hash of the compiled bytecode
+    // encryptedArgs (String) - Encrypted RLP-encoded args needed for the secret contract's constructor
+    // encryptedFn (String) -Encypted function that needs to be called
+    // userDHKey (String) - User's public key from Diffie-Hellman
+    // contractAddress (String) - Also serves as taskId, and can be recreated by anyone. H(userAddress, nonce)
+
+    // let expected = ['taskId','status','output','delta','usedGas','ethereumPayload','ethereumAddress','signature','preCodeHash'];
+    let isMissing = expected.some(attr=>{
+      return !(attr in msg);
+    });
+    if(isMissing){
+      return null;
+    }
+    // if(typeof args === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.taskId === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.creationBlockNumber === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.sender === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.scAddr === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.encryptedFn === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.encryptedEncodedArgs === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.userTaskSig === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.userPubKey === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.fee === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // } else if (typeof args.msgId === "undefined") {
+    //   callback({code: -32602, message: "Invalid params"});
+    // }
+  }
 }
 
 module.exports = JsonRpcServer;
