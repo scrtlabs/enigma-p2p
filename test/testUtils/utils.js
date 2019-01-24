@@ -15,9 +15,18 @@ module.exports.randLenStr = function(size) {
  * @param {Integer} max
  */
 module.exports.getRandomInt = function(max) {
-  return Math.floor(Math.random() * Math.floor(max));
+  return _randomInt(max);
 };
-
+function _randomInt(max){
+  return Math.floor(Math.random() * Math.floor(max));
+}
+module.exports.getRandomByteArray = function(size){
+  let output = [];
+  for(let i=0;i<size;++i){
+    output.push(_randomInt(256));
+  }
+  return output;
+};
 module.exports.sleep = function(ms) {
     return _sleep(ms);
 };

@@ -54,6 +54,27 @@ function destroyDb(dbPath,resolve){
   });
 }
 
+function generateComputeTasks(num){
+  let tasks = [];
+  for(let i =0;i<num;i++){
+    let task = ComputeTask.buildTask({
+      userEthAddr : '0x' + testUtils.randLenStr(40),
+      userNonce : testUtils.getRandomInt(100),
+      // H(userEthAddr|userNonce)
+      taskId : '0x'+testUtils.randLenStr(64),
+      encryptedArgs : testUtils.randLenStr(200),
+      encryptedFn : testUtils.randLenStr(200),
+      userPubKey : testUtils.randLenStr(130),
+      contractAddress : '0x'+testUtils.randLenStr(40),
+      gasLimit : testUtils.getRandomInt(100) ,
+    });
+    if(task)
+      tasks.push(task);
+    else
+      console.log("task is null error in generating test data!!!!");
+  }
+  return tasks;
+}
 function generateDeployTasks(num){
   let tasks = [];
   for(let i =0;i<num;i++){
@@ -71,6 +92,32 @@ function generateDeployTasks(num){
     }));
   }
   return tasks;
+}
+
+function generateDeployBundle(num, isSuccess){
+  let output = [];
+  let tasks = generateDeployTasks(num);
+  tasks.forEach(t=>{
+    let resObj = {
+      taskId : t.getTaskId(),
+      status : null,
+      output : testUtils.getRandomByteArray(80),
+      delta : {index : 2, delta : testUtils.getRandomByteArray(20)},
+      usedGas : testUtils.getRandomInt(10000),
+      ethereumPayload : testUtils.getRandomByteArray(100),
+      ethereumAddress : testUtils.randLenStr(40),
+      signature : testUtils.getRandomByteArray(120),
+      preCodeHash : testUtils.randLenStr(64),
+    };
+    let result = null;
+    if(isSuccess){
+      result = Result.DeployResult.buildDeployResult(resObj);
+    }else{
+      result = Result.FailedResult.buildFailedResult(resObj);
+    }
+    output.push({task : t, result : result});
+  });
+  return output;
 }
 describe('TaskManager isolated tests', ()=>{
 
@@ -207,10 +254,56 @@ describe('TaskManager isolated tests', ()=>{
       destroyDb(dbPath,resolve);
     });
   });
+
+  /**
+   * generate 1000 tasks.
+   * 500 finished. (400 success (100 compute, 300 deploy), 100 failed result (100 deploy))
+   * 500 in-progress. (250 deploy, 250 compute)
+   * */
+  it("#5 should stress test TaskManager", async function(){
+    if (!tree['all'] || !tree['#5']) {
+      this.skip();
+    }
+    this.timeout(5000);
+    return new Promise(async resolve => {
+      let unFinishedDeployNum = 250, unFinishedComputeNum = 250, finishedSuccess = 400, finishedFail = 100;
+      let allTasksLen = unFinishedDeployNum + unFinishedComputeNum + finishedSuccess + finishedFail;
+      // generate 250 unfinished deploy tasks
+      let unDeployTasks = generateDeployTasks(unFinishedDeployNum);
+      // // generate 250 unfinished compute tasks
+      let unComputeTasks = generateComputeTasks(unFinishedComputeNum);
+      // // generate 400 finished + success
+      let successBundle = generateDeployBundle(finishedSuccess);
+      // generate 100 failed
+      let failedBundle = generateDeployBundle(finishedFail);
+      // create task manager
+      let taskManager = new TaskManager(dbPath, logger);
+      // add all tasks
+      for(let i=0;i<unFinishedComputeNum;++i){
+        taskManager.addTaskUnverified(unComputeTasks[i]);
+      }
+      for(let i=0;i<unFinishedDeployNum;++i){
+        taskManager.addTaskUnverified(unDeployTasks[i]);
+      }
+      for(let i=0;i<finishedSuccess;++i){
+        taskManager.addTaskUnverified(successBundle[i].task);
+      }
+      for(let i=0;i<finishedFail;++i){
+        taskManager.addTaskUnverified(failedBundle[i].task);
+      }
+      // verify 1000 tasks
+      let allTasks = await taskManager.asyncGetAllTasks();
+      assert.strictEqual(allTasksLen, allTasks.length, "not 1000 len, => " + allTasks.length);
+      // verify 1000 unverified tasks
+      assert.strictEqual(allTasksLen, taskManager.getUnverifiedTasks().length, "not 1000 unvefied, => " + taskManager.getUnverifiedTasks().length);
+      // verify all but unDeployTasks (250)
+      verify.length.propertyIsEnumerable().
+      // end test
+      await taskManager.asyncStop();
+      destroyDb(dbPath,resolve);
+    });
+  });
+
   // end of suite
 });
-
-
-
-
 
