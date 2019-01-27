@@ -148,17 +148,13 @@ describe('JsonRPC tests', () => {
     id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
 
     const response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request('getWorkerEncryptionKey', [id, userPubKey], (err, res) => {
+      JsonRpcClient.request('getWorkerEncryptionKey', {workerAddress:id, userPubKey : userPubKey}, (err, res) => {
         if (err) {
           reject(err);
         }
         resolve(res);
       });
     });
-
-    // assert.notStrictEqual(response.workerSig,null);
-    // assert.notStrictEqual(response.workerSig,undefined);
-    // assert.strictEqual(128,response.workerEncryptionKey.length)
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
