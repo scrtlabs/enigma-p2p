@@ -24,7 +24,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
       },
     ], (err, regParams)=>{
       if (err) {
-        this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {%s}', err);
+        this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {' + err +'} ');
         if (params.onResponse) {
           return params.onResponse(err);
         }

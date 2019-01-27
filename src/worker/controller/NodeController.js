@@ -42,10 +42,12 @@ const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
-const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
+// gateway jsonrpc
+const ProxyRequestDispatcher = require('./actions/proxy/ProxyReqDispatcherAction');
+const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
@@ -102,10 +104,11 @@ class NodeController {
       [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
-      [NOTIFICATION.PROXY] : new GetWorkerEncryptionKeyAction(this), // proxy request
+      [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
+      [NOTIFICATION.GW_GET_ENC_KEY] : new GetWorkerEncryptionKeyAction(this), // triggered by the gateway requester node proxy request
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
-      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // on startup of a worker for jsonrpc topic
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
     };
   }
   /**
@@ -376,7 +379,6 @@ class NodeController {
       message : message,
     });
   }
-
   /** temp run self subscribe command */
   selfSubscribeAction(){
     this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({});
@@ -428,6 +430,14 @@ class NodeController {
       onResponse : (err,result)=>{
         callback(err,result);
     }
+    });
+  }
+  async asyncGetRegistrationParams(callback){
+    return new Promise((res,rej)=>{
+      this.getRegistrationParams((err,result)=>{
+        if(err) rej(err);
+        else res(result);
+      });
     });
   }
   /**

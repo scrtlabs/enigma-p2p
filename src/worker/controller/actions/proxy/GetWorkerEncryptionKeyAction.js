@@ -24,6 +24,7 @@ class GetWorkerEncryptionKeyAction {
           onPublish: (msg)=>{
             const result = {};
             const data = JSON.parse(msg.data);
+            console.log(JSON.stringify(data,null,2));
             // result.senderKey = data.senderKey;
             result.workerEncryptionKey = data.workerEncryptionKey;
             result.workerSig = data.workerSig;

@@ -36,10 +36,12 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
+  GW_GET_ENC_KEY : 'gateway_node_get_enc_key_request', // request for getWorkerEncryptionKey jsonrpc command (gateway side)
   // task computation related
   VERIFY_NEW_TASK : 'verifyreq', //request to perform verification of task
   TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
+  DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
