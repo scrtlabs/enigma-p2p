@@ -253,7 +253,7 @@ class CLI {
     if (this._rpcPort){
       builder.setJsonRpcConfig({
         port: parseInt(this._rpcPort),
-        peerId: 'no_id_yet'
+        peerId: null,
       });
     }
     /** init Ethereum API
