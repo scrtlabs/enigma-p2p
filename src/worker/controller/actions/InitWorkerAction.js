@@ -88,7 +88,6 @@ class InitWorkerAction {
           // TODO:: lena, here your EthereumServices should start.
           // TODO:: everything that runs in an infinite loop in the program should be started here.
           // TODO:: for example we could start here a process to always ping enigma-core and check if ok
-
           //subscribe to self (for responding to rpc requests of other workers)
           this._controller.execCmd(C.SELF_KEY_SUBSCRIBE,{});
           // log finish this stage

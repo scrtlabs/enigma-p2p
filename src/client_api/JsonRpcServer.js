@@ -71,7 +71,7 @@ class JsonRpcServer extends EventEmitter {
             type : '',
             request : args,
           });
-          callback(null, true);
+          return callback(null, true);
         }
       },
       // Placeholder.
