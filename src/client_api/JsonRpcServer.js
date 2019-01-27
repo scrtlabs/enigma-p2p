@@ -20,12 +20,12 @@ const Envelop = require('../main_controller/channels/Envelop');
 class JsonRpcServer extends EventEmitter {
   constructor(config, logger) {
     super();
+    this._INVALID_PARAM = -32602;
+    this._SERVER_ERR = -32000;
     this._communicator = null;
     this._logger = logger;
-    this._port = config.port || constants.JSON_RPC_SERVER.port; ;
+    this._port = config.port || constants.JSON_RPC_SERVER.port;
     this._peerId = config.peerId;
-
-    this._pendingSequence = {};
 
     this._app = connect();
     this._server = jayson.server({
@@ -33,39 +33,46 @@ class JsonRpcServer extends EventEmitter {
         console.log('getInfo request...');
         callback(null, {peerId: this._peerId, status: 'ok'});
       },
-      getWorkerEncryptionKey: (args, callback)=>{
-        if (args.length !== 2) {
-          // TODO:: do more stuff to validate input i.e check valid signing key
-          // TODO:: to reduce network calls
-          callback({'code': -32602, 'message': 'Invalid params'});
-        } else {
-          const workerSignKey = args[0];
-          const userPubKey = args[1];
-          const envelop = new Envelop(true,
-              {
-                workerSignKey: workerSignKey,
-                userPubKey: userPubKey,
-                type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
-              },
-              PROXY_FLAG
-          );
-
-          this.getCommunicator()
-          .sendAndReceive(envelop)
-          .then(resEnv=>{
-            console.log('GOT SOMETHING');
-            let result = {};
-            console.log(resEnv);
-            result.workerEncryptionKey = resEnv.content().result.workerEncryptionKey;
-            result.workerSig = resEnv.content().result.workerSig;
-            callback(null, result);
-          });
+      getWorkerEncryptionKey: async (args, callback)=>{
+        if(args.userPubKey && args.workerAddress){
+          console.log("[+] JsonRpc: getWorkerEncryptionKey" );
+          const workerSignKey = args.workerAddress;
+          const userPubKey = args.userPubKey;
+          const content = {
+            workerSignKey: workerSignKey,
+            userPubKey: userPubKey,
+            type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
+          };
+          let coreRes = await this._sendToCore(content);
+          if(coreRes === null){
+            return callback({'code': this._SERVER_ERR , 'message': 'Server error'});
+          }
+          let result = {
+            workerEncryptionKey: coreRes.result.workerEncryptionKey,
+            workerSig:coreRes.result.workerSig
+          };
+          return callback(null, result);
+        }else{
+          return callback({'code': this._INVALID_PARAM , 'message': 'Invalid params'});
         }
       },
       // Placeholder.
       // TODO: Implement proper callback
-      deploySecretContract: function(args, callback) {
-        callback(null, true);
+      deploySecretContract: async function(args, callback) {
+        let expected = ['preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+        let isMissing = expected.some(attr=>{
+          return !(attr in args);
+        });
+        if(isMissing){
+          return callback({'code': this._INVALID_PARAM , 'message': 'Invalid params'});
+        }else{
+          console.log('[+] JsonRpc: deploySecretContract');
+          let coreRes = await this._sendToCore({
+            type : '',
+            request : args,
+          });
+          callback(null, true);
+        }
       },
       // Placeholder.
       // TODO: Implement proper callback
@@ -107,6 +114,16 @@ class JsonRpcServer extends EventEmitter {
     {
       collect: true // collect params in a single argument
     });
+  }
+  async _sendToCore(content){
+    const envelop = new Envelop(true,content, PROXY_FLAG);
+    try{
+      let resEnv= await this.getCommunicator().sendAndReceive(envelop)
+      return resEnv.content();
+    }catch(e){
+      console.log("[-] JsonRpc ERR: " + e);
+      return null;
+    }
   }
   listen() {
     this._logger.debug('JsonRpcServer listening on port ' + this._port);
