@@ -22,7 +22,7 @@ it('#1 Should test computeTask', function(done){
     taskId : userTaskId,
     encryptedArgs : encryptedArgs,
     encryptedFn : encryptedFn,
-    userPubKey : userPubKey,
+    userDHKey : userPubKey,
     gasLimit : 1200,
     contractAddress : contractAddress
   });
@@ -40,7 +40,7 @@ it('#1 Should test computeTask', function(done){
   assert.strictEqual(userTaskId,task.getTaskId(),'taskId dont match');
   assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
-  assert.strictEqual(userPubKey,task.getUserPubKey(),'userKey dont match');
+  assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
   assert.strictEqual(1200,task.getGasLimit(),'gasLimit dont match');
   assert.strictEqual(contractAddress,task.getContractAddr(),'addr dont match');
   done();
@@ -53,7 +53,7 @@ it('#2 Should test DeployTask', function(done){
     preCode : preCode,
     encryptedArgs : encryptedArgs,
     encryptedFn : encryptedFn,
-    userPubKey : userPubKey,
+    userDHKey : userPubKey,
     gasLimit : 1200,
     contractAddress : contractAddress
   });
@@ -71,7 +71,7 @@ it('#2 Should test DeployTask', function(done){
   assert.strictEqual(userTaskId,task.getTaskId(),'taskId dont match');
   assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
-  assert.strictEqual(userPubKey,task.getUserPubKey(),'userKey dont match');
+  assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
   assert.strictEqual(1200,task.getGasLimit(),'gasLimit dont match');
   assert.strictEqual(contractAddress,task.getContractAddr(),'addr dont match');
   assert.strictEqual(preCode,task.getPreCode(),'preCode dont match');
@@ -85,7 +85,7 @@ it('#3 Should test DeployResult and ComputeResult', function(done){
     preCode : preCode,
     encryptedArgs : encryptedArgs,
     encryptedFn : encryptedFn,
-    userPubKey : userPubKey,
+    userDHKey : userPubKey,
     gasLimit : 1200,
     contractAddress : contractAddress
   };
@@ -131,7 +131,7 @@ it('#4 Should test FailedResult', function(done) {
     preCode : preCode,
     encryptedArgs : encryptedArgs,
     encryptedFn : encryptedFn,
-    userPubKey : userPubKey,
+    userDHKey : userPubKey,
     gasLimit : 1200,
     contractAddress : contractAddress
   };
