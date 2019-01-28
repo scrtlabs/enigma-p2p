@@ -36,7 +36,7 @@
     "log": "^1.4.0",
     "mocha": "^5.2.0",
     "msgpack-lite": "^0.1.26",
-    "openzeppelin-solidity": "^1.11.0",
+    "openzeppelin-solidity": "^2.1.2",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
     "pick-random": "^2.0.0",

@@ -67,7 +67,7 @@ async function init(truffleDirectory) {
   // console.log('using account', principal, 'as principal signer');
 
   const enigmaContract = new web3.eth.Contract(EnigmaContractJson.abi);
-  enigmaContractInstance = await enigmaContract.deploy({
+  const enigmaContractInstance = await enigmaContract.deploy({
     data: EnigmaContractJson.bytecode,
     arguments: [enigmaTokenContractInstance.options.address, principal],
   }).send({
@@ -100,7 +100,7 @@ async function start(truffleDirectory) {
 }
 
 
-function stop(web3) {
+function stop() {
   subprocess.kill();
 }
 

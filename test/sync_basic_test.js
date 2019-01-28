@@ -43,8 +43,9 @@ async function initEthereumStuff() {
   const workerEnclaveSigningAddress = accounts[0];
   const workerAddress = accounts[1];
   const workerReport = '0x123456';
+  const signature = web3.utils.randomHex(32);
 
-  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, {from: workerAddress});
+  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
 
   await enigmaContractApi.login({from: workerAddress});
 
@@ -55,7 +56,7 @@ async function initEthereumStuff() {
 
 async function stopEthereumStuff(web3) {
   await envInitializer.disconnect(web3);
-  await envInitializer.stop(web3);
+  await envInitializer.stop();
 }
 
 function transformStatesListToMap(statesList) {
@@ -112,21 +113,25 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
 
     const hexString = '0x' + DbUtils.toHexString(addressInByteArray);
     const codeHash = web3.utils.keccak256(secretContractData[-1]);
-    await api.deploySecretContract(hexString, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+    //const firstDelta = secretContractData[0];
+    const firstDeltaHash = web3.utils.keccak256(secretContractData[0]);
+    const outputHash = web3.utils.randomHex(32);
+    const gasUsed = 5;
+    //await api.deploySecretContract(hexString, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
+    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
-    let i = 0;
-    let prevDeltaHash = '0x0000000000000000000000000000000000000000000000000000000000000000';
+    let i = 1;
+    //let prevDeltaHash = initDeltaHash;
 
     while (i in secretContractData) {
       const taskId = web3.utils.randomHex(32);
-      const fee = 5;
+      //const fee = 5;
       const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
-      await api.createTaskRecord(taskId, fee, {from: workerAddress});
+      //await api.createTaskRecord(taskId, fee, {from: workerAddress});
       const stateDeltaHash = web3.utils.keccak256(delta);
-      await api.commitReceipt(hexString, taskId, prevDeltaHash, stateDeltaHash, ethCall,
+      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, gasUsed, ethCall,
           workerEnclaveSigningAddress, {from: workerAddress});
-      prevDeltaHash = stateDeltaHash;
       i++;
     }
   }
