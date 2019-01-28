@@ -132,11 +132,6 @@ describe('JsonRPC tests', () => {
   })
 
   it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
-    // const tree = TEST_TREE['basic'];
-    // if (!tree['all'] || !tree['#2']) {
-    //   this.skip();
-    // }
-
     // This block captures stdout for console.log to get the_worker_sign_key
     let output = '';
     capcon.startCapture(process.stdout, function(stdout) {
@@ -147,7 +142,7 @@ describe('JsonRPC tests', () => {
     capcon.stopCapture(process.stdout);
     id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
 
-    const response = await new Promise((resolve, reject) => {
+    let response = await new Promise((resolve, reject) => {
       JsonRpcClient.request('getWorkerEncryptionKey', {workerAddress:id, userPubKey : userPubKey}, (err, res) => {
         if (err) {
           reject(err);
@@ -155,6 +150,7 @@ describe('JsonRPC tests', () => {
         resolve(res);
       });
     });
+    response = response.result;
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
