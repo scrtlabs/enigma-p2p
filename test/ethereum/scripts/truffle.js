@@ -6,7 +6,7 @@ module.exports = {
             host: 'localhost',
             port: 9545,
             network_id: '4447' // Match any network id
-        }
+    }
     },
     solc: {
         // Turns on the Solidity optimizer. For development the optimizer's
