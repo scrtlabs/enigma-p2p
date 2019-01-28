@@ -7,9 +7,9 @@ class NewTaskEncryptionKeyAction {
   execute(params) {
     const onResponse = params.onResponse;
     const requestEnvelop = new Envelop(params.request.id, params.request,
-        constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
-
-    this._controller.communicator()
+          constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
+    this._controller
+        .communicator()
         .sendAndReceive(requestEnvelop)
         .then((responseEnvelop)=>{
           onResponse(null, responseEnvelop.content());

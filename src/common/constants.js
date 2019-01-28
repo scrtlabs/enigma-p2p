@@ -36,7 +36,10 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
-  GW_GET_ENC_KEY : 'gateway_node_get_enc_key_request', // request for getWorkerEncryptionKey jsonrpc command (gateway side)
+  // TODO:: delete this
+  // GW_GET_ENC_KEY : 'gateway_node_get_enc_key_request', // request for getWorkerEncryptionKey jsonrpc command (gateway side)
+  ROUTE_BLOCKING_RPC : 'rbrpc' , // blocking rpc call for getStatus and getRegistrationParams
+  ROUTE_NON_BLOCK_RPC : 'rnbrpc', // non blocking rpc i.e deploy and compute
   // task computation related
   VERIFY_NEW_TASK : 'verifyreq', //request to perform verification of task
   TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
@@ -144,6 +147,8 @@ module.exports.CORE_REQUESTS = {
   UpdateDeltas : 'UpdateDeltas',
   UpdateDb : 'UpdateDb',
   NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
+  DeploySecretContract : 'DeploySecretContract', //jsonrpc request from remote use for deploying
+  ComputeTask : 'ComputeTask', //jsonrpc request for compute task
 };
 
 /** Default configuration for JSON RPC Server

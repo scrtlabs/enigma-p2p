@@ -46,9 +46,10 @@ const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsActi
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 // gateway jsonrpc
-const ProxyRequestDispatcher = require('./actions/proxy/ProxyReqDispatcherAction');
+const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
-
+const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
+const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger) {
     this._policy = new Policy();
@@ -105,7 +106,10 @@ class NodeController {
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
       [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
-      [NOTIFICATION.GW_GET_ENC_KEY] : new GetWorkerEncryptionKeyAction(this), // triggered by the gateway requester node proxy request
+      //TODO:: delete
+      // [NOTIFICATION.GW_GET_ENC_KEY] : new GetWorkerEncryptionKeyAction(this), // triggered by the gateway requester node proxy request
+      [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
+      [NOTIFICATION.ROUTE_NON_BLOCK_RPC] : new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic

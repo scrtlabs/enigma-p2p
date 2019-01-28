@@ -9,7 +9,7 @@ class Envelop {
   constructor(sequenceOrId, obj, msgType) {
     //TODO:: this does not actually THROW it just hangs in there without any signal
     if (!sequenceOrId || !obj || !msgType) {
-      throw new Error('sequenceOrId,obj,msgType must be specified!');
+      console.log("[-] error initializing envelop sequenceOrId,obj,msgType must be specified!");
     }
     this._msgType = msgType;
     this._obj = obj;

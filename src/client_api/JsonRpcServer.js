@@ -35,7 +35,7 @@ class JsonRpcServer extends EventEmitter {
       },
       getWorkerEncryptionKey: async (args, callback)=>{
         if(args.userPubKey && args.workerAddress){
-          console.log("[+] JsonRpc: getWorkerEncryptionKey" );
+          this._logger.info("[+] JsonRpc: getWorkerEncryptionKey" );
           const workerSignKey = args.workerAddress;
           const userPubKey = args.userPubKey;
           const content = {
@@ -43,70 +43,34 @@ class JsonRpcServer extends EventEmitter {
             userPubKey: userPubKey,
             type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
           };
-          let coreRes = await this._sendToCore(content);
+          let coreRes = await this._routeNext(content);
           if(coreRes === null){
-            return callback({'code': this._SERVER_ERR , 'message': 'Server error'});
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
-          let result = {
-            workerEncryptionKey: coreRes.result.workerEncryptionKey,
-            workerSig:coreRes.result.workerSig
-          };
-          return callback(null, result);
+          return callback(null, coreRes);
         }else{
-          return callback({'code': this._INVALID_PARAM , 'message': 'Invalid params'});
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
         }
       },
-      // Placeholder.
-      // TODO: Implement proper callback
-      deploySecretContract: async function(args, callback) {
-        let expected = ['preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+      deploySecretContract: async (args, callback)=>{
+        let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
         let isMissing = expected.some(attr=>{
           return !(attr in args);
         });
         if(isMissing){
-          return callback({'code': this._INVALID_PARAM , 'message': 'Invalid params'});
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
         }else{
-          console.log('[+] JsonRpc: deploySecretContract');
-          let coreRes = await this._sendToCore({
-            type : '',
+          this._logger.info('[+] JsonRpc: deploySecretContract');
+          let coreRes = await this._routeNext({
+            type : constants.CORE_REQUESTS.DeploySecretContract,
             request : args,
           });
           return callback(null, true);
         }
       },
-      // Placeholder.
-      // TODO: Implement proper callback
       sendTaskInput: function(args, callback) {
-        if(typeof args === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.taskId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.creationBlockNumber === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.sender === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.scAddr === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedFn === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedEncodedArgs === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userTaskSig === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userPubKey === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.fee === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.msgId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else {
-          // send to the network and return true
-          callback(null, true);
-        }
-
+        callback(null, true);
       },
-      // Placeholder.
-      // TODO: Implement proper callback
       getTaskStatus: function(args, callback) {
         callback(null, [2]);
       },
@@ -115,13 +79,13 @@ class JsonRpcServer extends EventEmitter {
       collect: true // collect params in a single argument
     });
   }
-  async _sendToCore(content){
+  async _routeNext(content){
     const envelop = new Envelop(true,content, PROXY_FLAG);
     try{
       let resEnv= await this.getCommunicator().sendAndReceive(envelop)
       return resEnv.content();
     }catch(e){
-      console.log("[-] JsonRpc ERR: " + e);
+      this._logger.error("[-] JsonRpc ERR: " + e);
       return null;
     }
   }
@@ -158,52 +122,6 @@ class JsonRpcServer extends EventEmitter {
         action.execute(envelop);
       }
     });
-  }
-  _isValidFields(msg){
-    // IPC
-    // preCode: 'the-bytecode',
-    //     encryptedArgs: 'hex of the encrypted args',
-    //     encryptedFn: 'hex of the encrypted function signature',
-    //     userPubKey: 'the-user-dh-pubkey',
-    //     gasLimit: 'the-user-selected-gaslimit',
-    //     contractAddress: 'the-address-of-the-contract'
-    // RPC
-    // preCode (String) - The hash of the compiled bytecode
-    // encryptedArgs (String) - Encrypted RLP-encoded args needed for the secret contract's constructor
-    // encryptedFn (String) -Encypted function that needs to be called
-    // userDHKey (String) - User's public key from Diffie-Hellman
-    // contractAddress (String) - Also serves as taskId, and can be recreated by anyone. H(userAddress, nonce)
-
-    // let expected = ['taskId','status','output','delta','usedGas','ethereumPayload','ethereumAddress','signature','preCodeHash'];
-    let isMissing = expected.some(attr=>{
-      return !(attr in msg);
-    });
-    if(isMissing){
-      return null;
-    }
-    // if(typeof args === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.taskId === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.creationBlockNumber === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.sender === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.scAddr === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.encryptedFn === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.encryptedEncodedArgs === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.userTaskSig === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.userPubKey === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.fee === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.msgId === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // }
   }
 }
 
