@@ -44,7 +44,6 @@ async function getRemoteMissingStates(api, localTips, callback) {
               // get the local tip index, if exists; otherwise 0
               if (secretContractAddress in tipsHashMaps) {
                 firstMissingIndex = tipsHashMaps[secretContractAddress] + 1;
-                // TODO:: lena: once newly deployed contracts will hold a first delta, this should be removed
                 if (deltasNumber === firstMissingIndex) {
                   return cb(null);
                 }
@@ -55,12 +54,6 @@ async function getRemoteMissingStates(api, localTips, callback) {
                 missingAddress = true;
                 missingCodeHash = await api.getCodeHash(secretContractAddress);
               }
-              // TODO:: lena: once newly deployed contracts will hold a first delta, this should be un-commented
-              // there are no missing deltas for this secret contract address
-              // if (deltasNumber === firstMissingIndex) {
-              //     return cb(null);
-              // }
-              // else {// (deltasNumber > firstMissingIndex) {
               api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
                   .then((deltasArray)=>{
                     const parsedDeltasArray = [];
