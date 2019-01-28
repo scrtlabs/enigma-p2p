@@ -45,6 +45,7 @@ module.exports.NODE_NOTIFICATIONS = {
   TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
   DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
+  DISPATCH_INCOMING_RPC_TASK : 'ditaskrpc',
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {

@@ -45,6 +45,7 @@ const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
+const SubscriptionsDispatcherAction = require('./actions/SubscriptionsDispatcherAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
@@ -113,6 +114,7 @@ class NodeController {
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.DISPATCH_INCOMING_RPC_TASK] : new SubscriptionsDispatcherAction(this), // dispatch subscriptions
     };
   }
   /**
