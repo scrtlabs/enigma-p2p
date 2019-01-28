@@ -5,6 +5,7 @@ The communication is done with `REQ` and `REP` sockets.
 
 # Message type
 
+
 ## Enclave identity related
 
 ### `GetRegistrationParams` message
@@ -29,28 +30,6 @@ Response:
 }
 ```
 
-### `IdentityChallenge` message
-
-Request:
-
-```
-{
-    id : <unique_request_id>,
-    type : IdentityChallenge,
-    nonce :
-}
-```
-Response:
-```
-{
-    id : <unique_request_id>,
-    type : IdentityChallenge,
-    result : {
-        nonce : hex,
-        signature : hex
-    }
-}
-```
 ## Enclave Read only Database related
 
 ### `GetTip` message
@@ -334,7 +313,7 @@ Request:
         preCode: 'the-bytecode',
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
-        userPubKey: 'the-user-dh-pubkey',
+        userDHKey: 'the-user-dh-pubkey',
         gasLimit: 'the-user-selected-gaslimit',
         contractAddress: 'the-address-of-the-contract'
     }
@@ -369,11 +348,10 @@ Request:
         taskID: 'the ID of the task'
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
-        userPubKey: 'the-user-dh-pubkey',
-        gasLimit: 'the-user-selected-gaslimit',
+        userDHKey: 'the-user-dh-pubkey',
+        gasLimit: 'the-user-selected-gaslimit', // from ethereum not rpc
         contractAddress: 'the-address-of-the-contract'
     }
-
 }
 ```
 
@@ -391,5 +369,31 @@ Response:
         signature: 'enclave-signature',
     }
     
+}
+```
+
+### `FailedTask` error message 
+If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
+```
+{
+    id: <unique_request_id>,
+    type: FailedTask,
+    result : {
+        output: 'the-output-of-the-execution',
+        usedGas: 'amount-of-gas-used',
+        signature: 'enclave-signature',
+    }
+}
+```
+
+## General `Error` system message
+
+Any Code error: 
+
+```
+{
+    id: <unique_request_id>,
+    type: <the_request_type>,
+    msg : "some error message",
 }
 ```

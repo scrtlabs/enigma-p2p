@@ -19,7 +19,7 @@ const Stats = require('../Stats');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
-const TaskManager = require('../task_manager/TaskManager');
+const TaskManager = require('../tasks/TaskManager');
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
@@ -166,7 +166,7 @@ class NodeController {
   }
   _initTaskManager(){
     //TODO:: should subscribed here to events and initialize whats needed like the web3 instance
-    this._taskManager = new TaskManager();
+    // this._taskManager = new TaskManager();
   }
   _initCache(){
     //TODO:: start the cache service

@@ -36,6 +36,10 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
+  // task computation related
+  VERIFY_NEW_TASK : 'verifyreq', //request to perform verification of task
+  TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
+  TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -119,7 +123,7 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
   Proxy : 'proxy',
 };
 /** IPC core message types
- * in /docs there is  a README called IPC_MESSAGES.md
+ * in /docs there is  a README called IPC_MESSAGES.md# Task Result Propagation in the network
  * describing each message
  * */
 // all the different requests that can be made to Core via the Ipc client
@@ -144,4 +148,19 @@ module.exports.CORE_REQUESTS = {
  */
 module.exports.JSON_RPC_SERVER = {
   port: 3000,
-}
+};
+
+/**
+ * Task different status (deploy,compute etc)
+ * - 0 unverified , pre ethereum verification (chosen worker, inputHash,payment are the 3 things that needs to be verified)
+ * - 1 in-progress , passed to core
+ * - 2 - success , contains output
+ * - 3 - failure , contains error status (failed computation, returned from Core)
+ * */
+module.exports.TASK_STATUS = {
+  UNVERIFIED : '0',
+  IN_PROGRESS : '1',
+  SUCCESS : '2',
+  FAILED : '3'
+};
+
