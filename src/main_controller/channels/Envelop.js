@@ -7,9 +7,11 @@ class Envelop {
    *  @param {Object} obj, the data being passed
    *  @param {string} msgType , used by the MainController to identify which runtime should be called */
   constructor(sequenceOrId, obj, msgType) {
+    this._validEnvelop = true;
     //TODO:: this does not actually THROW it just hangs in there without any signal
     if (!sequenceOrId || !obj || !msgType) {
       console.log("[-] error initializing envelop sequenceOrId,obj,msgType must be specified!");
+      this._validEnvelop = false;
     }
     this._msgType = msgType;
     this._obj = obj;
@@ -25,6 +27,9 @@ class Envelop {
     if(!('id' in this._obj) && this._id !== false){
       this._obj.id = this._id;
     }
+  }
+  isValidEnvelop(){
+    return this._validEnvelop;
   }
   type() {
     return this._msgType;

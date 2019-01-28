@@ -7,6 +7,7 @@ class RouteRpcNonBlockingAction {
   execute(requestEnvelop){
     const targetTopic = requestEnvelop.content().request.workerAddress;
     const request = requestEnvelop.content().request;
+    const type = requestEnvelop.content().type;
     // validate topic indicated
     if(!targetTopic || !request){
       let env = new Envelop(requestEnvelop.id(),{result:{ sent : false}},requestEnvelop.type());
@@ -18,6 +19,7 @@ class RouteRpcNonBlockingAction {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
       topic: targetTopic,
       message: JSON.stringify({
+        type : type,
         request: request,
       }),
     });

@@ -16,6 +16,7 @@ class RouteRpcBlockingAction {
     const sequence = requestEnvelop.content().id;
     const targetTopic = requestEnvelop.content().targetTopic;
     const workerSignKey = requestEnvelop.content().workerSignKey;
+    const reqType = requestEnvelop.content().type;
     if(!targetTopic || !sequence || !workerSignKey){
       let env = new Envelop(requestEnvelop.id(),{result:false, error :"err no sequence/targetTopic/signKey"},requestEnvelop.type());
       return this._controller.
@@ -36,6 +37,7 @@ class RouteRpcBlockingAction {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
           topic: workerSignKey,
           message: JSON.stringify({
+            type :reqType ,
             request: request,
             sequence: sequence,
             targetTopic: targetTopic,
