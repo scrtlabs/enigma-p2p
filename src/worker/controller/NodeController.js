@@ -148,7 +148,7 @@ class NodeController {
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger, options.extraConfig);
   }
   _initController() {
     this._initEnigmaNode();
@@ -262,6 +262,9 @@ class NodeController {
   async stop() {
     await this.engNode().syncStop();
     await this._stopEthereum();
+    if(this._taskManager && this._extraConfig.tm.dbPath){
+      await this._taskManager.asyncStopAndDropDb();
+    }
   }
   /**
    * "Runtime Id" required method for the main controller
