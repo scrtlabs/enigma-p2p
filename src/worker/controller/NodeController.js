@@ -303,6 +303,9 @@ class NodeController {
   cache(){
     return this._cache;
   }
+  taskManager(){
+    return this._taskManager;
+  }
   ethereum(){
     return this._enigmaContractHandler.api();
   }

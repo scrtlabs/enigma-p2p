@@ -27,7 +27,7 @@ class StartTaskExecutionAction{
         break;
     }
     if(task){
-      // this._controller.taskManager().addTaskUnverified()
+      this._controller.taskManager().addTaskUnverified(task);
     }
   }
 }
