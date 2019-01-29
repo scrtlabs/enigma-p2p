@@ -152,26 +152,6 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * //TODO:: what exactly this function does and what are the return params.
-     * */
-  getWorkersParams(blockNumber) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getWorkersParams(blockNumber).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        // TODo: verify correction once implementation is done
-        const params = {
-          firstBlockNumber: parseInt(data[0]),
-          seed: parseInt(data[1]),
-          workers: data[2],
-          balances: data[3].map((x) => parseInt(x)),
-        };
-        resolve(params);
-      });
-    });
-  }
-  /**
      * TODO:: what does it do?
      * */
   getWorkerGroup(blockNumber, secrectContractAddress) {
@@ -200,6 +180,20 @@ class EnigmaContractReaderAPI {
           report: this._web3.utils.hexToAscii(data[1]),
         };
         resolve(params);
+      });
+    });
+  }
+  /**
+   * * Get Ethereum block number
+   * @return {Integer} : blockNumber
+   * */
+  getEthereumBlockNumber() {
+    return new Promise((resolve, reject) => {
+      this._web3.eth((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
       });
     });
   }
