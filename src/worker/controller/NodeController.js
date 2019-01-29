@@ -178,6 +178,8 @@ class NodeController {
     let dbPath = null;
     if(this._extraConfig && this._extraConfig.tm.dbPath){
       dbPath = this._extraConfig.tm.dbPath;
+    }else{
+      return;
     }
     this._taskManager = new TaskManager(dbPath, this.logger());
     this._taskManager.on('notify', (params)=>{
