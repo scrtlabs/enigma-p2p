@@ -45,16 +45,17 @@ const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
-
+const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 class NodeController {
-  constructor(enigmaNode, protocolHandler, connectionManager, logger) {
+  constructor(enigmaNode, protocolHandler, connectionManager, logger,extraConfig){
     this._policy = new Policy();
-
+    // extra config (currently dbPath for taskManager)
+    this._extraConfig = extraConfig;
     // initialize logger
     this._logger = logger;
 
@@ -107,6 +108,7 @@ class NodeController {
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
       [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
+      [NOTIFICATION.START_TASK_EXEC] : new StartTaskExecutionAction(this), // start task execution (worker)
       //TODO:: delete
       // [NOTIFICATION.GW_GET_ENC_KEY] : new GetWorkerEncryptionKeyAction(this), // triggered by the gateway requester node proxy request
       [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
@@ -173,8 +175,18 @@ class NodeController {
     });
   }
   _initTaskManager(){
-    //TODO:: should subscribed here to events and initialize whats needed like the web3 instance
-    // this._taskManager = new TaskManager();
+    let dbPath = null;
+    if(this._extraConfig && this._extraConfig.tm.dbPath){
+      dbPath = this._extraConfig.tm.dbPath;
+    }
+    this._taskManager = new TaskManager(dbPath, this.logger());
+    this._taskManager.on('notify', (params)=>{
+      const notification = params.notification;
+      const action = this._actions[notification];
+      if(action !== undefined){
+        this._actions[notification].execute(params);
+      }
+    });
   }
   _initCache(){
     //TODO:: start the cache service

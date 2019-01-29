@@ -350,6 +350,24 @@ class TaskManager extends EventEmitter {
       });
     });
   }
+  /**
+   * TODO:: !!!! USED FOR TESTS ONLY !!!!
+   * stop and delete the db
+   * TODO:: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   * */
+  async asyncStopAndDropDb(){
+    return new Promise(async (res,rej)=>{
+      try{
+        await this.asyncStop();
+        nodeUtils.deleteFolderFromOSRecursive(this._dbPath,()=>{
+          res();
+        });
+      }catch(e){
+        this._logger.error(e);
+        rej(e);
+      }
+    })
+  }
   /** stop the task manager
    * @param {Function} callback(err)=>{}
    * */
@@ -460,18 +478,6 @@ class TaskManager extends EventEmitter {
       callback(err,tasks);
     });
   }
-  /**
-   * Update some task status
-   * TODO:: revisit if the is even needed
-   * */
-  // _updateTaskStatus(taskId,status,callback){
-  //   let theTask = null;
-  //   if(this.isUnverifiedInPool(taskId) && status !== constants.TASK_STATUS.UNVERIFIED){
-  //     theTask = this._unverifiedPool[taskId].task;
-  //   }
-  //   //TODO continue here HW
-  // }
-
   /**
    * validation if its ok to add the task to the unverifiedPool
    * checks:

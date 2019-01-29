@@ -4,7 +4,8 @@ const capcon = require('capture-console');
 const jaysonBrowserClient = require('jayson/lib/client/browser');
 const testUtils = require('./testUtils/utils');
 const waterfall = require('async/waterfall');
-// const TEST_TREE = require('./test_tree').TEST_TREE;
+const TEST_TREE = require('./test_tree').TEST_TREE;
+const tree = TEST_TREE.jsonrpc_basic;
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const expect = require('expect');
@@ -35,6 +36,9 @@ describe('JsonRPC tests', () => {
   let coreServer;
 
   before(() => {
+    if(!tree['all']){
+      return new Promise(res=>{res();});
+    }
     const callServer = function(request, callback) {
       const config = {
         headers: {
@@ -106,6 +110,9 @@ describe('JsonRPC tests', () => {
 
   after(() => {
     return new Promise(async (resolve)=>{
+      if(!tree['all']){
+        return resolve();
+      }
       proxyController.getJsonRpcServer().close();
       await proxyController.getNode().stop();
       workerController.getIpcClient().disconnect();
@@ -116,6 +123,9 @@ describe('JsonRPC tests', () => {
   });
 
   it('#1 Should getInfo', async function() {
+    if(!tree['all'] || !tree['#1']){
+      this.skip();
+    }
     const response = await new Promise((resolve, reject) => {
       JsonRpcClient.request('getInfo', [], (err, res) => {
         if (err) {
@@ -132,6 +142,9 @@ describe('JsonRPC tests', () => {
   })
 
   it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
+    if(!tree['all'] || !tree['#2']){
+      this.skip();
+    }
     // This block captures stdout for console.log to get the_worker_sign_key
     let output = '';
     capcon.startCapture(process.stdout, function(stdout) {
@@ -156,7 +169,9 @@ describe('JsonRPC tests', () => {
   }, 10000);
 
   it('#3 Should fail sendTaskInput', async function(){
-
+    if(!tree['all'] || !tree['#3']){
+      this.skip();
+    }
     expect.assertions(2);
     // JSON RPC fails with no taskInput parameter
     await expect(new Promise((resolve, reject) => {
@@ -180,6 +195,9 @@ describe('JsonRPC tests', () => {
 
 
   it('#4 Should sendTaskInput', async function(){
+    if(!tree['all'] || !tree['#4']){
+      this.skip();
+    }
     const taskInput = { taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
       creationBlockNumber: 189,
       sender: '0x627306090abaB3A6e1400e9345bC60c78a8BEf57',

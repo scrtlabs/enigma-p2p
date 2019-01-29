@@ -36,6 +36,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
+  START_TASK_EXEC : 'stexec', // start task execution process, worker side
   // TODO:: delete this
   // GW_GET_ENC_KEY : 'gateway_node_get_enc_key_request', // request for getWorkerEncryptionKey jsonrpc command (gateway side)
   ROUTE_BLOCKING_RPC : 'rbrpc' , // blocking rpc call for getStatus and getRegistrationParams

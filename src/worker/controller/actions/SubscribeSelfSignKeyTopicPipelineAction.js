@@ -8,61 +8,11 @@ const constants = require('../../../common/constants');
 const msgs = constants.CORE_REQUESTS;
 const waterfall = require('async/waterfall');
 
+
 class SubscribeSelfSignKeyTopicPipelineAction {
   constructor(controller) {
     this._controller = controller;
   }
-  // execute(params) {
-  //   waterfall([
-  //     (cb)=>{
-  //       // get registration params of the worker from core
-  //       this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
-  //           {
-  //             onResponse: (err, regParams)=>{
-  //               cb(err, regParams);
-  //             },
-  //           });
-  //     },
-  //   ], (err, regParams)=>{
-  //     if (err) {
-  //       this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {' + err +'} ');
-  //       if (params.onResponse) {
-  //         return params.onResponse(err);
-  //       }
-  //     }
-  //     // subscribe to topic
-  //     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB, {
-  //       topic: regParams.result.signingKey,
-  //       // onPublish will be called everytime something is published to the topic param
-  //       onPublish: (msg) =>{
-  //         const data = JSON.parse(msg.data);
-  //         const request = data.request;
-  //         const targetTopic = data.targetTopic;
-  //         this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
-  //           request,
-  //           onResponse: (err, encKeyResult)=>{
-  //             this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
-  //             this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
-  //               topic: targetTopic,
-  //               message: JSON.stringify({
-  //                 result : {
-  //                   workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
-  //                   workerSig: encKeyResult.result.workerSig
-  //                 }
-  //               }),
-  //             });
-  //           },
-  //         });
-  //       },
-  //       onSubscribed: ()=>{
-  //         this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
-  //         if (params.onResponse) {
-  //           return params.onResponse(err);
-  //         }
-  //       },
-  //     });
-  //   });
-  // }
   execute(params) {
     waterfall([
       (cb)=>{
@@ -95,24 +45,10 @@ class SubscribeSelfSignKeyTopicPipelineAction {
               this._executeNewTaskEncryptionKey(request,targetTopic);
               break;
             case msgs.DeploySecretContract:
-
+            case msgs.ComputeTask:
+              this._executeTask(data);
               break;
           }
-          // this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
-          //   request,
-          //   onResponse: (err, encKeyResult)=>{
-          //     this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
-          //     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
-          //       topic: targetTopic,
-          //       message: JSON.stringify({
-          //         result : {
-          //           workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
-          //           workerSig: encKeyResult.result.workerSig
-          //         }
-          //       }),
-          //     });
-          //   },
-          // });
         },
         onSubscribed: ()=>{
           this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
@@ -123,8 +59,8 @@ class SubscribeSelfSignKeyTopicPipelineAction {
       });
     });
   }
-  _executeDeploySecretContract(){
-
+  _executeTask(msg){
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.START_TASK_EXEC,msg);
   }
   _executeNewTaskEncryptionKey(request,targetTopic){
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
