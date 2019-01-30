@@ -27,12 +27,16 @@ class CoreRuntime{
     this._initIpcClient();
     this._communicator = null;
     this._logger = logger;
+    let sendToCoreAction = new DbAction(this);
+    let preParseAction = new GetRegistrationParamsAction(this);
+    let getDbAction = new GetAllTipsAction(this);
     this._actions = {
-      [constants.CORE_REQUESTS.CORE_DB_ACTION] : new DbAction(this),
-      [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
+      [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
+      [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
+      [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
       [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
-      [constants.CORE_REQUESTS.GetAllTips] : new GetAllTipsAction(this),
+      [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
       [constants.CORE_REQUESTS.GetAllAddrs] : new GetAllAddrsAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
