@@ -31,15 +31,20 @@ class ExecuteVerifiedAction{
       return this._controller.logger().error("response from Core" + response);
     }
     let result = null;
+    if(response.result){
+      response.result.taskId = task.getTaskId();
+    }
     switch(response.type){
       case constants.CORE_REQUESTS.FailedTask:
-        result = Result.FailedResult.buildFailedResult(response);
+        result = Result.FailedResult.buildFailedResult(response.result);
         break;
       case constants.CORE_REQUESTS.DeploySecretContract:
-        result = Result.DeployResult.buildDeployResult(response);
+        response.result.status = constants.TASK_STATUS.SUCCESS;
+        result = Result.DeployResult.buildDeployResult(response.result);
         break;
       case constants.CORE_REQUESTS.ComputeTask:
-        result = Result.ComputeResult.buildComputeResult(response);
+        response.result.status = constants.TASK_STATUS.SUCCESS;
+        result = Result.ComputeResult.buildComputeResult(response.result);
         break;
     }
     // update task manager with the result
@@ -49,6 +54,8 @@ class ExecuteVerifiedAction{
       }catch(e){
         this._controller.logger().error(e);
       }
+    }else{
+      this._controller.logger().error("failed building Result from Task");
     }
   }
 }
