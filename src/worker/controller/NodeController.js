@@ -47,6 +47,7 @@ const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
+const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
@@ -108,6 +109,7 @@ class NodeController {
       [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.START_TASK_EXEC] : new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK] : new VerifyNewTaskAction(this), // verify new task
+      [NOTIFICATION.TASK_VERIFIED] : new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
       [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC] : new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
@@ -240,6 +242,13 @@ class NodeController {
   /** start the node */
   async start(){
     await this.engNode().syncRun();
+  }
+  /** replace existing or add new action
+   * @param {string} name
+   * @param {Action} action
+   * */
+  updateAction(name,action){
+    this._actions[name] = action;
   }
   /** init worker processes
    * once this done the worker can start receiving task
