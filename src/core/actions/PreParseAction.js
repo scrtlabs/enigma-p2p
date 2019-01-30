@@ -2,7 +2,7 @@ const Envelop = require('../../main_controller/channels/Envelop');
 const nodeUtils = require('../../common/utils');
 const Msg = require('../../common/constants').CORE_REQUESTS;
 
-class GetRegistrationParamsAction{
+class PreParseAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
@@ -14,4 +14,4 @@ class GetRegistrationParamsAction{
     });
   }
 }
-module.exports = GetRegistrationParamsAction;
+module.exports = PreParseAction;

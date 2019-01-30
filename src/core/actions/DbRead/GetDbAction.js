@@ -2,7 +2,7 @@ const Envelop = require('../../../main_controller/channels/Envelop');
 const nodeUtils = require('../../../common/utils');
 const Msg = require('../../../common/constants').CORE_REQUESTS;
 
-class GetAllTipsAction{
+class GetDbAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
@@ -25,4 +25,4 @@ class GetAllTipsAction{
     // });
   }
 }
-module.exports = GetAllTipsAction;
+module.exports = GetDbAction;
