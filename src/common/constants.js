@@ -161,6 +161,15 @@ module.exports.TASK_STATUS = {
   UNVERIFIED : '0',
   IN_PROGRESS : '1',
   SUCCESS : '2',
-  FAILED : '3'
+  FAILED : '3',
 };
 
+/**
+ * Ethereum events, defined by the different services exposed by the EthereumServices
+ * */
+module.exports.ETHEREUM_EVENTS = {
+  NewEpoch : 'NewEpoch',
+  TaskCreation : 'TaskCreation',
+  TaskSubmission : 'TaskSubmission',
+  SecretContractDeployment : 'SecretContractDeployment',
+};

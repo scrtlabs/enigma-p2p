@@ -223,13 +223,15 @@ class CLI {
       this._rpcPort = portStr;
     })
     .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider',(provider)=>{
+      this._initEthereum = true;
       this._ethereumWebsocketProvider = provider;
     })
-    .option('--init-ethereum', 'init Ethereum, optionally provide the Enigma contract address to start with',(address)=>{
+    .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with',(address)=>{
       this._initEthereum = true;
-      if (address !== undefined) {
-        this._enigmaContractAddress = address;
-      }
+      this._enigmaContractAddress = address;
+    })
+    .option('-E, --init-ethereum', 'init Ethereum',()=>{
+      this._initEthereum = true;
     })
     .parse(process.argv);
   }
