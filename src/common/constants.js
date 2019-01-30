@@ -147,6 +147,7 @@ module.exports.CORE_REQUESTS = {
   NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
   DeploySecretContract : 'DeploySecretContract', //jsonrpc request from remote use for deploying
   ComputeTask : 'ComputeTask', //jsonrpc request for compute task
+  FailedTask : 'FailedTask', // failed task returned FROM core as a response to deploy/compute -> valid response should be commited.
 };
 
 /** Default configuration for JSON RPC Server
