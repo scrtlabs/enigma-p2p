@@ -46,9 +46,9 @@ const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsActi
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
+const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
-const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 class NodeController {
@@ -67,12 +67,10 @@ class NodeController {
     this._engNode = enigmaNode;
     this._connectionManager = connectionManager;
     this._protocolHandler = protocolHandler;
-
     // TODO:: take Provider form CTOR - currently uses _initContentProvider()
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-
     // stats
     this._stats = new Stats();
 
@@ -109,8 +107,7 @@ class NodeController {
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
       [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.START_TASK_EXEC] : new StartTaskExecutionAction(this), // start task execution (worker)
-      //TODO:: delete
-      // [NOTIFICATION.GW_GET_ENC_KEY] : new GetWorkerEncryptionKeyAction(this), // triggered by the gateway requester node proxy request
+      [NOTIFICATION.VERIFY_NEW_TASK] : new VerifyNewTaskAction(this), // verify new task
       [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC] : new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
@@ -174,21 +171,22 @@ class NodeController {
       }
     });
   }
+  /**
+   * TODO:: currently it will generate db only if extraConfig provided
+   * TODO:: beucase of tests and multiple instances and path collision.
+   * */
   _initTaskManager(){
-    let dbPath = null;
     if(this._extraConfig && this._extraConfig.tm.dbPath){
-      dbPath = this._extraConfig.tm.dbPath;
-    }else{
-      return;
+      let dbPath = this._extraConfig.tm.dbPath;
+      this._taskManager = new TaskManager(dbPath, this.logger());
+      this._taskManager.on('notify', (params)=>{
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if(action !== undefined){
+          this._actions[notification].execute(params);
+        }
+      });
     }
-    this._taskManager = new TaskManager(dbPath, this.logger());
-    this._taskManager.on('notify', (params)=>{
-      const notification = params.notification;
-      const action = this._actions[notification];
-      if(action !== undefined){
-        this._actions[notification].execute(params);
-      }
-    });
   }
   _initCache(){
     //TODO:: start the cache service
