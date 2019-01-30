@@ -82,6 +82,9 @@ class MockCoreServer {
           let encKeyMsg = this._getNewTaskEncryptionKey(msg);
           MockCoreServer._send(this._socket, encKeyMsg);
           break;
+        case MsgTypes.DeploySecretContract:
+          MockCoreServer._send(this._socket, {id:msg.id, type : msg.type, message : "olla bebe", extra : msg});
+          break;
       }
     });
   };
