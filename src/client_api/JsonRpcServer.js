@@ -66,7 +66,10 @@ class JsonRpcServer extends EventEmitter {
             type : constants.CORE_REQUESTS.DeploySecretContract,
             request : args,
           });
-          return callback(null, true);
+          console.log("@@@@@@!@@@#$%^&*()*&^^");
+          console.log(JSON.stringify(coreRes,null,2));
+          console.log("@@@@@@!@@@#$%^&*()*&^^");
+          return callback(null, {deploySentResult :true});
         }
       },
       sendTaskInput: function(args, callback) {
