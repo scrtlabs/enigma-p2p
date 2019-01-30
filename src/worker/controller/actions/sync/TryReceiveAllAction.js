@@ -7,8 +7,8 @@
  * */
 const waterfall = require('async/waterfall');
 
-class TryReceiveAllAction{
-  constructor(controller){
+class TryReceiveAllAction {
+  constructor(controller) {
     this._controller = controller;
   }
   /**
@@ -18,29 +18,29 @@ class TryReceiveAllAction{
    *  - onFinish
    * }
    * */
-  execute(params){
-    let allMissingDataList = params.allMissingDataList;
-    let remoteMissingStatesMap = params.remoteMissingStatesMap;
-    let onFinish = params.onFinish;
-    let receiver = this._controller.receiver();
-    
+  execute(params) {
+    const allMissingDataList = params.allMissingDataList;
+    const remoteMissingStatesMap = params.remoteMissingStatesMap;
+    const onFinish = params.onFinish;
+    const receiver = this._controller.receiver();
+
     if (allMissingDataList.length === 0) {
-      return onFinish("no providers were found");
+      return onFinish('No missing data');
     }
 
-    let jobs = [];
-    let firstJob = allMissingDataList[0];
+    const jobs = [];
+    const firstJob = allMissingDataList[0];
 
     // pass the missingStateList to the receiver
     receiver.setRemoteMissingStatesMap(remoteMissingStatesMap);
     // init the first job
-    jobs.push(cb=>{
-      receiver.trySyncReceive(firstJob.providers,firstJob.requestMessages,
+    jobs.push((cb)=>{
+      receiver.trySyncReceive(firstJob.providers, firstJob.requestMessages,
           (err, isDone, resultList)=>{
             if (err) {
               return cb(err);
             } else {
-              let allResults = [];
+              const allResults = [];
               allResults.push({success: isDone, resultList: resultList, error: err});
               return cb(null, allResults);
             }
@@ -48,10 +48,10 @@ class TryReceiveAllAction{
     });
     // init the rest of the jobs
     for (let i=1; i<allMissingDataList.length; ++i) {
-      let providers = allMissingDataList[i].providers;
-      let requestMessages = allMissingDataList[i].requestMessages;
-      jobs.push((allResults,cb)=>{
-        receiver.trySyncReceive(providers, requestMessages,(err,isDone,resultList)=>{
+      const providers = allMissingDataList[i].providers;
+      const requestMessages = allMissingDataList[i].requestMessages;
+      jobs.push((allResults, cb)=>{
+        receiver.trySyncReceive(providers, requestMessages, (err, isDone, resultList)=>{
           if (err) {
             return cb(err);
           } else {
@@ -62,15 +62,11 @@ class TryReceiveAllAction{
       });
     }
     // execute all the jobs
-    waterfall(jobs, (err,allResults)=>{
+    waterfall(jobs, (err, allResults)=>{
       onFinish(err, allResults);
     });
   }
 }
 module.exports = TryReceiveAllAction;
-
-
-
-
 
 
