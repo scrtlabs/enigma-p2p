@@ -212,6 +212,8 @@ class EnigmaContractAPIBuilder {
     // TODO: should a contract instance be created?!
     this.enigmaContractAddress = this.config.enigmaContractAddress;
     this.enigmaContractABI = this.config.enigmaContractABI;
+
+    console.log('Connecting to the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
   }
 
   _initWeb3() {
