@@ -85,7 +85,7 @@ class InitWorkerAction {
         },
         // Background Services:
         cb=>{
-          // TODO:: lena, here your EthereumServices should start.
+          // TODO:: lena, here your EthereumServices should start. For example, read current Epoch data (like worker params)
           // TODO:: everything that runs in an infinite loop in the program should be started here.
           // TODO:: for example we could start here a process to always ping enigma-core and check if ok
           //subscribe to self (for responding to rpc requests of other workers)

@@ -12,7 +12,7 @@ function buildEnv(truffleDirectory) {
     const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        reject('env_initializer.buildEnv ' + stdout);
+        reject('env_initializer.buildEnv ' + err);
       }
       // console.log(stdout);
       resolve(stderr, stdout);
@@ -25,7 +25,7 @@ function resetEnv(truffleDirectory) {
     const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        reject('env_initalizer.resetEnv ' + stdout);
+        reject('env_initalizer.resetEnv ' + err);
       }
       resolve(stderr, stdout);
     });

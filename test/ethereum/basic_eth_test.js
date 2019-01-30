@@ -35,7 +35,7 @@ describe('Ethereum tests', function() {
       this.skip();
     }
     // runs after all tests in this block
-    await envInitializer.stop(web3);
+    await envInitializer.stop();
   });
 
   beforeEach(async function() {
