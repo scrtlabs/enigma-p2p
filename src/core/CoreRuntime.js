@@ -8,14 +8,10 @@ const IpcClient = require('./ipc');
 const constants = require('../common/constants');
 
 //actions
-const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
-const GetAllTipsAction = require('./actions/DbRead/GetAllTipsAction');
-const GetAllAddrsAction = require('./actions/DbRead/GetAllAddrsAction');
-const GetDeltasAction = require('./actions/DbRead/GetDeltasAction');
-const DbAction = require('./actions/DbAction');
-const GetContractCodeAction = require('./actions/DbRead/GetContractCodeAction');
+const PreParseAction = require('./actions/PreParseAction');
+const GetDbAction = require('./actions/DbRead/GetDbAction');
+const SendToCoreAction = require('./actions/SendToCoreAction');
 const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
-const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 
 class CoreRuntime{
   constructor(config, logger){
@@ -27,21 +23,21 @@ class CoreRuntime{
     this._initIpcClient();
     this._communicator = null;
     this._logger = logger;
-    let sendToCoreAction = new DbAction(this);
-    let preParseAction = new GetRegistrationParamsAction(this);
-    let getDbAction = new GetAllTipsAction(this);
+    let sendToCoreAction = new SendToCoreAction(this);
+    let preParseAction = new PreParseAction(this);
+    let getDbAction = new GetDbAction(this);
     this._actions = {
       [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
       [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
       [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
       [constants.CORE_REQUESTS.GetTip] : null,
       [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
-      [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,//new GetAllAddrsAction(this),
+      [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,
       [constants.CORE_REQUESTS.GetDelta] : null,
-      [constants.CORE_REQUESTS.GetDeltas] : getDbAction,//new GetDeltasAction(this),
-      [constants.CORE_REQUESTS.GetContract] :getDbAction,// new GetContractCodeAction(this),
+      [constants.CORE_REQUESTS.GetDeltas] : getDbAction,
+      [constants.CORE_REQUESTS.GetContract] :getDbAction,
       [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
-      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,//new NewTaskEncryptionKeyAction(this),
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,
     };
   }
   /**
