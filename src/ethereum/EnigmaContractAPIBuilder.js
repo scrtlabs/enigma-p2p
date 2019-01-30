@@ -129,7 +129,7 @@ class EnigmaContractAPIBuilder {
     let enigmaContractHandler;
 
     if (enigmaContractAddress) {
-      let config = {enigmaContractAddress: this._enigmaContractAddress};
+      let config = {enigmaContractAddress: enigmaContractAddress};
       if (url) {
         config.url = url;
       }
@@ -145,7 +145,7 @@ class EnigmaContractAPIBuilder {
       const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          reject('ApiBuilder.resetEnv ' + stdout);
+          reject('ApiBuilder.resetEnv ' + err);
         }
         resolve(stderr, stdout);
       });
@@ -157,7 +157,7 @@ class EnigmaContractAPIBuilder {
       const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          reject('ApiBuilder.buildEnv ' + stdout);
+          reject('ApiBuilder.buildEnv ' + err);
         }
         resolve(stderr, stdout);
       });
