@@ -83,7 +83,10 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, encKeyMsg);
           break;
         case MsgTypes.DeploySecretContract:
-          MockCoreServer._send(this._socket, {id:msg.id, type : msg.type, message : "olla bebe", extra : msg});
+          MockCoreServer._send(this._socket,this._getDeployTaskResult(msg));
+          break;
+        case MsgTypes.ComputeTask:
+          MockCoreServer._send(this._socket,this._getComputeTaskResult(msg));
           break;
       }
     });
@@ -97,7 +100,35 @@ class MockCoreServer {
       socket.send(JSON.stringify(error));
     }
   }
-
+  _getDeployTaskResult(msg){
+    return {
+      id:msg.id,
+      type : msg.type,
+      result : {
+        output: 'the-deployed-bytecode', // AKA preCode
+        preCodeHash: 'hash-of-the-precode-bytecode',
+        delta: {key:0, delta : [11,2,3,5,41,44]},
+        usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
+        signature: 'enclave-signature',
+      }
+    };
+  }
+  _getComputeTaskResult(msg){
+    return {
+      id:msg.id,
+      type : msg.type,
+      result : {
+        output: 'the-output-of-the-execution',
+        delta: {key:0, delta : [11,2,3,5,41,44]},
+        usedGas: 'amount-of-gas-used',
+        ethereumPayload: 'hex of payload',
+        ethereumAddress: 'address of the payload',
+        signature: 'enclave-signature',
+      }
+    };
+  }
   _getNewTaskEncryptionKey(msg){
     if (this._signKey === null){
       this._signKey = randomize('Aa0',40 );
