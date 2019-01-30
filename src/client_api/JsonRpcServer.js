@@ -75,6 +75,14 @@ class JsonRpcServer extends EventEmitter {
         }
       },
       sendTaskInput: function(args, callback) {
+        let expected = ['workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+        let isMissing = expected.some(attr=>{
+          return !(attr in args);
+        });
+        if(isMissing){
+          return callback({code: this._INVALID_PARAM , message: "Invalid params"});
+        }
+        callback(null,true);
         if(typeof args === "undefined") {
           callback({code: -32602, message: "Invalid params"});
         } else if (typeof args.taskId === "undefined") {
