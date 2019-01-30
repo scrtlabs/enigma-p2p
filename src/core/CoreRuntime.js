@@ -34,15 +34,14 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
       [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
       [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
-      [constants.CORE_REQUESTS.IdentityChallenge] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
       [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
-      [constants.CORE_REQUESTS.GetAllAddrs] : new GetAllAddrsAction(this),
+      [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,//new GetAllAddrsAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
-      [constants.CORE_REQUESTS.GetDeltas] : new GetDeltasAction(this),
-      [constants.CORE_REQUESTS.GetContract] : new GetContractCodeAction(this),
+      [constants.CORE_REQUESTS.GetDeltas] : getDbAction,//new GetDeltasAction(this),
+      [constants.CORE_REQUESTS.GetContract] :getDbAction,// new GetContractCodeAction(this),
       [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
-      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : new NewTaskEncryptionKeyAction(this),
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,//new NewTaskEncryptionKeyAction(this),
     };
   }
   /**

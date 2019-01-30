@@ -8,12 +8,10 @@ class GetAllTipsAction{
   }
 
   execute(envelop){
-    console.log("@@@@@@@@@");
-    console.log(JSON.stringify(envelop,null,2));
-    console.log("!!!!!!!!!!!!!!@@@@@@@@@");
     let request = {
       id : nodeUtils.randId(),
-      type :envelop.content().type
+      type :envelop.content().type,
+      input : envelop.content().input
     };
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,

@@ -7,7 +7,7 @@ class NewTaskEncryptionKeyAction{
     this._coreRuntime = coreRuntime;
   }
   execute(envelop){
-    let request = envelop._obj;
+    let request = envelop.content();
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,

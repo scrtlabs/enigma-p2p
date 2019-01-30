@@ -134,7 +134,6 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
 module.exports.CORE_REQUESTS = {
   CORE_DB_ACTION : 'CORE_DB_ACTION', // internal for CoreRuntime
   GetRegistrationParams : 'GetRegistrationParams',
-  IdentityChallenge : 'IdentityChallenge',
   GetTip : 'GetTip',
   GetTips : 'GetTips',
   GetAllTips : 'GetAllTips',
