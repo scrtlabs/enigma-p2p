@@ -31,15 +31,23 @@ class EnigmaContractReaderAPI {
   /**
      * get a secret contract hash
      * @param {string} secrectContractAddress
-     * @return {Promise} string
+     * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status
      * */
-  getCodeHash(secrectContractAddress) {
+  getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.contracts(secrectContractAddress).call((error, data)=> {
         if (error) {
           reject(error);
         }
-        resolve(data.codeHash);
+        const params = {
+          owner: data.owner,
+          preCodeHash: data.preCodeHash,
+          codeHash: data.codeHash,
+          outputHash: data.outputHash,
+          status: parseInt(data.status),
+        };
+        resolve(params);
       });
     });
   }
@@ -167,7 +175,7 @@ class EnigmaContractReaderAPI {
   /**
      * * Get the Worker report
      * @param {string} workerAddress
-     * @return {JSON} : {string} signer, {string} report
+     * @return {Promise} returning {JSON} : {string} signer, {string} report
      * */
   getReport(workerAddress) {
     return new Promise((resolve, reject) => {
@@ -184,8 +192,33 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * * Get task parameters
+   * @param {string} taskId
+   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof, {string} senderAddress,
+   *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
+   * */
+  getTaskParams(taskId) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.tasks(taskId).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        const params = {
+          inputsHash: data[0],
+          gasLimit: parseInt(data[1]),
+          gasPrice: parseInt(data[2]),
+          proof: data[3],
+          senderAddress: data[4],
+          blockNumber: parseInt(data[5]),
+          status: parseInt(data[6]),
+        };
+        resolve(params);
+      });
+    });
+  }
+  /**
    * * Get Ethereum block number
-   * @return {Integer} : blockNumber
+   * @return {Promise} returning {Integer} : blockNumber
    * */
   getEthereumBlockNumber() {
     return new Promise((resolve, reject) => {
@@ -230,7 +263,6 @@ class EnigmaContractReaderAPI {
      * */
   unsubscribeAll() {
     for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
-      // console.log("unsubscribing " + eventName);
       eventWatcher.unsubscribe();
     }
     return true;

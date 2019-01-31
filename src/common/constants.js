@@ -173,3 +173,21 @@ module.exports.ETHEREUM_EVENTS = {
   TaskSubmission : 'TaskSubmission',
   SecretContractDeployment : 'SecretContractDeployment',
 };
+
+/**
+ * Enigma Contract task status
+ * */
+module.exports.ETHEREUM_TASK_STATUS = {
+  RECORD_UNDEFINED : 0,
+  RECORD_CREATED : 1,
+  RECEIPT_VERIFIED : 2,
+  RECEIPT_FAILED : 3,
+};
+
+/**
+* Enigma Contract secret contract status
+* */
+module.exports.ETHEREUM_SECRET_CONTRACT_STATUS = {
+  UNDEFINED : 0,
+  DEPLOYED : 1,
+};
