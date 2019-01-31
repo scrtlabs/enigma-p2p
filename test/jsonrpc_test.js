@@ -9,6 +9,7 @@ const tree = TEST_TREE.jsonrpc_basic;
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const expect = require('expect');
+const assert = require('assert');
 
 // const B1Path = path.join(__dirname, 'testUtils/id-l');
 // const B1Port = '10300';
@@ -167,63 +168,63 @@ describe('JsonRPC tests', () => {
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
-//TODO:: remove this test
-  it('#3 Should fail sendTaskInput', async function(){
-    this.skip();
+
+  it("#3 should sendTaskInput",async ()=>{
     if(!tree['all'] || !tree['#3']){
       this.skip();
     }
-    expect.assertions(2);
-    // JSON RPC fails with no taskInput parameter
-    await expect(new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', {}, (err, res) => {
-        if (err) {
-          reject(err);
-        }
+    return new Promise(resolve => {
+      const taskInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+      };
+      JsonRpcClient.request('sendTaskInput',taskInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
         resolve();
       });
-    })).rejects.toEqual({code: -32602, message: "Invalid params"});
-    // JSON RPC fails with taskInput but missing properties
-    await expect(new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', {taskId:'0x0', creationBlockNumber: 0}, (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-    })).rejects.toEqual({code: -32602, message: "Invalid params"});
+    });
   });
-
-//TODO:: remove this test
-  it('#4 Should sendTaskInput', async function(){
-    this.skip();
+  it("#4 should deploySecretContract",async ()=>{
     if(!tree['all'] || !tree['#4']){
       this.skip();
     }
-    const taskInput = { taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
-      creationBlockNumber: 189,
-      sender: '0x627306090abaB3A6e1400e9345bC60c78a8BEf57',
-      scAddr: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
-      encryptedFn:
-       'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
-      encryptedEncodedArgs:
-       'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
-      userTaskSig:
-       '0x0e8164325637767bea77b5615f174a67ec055bdf7cca3c8f696020b0cf2928a32a69a66d378e853f909e1f8d57d05e9a103467771756cabbe7577ee7329ad3fa01',
-      userPubKey:
-       '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
-      fee: 30000000000,
-      msgId: 'ldotj6nghv7a' }
-
-    const response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', taskInput, (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(res);
+    return new Promise(resolve => {
+      const deployInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+        preCode : [22,33,100,202,111,223,211,22]
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
+        resolve();
       });
     });
-    // assert.strictEqual(true,response);
-    expect(response).toBe(true);
+  });
+  it("#5 should Fail deploySecretContract",async ()=>{
+    if(!tree['all'] || !tree['#5']){
+      this.skip();
+    }
+    return new Promise(resolve => {
+      const deployInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+        preCode : [22,33,100,202,111,223,211,22]
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(-32602, err.code, "code dont match");
+        resolve();
+      });
+    });
   });
 });
