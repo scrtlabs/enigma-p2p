@@ -54,7 +54,7 @@ class JsonRpcServer extends EventEmitter {
         }
       },
       deploySecretContract: async (args, callback)=>{
-        if(this._isRouteMessage(args)){
+        if(this._shouldRouteMessage(args)){
           let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
         }else{
@@ -62,7 +62,7 @@ class JsonRpcServer extends EventEmitter {
         }
       },
       sendTaskInput: async (args, callback)=> {
-        if(this._isRouteMessage(args)){
+        if(this._shouldRouteMessage(args)){
           let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
         }else{
@@ -70,6 +70,23 @@ class JsonRpcServer extends EventEmitter {
         }
       },
       getTaskStatus: function(args, callback) {
+        // if(args.userPubKey && args.workerAddress){
+        //   this._logger.info("[+] JsonRpc: getWorkerEncryptionKey" );
+        //   const workerSignKey = args.workerAddress;
+        //   const userPubKey = args.userPubKey;
+        //   const content = {
+        //     workerSignKey: workerSignKey,
+        //     userPubKey: userPubKey,
+        //     type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
+        //   };
+        //   let coreRes = await this._routeNext(content);
+        //   if(coreRes === null){
+        //     return callback({code: this._SERVER_ERR , message: 'Server error'});
+        //   }
+        //   return callback(null, coreRes);
+        // }else{
+        //   return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
+        // }
         callback(null, [2]);
       },
     },
@@ -110,7 +127,7 @@ class JsonRpcServer extends EventEmitter {
    * TODO:: this function shoid check the workerAddress
    * TODO:: if equals to self address than DO NOT route next
    * */
-  _isRouteMessage(args){
+  _shouldRouteMessage(args){
     return true;
   }
   listen() {
