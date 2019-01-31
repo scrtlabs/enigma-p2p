@@ -27,7 +27,7 @@ class DeployTask extends Task{
       }
     }
     constructor(taskId,preCode,encryptedArgs,encryptedFn,userDHKey,gasLimit,contractAddr){
-      super(taskId);
+      super(taskId, constants.CORE_REQUESTS.DeploySecretContract);
       this._preCode = preCode;
       this._encryptedArgs = encryptedArgs;
       this._encryptedFn = encryptedFn;

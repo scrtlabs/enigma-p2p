@@ -63,7 +63,7 @@ class JsonRpcServer extends EventEmitter {
       },
       sendTaskInput: async (args, callback)=> {
         if(this._isRouteMessage(args)){
-          let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','gasLimit','contractAddress'];
+          let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
         }else{
         //TODO:: message directed to self worker, handle

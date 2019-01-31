@@ -29,15 +29,16 @@ class CoreRuntime{
     this._actions = {
       [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
       [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
+      [constants.CORE_REQUESTS.ComputeTask] : preParseAction,
       [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
-      [constants.CORE_REQUESTS.GetTip] : null,
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,
       [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
       [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,
-      [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetDeltas] : getDbAction,
       [constants.CORE_REQUESTS.GetContract] :getDbAction,
       [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
-      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,
+      [constants.CORE_REQUESTS.GetDelta] : null,
+      [constants.CORE_REQUESTS.GetTip] : null,
     };
   }
   /**

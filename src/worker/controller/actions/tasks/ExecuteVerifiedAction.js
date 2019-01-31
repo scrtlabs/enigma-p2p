@@ -15,7 +15,7 @@ class ExecuteVerifiedAction{
   async execute(params){
     let task = params.task;
     let requestEnv = new Envelop(true,{
-      type : constants.CORE_REQUESTS.DeploySecretContract,
+      type : task.getTaskType(),
       task : task.toDbJson(),
     },constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
     let responseEnvelop = null;
