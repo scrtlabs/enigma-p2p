@@ -49,6 +49,7 @@ const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionActi
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
 const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
+const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
@@ -117,6 +118,7 @@ class NodeController {
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.RECEIVED_NEW_RESULT] : new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
     };
   }
   /**

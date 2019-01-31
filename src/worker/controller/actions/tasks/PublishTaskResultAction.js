@@ -16,7 +16,7 @@ class PublishTaskResultAction{
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
       topic : constants.PUBSUB_TOPICS.TASK_RESULTS,
       message : JSON.stringify({
-        whatever : task.getResult().toDbJson()
+      result: task.getResult().toDbJson()
       })
     });
     //TODO:: commit the result back to ethereum
