@@ -6,7 +6,6 @@
  * - update local storage
  * */
 const constants = require('../../../../common/constants');
-const Result = require('../../')
 class PublishTaskResultAction{
   constructor(controller) {
     this._controller = controller;
