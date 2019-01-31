@@ -20,11 +20,22 @@ class ProxyDispatcherAction {
         const selfId = this._controller.engNode().getSelfIdB58Str();
         requestEnvelop.content().targetTopic = selfId + workerSignKey + sequence;
         break;
+      case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
+        theAction = constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC;
+        let taskId =  requestEnvelop.content().taskId;
+        let workerAddr =  requestEnvelop.content().workerAddress;
+        requestEnvelop.content().targetTopic = taskId + workerAddr ;
+        requestEnvelop.content().workerSignKey = workerAddr;
+        if(!requestEnvelop.content().id){
+          requestEnvelop.content().id = taskId;
+        }
+        break;
       case constants.CORE_REQUESTS.DeploySecretContract:
       case constants.CORE_REQUESTS.ComputeTask:
         theAction =constants.NODE_NOTIFICATIONS.ROUTE_NON_BLOCK_RPC;
         break;
     }
+    this._controller.logger().debug("sending dispatched rpc request");
     this._controller.execCmd(theAction,requestEnvelop);
   }
 }

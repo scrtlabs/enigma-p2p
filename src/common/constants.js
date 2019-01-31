@@ -45,6 +45,7 @@ module.exports.NODE_NOTIFICATIONS = {
   TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
   DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
   RECEIVED_NEW_RESULT : 'rnresult', // result updates receoved from the task results topic
+  GET_TASK_STATUS : 'gtstatus', // get task status
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {

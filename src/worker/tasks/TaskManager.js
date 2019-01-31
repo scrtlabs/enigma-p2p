@@ -162,7 +162,7 @@ class TaskManager extends EventEmitter {
    * @return {Function} callback(status or null)
    * */
   getTaskStatus(taskId,callback){
-    this.getTask((err,task)=>{
+    this.getTask(taskId,(err,task)=>{
       if(err) return callback(null);
       else callback(task.getStatus());
     });

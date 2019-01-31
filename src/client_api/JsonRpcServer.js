@@ -69,25 +69,18 @@ class JsonRpcServer extends EventEmitter {
         //TODO:: message directed to self worker, handle
         }
       },
-      getTaskStatus: function(args, callback) {
-        // if(args.userPubKey && args.workerAddress){
-        //   this._logger.info("[+] JsonRpc: getWorkerEncryptionKey" );
-        //   const workerSignKey = args.workerAddress;
-        //   const userPubKey = args.userPubKey;
-        //   const content = {
-        //     workerSignKey: workerSignKey,
-        //     userPubKey: userPubKey,
-        //     type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
-        //   };
-        //   let coreRes = await this._routeNext(content);
-        //   if(coreRes === null){
-        //     return callback({code: this._SERVER_ERR , message: 'Server error'});
-        //   }
-        //   return callback(null, coreRes);
-        // }else{
-        //   return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
-        // }
-        callback(null, [2]);
+      getTaskStatus: async (args, callback)=>{
+        if(args.workerAddress && args.taskId){
+          this._logger.info("[+] JsonRpc: getTaskStatus" );
+          let coreRes = await this._routeNext({taskId : args.taskId, workerAddress : args.workerAddress,
+          type : constants.NODE_NOTIFICATIONS.GET_TASK_STATUS});
+          if(coreRes === null){
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
+          }
+          return callback(null,coreRes);
+        }else{
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
+        }
       },
     },
     {
