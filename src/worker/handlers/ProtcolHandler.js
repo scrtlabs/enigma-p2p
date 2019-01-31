@@ -53,9 +53,11 @@ class ProtocolHandler extends EventEmitter {
 
     this._subscriptions = [
       PUBSUB_TOPICS.BROADCAST,
+      PUBSUB_TOPICS.TASK_RESULTS
     ];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
+    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish;
   }
   getProtocolsList() {
     return this._protocols;
@@ -328,6 +330,17 @@ class ProtocolHandler extends EventEmitter {
     const out = JSON.stringify({'from': from, 'data': data}, null, 2);
     console.log('----------------------------------------------------');
     params.worker.getProtocolHandler()._logger.info(out);
+    console.log('----------------------------------------------------');
+  }
+  onTaskResultPublish(params, message){
+    const selfId = params.worker.getSelfIdB58Str();
+    const from = message.from;
+
+    if (from === selfId) {
+      return;
+    }
+    console.log('----------------------------------------------------');
+    console.log(JSON.stringify(message.data,null,2));
     console.log('----------------------------------------------------');
   }
 }

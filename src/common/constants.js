@@ -69,6 +69,7 @@ module.exports.P2P_MESSAGES = {
 
 module.exports.PUBSUB_TOPICS = {
   'BROADCAST': '/broadcast/0.1',
+  'TASK_RESULTS' : '/taskresults/0.1',
 };
 
 module.exports.DHT_STATUS = {

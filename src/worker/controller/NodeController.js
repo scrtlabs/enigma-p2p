@@ -48,6 +48,7 @@ const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelf
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
+const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
@@ -110,6 +111,7 @@ class NodeController {
       [NOTIFICATION.START_TASK_EXEC] : new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK] : new VerifyNewTaskAction(this), // verify new task
       [NOTIFICATION.TASK_VERIFIED] : new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
+      [NOTIFICATION.TASK_FINISHED] : new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC] : new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
@@ -155,7 +157,6 @@ class NodeController {
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
-    //TODO:: task manager is dummy at the moment
     this._initTaskManager();
     // this._initCache();
 
