@@ -167,7 +167,7 @@ describe('JsonRPC tests', () => {
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
-//TODO:: remove this test 
+//TODO:: remove this test
   it('#3 Should fail sendTaskInput', async function(){
     this.skip();
     if(!tree['all'] || !tree['#3']){
