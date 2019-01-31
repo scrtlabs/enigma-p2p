@@ -167,7 +167,7 @@ describe('JsonRPC tests', () => {
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
-
+//TODO:: remove this test 
   it('#3 Should fail sendTaskInput', async function(){
     this.skip();
     if(!tree['all'] || !tree['#3']){
@@ -194,8 +194,9 @@ describe('JsonRPC tests', () => {
     })).rejects.toEqual({code: -32602, message: "Invalid params"});
   });
 
-
+//TODO:: remove this test
   it('#4 Should sendTaskInput', async function(){
+    this.skip();
     if(!tree['all'] || !tree['#4']){
       this.skip();
     }
