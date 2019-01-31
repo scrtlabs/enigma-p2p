@@ -108,6 +108,7 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 **Parameters**
 
 `taskId` - Identifier of the Task to check its status
+
 `workerAddress` - target worker address
 
 **Returns**
