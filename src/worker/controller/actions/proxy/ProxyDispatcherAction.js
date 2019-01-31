@@ -21,6 +21,7 @@ class ProxyDispatcherAction {
         requestEnvelop.content().targetTopic = selfId + workerSignKey + sequence;
         break;
       case constants.CORE_REQUESTS.DeploySecretContract:
+      case constants.CORE_REQUESTS.ComputeTask:
         theAction =constants.NODE_NOTIFICATIONS.ROUTE_NON_BLOCK_RPC;
         break;
     }

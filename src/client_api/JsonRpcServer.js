@@ -54,12 +54,20 @@ class JsonRpcServer extends EventEmitter {
         }
       },
       deploySecretContract: async (args, callback)=>{
-        let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
-        this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
+        if(this._isRouteMessage(args)){
+          let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+          this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
+        }else{
+          //TODO:: message directed to self worker, handle
+        }
       },
       sendTaskInput: async (args, callback)=> {
-        let expected = ['workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
-        this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
+        if(this._isRouteMessage(args)){
+          let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','gasLimit','contractAddress'];
+          this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
+        }else{
+        //TODO:: message directed to self worker, handle
+        }
       },
       getTaskStatus: function(args, callback) {
         callback(null, [2]);
@@ -72,7 +80,7 @@ class JsonRpcServer extends EventEmitter {
   async _routeNext(content){
     const envelop = new Envelop(true,content, PROXY_FLAG);
     try{
-      let resEnv= await this.getCommunicator().sendAndReceive(envelop)
+      let resEnv= await this.getCommunicator().sendAndReceive(envelop);
       return resEnv.content();
     }catch(e){
       this._logger.error("[-] JsonRpc ERR: " + e);
@@ -97,6 +105,13 @@ class JsonRpcServer extends EventEmitter {
       clientResult.sendTaskResult = coreRes.result.sent;
     }
     return callback(null, clientResult);
+  }
+  /**
+   * TODO:: this function shoid check the workerAddress
+   * TODO:: if equals to self address than DO NOT route next
+   * */
+  _isRouteMessage(args){
+    return true;
   }
   listen() {
     this._logger.debug('JsonRpcServer listening on port ' + this._port);
@@ -135,17 +150,7 @@ class JsonRpcServer extends EventEmitter {
 }
 
 module.exports = JsonRpcServer;
-
 // new JsonRpcServer({port : 3939 , peerId : '0xergiohtdjhrorudhgiurdhgiurdhgirdiudrgihl'}).listen();
-
-
 // curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getInfo", "params":[]}' 127.0.0.1:3939
-//
-//
-// ############ NEWWITH PARAMS @@@@
-//
-//
-//     curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getWorkerEncryptionKey","params":{"workerAddress":"0xda8a0cb626dc1bad0482bd2f9c950d194e0a9bec","userPubKey":"66666666666666666"}}' 127.0.0.1:3346
-//
-//
+// curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getWorkerEncryptionKey","params":{"workerAddress":"0xda8a0cb626dc1bad0482bd2f9c950d194e0a9bec","userPubKey":"66666666666666666"}}' 127.0.0.1:3346
 // curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"deploySecretContract","params":{"workerAddress":"0xedf9577b9d1610ca2737911b98152a463e9e2c46","preCode":"0x8e68b14d5bf0ffcf5dcc5cd538be0ef9958e3573","encryptedArgs":"66666666666666666","encryptedFn":"66666666666666666","userDHKey":"66666666666666666","contractAddress":"66666666666666666"}}' 127.0.0.1:3346
