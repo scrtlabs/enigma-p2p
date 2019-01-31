@@ -55,60 +55,11 @@ class JsonRpcServer extends EventEmitter {
       },
       deploySecretContract: async (args, callback)=>{
         let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
-        let isMissing = expected.some(attr=>{
-          return !(attr in args);
-        });
-        if(isMissing){
-          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
-        }else{
-          this._logger.info('[+] JsonRpc: deploySecretContract');
-          let coreRes = await this._routeNext({
-            type : constants.CORE_REQUESTS.DeploySecretContract,
-            request : args,
-          });
-          let clientResult = {};
-          clientResult.deploySentResult = false;
-          if(coreRes && coreRes.result && "sent" in coreRes.result){
-            clientResult.deploySentResult = coreRes.result.sent;
-          }
-          return callback(null, clientResult);
-        }
+        this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
       },
-      sendTaskInput: function(args, callback) {
+      sendTaskInput: async (args, callback)=> {
         let expected = ['workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
-        let isMissing = expected.some(attr=>{
-          return !(attr in args);
-        });
-        if(isMissing){
-          return callback({code: this._INVALID_PARAM , message: "Invalid params"});
-        }
-        callback(null,true);
-        if(typeof args === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.taskId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.creationBlockNumber === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.sender === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.scAddr === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedFn === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedEncodedArgs === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userTaskSig === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userPubKey === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.fee === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.msgId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else {
-          // send to the network and return true
-          callback(null, true);
-        }
+        this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
       },
       getTaskStatus: function(args, callback) {
         callback(null, [2]);
@@ -127,6 +78,25 @@ class JsonRpcServer extends EventEmitter {
       this._logger.error("[-] JsonRpc ERR: " + e);
       return null;
     }
+  }
+  async _routeTask(type,expectedFields,args,callback){
+    let isMissing = expectedFields.some(attr=>{
+      return !(attr in args);
+    });
+    if(isMissing){
+      return callback({code: this._INVALID_PARAM , message: "Invalid params"});
+    }
+    this._logger.info('[+] JsonRpc: '+type);
+    let coreRes = await this._routeNext({
+      type : type,
+      request : args,
+    });
+    let clientResult = {};
+    clientResult.sendTaskResult = false;
+    if(coreRes && coreRes.result && "sent" in coreRes.result){
+      clientResult.sendTaskResult = coreRes.result.sent;
+    }
+    return callback(null, clientResult);
   }
   listen() {
     this._logger.debug('JsonRpcServer listening on port ' + this._port);
