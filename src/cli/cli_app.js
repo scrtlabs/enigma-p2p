@@ -375,8 +375,7 @@ class CLI {
     });
     if(this._corePort){
       this._node.selfSubscribeAction();
-    }
-    this._node.getRegistrationParams((err,result)=>{
+      this._node.getRegistrationParams((err,result)=>{
           if(err){
             console.log('err in getRegistration' + err);
           }else{
@@ -389,6 +388,7 @@ class CLI {
             this._node.ethereum().register(result.result.signingKey, hex_to_ascii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
           }
         });
+    }
   }
   start() {
     console.log(Parsers.opener);
