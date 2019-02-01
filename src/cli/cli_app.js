@@ -7,10 +7,24 @@ const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = require('../common/cryptography');
 const DbUtils = require('../common/DbUtils');
+<<<<<<< cffa8e608f9d8c6a7b6a7354605da10649a5877f
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
 // const spinners = ['core-alive', 'bootstrap-nodes', 'discover-optimal-dht','init-background-services' ,'synchronize-worker-state','init '];
+=======
+
+
+function hex_to_ascii(str1)
+{
+  var hex  = str1.toString();
+  var str = '';
+  for (var n = 0; n < hex.length; n += 2) {
+    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
+  }
+  return str;
+}
+>>>>>>> BLD: integration test to register worker
 
 class CLI {
   constructor() {
@@ -362,6 +376,19 @@ class CLI {
     if(this._corePort){
       this._node.selfSubscribeAction();
     }
+    this._node.getRegistrationParams((err,result)=>{
+          if(err){
+            console.log('err in getRegistration' + err);
+          }else{
+            let out = {};
+            out.report = result.result.report;
+            out.report_ascii = hex_to_ascii(result.result.report);
+            out.signature = result.result.signature;
+            out.singingKey = result.result.signingKey;
+            console.log(out);
+            this._node.ethereum().register(result.result.signingKey, hex_to_ascii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
+          }
+        });
   }
   start() {
     console.log(Parsers.opener);
