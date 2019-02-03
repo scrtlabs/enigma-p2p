@@ -117,10 +117,10 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 
 `STATUS` - One of the following values:
 - `0`: TaskId not found
-- `1`: TaskId exists, but it has not been verified
-- `2`: TaskId exists and it has been verified, in-progress
-- `3`: Success
-- `4`: Failure
+- `UNVERIFIED`: TaskId exists, but it has not been verified
+- `INPROGRESS`: TaskId exists and it has been verified, in-progress
+- `SUCCESS`: Success
+- `FAILED`: Failure
 
 **Example**
 
