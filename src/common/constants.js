@@ -167,10 +167,10 @@ module.exports.JSON_RPC_SERVER = {
  * - 3 - failure , contains error status (failed computation, returned from Core)
  * */
 module.exports.TASK_STATUS = {
-  UNVERIFIED : '0',
-  IN_PROGRESS : '1',
-  SUCCESS : '2',
-  FAILED : '3',
+  UNVERIFIED : 'UNVERIFIED',
+  IN_PROGRESS : 'INPROGRESS',
+  SUCCESS : 'SUCCESS',
+  FAILED : 'FAILED',
 };
 
 /**

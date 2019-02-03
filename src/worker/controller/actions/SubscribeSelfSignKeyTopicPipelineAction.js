@@ -38,6 +38,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
         onPublish: (msg) =>{
           const data = JSON.parse(msg.data);
           const type = data.type;
+          this._controller.logger().info("[WORK_TOPIC_PUBLISH] " + type);
           const request = data.request;
           let targetTopic = null;
           switch(type){
@@ -51,13 +52,9 @@ class SubscribeSelfSignKeyTopicPipelineAction {
               break;
             case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
               targetTopic = data.targetTopic;
-              console.log("@@@@@ task request @!#$%^&*&^%$#");
               this._getTaskStatus(request,targetTopic);
               break;
-          }
-          console.log("@#$%^&*(&^Y%T^&*()&^(*%*^&()( ")
-          console.log(JSON.stringify(request, null,2));
-          console.log("@#$%^&*(&^Y%T^&*()&^(*%*^&()( ")
+          };
         },
         onSubscribed: ()=>{
           this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
@@ -91,7 +88,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
   _getTaskStatus(request,targetTopic){
     this._controller.taskManager().getTaskStatus(request.taskId,(taskStatus)=>{
       if(!taskStatus){
-        this._controller.logger().error('error check task status rpc ' + request.taskId);
+        this._controller.logger().error('error check task status rpc taskId= ' + request.taskId);
         return;
       }
       this._controller.logger().debug('publishing task ' + taskStatus +' status ' + request.taskId);

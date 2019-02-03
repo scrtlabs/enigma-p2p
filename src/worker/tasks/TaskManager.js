@@ -274,7 +274,7 @@ class TaskManager extends EventEmitter {
       // save the task again with the result attached
       this._storeTask(task,(err)=>{
         if(err){return callback(err);}
-        this._logger.info("[TASK_FINISHED] success ? " + taskResult.isSuccess() + " id: " + task.getTaskId());
+        this._logger.info("[TASK_FINISHED] status = [" + taskResult.getStatus() + "] id: " + task.getTaskId());
         // notify about the task change
         this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_FINISHED, task : task});
         return callback();

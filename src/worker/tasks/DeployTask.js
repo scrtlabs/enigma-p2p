@@ -1,6 +1,7 @@
 const Task = require('./Task');
 let Result = require('./Result');
 const constants = require('../../common/constants');
+const nodeUtils = require('../../common/utils');
 class DeployTask extends Task{
   /**
    * @param {JSON} deployReqMsg , all fields specified in the `expected` list in the func
@@ -73,6 +74,9 @@ class DeployTask extends Task{
       if(taskObj.status){
         let task = DeployTask.buildTask(taskObj);
         task._setStatus(taskObj.status);
+        if(taskObj.result && nodeUtils.isString(taskObj.result)){
+          taskObj.result = JSON.parse(taskObj.result);
+        }
         if(taskObj.result && taskObj.result.status !== constants.TASK_STATUS.FAILED){
           // here is string
           let result = Result.DeployResult.buildDeployResult(taskObj.result);
