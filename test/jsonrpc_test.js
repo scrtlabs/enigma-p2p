@@ -239,7 +239,7 @@ describe('JsonRPC tests', () => {
     }
     return new Promise(async resolve => {
       let signKey = await workerController.getNode().getSelfSubscriptionKey();
-      await testUtils.sleep(1000);
+      await testUtils.sleep(1500);
       const deployInput = {
         contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
         preCode : [22,33,100,202,111,223,211,22],
