@@ -59,7 +59,10 @@ class SubscribeSelfSignKeyTopicPipelineAction {
         onSubscribed: ()=>{
           this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
           if (params.onResponse) {
-            return params.onResponse(err);
+            if(err){
+              return params.onResponse(err);
+            }
+            return params.onResponse(err,regParams.result.signingKey);
           }
         },
       });

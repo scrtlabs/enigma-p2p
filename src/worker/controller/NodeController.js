@@ -415,8 +415,25 @@ class NodeController {
     });
   }
   /** temp run self subscribe command */
-  selfSubscribeAction(){
-    this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({});
+  async selfSubscribeAction(){
+    return new Promise((res,rej)=>{
+      this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({onResponse : (err,signKey)=>{
+        if(err) {return rej(signKey);}
+        else{ res(signKey);}
+      }});
+    });
+  }
+  /**
+   * @return {Promise<string>} signingKey of the sub topic
+   * */
+  async getSelfSubscriptionKey(){
+    return new Promise((res,rej)=>{
+      this.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
+       {onResponse: (err, regParams)=>{
+         if(err) return rej(err);
+         else return res(regParams.result.signingKey);}}
+      );
+    });
   }
   /** temp should delete - is connection (no handshake related simple libp2p
    * @param {string} nodeId
