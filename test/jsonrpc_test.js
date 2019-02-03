@@ -10,7 +10,8 @@ const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const expect = require('expect');
 const assert = require('assert');
-
+const nodeUtils = require('../src/common/utils');
+const constants = require('../src/common/constants');
 // const B1Path = path.join(__dirname, 'testUtils/id-l');
 // const B1Port = '10300';
 const B2Path = '../../test/testUtils/id-d';
@@ -78,6 +79,10 @@ describe('JsonRPC tests', () => {
           cb(null);
         },
         (cb)=>{
+          proxyConfig.extraConfig= {};
+          proxyConfig.extraConfig.tm = {
+            dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+          };
           // start the Proxy Node
           const builder = new EnvironmentBuilder();
           builder
@@ -90,10 +95,14 @@ describe('JsonRPC tests', () => {
         },
         (cb)=>{
           // start the Worker Node
+          workerConfig.extraConfig= {};
+          workerConfig.extraConfig.tm = {
+            dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+          };
           const builder = new EnvironmentBuilder();
           builder
               .setNodeConfig(workerConfig)
-              .setJsonRpcConfig({port: JsonRpcPort, peerId: 'no_id_yet'})
+              .setJsonRpcConfig({port: JsonRpcPort, peerId: null})
               .build().then((instance)=>{
                 proxyController = instance;
                 cb(null);
@@ -135,12 +144,9 @@ describe('JsonRPC tests', () => {
         resolve(res);
       });
     });
-    // assert.strictEqual(response.status,'ok');
-    // assert.notStrictEqual(response,peerId,undefined);
-    // assert.notStrictEqual(response,peerId,null);
     expect(response.peerId).toBeDefined();
     expect(response.status).toBe('ok');
-  })
+  });
 
   it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
     if(!tree['all'] || !tree['#2']){
@@ -224,6 +230,33 @@ describe('JsonRPC tests', () => {
       JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
         assert.strictEqual(-32602, err.code, "code dont match");
         resolve();
+      });
+    });
+  });
+  it("#6 should getTaskStatus", async ()=>{
+    if(!tree['all'] || !tree['#6']){
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      let signKey = await workerController.getNode().getSelfSubscriptionKey();
+      await testUtils.sleep(1000);
+      const deployInput = {
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        preCode : [22,33,100,202,111,223,211,22],
+        workerAddress: signKey,
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
+        JsonRpcClient.request('getTaskStatus' ,
+            {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress},
+            (err,res)=>{
+              if(err) assert.strictEqual(true,false,"err" + err);
+              assert.strictEqual(constants.TASK_STATUS.SUCCESS, res.result, "result not success");
+              resolve();
+        });
       });
     });
   });
