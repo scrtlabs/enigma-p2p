@@ -1,6 +1,6 @@
 const Envelop = require('../../main_controller/channels/Envelop');
 
-class DbAction{
+class SendToCoreAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
@@ -15,4 +15,4 @@ class DbAction{
     });
   }
 }
-module.exports = DbAction;
+module.exports = SendToCoreAction;

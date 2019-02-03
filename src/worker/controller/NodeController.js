@@ -42,15 +42,23 @@ const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
 const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
-const GetWorkerEncryptionKeyAction = require('./actions/proxy/GetWorkerEncryptionKeyAction');
 const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
 const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
-
+const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
+const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
+const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
+const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
+const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
+// gateway jsonrpc
+const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
+const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
+const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 class NodeController {
-  constructor(enigmaNode, protocolHandler, connectionManager, logger) {
+  constructor(enigmaNode, protocolHandler, connectionManager, logger,extraConfig){
     this._policy = new Policy();
-
+    // extra config (currently dbPath for taskManager)
+    this._extraConfig = extraConfig;
     // initialize logger
     this._logger = logger;
 
@@ -62,12 +70,10 @@ class NodeController {
     this._engNode = enigmaNode;
     this._connectionManager = connectionManager;
     this._protocolHandler = protocolHandler;
-
     // TODO:: take Provider form CTOR - currently uses _initContentProvider()
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-
     // stats
     this._stats = new Stats();
 
@@ -102,10 +108,17 @@ class NodeController {
       [NOTIFICATION.GET_CONTRACT_BCODE] : new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE] : new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.UPDATE_DB] : new UpdateDbAction(this), // write to db, bytecode or delta
-      [NOTIFICATION.PROXY] : new GetWorkerEncryptionKeyAction(this), // proxy request
+      [NOTIFICATION.PROXY] : new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
+      [NOTIFICATION.START_TASK_EXEC] : new StartTaskExecutionAction(this), // start task execution (worker)
+      [NOTIFICATION.VERIFY_NEW_TASK] : new VerifyNewTaskAction(this), // verify new task
+      [NOTIFICATION.TASK_VERIFIED] : new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
+      [NOTIFICATION.TASK_FINISHED] : new PublishTaskResultAction(this), // once the task manager emits end event
+      [NOTIFICATION.ROUTE_BLOCKING_RPC] : new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
+      [NOTIFICATION.ROUTE_NON_BLOCK_RPC] : new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.REGISTRATION_PARAMS] : new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
-      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // on startup of a worker for jsonrpc topic
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.RECEIVED_NEW_RESULT] : new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
     };
   }
   /**
@@ -138,7 +151,7 @@ class NodeController {
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger);
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger, options.extraConfig);
   }
   _initController() {
     this._initEnigmaNode();
@@ -146,7 +159,6 @@ class NodeController {
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
-    //TODO:: task manager is dummy at the moment
     this._initTaskManager();
     // this._initCache();
 
@@ -164,9 +176,22 @@ class NodeController {
       }
     });
   }
+  /**
+   * TODO:: currently it will generate db only if extraConfig provided
+   * TODO:: beucase of tests and multiple instances and path collision.
+   * */
   _initTaskManager(){
-    //TODO:: should subscribed here to events and initialize whats needed like the web3 instance
-    // this._taskManager = new TaskManager();
+    if(this._extraConfig && this._extraConfig.tm.dbPath){
+      let dbPath = this._extraConfig.tm.dbPath;
+      this._taskManager = new TaskManager(dbPath, this.logger());
+      this._taskManager.on('notify', (params)=>{
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if(action !== undefined){
+          this._actions[notification].execute(params);
+        }
+      });
+    }
   }
   _initCache(){
     //TODO:: start the cache service
@@ -221,6 +246,13 @@ class NodeController {
   async start(){
     await this.engNode().syncRun();
   }
+  /** replace existing or add new action
+   * @param {string} name
+   * @param {Action} action
+   * */
+  updateAction(name,action){
+    this._actions[name] = action;
+  }
   /** init worker processes
    * once this done the worker can start receiving task
    * i.e already registred and sync
@@ -242,6 +274,9 @@ class NodeController {
   async stop() {
     await this.engNode().syncStop();
     await this._stopEthereum();
+    if(this._taskManager && this._extraConfig.tm.dbPath){
+      await this._taskManager.asyncStopAndDropDb();
+    }
   }
   /**
    * "Runtime Id" required method for the main controller
@@ -279,6 +314,9 @@ class NodeController {
    * */
   cache(){
     return this._cache;
+  }
+  taskManager(){
+    return this._taskManager;
   }
   ethereum(){
     return this._enigmaContractHandler.api();
@@ -376,10 +414,26 @@ class NodeController {
       message : message,
     });
   }
-
   /** temp run self subscribe command */
-  selfSubscribeAction(){
-    this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({});
+  async selfSubscribeAction(){
+    return new Promise((res,rej)=>{
+      this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({onResponse : (err,signKey)=>{
+        if(err) {return rej(signKey);}
+        else{ res(signKey);}
+      }});
+    });
+  }
+  /**
+   * @return {Promise<string>} signingKey of the sub topic
+   * */
+  async getSelfSubscriptionKey(){
+    return new Promise((res,rej)=>{
+      this.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
+       {onResponse: (err, regParams)=>{
+         if(err) return rej(err);
+         else return res(regParams.result.signingKey);}}
+      );
+    });
   }
   /** temp should delete - is connection (no handshake related simple libp2p
    * @param {string} nodeId
@@ -428,6 +482,14 @@ class NodeController {
       onResponse : (err,result)=>{
         callback(err,result);
     }
+    });
+  }
+  async asyncGetRegistrationParams(callback){
+    return new Promise((res,rej)=>{
+      this.getRegistrationParams((err,result)=>{
+        if(err) rej(err);
+        else res(result);
+      });
     });
   }
   /**

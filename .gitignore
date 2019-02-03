@@ -247,3 +247,9 @@ coverage.lcov
 
 # Contracts build products
 test/ethereum/scripts/build/contracts/*
+
+# db created from task manager
+test/*.deletedb
+*.deletedb
+src/cli/*.deletedb
+

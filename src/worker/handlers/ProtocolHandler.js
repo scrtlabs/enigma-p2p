@@ -1,7 +1,3 @@
-// const waterfall = require('async/waterfall');
-// const parallel = require('async/parallel');
-// const PeerId = require('peer-id');
-// const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
 const Policy = require('../../policy/policy');
 const nodeUtils = require('../../common/utils');
@@ -12,7 +8,6 @@ const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const Messages = require('../../policy/p2p_messages/messages');
-// const PeerBank = require('./PeerBank');
 const Logger = require('../../common/logger');
 
 class ProtocolHandler extends EventEmitter {
@@ -53,9 +48,11 @@ class ProtocolHandler extends EventEmitter {
 
     this._subscriptions = [
       PUBSUB_TOPICS.BROADCAST,
+      PUBSUB_TOPICS.TASK_RESULTS
     ];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
+    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish;
   }
   getProtocolsList() {
     return this._protocols;
@@ -277,21 +274,6 @@ class ProtocolHandler extends EventEmitter {
     params.worker.getProtocolHandler()._logger.debug('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
             '] new peer : ' + params.peer.id.toB58String());
   }
-  /** Group dial is when the worker needs to send a message to all of his peers
-   * @param {PeerBundle} nodeBundle, libp2p bundle
-   * @param {Json} params , {worker,connection,peer,protocol}
-   * TODO:: improve : add the option to pass an array of peers to dial
-   */
-  onGroupDial(nodeBundle, params) {
-    // let connection = params.connection;
-    // let selfWorker = params.worker;
-    // // handle the message recieved from the dialing peer.
-    // console.log(selfWorker.getSelfPeerInfo().id.toB58String() +  ' => got a groupdial');
-    // pull(
-    //     connection,
-    //     connection
-    // );
-  }
   /** On peer disconnect
    * @param {PeerBundle} nodeBundle, libp2p bundle
    * @param {Json} params , {worker,connection,peer,protocol}
@@ -329,6 +311,16 @@ class ProtocolHandler extends EventEmitter {
     console.log('----------------------------------------------------');
     params.worker.getProtocolHandler()._logger.info(out);
     console.log('----------------------------------------------------');
+  }
+  onTaskResultPublish(params, message){
+    const selfId = params.worker.getSelfIdB58Str();
+    const from = message.from;
+
+    if (from === selfId) {
+      return;
+    }
+    const self = params.worker.getProtocolHandler();
+    self.notify({notification:NOTIFICATION.RECEIVED_NEW_RESULT,params: message});
   }
 }
 

@@ -1,3 +1,4 @@
+
 /**
  * This class is responsible for interacting with users.
  * i.e if this node is also a proxy node then it can connect to dApp users.
@@ -20,12 +21,12 @@ const Envelop = require('../main_controller/channels/Envelop');
 class JsonRpcServer extends EventEmitter {
   constructor(config, logger) {
     super();
+    this._INVALID_PARAM = -32602;
+    this._SERVER_ERR = -32000;
     this._communicator = null;
     this._logger = logger;
-    this._port = config.port || constants.JSON_RPC_SERVER.port; ;
+    this._port = config.port || constants.JSON_RPC_SERVER.port;
     this._peerId = config.peerId;
-
-    this._pendingSequence = {};
 
     this._app = connect();
     this._server = jayson.server({
@@ -33,80 +34,94 @@ class JsonRpcServer extends EventEmitter {
         console.log('getInfo request...');
         callback(null, {peerId: this._peerId, status: 'ok'});
       },
-      getWorkerEncryptionKey: (args, callback)=>{
-        if (args.length !== 2) {
-          // TODO:: do more stuff to validate input i.e check valid signing key
-          // TODO:: to reduce network calls
-          callback({'code': -32602, 'message': 'Invalid params'});
-        } else {
-          const workerSignKey = args[0];
-          const userPubKey = args[1];
-          const envelop = new Envelop(true,
-              {
-                workerSignKey: workerSignKey,
-                userPubKey: userPubKey,
-                type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
-              },
-              PROXY_FLAG
-          );
-
-          this.getCommunicator()
-          .sendAndReceive(envelop)
-          .then(resEnv=>{
-            console.log('GOT SOMETHING');
-            let result = {};
-            console.log(resEnv);
-            result.workerEncryptionKey = resEnv.content().result.workerEncryptionKey;
-            result.workerSig = resEnv.content().result.workerSig;
-            callback(null, result);
-          });
+      getWorkerEncryptionKey: async (args, callback)=>{
+        if(args.userPubKey && args.workerAddress){
+          this._logger.info("[+] JsonRpc: getWorkerEncryptionKey" );
+          const workerSignKey = args.workerAddress;
+          const userPubKey = args.userPubKey;
+          const content = {
+            workerSignKey: workerSignKey,
+            userPubKey: userPubKey,
+            type: constants.CORE_REQUESTS.NewTaskEncryptionKey,
+          };
+          let coreRes = await this._routeNext(content);
+          if(coreRes === null){
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
+          }
+          return callback(null, coreRes);
+        }else{
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
         }
       },
-      // Placeholder.
-      // TODO: Implement proper callback
-      deploySecretContract: function(args, callback) {
-        callback(null, true);
-      },
-      // Placeholder.
-      // TODO: Implement proper callback
-      sendTaskInput: function(args, callback) {
-        if(typeof args === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.taskId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.creationBlockNumber === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.sender === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.scAddr === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedFn === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.encryptedEncodedArgs === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userTaskSig === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.userPubKey === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.fee === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else if (typeof args.msgId === "undefined") {
-          callback({code: -32602, message: "Invalid params"});
-        } else {
-          // send to the network and return true
-          callback(null, true);
+      deploySecretContract: async (args, callback)=>{
+        if(this._shouldRouteMessage(args)){
+          let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+          this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
+        }else{
+          //TODO:: message directed to self worker, handle
         }
-
       },
-      // Placeholder.
-      // TODO: Implement proper callback
-      getTaskStatus: function(args, callback) {
-        callback(null, [2]);
+      sendTaskInput: async (args, callback)=> {
+        if(this._shouldRouteMessage(args)){
+          let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
+          this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
+        }else{
+        //TODO:: message directed to self worker, handle
+        }
+      },
+      getTaskStatus: async (args, callback)=>{
+        if(args.workerAddress && args.taskId){
+          this._logger.info("[+] JsonRpc: getTaskStatus" );
+          let coreRes = await this._routeNext({taskId : args.taskId, workerAddress : args.workerAddress,
+          type : constants.NODE_NOTIFICATIONS.GET_TASK_STATUS});
+          if(coreRes === null){
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
+          }
+          return callback(null,coreRes);
+        }else{
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
+        }
       },
     },
     {
       collect: true // collect params in a single argument
     });
+  }
+  async _routeNext(content){
+    const envelop = new Envelop(true,content, PROXY_FLAG);
+    try{
+      let resEnv= await this.getCommunicator().sendAndReceive(envelop);
+      return resEnv.content();
+    }catch(e){
+      this._logger.error("[-] JsonRpc ERR: " + e);
+      return null;
+    }
+  }
+  async _routeTask(type,expectedFields,args,callback){
+    let isMissing = expectedFields.some(attr=>{
+      return !(attr in args);
+    });
+    if(isMissing){
+      return callback({code: this._INVALID_PARAM , message: "Invalid params"});
+    }
+    this._logger.info('[+] JsonRpc: '+type);
+    let coreRes = await this._routeNext({
+      type : type,
+      request : args,
+    });
+    let clientResult = {};
+    clientResult.sendTaskResult = false;
+    if(coreRes && coreRes.result && "sent" in coreRes.result){
+      clientResult.sendTaskResult = coreRes.result.sent;
+    }
+    return callback(null, clientResult);
+  }
+  /**
+   * TODO:: this function shoid check the workerAddress
+   * TODO:: if equals to self address than DO NOT route next
+   * */
+  _shouldRouteMessage(args){
+    return true;
   }
   listen() {
     this._logger.debug('JsonRpcServer listening on port ' + this._port);
@@ -142,54 +157,10 @@ class JsonRpcServer extends EventEmitter {
       }
     });
   }
-  _isValidFields(msg){
-    // IPC
-    // preCode: 'the-bytecode',
-    //     encryptedArgs: 'hex of the encrypted args',
-    //     encryptedFn: 'hex of the encrypted function signature',
-    //     userPubKey: 'the-user-dh-pubkey',
-    //     gasLimit: 'the-user-selected-gaslimit',
-    //     contractAddress: 'the-address-of-the-contract'
-    // RPC
-    // preCode (String) - The hash of the compiled bytecode
-    // encryptedArgs (String) - Encrypted RLP-encoded args needed for the secret contract's constructor
-    // encryptedFn (String) -Encypted function that needs to be called
-    // userDHKey (String) - User's public key from Diffie-Hellman
-    // contractAddress (String) - Also serves as taskId, and can be recreated by anyone. H(userAddress, nonce)
-
-    // let expected = ['taskId','status','output','delta','usedGas','ethereumPayload','ethereumAddress','signature','preCodeHash'];
-    let isMissing = expected.some(attr=>{
-      return !(attr in msg);
-    });
-    if(isMissing){
-      return null;
-    }
-    // if(typeof args === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.taskId === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.creationBlockNumber === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.sender === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.scAddr === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.encryptedFn === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.encryptedEncodedArgs === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.userTaskSig === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.userPubKey === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.fee === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // } else if (typeof args.msgId === "undefined") {
-    //   callback({code: -32602, message: "Invalid params"});
-    // }
-  }
 }
 
 module.exports = JsonRpcServer;
-
 // new JsonRpcServer({port : 3939 , peerId : '0xergiohtdjhrorudhgiurdhgiurdhgirdiudrgihl'}).listen();
+// curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getInfo", "params":[]}' 127.0.0.1:3939
+// curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getWorkerEncryptionKey","params":{"workerAddress":"0xda8a0cb626dc1bad0482bd2f9c950d194e0a9bec","userPubKey":"66666666666666666"}}' 127.0.0.1:3346
+// curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"deploySecretContract","params":{"workerAddress":"0xedf9577b9d1610ca2737911b98152a463e9e2c46","preCode":"0x8e68b14d5bf0ffcf5dcc5cd538be0ef9958e3573","encryptedArgs":"66666666666666666","encryptedFn":"66666666666666666","userDHKey":"66666666666666666","contractAddress":"66666666666666666"}}' 127.0.0.1:3346

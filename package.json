@@ -57,6 +57,7 @@
     "connect": "^3.6.6",
     "eslint": "^5.7.0",
     "eslint-config-google": "^0.11.0",
-    "eslint-plugin-babel": "^5.2.1"
+    "eslint-plugin-babel": "^5.2.1",
+    "ws": "^6.1.3"
   }
 }

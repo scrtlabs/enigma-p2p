@@ -7,8 +7,7 @@ const pickRandom = require('pick-random');
 const mafmt = require('mafmt');
 const multiaddr = require('multiaddr');
 const timestamp = require('unix-timestamp');
-
-
+const rimraf = require('rimraf');
 /**
  * Simply sleep
  * @param {Integer} ms - milliseconds
@@ -256,3 +255,11 @@ function _connectionStrToPeerInfo(candidate, onResult) {
     }
   });
 };
+
+
+/**
+ * same as rm -rf <some folder>
+ *   @param {string} path
+ *   @param {function} callback ()=>{}
+ */
+module.exports.deleteFolderFromOSRecursive = function (path, callback){rimraf(path, callback);}

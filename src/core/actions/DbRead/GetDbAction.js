@@ -2,7 +2,7 @@ const Envelop = require('../../../main_controller/channels/Envelop');
 const nodeUtils = require('../../../common/utils');
 const Msg = require('../../../common/constants').CORE_REQUESTS;
 
-class GetAllTipsAction{
+class GetDbAction{
   constructor(coreRuntime){
     this._coreRuntime = coreRuntime;
   }
@@ -10,7 +10,8 @@ class GetAllTipsAction{
   execute(envelop){
     let request = {
       id : nodeUtils.randId(),
-      type : Msg.GetAllTips
+      type :envelop.content().type,
+      input : envelop.content().input
     };
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
@@ -24,4 +25,4 @@ class GetAllTipsAction{
     // });
   }
 }
-module.exports = GetAllTipsAction;
+module.exports = GetDbAction;

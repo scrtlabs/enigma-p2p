@@ -36,10 +36,16 @@ module.exports.NODE_NOTIFICATIONS = {
   'REGISTRATION_PARAMS' : 'rparams', // gets ethereum registration params from core,
   'NEW_TASK_INPUT_ENC_KEY' : 'ntek', // gets a new encryption key for some requester
   'SELF_KEY_SUBSCRIBE' : 'sks_rpc', // on start up register to self key topic (for rpc)
+  START_TASK_EXEC : 'stexec', // start task execution process, worker side
+  ROUTE_BLOCKING_RPC : 'rbrpc' , // blocking rpc call for getStatus and getRegistrationParams
+  ROUTE_NON_BLOCK_RPC : 'rnbrpc', // non blocking rpc i.e deploy and compute
   // task computation related
   VERIFY_NEW_TASK : 'verifyreq', //request to perform verification of task
   TASK_VERIFIED : 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   TASK_FINISHED : 'tfinished', // notify the task is finished, update network with result
+  DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
+  RECEIVED_NEW_RESULT : 'rnresult', // result updates receoved from the task results topic
+  GET_TASK_STATUS : 'gtstatus', // get task status
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -65,6 +71,7 @@ module.exports.P2P_MESSAGES = {
 
 module.exports.PUBSUB_TOPICS = {
   'BROADCAST': '/broadcast/0.1',
+  'TASK_RESULTS' : '/taskresults/0.1',
 };
 
 module.exports.DHT_STATUS = {
@@ -130,7 +137,6 @@ module.exports.MAIN_CONTROLLER_NOTIFICATIONS = {
 module.exports.CORE_REQUESTS = {
   CORE_DB_ACTION : 'CORE_DB_ACTION', // internal for CoreRuntime
   GetRegistrationParams : 'GetRegistrationParams',
-  IdentityChallenge : 'IdentityChallenge',
   GetTip : 'GetTip',
   GetTips : 'GetTips',
   GetAllTips : 'GetAllTips',
@@ -142,6 +148,9 @@ module.exports.CORE_REQUESTS = {
   UpdateDeltas : 'UpdateDeltas',
   UpdateDb : 'UpdateDb',
   NewTaskEncryptionKey :'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
+  DeploySecretContract : 'DeploySecretContract', //jsonrpc request from remote use for deploying
+  ComputeTask : 'ComputeTask', //jsonrpc request for compute task
+  FailedTask : 'FailedTask', // failed task returned FROM core as a response to deploy/compute -> valid response should be commited.
 };
 
 /** Default configuration for JSON RPC Server
@@ -158,10 +167,10 @@ module.exports.JSON_RPC_SERVER = {
  * - 3 - failure , contains error status (failed computation, returned from Core)
  * */
 module.exports.TASK_STATUS = {
-  UNVERIFIED : '0',
-  IN_PROGRESS : '1',
-  SUCCESS : '2',
-  FAILED : '3',
+  UNVERIFIED : 'UNVERIFIED',
+  IN_PROGRESS : 'INPROGRESS',
+  SUCCESS : 'SUCCESS',
+  FAILED : 'FAILED',
 };
 
 /**
