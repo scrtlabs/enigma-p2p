@@ -28,6 +28,20 @@ class EncoderUtil {
     const decoded = EncoderUtil.decode(encodedBuffer);
     return decoded;
   }
+  static hexToAscii(hex) {
+    if (!(typeof hex === 'number' || typeof hex == 'string')) {
+      return '';
+    }
+    hex = hex.toString().replace(/\s+/gi, '');
+    let stack = [];
+    for (let n = 0; n < hex.length; n += 2) {
+      const code = parseInt(hex.substr(n, 2), 16);
+      if (!isNaN(code) && code !== 0) {
+        stack.push(String.fromCharCode(code))
+      }
+    }
+    return stack.join('');
+  }
 }
 
 
