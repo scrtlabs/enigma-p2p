@@ -4,11 +4,14 @@ const capcon = require('capture-console');
 const jaysonBrowserClient = require('jayson/lib/client/browser');
 const testUtils = require('./testUtils/utils');
 const waterfall = require('async/waterfall');
-// const TEST_TREE = require('./test_tree').TEST_TREE;
+const TEST_TREE = require('./test_tree').TEST_TREE;
+const tree = TEST_TREE.jsonrpc_basic;
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const expect = require('expect');
-
+const assert = require('assert');
+const nodeUtils = require('../src/common/utils');
+const constants = require('../src/common/constants');
 // const B1Path = path.join(__dirname, 'testUtils/id-l');
 // const B1Port = '10300';
 const B2Path = '../../test/testUtils/id-d';
@@ -35,6 +38,9 @@ describe('JsonRPC tests', () => {
   let coreServer;
 
   before(() => {
+    if(!tree['all']){
+      return new Promise(res=>{res();});
+    }
     const callServer = function(request, callback) {
       const config = {
         headers: {
@@ -73,6 +79,10 @@ describe('JsonRPC tests', () => {
           cb(null);
         },
         (cb)=>{
+          proxyConfig.extraConfig= {};
+          proxyConfig.extraConfig.tm = {
+            dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+          };
           // start the Proxy Node
           const builder = new EnvironmentBuilder();
           builder
@@ -85,10 +95,14 @@ describe('JsonRPC tests', () => {
         },
         (cb)=>{
           // start the Worker Node
+          workerConfig.extraConfig= {};
+          workerConfig.extraConfig.tm = {
+            dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+          };
           const builder = new EnvironmentBuilder();
           builder
               .setNodeConfig(workerConfig)
-              .setJsonRpcConfig({port: JsonRpcPort, peerId: 'no_id_yet'})
+              .setJsonRpcConfig({port: JsonRpcPort, peerId: null})
               .build().then((instance)=>{
                 proxyController = instance;
                 cb(null);
@@ -106,6 +120,9 @@ describe('JsonRPC tests', () => {
 
   after(() => {
     return new Promise(async (resolve)=>{
+      if(!tree['all']){
+        return resolve();
+      }
       proxyController.getJsonRpcServer().close();
       await proxyController.getNode().stop();
       workerController.getIpcClient().disconnect();
@@ -116,6 +133,9 @@ describe('JsonRPC tests', () => {
   });
 
   it('#1 Should getInfo', async function() {
+    if(!tree['all'] || !tree['#1']){
+      this.skip();
+    }
     const response = await new Promise((resolve, reject) => {
       JsonRpcClient.request('getInfo', [], (err, res) => {
         if (err) {
@@ -124,19 +144,14 @@ describe('JsonRPC tests', () => {
         resolve(res);
       });
     });
-    // assert.strictEqual(response.status,'ok');
-    // assert.notStrictEqual(response,peerId,undefined);
-    // assert.notStrictEqual(response,peerId,null);
     expect(response.peerId).toBeDefined();
     expect(response.status).toBe('ok');
-  })
+  });
 
   it('#2 Should retrieve EncryptionWorker from Core via JSON RPC', async function() {
-    // const tree = TEST_TREE['basic'];
-    // if (!tree['all'] || !tree['#2']) {
-    //   this.skip();
-    // }
-
+    if(!tree['all'] || !tree['#2']){
+      this.skip();
+    }
     // This block captures stdout for console.log to get the_worker_sign_key
     let output = '';
     capcon.startCapture(process.stdout, function(stdout) {
@@ -147,71 +162,102 @@ describe('JsonRPC tests', () => {
     capcon.stopCapture(process.stdout);
     id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
 
-    const response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request('getWorkerEncryptionKey', [id, userPubKey], (err, res) => {
+    let response = await new Promise((resolve, reject) => {
+      JsonRpcClient.request('getWorkerEncryptionKey', {workerAddress:id, userPubKey : userPubKey}, (err, res) => {
         if (err) {
           reject(err);
         }
         resolve(res);
       });
     });
-
-    // assert.notStrictEqual(response.workerSig,null);
-    // assert.notStrictEqual(response.workerSig,undefined);
-    // assert.strictEqual(128,response.workerEncryptionKey.length)
+    response = response.result;
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
     expect(response.workerSig).toBeDefined();
   }, 10000);
 
-  it('#3 Should fail sendTaskInput', async function(){
-
-    expect.assertions(2);
-    // JSON RPC fails with no taskInput parameter
-    await expect(new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', {}, (err, res) => {
-        if (err) {
-          reject(err);
-        }
+  it("#3 should sendTaskInput",async ()=>{
+    if(!tree['all'] || !tree['#3']){
+      this.skip();
+    }
+    return new Promise(resolve => {
+      const taskInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+      };
+      JsonRpcClient.request('sendTaskInput',taskInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
         resolve();
-      });
-    })).rejects.toEqual({code: -32602, message: "Invalid params"});
-    // JSON RPC fails with taskInput but missing properties
-    await expect(new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', {taskId:'0x0', creationBlockNumber: 0}, (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve();
-      });
-    })).rejects.toEqual({code: -32602, message: "Invalid params"});
-  });
-
-
-  it('#4 Should sendTaskInput', async function(){
-    const taskInput = { taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
-      creationBlockNumber: 189,
-      sender: '0x627306090abaB3A6e1400e9345bC60c78a8BEf57',
-      scAddr: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
-      encryptedFn:
-       'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
-      encryptedEncodedArgs:
-       'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
-      userTaskSig:
-       '0x0e8164325637767bea77b5615f174a67ec055bdf7cca3c8f696020b0cf2928a32a69a66d378e853f909e1f8d57d05e9a103467771756cabbe7577ee7329ad3fa01',
-      userPubKey:
-       '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
-      fee: 30000000000,
-      msgId: 'ldotj6nghv7a' }
-
-    const response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request('sendTaskInput', taskInput, (err, res) => {
-        if (err) {
-          reject(err);
-        }
-        resolve(res);
       });
     });
-    // assert.strictEqual(true,response);
-    expect(response).toBe(true);
+  });
+  it("#4 should deploySecretContract",async ()=>{
+    if(!tree['all'] || !tree['#4']){
+      this.skip();
+    }
+    return new Promise(resolve => {
+      const deployInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+        preCode : [22,33,100,202,111,223,211,22]
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
+        resolve();
+      });
+    });
+  });
+  it("#5 should Fail deploySecretContract",async ()=>{
+    if(!tree['all'] || !tree['#5']){
+      this.skip();
+    }
+    return new Promise(resolve => {
+      const deployInput = {
+        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+        preCode : [22,33,100,202,111,223,211,22]
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(-32602, err.code, "code dont match");
+        resolve();
+      });
+    });
+  });
+  it("#6 should getTaskStatus", async ()=>{
+    if(!tree['all'] || !tree['#6']){
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      let signKey = await workerController.getNode().getSelfSubscriptionKey();
+      await testUtils.sleep(1500);
+      const deployInput = {
+        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        preCode : [22,33,100,202,111,223,211,22],
+        workerAddress: signKey,
+        encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+        encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+        userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+      };
+      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+        assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
+        JsonRpcClient.request('getTaskStatus' ,
+            {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress},
+            (err,res)=>{
+              if(err) assert.strictEqual(true,false,"err" + err);
+              assert.strictEqual(constants.TASK_STATUS.SUCCESS, res.result, "result not success");
+              resolve();
+        });
+      });
+    });
   });
 });

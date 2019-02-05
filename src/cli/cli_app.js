@@ -11,7 +11,8 @@ class CLI {
   constructor() {
     // mock server
     this._corePort = null;
-
+    // tasks random path db
+    this._randomTasksDbPath = null;
     // Ethereum stuff
     this._initEthereum = false;
     this._enigmaContractAddress = null;
@@ -170,9 +171,16 @@ class CLI {
           });
         });
       },
-      '$isConnected': (args)=>{
+      'isConnected': (args)=>{
         const id = args[1];
         this._node.isSimpleConnected(id);
+      },
+      'topics': async (args)=>{
+        let list = await this._node.getTopics();
+        console.log("----> topics <-----");
+        list.forEach(t=>{
+          console.log(t);
+        })
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
@@ -193,6 +201,7 @@ class CLI {
         console.log('$isConnected <PeerId>: check if some peer is connected');
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
+        console.log('$topics : list of subscribed topics');
         console.log('$help : help');
         console.log('>------------------------<');
       },
@@ -218,6 +227,13 @@ class CLI {
     })
     .option('-c, --core [value]', '[TEST] specify port and start with core mock server',(portStr)=>{
       this._corePort = portStr;
+    })
+    .option('--random-db','random tasks db', (randomPath)=>{
+      if(randomPath){
+        this._randomTasksDbPath = randomPath;
+      }else{
+        this._randomTasksDbPath = true;
+      }
     })
     .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)',(portStr)=>{
       this._rpcPort = portStr;
@@ -255,7 +271,7 @@ class CLI {
     if (this._rpcPort){
       builder.setJsonRpcConfig({
         port: parseInt(this._rpcPort),
-        peerId: 'no_id_yet'
+        peerId: null,
       });
     }
     /** init Ethereum API
@@ -266,9 +282,21 @@ class CLI {
         enigmaContractAddress : this._enigmaContractAddress,
       });
     }
-    this._mainController = await builder.setNodeConfig(this._getFinalConfig()).build();
+    let nodeConfig = this._getFinalConfig();
+    if(this._randomTasksDbPath){
+      nodeConfig.extraConfig = {};
+      nodeConfig.extraConfig.tm = {
+        dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+      };
+    }
+    this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
-
+    let n = this._node;
+    process.on('SIGINT', async function() {
+      console.log("----> closing gracefully <------");
+      await n.stop();
+      process.exit();
+    });
   }
   start() {
     console.log(Parsers.opener);

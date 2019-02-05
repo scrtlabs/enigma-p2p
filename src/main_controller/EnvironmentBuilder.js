@@ -61,6 +61,7 @@ class EnvironmentBuilder{
     // init logger
     let logger = new Logger(this._loggerConfig);
     // init node
+    let nodePeerId = null;
     if(this._nodeConfig){
       let enigmaContractHandler = null;
       if(this._ethereumConfig){
@@ -73,6 +74,7 @@ class EnvironmentBuilder{
       if(enigmaContractHandler){
         node.setEthereumApi(enigmaContractHandler);
       }
+      nodePeerId = node.engNode().getSelfIdB58Str();
       runtimes.push(node);
     }
     // init ipc
@@ -83,7 +85,7 @@ class EnvironmentBuilder{
     // init jsonrpc
     if(this._jsonRpcConfig){
       let port = this._jsonRpcConfig.port;
-      let peerId = this._jsonRpcConfig.peerId;
+      let peerId = this._jsonRpcConfig.peerId || nodePeerId;
       let jsonRpc = new JsonRpcServer({port : port, peerId : peerId}, logger);
       jsonRpc.listen();
       runtimes.push(jsonRpc);

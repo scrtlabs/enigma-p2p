@@ -2,11 +2,12 @@ const constants = require('../../common/constants');
 const EventEmitter = require('events').EventEmitter;
 const Result = require('./Result').Result;
 class Task extends EventEmitter{
-  constructor(taskId){
+  constructor(taskId,type){
     super();
     this._taskId = taskId;
     this._status = constants.TASK_STATUS.UNVERIFIED;
     this._result = null;
+    this._type = type;
   }
   /**
    * set the task result
@@ -62,6 +63,9 @@ class Task extends EventEmitter{
   }
   isFinished(){
     return (this.isSuccess() || this.isFailed());
+  }
+  getTaskType(){
+    return this._type;
   }
 }
 module.exports = Task;

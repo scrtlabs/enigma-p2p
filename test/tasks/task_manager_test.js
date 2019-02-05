@@ -141,6 +141,9 @@ describe('TaskManager isolated tests', ()=>{
     dbPath = path.join(__dirname, '/tasks_temp_db');
   });
   after((done)=>{
+    if(!tree['all']){
+      return done();
+    }
     testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
       done();
     });

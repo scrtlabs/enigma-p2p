@@ -4,15 +4,19 @@ class NewTaskEncryptionKeyAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(params) {
+  execute(params){
     const onResponse = params.onResponse;
     const requestEnvelop = new Envelop(params.request.id, params.request,
-        constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
-
-    this._controller.communicator()
+          constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
+    let err = null;
+    if(!requestEnvelop.isValidEnvelop()){
+      err = "invalid envelop";
+    }
+    this._controller
+        .communicator()
         .sendAndReceive(requestEnvelop)
         .then((responseEnvelop)=>{
-          onResponse(null, responseEnvelop.content());
+          onResponse(err, responseEnvelop.content());
         });
   }
 }

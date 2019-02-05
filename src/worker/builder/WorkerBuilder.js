@@ -12,7 +12,7 @@
 
 const constants = require('../../common/constants');
 const EnigmaNode = require('../EnigmaNode');
-const ProtocolHandler = require('../handlers/ProtcolHandler');
+const ProtocolHandler = require('../handlers/ProtocolHandler');
 
 /** WIP - load the node configration
  * @param {String} path, path to config or default in /config/debug.json

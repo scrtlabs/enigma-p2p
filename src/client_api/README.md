@@ -40,8 +40,9 @@ Deploys a Secret Contract onto the Enigma Network.
 
 **Parameters**
 
+- `workerAddress` (String) - The workers address
 - `preCode` (String) - The hash of the compiled bytecode
-- `encryptedArgs` (String) - Encrypted RLP-encoded args needed for the secret contract's constructor 
+- `encryptedArgs` (String) - Encrypted RLP-encoded args needed for the secret contract's constructor
 - `encryptedFn` (String) -Encypted function that needs to be called
 - `userDHKey` (String) - User's public key from Diffie-Hellman
 - `contractAddress` (String) - Also serves as taskId, and can be recreated by anyone. H(userAddress, nonce)
@@ -55,7 +56,7 @@ Deploys a Secret Contract onto the Enigma Network.
 
 ```sh
 // Request
-curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"deploySecretContract", "params": {"preCode": "0xd8bba960831bacafe85a45f6e29d3d3cb7f61180cce79dc41d47ab6a18e195dc...", "encryptedArgs": "3cf8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9...", "encryptedFn": "0x5a380b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd1c..", "userDHKey" : "...", "contractAddress":"..."}}'
+curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"deploySecretContract", "params": {"preCode": "0xd8bba960831bacafe85a45f6e29d3d3cb7f61180cce79dc41d47ab6a18e195dc...", "encryptedArgs": "3cf8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9...", "encryptedFn": "0x5a380b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd1c..", "userDHKey" : "...", "contractAddress":"...","workerAddress":"sign-address-of-worker"}}'
 
 // Result
 {
@@ -108,16 +109,18 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 
 `taskId` - Identifier of the Task to check its status
 
+`workerAddress` - target worker address
+
 **Returns**
 
 ## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
 
 `STATUS` - One of the following values:
 - `0`: TaskId not found
-- `1`: TaskId exists, but it has not been verified
-- `2`: TaskId exists and it has been verified, in-progress
-- `3`: Success
-- `4`: Failure
+- `UNVERIFIED`: TaskId exists, but it has not been verified
+- `INPROGRESS`: TaskId exists and it has been verified, in-progress
+- `SUCCESS`: Success
+- `FAILED`: Failure
 
 **Example**
 

@@ -162,7 +162,7 @@ class TaskManager extends EventEmitter {
    * @return {Function} callback(status or null)
    * */
   getTaskStatus(taskId,callback){
-    this.getTask((err,task)=>{
+    this.getTask(taskId,(err,task)=>{
       if(err) return callback(null);
       else callback(task.getStatus());
     });
@@ -274,7 +274,7 @@ class TaskManager extends EventEmitter {
       // save the task again with the result attached
       this._storeTask(task,(err)=>{
         if(err){return callback(err);}
-        this._logger.info("[TASK_FINISHED] success ? " + taskResult.isSuccess() + " id: " + task.getTaskId());
+        this._logger.info("[TASK_FINISHED] status = [" + taskResult.getStatus() + "] id: " + task.getTaskId());
         // notify about the task change
         this.notify({notification : constants.NODE_NOTIFICATIONS.TASK_FINISHED, task : task});
         return callback();
@@ -349,6 +349,24 @@ class TaskManager extends EventEmitter {
         else res();
       });
     });
+  }
+  /**
+   * TODO:: !!!! USED FOR TESTS ONLY !!!!
+   * stop and delete the db
+   * TODO:: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+   * */
+  async asyncStopAndDropDb(){
+    return new Promise(async (res,rej)=>{
+      try{
+        await this.asyncStop();
+        nodeUtils.deleteFolderFromOSRecursive(this._dbPath,()=>{
+          res();
+        });
+      }catch(e){
+        this._logger.error(e);
+        rej(e);
+      }
+    })
   }
   /** stop the task manager
    * @param {Function} callback(err)=>{}
@@ -460,18 +478,6 @@ class TaskManager extends EventEmitter {
       callback(err,tasks);
     });
   }
-  /**
-   * Update some task status
-   * TODO:: revisit if the is even needed
-   * */
-  // _updateTaskStatus(taskId,status,callback){
-  //   let theTask = null;
-  //   if(this.isUnverifiedInPool(taskId) && status !== constants.TASK_STATUS.UNVERIFIED){
-  //     theTask = this._unverifiedPool[taskId].task;
-  //   }
-  //   //TODO continue here HW
-  // }
-
   /**
    * validation if its ok to add the task to the unverifiedPool
    * checks:

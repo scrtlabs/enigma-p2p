@@ -76,7 +76,6 @@ class ReceiveAllPipelineAction {
         ecids.forEach(ecid => {
           allReceiveData.push({
             requestMessages: missingStatesMap[ecid.getScAddress()],
-            // requestMessages: missingStatesMap[tempEcidToAddrMap[ecid.getKeccack256()]],
             providers: findProviderResult.getProvidersFor(ecid)
           });
         });
