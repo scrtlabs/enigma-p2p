@@ -408,6 +408,9 @@ class NodeController {
       }
     });
   }
+  hasEthereum(){
+    return this._enigmaContractHandler;
+  }
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);
   }

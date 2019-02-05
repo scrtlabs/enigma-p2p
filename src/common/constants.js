@@ -46,6 +46,9 @@ module.exports.NODE_NOTIFICATIONS = {
   DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
   RECEIVED_NEW_RESULT : 'rnresult', // result updates receoved from the task results topic
   GET_TASK_STATUS : 'gtstatus', // get task status
+  // ethereum related
+  COMMIT_RECEIPT : 'creceipt', // commit computation result on chain
+  // end of ethereum related
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
