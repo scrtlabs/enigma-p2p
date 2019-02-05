@@ -155,10 +155,7 @@ class FailedResult extends Result{
     });
   }
 }
-
 module.exports.Result = Result;
 module.exports.DeployResult = DeployResult;
 module.exports.ComputeResult = ComputeResult;
 module.exports.FailedResult = FailedResult;
-
-
