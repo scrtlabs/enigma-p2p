@@ -6,7 +6,7 @@
  * - update local storage
  * */
 const constants = require('../../../../common/constants');
-class PublishTaskResultAction{
+class VerifyAndStoreResultAction{
   constructor(controller) {
     this._controller = controller;
   }
@@ -19,20 +19,16 @@ class PublishTaskResultAction{
   async execute(params){
     let message = params.params;
     let from = message.from; // b58 id
-    // { taskId: '66666666666666666',
-    //     status: '2',
-    //     preCodeHash: 'hash-of-the-precode-bytecode',
-    //     output: 'the-deployed-bytecode',
-    //     delta: { key: 0, delta: [ 11, 2, 3, 5, 41, 44 ] },
-    //   usedGas: 'amount-of-gas-used',
-    //       ethereumPayload: 'hex of payload',
-    //     ethereumAddress: 'address of the payload',
-    //     signature: 'enclave-signature' }
     let data = message.data;
     let resultObj = JSON.parse(JSON.parse(data.toString()).result);
-    let log = "[RESULT_UPDATE] taskId {" + resultObj.taskId+"} \nstatus {"+"}";
-    this._controller.logger().debug("");
-    console.log(resultObj.taskId);
+    let log = "[RECEIVED_RESULT] taskId {" + resultObj.taskId+"} \nstatus {"+ resultObj.status + "}";
+    this._controller.logger().debug(log);
+    // TODO:: lena,a here verify the task result correctness
+    // let isVerified = await ethereum().verify(result)
+    let isVerified = true;
+    if(isVerified){
+      // this._controller.execCmd(constants.CORE_REQUESTS.UpdateDeltas)
+    }
   }
 }
-module.exports = PublishTaskResultAction;
+module.exports = VerifyAndStoreResultAction;

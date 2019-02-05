@@ -44,7 +44,6 @@ class AnnounceLocalStateAction{
               //TODO:: this is ok accestable behaviour.
               //TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
               //TODO:: Bottom line im not processing the errors in the correct way.
-              // console.log('[-] err %s couldnt provide to all. failed cids %s ', err, failedCids.length);
               return onResponse(err,parsedEngCids);
             }else{
               console.log('[+] success providing cids.');

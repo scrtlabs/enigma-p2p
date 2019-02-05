@@ -1,8 +1,7 @@
 /*
  * TODO:: Add errors! (if i forget before main net i owe 1 ether to elichai)
  */
-
-class DummyError extends Error{
+class SyncReceiverErr extends Error{
   constructor(message){
     super(message);
     Error.captureStackTrace(this,this.constructor);
@@ -10,8 +9,6 @@ class DummyError extends Error{
   }
 }
 
-
-
-
+module.exports.SyncReceiverErr = SyncReceiverErr;
 
 
