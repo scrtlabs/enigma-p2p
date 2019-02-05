@@ -3,19 +3,11 @@ const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
+const EncoderUtil = require('./EncoderUtil');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
 const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
 
-function hex_to_ascii(str1)
-{
-  var hex  = str1.toString();
-  var str = '';
-  for (var n = 0; n < hex.length; n += 2) {
-    str += String.fromCharCode(parseInt(hex.substr(n, 2), 16));
-  }
-  return str;
-}
 
 class CLI {
   constructor() {
@@ -307,11 +299,11 @@ class CLI {
           }else{
             let out = {};
             out.report = result.result.report;
-            out.report_ascii = hex_to_ascii(result.result.report);
+            out.report_ascii = EncoderUtil.hexToAscii(result.result.report);
             out.signature = result.result.signature;
             out.singingKey = result.result.signingKey;
             console.log(out);
-            this._node.ethereum().register(result.result.signingKey, hex_to_ascii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
+            this._node.ethereum().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
           }
         });
     }
