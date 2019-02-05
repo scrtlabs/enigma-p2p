@@ -358,6 +358,9 @@ class NodeController {
       }
     });
   }
+  async getTopics(){
+    return await this.engNode().getTopics();
+  }
   getSelfAddrs() {
     return this.engNode().getListeningAddrs();
   }

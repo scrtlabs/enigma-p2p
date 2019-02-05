@@ -30,6 +30,9 @@ class PublishTaskResultAction{
     //     signature: 'enclave-signature' }
     let data = message.data;
     let resultObj = JSON.parse(JSON.parse(data.toString()).result);
+    let log = "[RESULT_UPDATE] taskId {" + resultObj.taskId+"} \nstatus {"+"}";
+    this._controller.logger().debug("");
+    console.log(resultObj.taskId);
   }
 }
 module.exports = PublishTaskResultAction;

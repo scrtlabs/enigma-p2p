@@ -171,9 +171,16 @@ class CLI {
           });
         });
       },
-      '$isConnected': (args)=>{
+      'isConnected': (args)=>{
         const id = args[1];
         this._node.isSimpleConnected(id);
+      },
+      'topics': async (args)=>{
+        let list = await this._node.getTopics();
+        console.log("----> topics <-----");
+        list.forEach(t=>{
+          console.log(t);
+        })
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
@@ -194,6 +201,7 @@ class CLI {
         console.log('$isConnected <PeerId>: check if some peer is connected');
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
+        console.log('$topics : list of subscribed topics');
         console.log('$help : help');
         console.log('>------------------------<');
       },

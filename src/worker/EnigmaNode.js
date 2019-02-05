@@ -160,7 +160,6 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
-
   /** isConnected to a peer
    * This function uses try/catch because of the DHT implementation
    * @param {String} strId, some peer ID;
@@ -194,6 +193,18 @@ class EnigmaNode extends EventEmitter {
     }
     subscriptions.forEach((sub)=>{
       this.node.pubsub.subscribe(sub.topic, sub.topic_handler, sub.final_handler);
+    });
+  }
+  /**
+   * get list of topics subscribed to
+   * @param {Promise<Array<string>>} Calls back with an error or a list of topicIDs that this peer is subscribed to.
+   * */
+  async getTopics(){
+    return new Promise((res,rej)=>{
+      this.node.pubsub.ls((err,topics)=>{
+        if(err) return rej(err);
+        res(topics);
+      });
     });
   }
   defaultSubscribe() {

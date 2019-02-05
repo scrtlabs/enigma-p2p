@@ -32,7 +32,7 @@ class AnnounceLocalStateAction{
             if(ecid){
               return ecid;
             }else{
-              console.log('[-] err converting bytearry->hex->EngCid !');
+              console.log('[-] err converting bytearray->hex->EngCid !');
             }
           }).filter(ecid=>{return (ecid !== undefined && ecid !== null);});
           isEngCid = true;
