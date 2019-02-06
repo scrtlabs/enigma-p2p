@@ -105,7 +105,7 @@ class MockCoreServer {
       id:msg.id,
       type : msg.type,
       result : {
-        output: 'the-deployed-bytecode', // AKA preCode
+        output: 'the-deployed-bytecode', // AKA exeCode
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {key:0, delta : [11,2,3,5,41,44]},
         usedGas: 'amount-of-gas-used',
