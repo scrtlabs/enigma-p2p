@@ -48,7 +48,7 @@ Response:
    type : GetTip,
    result : {
        key : [],
-       delta : []
+       data : []
    }
 }
 ```
@@ -68,7 +68,7 @@ Response:
     id : <unique_request_id>,
     type : GetTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -86,7 +86,7 @@ Response:
     id : <unique_request_id>,
     type: GetAllTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -234,7 +234,7 @@ Response:
     }
 }
 ```
-The request is a signed messagepack that looks like this: 
+The request is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -253,7 +253,7 @@ Request:
     response: 'the-encrypted-response'
 }
 ```
-The response is a signed messagepack that looks like this: 
+The response is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -328,13 +328,13 @@ Response:
     result : {
         output: 'the-deployed-bytecode', // AKA preCode
         preCodeHash: 'hash-of-the-precode-bytecode',
-        delta: {0, delta},
+        delta: {key: 0, data: ...},
         usedGas: 'amount-of-gas-used',
         ethereumPayload: 'hex of payload',
         ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
@@ -362,17 +362,17 @@ Response:
     type: ComputeTask,
     result : {
         output: 'the-output-of-the-execution',
-        delta: {key, delta},
+        delta: {key, data},
         usedGas: 'amount-of-gas-used',
         ethereumPayload: 'hex of payload',
         ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
-### `FailedTask` error message 
+### `FailedTask` error message
 If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
 ```
 {
@@ -388,7 +388,7 @@ If a `ComputeTask` or `DeployTask` fails on the protocol level this message will
 
 ## General `Error` system message
 
-Any Code error: 
+Any Code error:
 
 ```
 {
