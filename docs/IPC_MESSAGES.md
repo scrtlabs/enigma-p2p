@@ -234,7 +234,7 @@ Response:
     }
 }
 ```
-The request is a signed messagepack that looks like this: 
+The request is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -253,7 +253,7 @@ Request:
     response: 'the-encrypted-response'
 }
 ```
-The response is a signed messagepack that looks like this: 
+The response is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -334,7 +334,7 @@ Response:
         ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
@@ -362,17 +362,17 @@ Response:
     type: ComputeTask,
     result : {
         output: 'the-output-of-the-execution',
-        delta: {key, delta},
+        delta: {key, data},
         usedGas: 'amount-of-gas-used',
         ethereumPayload: 'hex of payload',
         ethereumAddress: 'address of the payload',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
-### `FailedTask` error message 
+### `FailedTask` error message
 If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
 ```
 {
@@ -388,7 +388,7 @@ If a `ComputeTask` or `DeployTask` fails on the protocol level this message will
 
 ## General `Error` system message
 
-Any Code error: 
+Any Code error:
 
 ```
 {
