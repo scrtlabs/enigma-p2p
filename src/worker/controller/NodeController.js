@@ -391,6 +391,15 @@ class NodeController {
     });
   }
   /**
+   * unsubscribe form a topic
+   * @param {string} topic
+   * @param {Function} reference to the topic_handler (MUST)
+   *
+   * */
+  unsubscribeTopic(topic,handler){
+    this.engNode().unsubscribe(topic, handler);
+  }
+  /**
    * monitor some topic, simply prints to std whenever some peer publishes to that topic
    * @param {string} topic
    * */

@@ -12,6 +12,7 @@ const Policy = require('../policy/policy');
 const Messages = require('../policy/p2p_messages/messages');
 const nodeUtils = require('../common/utils');
 const Logger = require('../common/logger');
+const errors = require('../common/errors');
 // const EngCID = require('../common/EngCID');
 // const CIDUtil = require('../common/CIDUtil');
 // const CID = require('cids');
@@ -20,7 +21,8 @@ const Logger = require('../common/logger');
 class EnigmaNode extends EventEmitter {
   constructor(config, protocolHandler, logger) {
     super();
-
+    // to handle unsubscribe
+    this._topicHandlersMap = {};
     // initialize logger
     if (logger) {
       this._logger = logger;
@@ -189,10 +191,26 @@ class EnigmaNode extends EventEmitter {
    */
   subscribe(subscriptions) {
     if (!this.started) {
-      throw Error('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
     subscriptions.forEach((sub)=>{
+      console.log(`calling your mama with ${sub.topic} is unudefined ???? ${sub.topic_handler}`);
+      this._topicHandlersMap[sub.topic] = sub.topic_handler;
       this.node.pubsub.subscribe(sub.topic, sub.topic_handler, sub.final_handler);
+    });
+  }
+  /*
+  * Unsubscribe from topic
+  * **/
+  unsubscribe(topic,handler){
+    if (!this.started) {
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
+    }
+    this.node.pubsub.unsubscribe(topic, handler, (err) => {
+      if (err) {
+        return this._logger.error(`failed to unsubscribe from ${topic}` + err);
+      }
+      this._logger.debug(`unsubscribed from ${topic}`);
     });
   }
   /**
@@ -209,7 +227,7 @@ class EnigmaNode extends EventEmitter {
   }
   defaultSubscribe() {
     if (!this.started) {
-      throw Error('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
 
     const subscriptions = this._handler.getSubscriptionsList();
@@ -524,14 +542,14 @@ class EnigmaNode extends EventEmitter {
 
       // create findpeers msg
       const findPeersReq = new Messages.FindPeersReqMsg({
-        'from': this.getSelfIdB58Str(),
-        'to': peerInfo.id.toB58String(),
-        'maxpeers': maxPeers,
+        from: this.getSelfIdB58Str(),
+        to: peerInfo.id.toB58String(),
+        maxpeers: maxPeers,
       });
 
       if (!findPeersReq.isValidMsg()) {
         this._logger.error('[-] err creating findpeer request msg.');
-        return onResult(new Error('err creating findpeer request msg.'), null);
+        return onResult(new errors.P2PErr('err creating findpeer request msg.'), null);
       }
       // post msg
       pull(
@@ -546,7 +564,7 @@ class EnigmaNode extends EventEmitter {
             // validate the msg (same id as request, structure etc)
             if (!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)) {
               this._logger.error('[-] err parsing findpeers response msg.');
-              return onResult(new Error('Invalid find peers response msg'), null);
+              return onResult(new errors.P2PErr('Invalid find peers response msg'), null);
             }
             onResult(null, findPeersReq, findPeersResponseMsg);
           })
@@ -559,7 +577,7 @@ class EnigmaNode extends EventEmitter {
    */
   provideContent(engCid, callback) {
     if (!this.started) {
-      throw Error('Please start the Worker before providing content');
+      throw new errors.InitPipelinesErr('Please start the Worker before providing content');
     }
     if (engCid) {
       const cid = engCid.getCID();

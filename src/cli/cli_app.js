@@ -182,6 +182,10 @@ class CLI {
           console.log(t);
         })
       },
+      'unsubscribe': async (args)=>{
+        let topic = args[1];
+        this._node.unsubscribeTopic(topic);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
