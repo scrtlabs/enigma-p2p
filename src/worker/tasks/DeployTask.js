@@ -54,6 +54,17 @@ class DeployTask extends Task{
     getContractAddr(){
       return this._contractAddr
     }
+    toDbObject(){
+      let output ={
+        preCode : this.getPreCode(),
+        encryptedArgs : this.getEncyptedArgs(),
+        encryptedFn : this.getEncryptedFn(),
+        userDHKey : this.getUserDHKey(),
+        GasLimit : this.getGasLimit(),
+        contractAddress : this.getContractAddr(),
+      };
+      return output;
+    }
     toDbJson(){
       let output ={
         status : this.getStatus(),
