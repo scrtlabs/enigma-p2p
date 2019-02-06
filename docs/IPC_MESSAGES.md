@@ -48,7 +48,7 @@ Response:
    type : GetTip,
    result : {
        key : [],
-       delta : []
+       data : []
    }
 }
 ```
@@ -68,7 +68,7 @@ Response:
     id : <unique_request_id>,
     type : GetTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -86,7 +86,7 @@ Response:
     id : <unique_request_id>,
     type: GetAllTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -328,7 +328,7 @@ Response:
     result : {
         output: 'the-deployed-bytecode', // AKA preCode
         preCodeHash: 'hash-of-the-precode-bytecode',
-        delta: {0, delta},
+        delta: {key: 0, data: ...},
         usedGas: 'amount-of-gas-used',
         ethereumPayload: 'hex of payload',
         ethereumAddress: 'address of the payload',
