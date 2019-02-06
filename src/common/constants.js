@@ -179,6 +179,7 @@ module.exports.TASK_STATUS = {
 module.exports.ETHEREUM_EVENTS = {
   NewEpoch : 'NewEpoch',
   TaskCreation : 'TaskCreation',
-  TaskSubmission : 'TaskSubmission',
+  TaskSuccessSubmission : 'TaskSuccessSubmission',
+  TaskFailureSubmission: 'TaskFailureSubmission',
   SecretContractDeployment : 'SecretContractDeployment',
 };

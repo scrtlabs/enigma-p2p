@@ -688,7 +688,7 @@ describe('Ethereum tests', function() {
 
       let taskIndex = 0;
 
-      services.initServices(['TaskCreation', 'TaskSubmission']);
+      services.initServices(['TaskCreation', 'TaskSuccessSubmission']);
 
       // services.on('TaskCreation', (err, result)=> {
       //   if (taskIndex === 0) {
