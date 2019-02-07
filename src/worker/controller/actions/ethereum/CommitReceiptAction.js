@@ -2,17 +2,21 @@
  @TODO lena commit receipt back to ethereum contract
  * */
 const cryptography = require('../../../../common/cryptography');
-const FailedResult = require('../../../tasks/Result').FailedResult;
+const Result = require('../../../tasks/Result');
+const FailedResult = Result.FailedResult;
+const ComputeResult = Result.ComputeResult;
+const DeployResult = Result.DeployResult;
+
 class CommitReceiptAction{
   constructor(controller) {
     this._controller = controller;
   }
-  async execute(params){
+  async execute(params) {
     let task = params.task;
     let callback = params.callback;
-    if(!task) return;
+    if (!task) return;
 
-    if(task instanceof FailedResult){
+    if (task instanceof FailedResult) {
       /**
        * Worker commits the failed task result on-chain
        * @param {string} secretContractAddress - V
@@ -23,18 +27,16 @@ class CommitReceiptAction{
        * @param {JSON} txParams
        * @return {Promise} receipt
        * */
-      try{
+      try {
         let txReceipt = await
-        this._controller
-        .ethereum()
-        .commitTaskFailure(
-            task.getContractAddr(),
-            task.getTaskId(),
-            task.getResult().getUsedGas(),
-            task.getResult().getSignature(),
-        );
+            this._controller.ethereum().commitTaskFailure(
+                task.getContractAddr(),
+                task.getTaskId(),
+                task.getResult().getUsedGas(),
+                task.getResult().getSignature(),
+            );
         this._controller.logger().info(`COMMIT_RECEIPT_FAILED task ${task.getTaskId()} success.`);
-      }catch(e){
+      } catch (e) {
         this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} tx failed ${e}`);
       }
     }else{
@@ -50,14 +52,12 @@ class CommitReceiptAction{
        * @param {JSON} txParams - default
        * @return {Promise} receipt
        * */
-      if(!task.getResult().getDelta().data || !task.getResult().getOutput()){
+      if (!task.getResult().getDelta().data || !task.getResult().getOutput()) {
         this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} no deta/output`);
         return;
       }
-      try{
-        let txReceipt = await this._controller
-        .ethereum()
-        .commitReceipt(
+      try {
+        let txReceipt = await this._controller.ethereum().commitReceipt(
             task.getContractAddr(),
             task.getTaskId(),
             cryptography.hash(task.getResult().getDelta().data),
@@ -67,7 +67,7 @@ class CommitReceiptAction{
             task.getResult().getSignature()
         );
         this._controller.logger().info(`COMMIT_RECEIPT task ${task.getTaskId()} success.`);
-      }catch(e){
+      } catch (e) {
         this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} tx failed ${e}`);
       }
     }
