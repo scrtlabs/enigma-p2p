@@ -4,9 +4,8 @@
 const cryptography = require('../../../../common/cryptography');
 const Result = require('../../../tasks/Result');
 const FailedResult = Result.FailedResult;
-const ComputeResult = Result.ComputeResult;
-const DeployResult = Result.DeployResult;
-
+const constants = require('../../../../common/constants');
+const errors = require('../../../../common/errors');
 class CommitReceiptAction{
   constructor(controller) {
     this._controller = controller;
@@ -15,62 +14,39 @@ class CommitReceiptAction{
     let task = params.task;
     let callback = params.callback;
     if (!task) return;
-
-    if (task instanceof FailedResult) {
-      /**
-       * Worker commits the failed task result on-chain
-       * @param {string} secretContractAddress - V
-       * @param {string} taskId - V
-       * @param {Integer} gasUsed - V
-       * @param {string} ethCall - ????????????? //TODO BUG SHOULD BE REMOVED  https://github.com/enigmampc/enigma-contract-internal/issues/36
-       * @param {string} signature
-       * @param {JSON} txParams
-       * @return {Promise} receipt
-       * */
-      try {
-        let txReceipt = await
-            this._controller.ethereum().commitTaskFailure(
-                task.getContractAddr(),
-                task.getTaskId(),
-                task.getResult().getUsedGas(),
-                task.getResult().getSignature(),
-            );
-        this._controller.logger().info(`COMMIT_RECEIPT_FAILED task ${task.getTaskId()} success.`);
-      } catch (e) {
-        this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} tx failed ${e}`);
-      }
-    }else{
-      /**
-       * Worker commits the results on-chain
-       * @param {string} secretContractAddress - V
-       * @param {string} taskId - V
-       * @param {string} stateDeltaHash - X
-       * @param {string} outputHash - X
-       * @param {Integer} gasUsed - V
-       * @param {string} ethCall - V
-       * @param {string} signature - V
-       * @param {JSON} txParams - default
-       * @return {Promise} receipt
-       * */
-      if (!task.getResult().getDelta().data || !task.getResult().getOutput()) {
-        this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} no deta/output`);
-        return;
-      }
-      try {
-        let txReceipt = await this._controller.ethereum().commitReceipt(
-            task.getContractAddr(),
-            task.getTaskId(),
-            cryptography.hash(task.getResult().getDelta().data),
-            cryptography.hash(task.getResult().getOutput()),
-            task.getResult().getUsedGas(),
-            task.getResult().getEthPayload(),
-            task.getResult().getSignature()
-        );
-        this._controller.logger().info(`COMMIT_RECEIPT task ${task.getTaskId()} success.`);
-      } catch (e) {
-        this._controller.logger().error(`[ERROR_COMMIT_RECEIPT] taskId ${tasl.getTaskId()} tx failed ${e}`);
-      }
+    try{
+      let txReceipt = await this._commitTask(task);
+      this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${txReceipt}`);
+    }catch(e){
+      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
     }
+  }
+  _commitTask(task){
+    if(task.getResult().isSuccess() && task.getResult().getDelta().data && task.getResult().getOutput()){
+      return this._commitSuccessTask(task);
+    }else if(task.getResult().isFailed()){
+      return this._commitFailedTask(task);
+    }
+     throw errors.TypeErr(`wrong type or missing fields in Result`);
+  }
+  _commitFailedTask(task){
+    return this._controller.ethereum().commitTaskFailure(
+        task.getContractAddr(),
+        task.getTaskId(),
+        task.getResult().getUsedGas(),
+        task.getResult().getSignature(),
+    );
+  }
+  _commitSuccessTask(task){
+    return this._controller.ethereum().commitReceipt(
+        task.getContractAddr(),
+        task.getTaskId(),
+        cryptography.hash(task.getResult().getDelta().data),
+        cryptography.hash(task.getResult().getOutput()),
+        task.getResult().getUsedGas(),
+        task.getResult().getEthPayload(),
+        task.getResult().getSignature()
+    );
   }
 }
 module.exports = CommitReceiptAction;
