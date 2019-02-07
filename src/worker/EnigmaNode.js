@@ -194,7 +194,6 @@ class EnigmaNode extends EventEmitter {
       throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
     subscriptions.forEach((sub)=>{
-      console.log(`calling your mama with ${sub.topic} is unudefined ???? ${sub.topic_handler}`);
       this._topicHandlersMap[sub.topic] = sub.topic_handler;
       this.node.pubsub.subscribe(sub.topic, sub.topic_handler, sub.final_handler);
     });
