@@ -21,7 +21,7 @@ class PublishTaskResultAction{
     });
     //TODO:: commit the result back to ethereum
     if(this._controller.hasEthereum()){
-      this._controller.execCmd(COMMIT_RECEIPT ,{
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT ,{
         task : task
       });
     }
