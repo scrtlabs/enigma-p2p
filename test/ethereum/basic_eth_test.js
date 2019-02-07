@@ -265,7 +265,6 @@ describe('Ethereum tests', function() {
       eventSubscribe(api2, 'ReceiptFailed', {}, getEventRecievedFunc('ReceiptFailed',
           (result)=> {
             assert.strictEqual(result.taskId, taskId4);
-            assert.strictEqual(result.ethCall, ethCall);
             assert.strictEqual(result.signature, signature);
           }));
 
@@ -293,7 +292,7 @@ describe('Ethereum tests', function() {
       await api2.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], outputHash, [gasUsed, gasUsed],
           ethCall, signature, {from: workerAddress});
 
-      await api2.commitTaskFailure(secretContractAddress, taskId4, gasUsed, ethCall, signature, {from: workerAddress});
+      await api2.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature, {from: workerAddress});
 
       // Verify the number of state deltas after a batch commit
       const count3 = await api2.countStateDeltas(secretContractAddress);
