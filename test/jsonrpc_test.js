@@ -248,7 +248,8 @@ describe('JsonRPC tests', () => {
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
         userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
       };
-      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+      JsonRpcClient.request('deploySecretContract',deployInput,async (err,res)=>{
+        await testUtils.sleep(1500);
         assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
         JsonRpcClient.request('getTaskStatus' ,
             {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress},

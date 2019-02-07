@@ -16,7 +16,9 @@ class PublishTaskResultAction{
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
       topic : constants.PUBSUB_TOPICS.TASK_RESULTS,
       message : JSON.stringify({
-      result: task.getResult().toDbJson()
+      contractAddress : task.getContractAddr(),
+      result: task.getResult().toDbJson(),
+      type : task.getTaskType()
       })
     });
     if(this._controller.hasEthereum()){
