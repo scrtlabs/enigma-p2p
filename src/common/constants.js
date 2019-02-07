@@ -18,6 +18,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'CONSISTENT_DISCOVERY': 'c_discover', // run consistent discovery mechanism
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PUBSUB_SUB' : 'subscribe' , // subscribe to topic
+  // TODO:: after PR https://github.com/ipfs/interface-js-ipfs-core/pull/437
   PUBSUB_UNSUB : 'pubunsub' , // unsubscribe from topic
   'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.

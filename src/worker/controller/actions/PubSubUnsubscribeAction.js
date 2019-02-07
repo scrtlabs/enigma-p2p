@@ -1,8 +1,8 @@
 const constants = require('../../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
 
-
-class PubsubSubscribeAction {
+//TODO:: after pr https://github.com/ipfs/interface-js-ipfs-core/pull/437
+class PubSubUnsubscribeAction {
   constructor(controller) {
     this._controller = controller;
   }
@@ -12,8 +12,8 @@ class PubsubSubscribeAction {
    * @param {Function} onSubscribed, ()=>{}
    * */
   execute(params) {
-    let topic = params.topic;
-    this._controller.engNode().unsubscribe()
+    // let topic = params.topic;
+    // this._controller.engNode().unsubscribe()
   }
 }
-module.exports = PubsubSubscribeAction;
+module.exports = PubSubUnsubscribeAction;
