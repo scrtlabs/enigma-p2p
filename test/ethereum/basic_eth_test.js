@@ -536,7 +536,7 @@ describe('Ethereum tests', function() {
 
       let taskIndex = 0;
 
-      services.initServices(['TaskCreation', 'TaskSubmission']);
+      services.initServices(['TaskCreation', 'TaskSuccessSubmission']);
 
       // services.on('TaskCreation', (err, result)=> {
       //   if (taskIndex === 0) {
@@ -568,7 +568,7 @@ describe('Ethereum tests', function() {
 
       const recieptIndex = 0;
 
-      services.on('TaskSubmission', (err, result)=> {
+      services.on('TaskSuccessSubmission', (err, result)=> {
         if (recieptIndex === 0) {
           assert.strictEqual(result.taskId, taskId1);
           assert.strictEqual(result.stateDeltaHash, stateDeltaHash1);

@@ -234,7 +234,9 @@ class EnigmaContractReaderAPI {
      * //TODO:: WTF is 'changed' ?
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
-     * @param {Json} filter, incase a filter is required on top of the event itself. //TODO:: add an example HERE of a filter
+     * @param {Json} filter, in case a filter is required on top of the event itself.
+     *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
+     * @param {Function} filterFunc, a function filter.
      * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
      * */
   subscribe(eventName, filter, callback) {
@@ -313,30 +315,26 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {Array<string>} taskIds , {Array<Integer>} gasLimits,
-             *                 {Array<Integer>} gasPrices, {string} senderAddress
-             * */
+       * @return {JSON}: {string} senderAddress,
+       *                 {JSON} tasks, indexed by the taskId, each element has: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+       * */
       'TaskRecordsCreated': (event) => {
-        const parsedGasLimit = [];
-        event.returnValues.gasLimits.forEach(function(element) {
-          parsedGasLimit.push(parseInt(element));
-        });
-        const parsedGasPrice = [];
-        event.returnValues.gasPxs.forEach(function(element) {
-          parsedGasPrice.push(parseInt(element));
-        });
-        return {
-          taskIds: event.returnValues.taskIds,
-          gasLimits: parsedGasLimit,
-          gasPrices: parsedGasPrice,
-          senderAddress: event.returnValues.sender,
-        };
+        let res = {tasks: {}, senderAddress: event.returnValues.sender};
+        for (let i = 0; i < event.returnValues.taskIds.length, i++;) {
+          const taskId = event.returnValues.taskIds[i];
+          res.tasks[taskId] = {
+            taskId: taskId,
+            gasLimit: parseInt(event.returnValues.gasLimits[i]),
+            gasPrice: parseInt(event.returnValues.gasPrices[i]),
+          }
+        }
+        return res;
       },
       /**
              * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
              *                 {string} ethCall, {string} signature
              * */
-      'ReceiptVerified': (event, web3) => {
+      'ReceiptVerified': (event) => {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
@@ -349,7 +347,7 @@ class EnigmaContractReaderAPI {
              * @return {JSON}: {Array<string>} taskIds , {Array<string>} stateDeltaHashes, {string} outputHash,
              *                 {string} ethCall, {string} signature
              * */
-      'ReceiptsVerified': (event, web3) => {
+      'ReceiptsVerified': (event) => {
         return {
           taskIds: event.returnValues.taskIds,
           stateDeltaHashes: event.returnValues.stateDeltaHashes,
@@ -361,7 +359,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      'ReceiptFailed': (event, web3) => {
+      'ReceiptFailed': (event) => {
         return {
           taskId: event.returnValues.taskId,
           ethCall: event.returnValues.ethCall,
@@ -371,7 +369,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId
        * */
-      'TaskFeeReturned': (event, web3) => {
+      'TaskFeeReturned': (event) => {
         return {
           taskId: event.returnValues.taskId,
         };
