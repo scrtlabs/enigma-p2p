@@ -332,7 +332,6 @@ class EnigmaContractReaderAPI {
       'ReceiptFailed': (event, web3) => {
         return {
           taskId: event.returnValues.taskId,
-          ethCall: event.returnValues.ethCall,
           signature: event.returnValues.sig,
         };
       },
