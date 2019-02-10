@@ -24,6 +24,7 @@ describe('task_flow_tests',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
+        //TODO:: HW the db path here should be set to delete the db lolka
         testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
           resolve();
         });
