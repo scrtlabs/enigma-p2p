@@ -61,7 +61,8 @@ module.exports.createTwo = async (optionsOverride)=>{
     finalBstrapOpts = optionsOverrideBStrap;
   }
   finalBstrapOpts.isBootstrap = true;
-  return _createTwo(finalBstrapOpts,optionsOverridePeer);
+  let result =  await _createTwo(finalBstrapOpts,optionsOverridePeer);
+  return result;
 };
 
 
@@ -99,6 +100,7 @@ const createNode = async (options)=>{
     nodeConfigObject.idPath = idPath;
     nodeConfigObject.bootstrapNodes = bNodes;
    }
+  nodeConfigObject.bootstrapNodes = [_B1Addr];
   let mainController;
   let builder = new EnviornmentBuilder();
   let coreServer = null;
@@ -112,6 +114,7 @@ const createNode = async (options)=>{
     let uri = 'tcp://127.0.0.1:' + port;
     coreServer = new CoreServer();
     coreServer.runServer(uri);
+    builder.setIpcConfig({uri : uri});
   }
   if(options.withProxy){
     let port;
