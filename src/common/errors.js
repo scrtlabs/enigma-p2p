@@ -33,6 +33,14 @@ class TaskVerificationErr extends Error{
   }
 }
 
+class WorkerSelectionVerificationErr extends Error{
+  constructor(message){
+    super(message);
+    Error.captureStackTrace(this,this.constructor);
+    this.name = this.constructor.name;
+  }
+}
+
 module.exports.SyncReceiverErr = SyncReceiverErr;
 module.exports.TaskFailedErr = TaskFailedErr;
 module.exports.TaskValidityErr = TaskValidityErr;

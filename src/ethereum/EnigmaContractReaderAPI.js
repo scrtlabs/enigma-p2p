@@ -231,6 +231,20 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * * Get Epoch size
+   * @return {Promise} returning {Integer} : epochSize
+   * */
+  getEpochSize() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.epochSize().call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
      * //TODO:: WTF is 'changed' ?
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
