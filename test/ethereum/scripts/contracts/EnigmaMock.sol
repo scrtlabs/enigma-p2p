@@ -85,7 +85,7 @@ contract EnigmaMock {
     event TaskRecordsCreated(bytes32[] taskIds, uint[] gasLimits, uint[] gasPxs, address sender);
     event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, bytes ethCall, bytes sig);
     event ReceiptsVerified(bytes32[] taskIds, bytes32[] stateDeltaHashes, bytes32 outputHash, bytes ethCall, bytes sig);
-    event ReceiptFailed(bytes32 taskId, bytes ethCall, bytes sig);
+    event ReceiptFailed(bytes32 taskId, bytes sig);
     event TaskFeeReturned(bytes32 taskId);
     event DepositSuccessful(address from, uint value);
     event WithdrawSuccessful(address to, uint value);
@@ -788,14 +788,14 @@ contract EnigmaMock {
     * @param _scAddr Secret contract address
     * @param _taskId Unique taskId
     * @param _gasUsed Gas used for task computation
-    * @param _ethCall Eth call
     * @param _sig Worker's signature
     */
     function commitTaskFailure(
         bytes32 _scAddr,
         bytes32 _taskId,
         uint _gasUsed,
-        bytes memory _ethCall,
+        //MOCK
+        //bytes memory _ethCall,
         bytes memory _sig
     )
     public
@@ -837,7 +837,7 @@ contract EnigmaMock {
 //            false));
 //        require(msgHash.recover(_sig) == workers[msg.sender].signer, "Invalid signature");
 
-        emit ReceiptFailed(_taskId, _ethCall, _sig);
+        emit ReceiptFailed(_taskId, _sig);
     }
 
     function returnFeesForTask(bytes32 _taskId) public taskWaiting(_taskId) {

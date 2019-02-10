@@ -300,12 +300,11 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {string} secretContractAddress
    * @param {string} taskId
    * @param {Integer} gasUsed
-   * @param {string} ethCall
    * @param {string} signature
    * @param {JSON} txParams
    * @return {Promise} receipt
    * */
-  commitTaskFailure(secretContractAddress, taskId, gasUsed, ethCall, signature, txParams) {
+  commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -317,13 +316,13 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, ethCall, signature)
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
+      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, signature)
+        .send(transactionOptions, (error, receipt)=> {
+          if (error) {
+            reject(error);
+          }
+          resolve(receipt);
+        });
     });
   }
   /** used by the principal node to commit a random number === new epoch */
