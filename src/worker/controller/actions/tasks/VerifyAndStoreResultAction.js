@@ -22,7 +22,6 @@ class VerifyAndStoreResultAction{
     let from = message.from; // b58 id
     let data = message.data;
     let msgObj = JSON.parse(data.toString());
-    // let resultObj = JSON.parse(JSON.parse(data.toString()).result);
     let resultObj = JSON.parse(msgObj.result);
     let contractAddress = msgObj.contractAddress;
     let type = msgObj.type;

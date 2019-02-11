@@ -10,13 +10,16 @@ const testBuilder = require('../testUtils/quickBuilderUtil');
 const testUtils = require('../testUtils/utils');
 const path = require('path');
 const nodeUtils = require('../../src/common/utils');
-
+const assert = require('assert');
 describe('task_flow_tests',()=>{
   it('#1 Should test w1 Publish a task and w2 receive it', async function(){
     return new Promise(async resolve => {
+      // craete deploy task
+      let {task, result} = generateDeployBundle(1,true)[0];
+      task.setResult(result);
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
-      await testUtils.sleep(2000);
+      await testUtils.sleep(5000);
       let bNodeController = bNode.mainController;
       let bNodeCoreServer = bNode.coreServer;
       let peerController = peer.mainController;
@@ -33,19 +36,20 @@ describe('task_flow_tests',()=>{
         resolve();
       };
       const verifyPublish = async (params)=>{
-        console.log("@@@@@@@@@@@@@@@@@@@@");
-        console.log(JSON.stringify(params,null,2));
-        console.log("@@@@@@@@@@@@@@@@@@@@");
+        let message = params.params;
+        let data = message.data;
+        let msgObj = JSON.parse(data.toString());
+        let resultObj = JSON.parse(msgObj.result);
+        assert.strictEqual(task.getTaskId(),resultObj.taskId,"taskid not equal");
         stopTest();
       };
       // override the action response
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, { execute : verifyPublish});
+      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,{
+        execute : verifyPublish
+      });
       // run the test
-      // craete deploy task
-      let {task, result} = generateDeployBundle(1,true)[0];
-      task.setResult(result);
       // publish the task result
-      peerController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 });
@@ -78,7 +82,7 @@ const generateDeployBundle = (num, isSuccess)=>{
     output.push({task : t, result : result});
   });
   return output;
-}
+};
 
 function generateDeployTasks(num){
   let tasks = [];
