@@ -206,7 +206,6 @@ class NodeController {
     this._protocolHandler.on('notify', (params)=>{
       const notification = params.notification;
       const action = this._actions[notification];
-
       if (action !== undefined) {
         this._actions[notification].execute(params);
       }
@@ -250,7 +249,7 @@ class NodeController {
    * @param {string} name
    * @param {Action} action
    * */
-  updateAction(name,action){
+  overrideAction(name,action){
     this._actions[name] = action;
   }
   /** init worker processes

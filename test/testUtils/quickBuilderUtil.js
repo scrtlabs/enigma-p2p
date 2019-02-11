@@ -41,6 +41,7 @@ const getDefault = ()=>{
     withProxy : false,
     proxyPort : null, // optional, either set port or random
     withTasksDb : true, // with tasks database
+    taskDbPath : null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
   };
 };
 
@@ -54,8 +55,12 @@ module.exports.createTwo = async (optionsOverride)=>{
   let optionsOverridePeer= {};
   let finalBstrapOpts = {};
   if(optionsOverride){
-    optionsOverrideBStrap = optionsOverride.optionsOverrideBStrap;
-    optionsOverridePeer= optionsOverride.optionsOverridePeer;
+    if(optionsOverride.bOpts){
+      optionsOverrideBStrap= optionsOverride.bOpts;
+    }
+    if(optionsOverride.pOpts){
+      optionsOverridePeer= optionsOverride.pOpts;
+    }
   }
   if(optionsOverrideBStrap){
     finalBstrapOpts = optionsOverrideBStrap;
@@ -71,7 +76,7 @@ const _createTwo = async (optionsOverrideBStrap,optionsOverridePeer)=>{
   let bNodeOpts = nodeUtils.applyDelta(getDefault(),optionsOverrideBStrap);
   // create bootstrap node here
   let bNode = await createNode(bNodeOpts);
-  // craete peer
+  // craete peeravishai@enigma.co
   let peer = await createNode(peerOpts);
   return {bNode : bNode, peer : peer};
 };
@@ -133,14 +138,21 @@ const createNode = async (options)=>{
       enigmaContractAddress : options.ethExistingAddr,
     });
   }
+  let dbPath = null;
   if(options.withTasksDb){
+    if(options.taskDbPath){
+      dbPath = options.taskDbPath;
+    }else{
+
+      dbPath = path.join(__dirname, '/'+nodeUtils.randId()+".deletedb");
+    }
     nodeConfigObject.extraConfig = {};
     nodeConfigObject.extraConfig.tm = {
-      dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
+      dbPath : dbPath
     };
   }
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
-  return {mainController : mainController, coreServer : coreServer};
+  return {mainController : mainController, coreServer : coreServer , tasksDbPath :dbPath };
 };
 
 const rand = (min, max)=>{
