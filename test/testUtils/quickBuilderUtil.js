@@ -82,13 +82,13 @@ const _createTwo = async (optionsOverrideBStrap,optionsOverridePeer)=>{
 };
 
 const createNode = async (options)=>{
-   let nodeConfigObject = {
+  let nodeConfigObject = {
     'bootstrapNodes': _B1Addr,
     'port': null,
     'nickname': null,
     'idPath': null,
-   };
-   if(options.isBootstrap){
+  };
+  if(options.isBootstrap){
     let bNodes = [];
     let port = null;
     let idPath = null;
@@ -104,7 +104,7 @@ const createNode = async (options)=>{
     nodeConfigObject.port = port;
     nodeConfigObject.idPath = idPath;
     nodeConfigObject.bootstrapNodes = bNodes;
-   }
+  }
   nodeConfigObject.bootstrapNodes = [_B1Addr];
   let mainController;
   let builder = new EnviornmentBuilder();
