@@ -1,29 +1,29 @@
 module.exports.TEST_TREE = {
   'basic' : {
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'ipc' :{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
     '#4': true,
   },
   'coverage' :{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'cache' :{
-    'all' : false,
+    'all' : true,
     '#1' : true
   },
   'ethereum' : {
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -34,7 +34,7 @@ module.exports.TEST_TREE = {
     '#8' : true
   },
   'task_manager' :{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -46,7 +46,7 @@ module.exports.TEST_TREE = {
     '#1' : true,
   },
   'sync_basic':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -54,7 +54,7 @@ module.exports.TEST_TREE = {
     '#5' : true,
   },
   'jsonrpc_basic':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
