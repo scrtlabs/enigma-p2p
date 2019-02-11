@@ -11,9 +11,12 @@ const testUtils = require('../testUtils/utils');
 const path = require('path');
 const nodeUtils = require('../../src/common/utils');
 const assert = require('assert');
+const tree = require('../test_tree').TEST_TREE.task_flow;
 
 describe('task_flow_tests',()=>{
   it('#1 Should test w1 Publish a task and w2 receive it', async function(){
+    if(!tree['#1'] || !tree['all'] )
+      this.skip();
     return new Promise(async resolve => {
       // craete deploy task
       let {task, result} = generateDeployBundle(1,true)[0];
