@@ -27,70 +27,72 @@ class ReceiveAllPipelineAction {
       return onEnd(new errs.SyncReceiverErr('already running'));
     }
     this._running = true;
-
-    waterfall([
-      cb => {
-        this._controller.execCmd(
-            NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
-              cache: cache,
-              onResponse: (err, res) => {
-                if (err) {
-                  return cb(err);
-                }
-                return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
-              },
-            });
-      },
-      (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
-        let err = null;
-        let ecids = [];
-        //TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
-        let tempEcidToAddrMap = {};
-        for (let addrKey in missingStatesMsgsMap) {
-          let ecid = EngCid.createFromSCAddress(addrKey);
-          if (ecid) {
-            //TODO:: every EngCid should expose the address as a built
-            //TODO:: in method
-            tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
-            ecids.push(ecid);
-          } else {
-            err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
-          }
-        }
-        return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
-      },
-      (ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
-        this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
-          descriptorsList: ecidList,
-          isEngCid: true,
-          next: (findProviderResult) => {
-            return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
-          }
-        });
-      },
-      (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
-        if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
-          cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
-        }
-        // parse to 1 object: cid => {providers, msgs} -> simple :)
-        let allReceiveData = [];
-        ecids.forEach(ecid => {
-          allReceiveData.push({
-            requestMessages: missingStatesMap[ecid.getScAddress()],
-            providers: findProviderResult.getProvidersFor(ecid)
+    const getMissingStates = (cb)=>{
+      this._controller.execCmd(
+          NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
+            cache: cache,
+            onResponse: (err, res) => {
+              if (err) {
+                return cb(err);
+              }
+              return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
+            },
           });
-        });
-        return cb(null, allReceiveData, remoteMissingStatesMap);
-      },
-      (allReceiveData, remoteMissingStatesMap, cb) => {
-        this._controller.execCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
-          allMissingDataList: allReceiveData,
-          remoteMissingStatesMap: remoteMissingStatesMap,
-          onFinish: (err, allResults) => {
-            cb(err, allResults)
-          }
-        });
+    };
+    const parseResults = (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
+      let err = null;
+      let ecids = [];
+      //TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
+      let tempEcidToAddrMap = {};
+      for (let addrKey in missingStatesMsgsMap) {
+        let ecid = EngCid.createFromSCAddress(addrKey);
+        if (ecid) {
+          tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
+          ecids.push(ecid);
+        } else {
+          err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
+        }
       }
+      return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
+    };
+    const findPRovider = (ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
+      this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
+        descriptorsList: ecidList,
+        isEngCid: true,
+        next: (findProviderResult) => {
+          return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
+        }
+      });
+    };
+    const parseProviders = (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
+      if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
+        cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
+      }
+      // parse to 1 object: cid => {providers, msgs} -> simple :)
+      let allReceiveData = [];
+      ecids.forEach(ecid => {
+        allReceiveData.push({
+          requestMessages: missingStatesMap[ecid.getScAddress()],
+          providers: findProviderResult.getProvidersFor(ecid)
+        });
+      });
+      return cb(null, allReceiveData, remoteMissingStatesMap);
+    };
+    const receiveAll = (allReceiveData, remoteMissingStatesMap, cb) => {
+      this._controller.execCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
+        allMissingDataList: allReceiveData,
+        remoteMissingStatesMap: remoteMissingStatesMap,
+        onFinish: (err, allResults) => {
+          cb(err, allResults)
+        }
+      });
+    };
+    waterfall([
+      getMissingStates,
+      parseResults,
+      findPRovider,
+      parseProviders,
+      receiveAll
     ], (err, result) => {
       this._running = false;
       onEnd(err,result);
