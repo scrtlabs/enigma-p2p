@@ -17,6 +17,8 @@ topLevelKeys.forEach(tk=>{
     });
 });
 
-if(shouldPanic){
+if(shouldPanic === false){
     process.exit(1);
+}else{
+    console.log("all good :-)");
 }
