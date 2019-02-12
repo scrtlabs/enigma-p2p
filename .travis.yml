@@ -9,8 +9,9 @@ install:
 
 script:
   - npm test
-  - if: branch = master OR branch = develop
-      npm run test-tree
+  - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then
+      echo $TRAVIS_BRANCH ; npm run test-tree;
+    fi
 
 after_success:
   - npm run report-coverage

@@ -5,8 +5,6 @@ topLevelKeys.forEach(tk=>{
     if(tree[tk].all === false){
         console.log(`[ERROR] test_tree param ${tk} not true`);
         shouldPanic = true;
-    }else{
-        console.log(`[all good] test_tree param ${tk} not true`);
     }
     let localKeys = Object.keys(tk);
     localKeys.forEach(lk=>{
@@ -17,8 +15,6 @@ topLevelKeys.forEach(tk=>{
     });
 });
 
-if(shouldPanic === false){
+if(shouldPanic){
     process.exit(1);
-}else{
-    console.log("all good :-)");
 }
