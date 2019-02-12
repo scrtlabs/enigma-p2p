@@ -43,15 +43,13 @@ class IdentifyMissingStatesAction {
             }
             return finalCallback(error);
           }
-          if(this._controller.hasEthereum()){
-            return IdentifyMissingStatesAction.
-                _buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
-              if (err) {
-                return finalCallback(err);
-              }
-              return finalCallback(null, res);
-            });
-          }
+          return IdentifyMissingStatesAction.
+              _buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
+            if (err) {
+              return finalCallback(err);
+            }
+            return finalCallback(null, res);
+          });
         },
       });
     }
