@@ -13,7 +13,7 @@ class PubsubPublishAction {
         topic,
         msgBuffer,
         ()=>{
-          console.log('published [' + topic +']');
+          this._controller.logger().debug(`published [${topic}]`);
         }
     );
   }
