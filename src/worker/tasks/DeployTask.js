@@ -60,7 +60,7 @@ class DeployTask extends Task{
         encryptedArgs : this.getEncyptedArgs(),
         encryptedFn : this.getEncryptedFn(),
         userDHKey : this.getUserDHKey(),
-        GasLimit : this.getGasLimit(),
+        gasLimit : this.getGasLimit(),
         // remove leading 0x if present from contractAddress
         contractAddress : this.getContractAddr().substring(this.getContractAddr().length-40), 
       };
