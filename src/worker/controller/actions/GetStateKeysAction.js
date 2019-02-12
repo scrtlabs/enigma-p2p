@@ -1,11 +1,9 @@
-const PrincipalNode = require('../../PrincipalNode');
 const MsgPrincipal = require('../../../policy/p2p_messages/principal_messages');
 const constants = require('../../../common/constants');
 
 class GetStateKeysAction {
   constructor(controller) {
     this._controller = controller;
-    this._principal = new PrincipalNode();
   }
 
   execute(params) {
@@ -18,14 +16,14 @@ class GetStateKeysAction {
       const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {
-        principalResponse = await this._principal.getStateKeys(msg);
+        principalResponse = await this._controller.principal().getStateKeys(msg);
       } catch (err) {
         // TODO: Errors.
         this._controller.logger().error(`Failed Principal node connection: ${err}`);
         return;
       }
       this._pttResponse({response: principalResponse}, (err, response) => {
-        if (err || response.errors.len() > 0) {
+        if (err || response.result.errors.length > 0) {
           // TODO: Errors.
           this._controller.logger().error(`Failed Core connection: ${err}, \n ${response}`);
         }
