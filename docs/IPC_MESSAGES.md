@@ -217,9 +217,11 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>,
-    type : GetPTTRequest,
-    addresses: [addrress]
+    id: <unique_request_id>,
+    type: GetPTTRequest,
+    input: {
+        addresses: [addrress]
+    } 
 }
 ```
 
@@ -250,7 +252,9 @@ Request:
 {
     id : <unique_request_id>,
     type : PTTResponse,
-    response: 'the-encrypted-response'
+    input: {
+        response: 'the-encrypted-response'
+    }
 }
 ```
 The response is a signed messagepack that looks like this:
