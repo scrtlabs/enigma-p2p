@@ -208,7 +208,6 @@ class NodeController {
     this._protocolHandler.on('notify', (params)=>{
       const notification = params.notification;
       const action = this._actions[notification];
-
       if (action !== undefined) {
         this._actions[notification].execute(params);
       }
@@ -252,7 +251,7 @@ class NodeController {
    * @param {string} name
    * @param {Action} action
    * */
-  updateAction(name,action){
+  overrideAction(name,action){
     this._actions[name] = action;
   }
   /** init worker processes
@@ -393,6 +392,15 @@ class NodeController {
     });
   }
   /**
+   * unsubscribe form a topic
+   * @param {string} topic
+   * @param {Function} reference to the topic_handler (MUST)
+   *
+   * */
+  unsubscribeTopic(topic,handler){
+    this.engNode().unsubscribe(topic, handler);
+  }
+  /**
    * monitor some topic, simply prints to std whenever some peer publishes to that topic
    * @param {string} topic
    * */
@@ -409,6 +417,9 @@ class NodeController {
         this._logger.info('Monitor subscribed to [' + topic +']');
       }
     });
+  }
+  hasEthereum(){
+    return this._enigmaContractHandler;
   }
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);

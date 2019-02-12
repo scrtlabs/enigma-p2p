@@ -32,7 +32,7 @@ class AnnounceLocalStateAction{
             if(ecid){
               return ecid;
             }else{
-              console.log('[-] err converting bytearray->hex->EngCid !');
+              this._controller.logger().error('[-] err converting bytearray->hex->EngCid !');
             }
           }).filter(ecid=>{return (ecid !== undefined && ecid !== null);});
           isEngCid = true;
@@ -46,7 +46,7 @@ class AnnounceLocalStateAction{
               //TODO:: Bottom line im not processing the errors in the correct way.
               return onResponse(err,parsedEngCids);
             }else{
-              console.log('[+] success providing cids.');
+              this._controller.logger().debug('[+] success providing cids.');
               return onResponse(null,parsedEngCids);
             }
           });

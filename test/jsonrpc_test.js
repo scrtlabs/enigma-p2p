@@ -16,7 +16,8 @@ const constants = require('../src/common/constants');
 // const B1Port = '10300';
 const B2Path = '../../test/testUtils/id-d';
 const B2Port = '10301';
-const bootstrapNodes = ['/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP'];
+const bootstrapNodes = ['/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1a' +
+'vvxfyYQwk8R3UnFrQ6aP'];
 const proxyConfig = {
   'bootstrapNodes': bootstrapNodes,
   'port': B2Port,
@@ -175,7 +176,7 @@ describe('JsonRPC tests', () => {
     expect(response.workerSig).toBeDefined();
   }, 10000);
 
-  it("#3 should sendTaskInput",async ()=>{
+  it("#3 should sendTaskInput",async function(){
     if(!tree['all'] || !tree['#3']){
       this.skip();
     }
@@ -194,7 +195,7 @@ describe('JsonRPC tests', () => {
       });
     });
   });
-  it("#4 should deploySecretContract",async ()=>{
+  it("#4 should deploySecretContract",async function(){
     if(!tree['all'] || !tree['#4']){
       this.skip();
     }
@@ -214,7 +215,7 @@ describe('JsonRPC tests', () => {
       });
     });
   });
-  it("#5 should Fail deploySecretContract",async ()=>{
+  it("#5 should Fail deploySecretContract",async function(){
     if(!tree['all'] || !tree['#5']){
       this.skip();
     }
@@ -233,7 +234,7 @@ describe('JsonRPC tests', () => {
       });
     });
   });
-  it("#6 should getTaskStatus", async ()=>{
+  it("#6 should getTaskStatus", async function(){
     if(!tree['all'] || !tree['#6']){
       this.skip();
     }
@@ -248,7 +249,8 @@ describe('JsonRPC tests', () => {
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
         userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
       };
-      JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
+      JsonRpcClient.request('deploySecretContract',deployInput,async (err,res)=>{
+        await testUtils.sleep(1500);
         assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
         JsonRpcClient.request('getTaskStatus' ,
             {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress},

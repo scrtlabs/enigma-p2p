@@ -34,7 +34,14 @@ function _sleep(ms){
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-
+module.exports.rm_Minus_Rf = async (path)=>{
+  return new Promise((resolve,reject)=>{
+    _deleteFolderFromOSRecursive(path,(err)=>{
+      if(err) reject(err);
+      else resolve();
+    });
+  });
+};
 module.exports.deleteFolderFromOSRecursive = function(path, callback){
   _deleteFolderFromOSRecursive(path,callback);
 };

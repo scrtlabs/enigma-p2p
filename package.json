@@ -7,7 +7,8 @@
     "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 500000",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
-    "lint:fix": "eslint --fix src"
+    "lint:fix": "eslint --fix src",
+    "test-tree": "node scripts/test_tree_validation.js"
   },
   "author": "isan rivkin",
   "license": "ISC",
