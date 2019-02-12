@@ -19,7 +19,7 @@ class DbRequestAction{
     let requestEnvelop = new Envelop(true
         ,{type : queryType, input : input}
         ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
-
+    
     this._controller.communicator()
       .sendAndReceive(requestEnvelop)
       .then(responseEnvelop=>{
