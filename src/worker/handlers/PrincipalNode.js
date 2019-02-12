@@ -12,7 +12,9 @@ class PrincipalNode {
 
     this._logger = logger;
     this._client = jayson.client.http(this._uri);
-    // this._logger.debug('Connected to principal node: ' + this._uri);
+    if (this._logger) {
+      this._logger.debug('Connected to principal node: ' + this._uri);
+    }
   }
 
   async getStateKeys(msg) {

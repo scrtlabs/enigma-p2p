@@ -206,7 +206,7 @@ class NodeController {
     if (this._extraConfig) {
       conf = this._extraConfig.principal;
     }
-    this._principal = new PrincipalNode(conf);
+    this._principal = new PrincipalNode(conf, this.logger());
   }
   _initEnigmaNode() {
     this._engNode.on('notify', (params)=>{
