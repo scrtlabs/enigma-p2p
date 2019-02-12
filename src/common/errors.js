@@ -31,7 +31,16 @@ class P2PErr extends Error {
     this.name = this.constructor.name;
   }
 }
+
+class EthereumErr extends Error {
+  constructor(message){
+    super(message);
+    Error.captureStackTrace(this,this.constructor);
+    this.name = this.constructor.name;
+  }
+}
 module.exports.SyncReceiverErr = SyncReceiverErr;
 module.exports.TypeErr = TypeErr;
 module.exports.InitPipelinesErr = InitPipelinesErr;
 module.exports.P2PErr = P2PErr;
+module.exports.EthereumErr = EthereumErr;

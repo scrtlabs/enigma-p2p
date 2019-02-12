@@ -1,5 +1,6 @@
 
 const constants = require('../../../../common/constants');
+const errs = require('../../../../common/errors');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
 const Envelop = require('../../../../main_controller/channels/Envelop');
@@ -13,7 +14,7 @@ class DbRequestAction{
     let queryType = params.dbQueryType;
     let input = params.input;
     if(!this._validateRequest(queryType)){
-      onResponse("invalid queryType" +queryType );
+      onResponse(new errs.TypeErr(`"invalid queryType ${queryType}`));
       return;
     }
     let requestEnvelop = new Envelop(true
