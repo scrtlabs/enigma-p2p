@@ -330,12 +330,12 @@ Response:
     id: <unique_request_id>,
     type: DeploySecretContract,
     result : {
-        output: 'the-deployed-bytecode', // AKA preCode
+        output: 'the-deployed-bytecode', // AKA exeCode
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {key: 0, data: ...},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
 
@@ -368,8 +368,8 @@ Response:
         output: 'the-output-of-the-execution',
         delta: {key, data},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
 
