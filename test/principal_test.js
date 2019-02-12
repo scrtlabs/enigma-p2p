@@ -72,6 +72,8 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
         constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
         {addresses: addresses}
     );
+    await mainController.getNode().stop();
+    coreServer.disconnect();
     resolve();
   });
 });
