@@ -1,4 +1,5 @@
 const constants = require('../../../../common/constants');
+const errs = require('../../../../common/errors');
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
 const waterfall = require('async/waterfall');
 const EngCid = require('../../../../common/EngCID');
@@ -23,7 +24,7 @@ class ReceiveAllPipelineAction {
     let onEnd = params.onEnd;
 
     if(this._running){
-      return onEnd('already running');
+      return onEnd(new errs.SyncReceiverErr('already running'));
     }
     this._running = true;
 
@@ -53,7 +54,7 @@ class ReceiveAllPipelineAction {
             tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
             ecids.push(ecid);
           } else {
-            err = "error creating EngCid from " + addrKey;
+            err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
           }
         }
         return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
@@ -69,7 +70,7 @@ class ReceiveAllPipelineAction {
       },
       (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
         if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
-          cb("[-] some error finding providers !");
+          cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
         }
         // parse to 1 object: cid => {providers, msgs} -> simple :)
         let allReceiveData = [];
@@ -94,7 +95,6 @@ class ReceiveAllPipelineAction {
       this._running = false;
       onEnd(err,result);
     });
-
   }
 }
 module.exports = ReceiveAllPipelineAction;

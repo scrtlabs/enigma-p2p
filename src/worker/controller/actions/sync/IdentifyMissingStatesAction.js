@@ -1,6 +1,7 @@
 const LocalMissingStateResult = require('../../../state_sync/receiver/LocalMissingStatesResult');
 const StateSync = require('../../../../ethereum/StateSync');
 const constants = require('../../../../common/constants');
+const errs = require('../../../../common/errors');
 const NODE_NOTIY = constants.NODE_NOTIFICATIONS;
 
 
@@ -35,16 +36,22 @@ class IdentifyMissingStatesAction {
         cache: useCache,
         onResponse: (err, localTips) => {
           // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
-          if (err) {
-            return finalCallback(err);
-          }
-
-          IdentifyMissingStatesAction._buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
-            if (err) {
-              return finalCallback(err);
+          if (err || !this._controller.hasEthereum()) {
+            let error = err;
+            if(!this._controller.hasEthereum()){
+              error =  new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
             }
-            return finalCallback(null, res);
-          });
+            return finalCallback(error);
+          }
+          if(this._controller.hasEthereum()){
+            return IdentifyMissingStatesAction.
+                _buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
+              if (err) {
+                return finalCallback(err);
+              }
+              return finalCallback(null, res);
+            });
+          }
         },
       });
     }
