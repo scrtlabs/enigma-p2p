@@ -23,28 +23,30 @@ class RouteRpcBlockingAction {
           communicator().
           send(env);
     }
+    const onPublish = (msg)=>{
+      // once the result from the worker arrives
+      const data = JSON.parse(msg.data);
+      const responseEnvelop = new Envelop(requestEnvelop.id(),{result:data.result},requestEnvelop.type());
+      this._controller.communicator().send(responseEnvelop);
+      // TODO:: possible unsubscribe depends what the reqs are it might not be default maybe reuse the topic
+    };
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB,{
-      topic : targetTopic,
-      onPublish : (msg)=>{
-        // once the result from the worker arrives
-        const data = JSON.parse(msg.data);
-        const responseEnvelop = new Envelop(requestEnvelop.id(),{result:data.result},requestEnvelop.type());
-        this._controller.communicator().send(responseEnvelop);
-      },
-      onSubscribed: ()=>{
-        console.log('[rpc] subscribed to target topic = ' + targetTopic);
-        // publish the actual request
-        this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
-          topic: workerSignKey,
-          message: JSON.stringify({
-            type :reqType ,
-            request: request,
-            sequence: sequence,
-            targetTopic: targetTopic,
-          }),
-        });
-      }
-    });
+    topic : targetTopic,
+    onPublish : onPublish,
+    onSubscribed: ()=>{
+      console.log('[rpc] subscribed to target topic = ' + targetTopic);
+      // publish the actual request
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
+        topic: workerSignKey,
+        message: JSON.stringify({
+          type :reqType ,
+          request: request,
+          sequence: sequence,
+          targetTopic: targetTopic,
+        }),
+      });
+    }
+  });
   }
 }
 module.exports = RouteRpcBlockingAction;

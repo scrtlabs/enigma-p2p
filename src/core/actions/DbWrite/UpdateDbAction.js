@@ -11,6 +11,11 @@ class UpdateDbAction{
       id : nodeUtils.randId(),
       type : null,
     };
+    // from topic published - already parsed
+    if(msgObj.type && typeof msgObj.type !== 'function'){
+      return msgObj;
+    }
+    // from sync process
     if(msgObj.type() === constants.P2P_MESSAGES.SYNC_STATE_RES){
       request.type = constants.CORE_REQUESTS.UpdateDeltas;
       request.deltas = msgObj.deltas();
