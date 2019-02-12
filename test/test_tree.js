@@ -33,7 +33,6 @@ module.exports.TEST_TREE = {
     '#7' : true,
     '#8' : true
   },
-  // bug with false
   'task_manager' :{
     'all' : true,
     '#1' : true,
@@ -41,6 +40,10 @@ module.exports.TEST_TREE = {
     '#3' : true,
     '#4' : true,
     '#5' : true,
+  },
+  'task_flow' : {
+    'all' :true,
+    '#1' : true,
   },
   'sync_basic':{
     'all' : true,
@@ -50,7 +53,6 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
-  // bug with false
   'jsonrpc_basic':{
     'all' : true,
     '#1' : true,

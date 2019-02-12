@@ -315,7 +315,6 @@ class ProtocolHandler extends EventEmitter {
   onTaskResultPublish(params, message){
     const selfId = params.worker.getSelfIdB58Str();
     const from = message.from;
-
     if (from === selfId) {
       return;
     }
