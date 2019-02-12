@@ -1,6 +1,6 @@
 const jayson = require('jayson');
 const assert = require('assert');
-const PrincipalNode = require('../src/worker/PrincipalNode');
+const PrincipalNode = require('../src/worker/handlers/PrincipalNode');
 const MsgPrincipal = require('../src/policy/p2p_messages/principal_messages');
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');

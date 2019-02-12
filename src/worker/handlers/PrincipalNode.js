@@ -1,6 +1,6 @@
 const jayson = require('jayson');
-const MsgPrincipal = require('../policy/p2p_messages/principal_messages');
-const PRINCIPAL_CONSTANTS = require('../common/constants').PRINCIPAL_NODE;
+const MsgPrincipal = require('../../policy/p2p_messages/principal_messages');
+const PRINCIPAL_CONSTANTS = require('../../common/constants').PRINCIPAL_NODE;
 
 class PrincipalNode {
   constructor(config, logger) {
