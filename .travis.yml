@@ -9,7 +9,8 @@ install:
 
 script:
   - npm test
-  - npm run test-tree
+  - if: branch = master OR branch = develop
+      npm run test-tree
 
 after_success:
   - npm run report-coverage
