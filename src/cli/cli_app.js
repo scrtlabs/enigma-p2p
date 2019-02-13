@@ -6,7 +6,8 @@ const nodeUtils = require('../common/utils');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
 const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
-
+const cryptography = require('../common/cryptography');
+const DbUtils = require('../common/DbUtils');
 class CLI {
   constructor() {
     // mock server
@@ -182,6 +183,21 @@ class CLI {
           console.log(t);
         })
       },
+      'tips' : async (args)=>{
+        console.log("----------------> local tips <----------------");
+        try{
+          // addr -> index + hash
+          let tips = await this._node.getLocalTips();
+          tips.forEach(tip=>{
+            let deltaHash = cryptography.hash(tip.data);
+            let hexAddr = DbUtils.toHexString(tip.address);
+            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+          });
+          console.log(`-> total of ${tips.length} secret contracts.`);
+        }catch(e){
+          console.log(e);
+        }
+      },
       'unsubscribe': async (args)=>{
         let topic = args[1];
         this._node.unsubscribeTopic(topic);
@@ -199,6 +215,7 @@ class CLI {
         console.log('$inCount : number of inbound connections');
         console.log('$outCount : number of outbound connections');
         console.log('$broadcast <message> : broadcast a message to the whole network');
+        console.log('$tips : output to std the local existing states, tips');
         console.log('$identify : output to std all the missing state, i.e what needs to be synced');
         console.log('$announce : announce the network worker synchronized on states');
         console.log('$sync : sync the worker from the network and get all the missing states');
