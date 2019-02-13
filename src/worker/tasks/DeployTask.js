@@ -62,7 +62,7 @@ class DeployTask extends Task{
         userDHKey : this.getUserDHKey(),
         gasLimit : this.getGasLimit(),
         // remove leading 0x if present from contractAddress
-        contractAddress : this.getContractAddr().substring(this.getContractAddr().length-40), 
+        contractAddress : this.getContractAddr().slice(-64), 
       };
       return output;
     }
