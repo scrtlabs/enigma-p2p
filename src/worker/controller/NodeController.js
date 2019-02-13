@@ -7,6 +7,7 @@
  * - setBootstrapPeers
  * - ...TBD
  * */
+const errors = require('../../common/errors');
 const constants = require('../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
@@ -361,6 +362,20 @@ class NodeController {
       this._actions[cmd].execute(params);
     }
   }
+  async asyncExecCmd(cmd,params){
+    return new Promise(async (resolve,reject)=>{
+      if (this._actions[cmd]){
+        try{
+          let result = await this._actions[cmd].asyncExecute(params);
+          resolve(result);
+        }catch(e){
+          reject(e);
+        }
+      }else{
+        reject(new errors.ActionNameErr(`undefined asyncExecute for ${cmd}`));
+      }
+    });
+  }
   addPeer(maStr) {
     nodeUtils.connectionStrToPeerInfo(maStr, (err, peerInfo)=>{
       const action = NOTIFICATION['DISCOVERED'];
@@ -376,6 +391,9 @@ class NodeController {
   }
   getSelfAddrs() {
     return this.engNode().getListeningAddrs();
+  }
+  getLocalTips(){
+   return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS,{useCache : false});
   }
   getAllOutboundHandshakes() {
     const currentPeerIds = this.engNode().getAllPeersIds();

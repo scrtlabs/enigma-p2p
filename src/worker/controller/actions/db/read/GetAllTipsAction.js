@@ -28,6 +28,16 @@ class GetAllTipsAction {
       });
     }
   }
+  async asyncExecute(params){
+    let action = this;
+    return new Promise((res,rej)=>{
+      params.onResponse = function(err,tips){
+        if(err) rej(err);
+        else res(tips);
+      };
+      action.execute(params);
+    });
+  }
 }
 module.exports = GetAllTipsAction;
 
