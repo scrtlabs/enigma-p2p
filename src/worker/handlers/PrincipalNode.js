@@ -12,9 +12,6 @@ class PrincipalNode {
 
     this._logger = logger;
     this._client = jayson.client.http(this._uri);
-    if (this._logger) {
-      this._logger.debug('Connected to principal node: ' + this._uri);
-    }
   }
 
   async getStateKeys(msg) {
@@ -24,11 +21,10 @@ class PrincipalNode {
         reject(new Error('getStateKeys accepts only object of type MsgPrincipal'));
       }
 
-      const msgObj = {
-        'requestMessage': msg.getRequest(),
-        'workerSig': msg.getSig(),
-      };
-      this._client.request('getStateKeys', msgObj, (err, response) => {
+      this._client.request('getStateKeys', msg.toJson(), (err, response) => {
+        if (this._logger) {
+          this._logger.debug('Connecting to principal node: ' + this._uri);
+        }
         if (err) return reject(err);
         if (response.error) return reject(response.error);
         resolve(response.result.encryptedResponseMessage);

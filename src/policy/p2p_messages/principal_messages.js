@@ -6,10 +6,10 @@ class MsgPrincipal {
   }
 
   static build(jsonObj) {
-    if (jsonObj.request && jsonObj.sig) {
+    if (jsonObj && jsonObj.request && jsonObj.sig) {
       return new MsgPrincipal(jsonObj.request, jsonObj.sig);
     } else {
-      throw new Error('Must provide request in the json');
+      return null;
     }
   }
 
@@ -19,6 +19,13 @@ class MsgPrincipal {
 
   getSig() {
     return this._sig;
+  }
+
+  toJson() {
+    return {
+      'requestMessage': this.getRequest(),
+      'workerSig': this.getSig(),
+    };
   }
 }
 
