@@ -20,6 +20,7 @@ const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
 const TaskManager = require('../tasks/TaskManager');
+const PrincipalNode = require('../handlers/PrincipalNode');
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
@@ -50,12 +51,13 @@ const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
 const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
 const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
+const GetStateKeysAction = require('./actions/GetStateKeysAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 class NodeController {
-  constructor(enigmaNode, protocolHandler, connectionManager, logger,extraConfig){
+  constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
     // extra config (currently dbPath for taskManager)
     this._extraConfig = extraConfig;
@@ -119,6 +121,7 @@ class NodeController {
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY] : new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.SELF_KEY_SUBSCRIBE] : new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.RECEIVED_NEW_RESULT] : new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
+      [NOTIFICATION.GET_STATE_KEYS] : new GetStateKeysAction(this), // Make the PTT process
     };
   }
   /**
@@ -154,6 +157,7 @@ class NodeController {
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger, options.extraConfig);
   }
   _initController() {
+    this._initPrincipalNode();
     this._initEnigmaNode();
     this._initConnectionManager();
     this._initProtocolHandler();
@@ -181,7 +185,7 @@ class NodeController {
    * TODO:: beucase of tests and multiple instances and path collision.
    * */
   _initTaskManager(){
-    if(this._extraConfig && this._extraConfig.tm.dbPath){
+    if(this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath){
       let dbPath = this._extraConfig.tm.dbPath;
       this._taskManager = new TaskManager(dbPath, this.logger());
       this._taskManager.on('notify', (params)=>{
@@ -197,6 +201,13 @@ class NodeController {
     //TODO:: start the cache service
     // this._cache.start()
   };
+  _initPrincipalNode() {
+    let conf = {};
+    if (this._extraConfig) {
+      conf = this._extraConfig.principal;
+    }
+    this._principal = new PrincipalNode(conf, this.logger());
+  }
   _initEnigmaNode() {
     this._engNode.on('notify', (params)=>{
       this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
@@ -313,6 +324,9 @@ class NodeController {
    * */
   cache(){
     return this._cache;
+  }
+  principal() {
+    return this._principal;
   }
   taskManager(){
     return this._taskManager;

@@ -48,9 +48,9 @@ module.exports.NODE_NOTIFICATIONS = {
   DEPLOY_SECRET_CONTRACT : 'dscontract', // deploySecretContract jsonrpc
   RECEIVED_NEW_RESULT : 'rnresult', // result updates receoved from the task results topic
   GET_TASK_STATUS : 'gtstatus', // get task status
+  GET_STATE_KEYS: 'getstatekeys', // PTT process
   // ethereum related
   COMMIT_RECEIPT : 'creceipt', // commit computation result on chain
-  // end of ethereum related
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -156,6 +156,8 @@ module.exports.CORE_REQUESTS = {
   DeploySecretContract : 'DeploySecretContract', //jsonrpc request from remote use for deploying
   ComputeTask : 'ComputeTask', //jsonrpc request for compute task
   FailedTask : 'FailedTask', // failed task returned FROM core as a response to deploy/compute -> valid response should be commited.
+  GetPTTRequest: 'GetPTTRequest', // Get The PTT request from core with addresses.
+  PTTResponse: 'PTTResponse', // Give Core the response from the principal node.
 };
 
 /** Default configuration for JSON RPC Server
@@ -186,4 +188,9 @@ module.exports.ETHEREUM_EVENTS = {
   TaskCreation : 'TaskCreation',
   TaskSubmission : 'TaskSubmission',
   SecretContractDeployment : 'SecretContractDeployment',
+};
+
+
+module.exports.PRINCIPAL_NODE = {
+  uri: 'http://127.0.0.1:10101',
 };
