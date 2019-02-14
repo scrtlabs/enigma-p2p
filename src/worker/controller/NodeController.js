@@ -390,6 +390,31 @@ class NodeController {
   getSelfAddrs() {
     return this.engNode().getListeningAddrs();
   }
+  /**
+   * given id lookup a peer in the network
+   * does not attempt to connect
+   * @param {string} b58Id
+   * @return {Promise<PeerInfo>} peerInfo
+   * */
+  async lookUpPeer(b58Id){
+    try{
+      return await this.engNode().lookUpPeer(b58Id);
+    }catch(e){
+      this._logger.error(`error looking up peer ${e}`);
+      return null;
+    }
+  }
+  async getLocalStateOfRemote(b58Id){
+    try{
+      let peerInfo = await this.lookUpPeer(b58Id);
+      if(!peerInfo){
+        throw new Error(`no such peer ${b58Id}`);
+      }
+      return await this.engNode().getLocalStateOfRemote(peerInfo);
+    }catch(e){
+      return null;
+    }
+  }
   getLocalTips() {
     return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, {useCache: false});
   }

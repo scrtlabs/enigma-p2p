@@ -62,6 +62,32 @@ class CLI {
         const ma = args[1];
         this._node.addPeer(ma);
       },
+      'lookup': async (args)=>{
+        const b58Addr = args[1];
+        let peerInfo = await this._node.lookUpPeer(b58Addr);
+        console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
+        if(peerInfo){
+          console.log("Listening on:");
+          peerInfo.multiaddrs.forEach((ma)=> console.log(ma.toString()));
+        }else{
+          console.log("Not Found");
+        }
+      },
+      'remoteTips': async (args)=>{
+        const b58Addr = args[1];
+        let tips = await this._node.getLocalStateOfRemote(b58Addr);
+        console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
+        if(tips){
+          tips.forEach((tip)=>{
+            const deltaHash = cryptography.hash(tip.data);
+            const hexAddr = DbUtils.toHexString(tip.address);
+            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+          });
+          console.log(`-> total of ${tips.length} secret contracts.`);
+        }else{
+          console.log("Not Found");
+        }
+      },
       'getAddr': ()=>{
         const addrs = this._node.getSelfAddrs();
         console.log('---> self addrs : <---- ');
@@ -207,6 +233,8 @@ class CLI {
         console.log('$init : init all the required steps for the worker');
         console.log('$getRegistration : get the registration params of the node. ');
         console.log('$addPeer <address> : connect to a new peer manualy.');
+        console.log('$lookup <b58 address> : lookup a peer in the network');
+        console.log('$remoteTips <b58 address> : look up the tips of some remote peer');
         console.log('$getAddr : get the multiaddress of the node. ');
         console.log('$getOutConnections : get id list of the outbound connections ');
         console.log('$getInConnections : get list of the inbound connections ');
