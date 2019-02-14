@@ -690,7 +690,6 @@ class EnigmaNode extends EventEmitter {
       let protocol = constants.PROTOCOLS.LOCAL_STATE_EXCHAGNE;
       let isConnected = this.isConnected(peerInfo.id.toB58String());
       let response = null;
-      console.log("%%%%%%%%%%%%% is connected ? " + isConnected);
       try{
         if(isConnected){
           response = await this.oneShotDial(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
@@ -700,7 +699,6 @@ class EnigmaNode extends EventEmitter {
         response = JSON.parse(response.toString('utf8').replace('\n', ''));
         resolve(response);
       }catch(e){
-        console.log('[ERROR SHIT ] ' + e);
         reject(e);
       }
     });
