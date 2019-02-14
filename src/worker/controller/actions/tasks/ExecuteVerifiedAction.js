@@ -9,33 +9,33 @@ const taskTypes = constants.CORE_REQUESTS;
 const Envelop = require('../../../../main_controller/channels/Envelop');
 
 
-class ExecuteVerifiedAction{
+class ExecuteVerifiedAction {
   constructor(controller) {
     this._controller = controller;
   }
-  async execute(params){
-    let task = params.task;
-    let requestEnv = new Envelop(true,{
-      type : task.getTaskType(),
-      task : task.toDbJson(),
-    },constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
+  async execute(params) {
+    const task = params.task;
+    const requestEnv = new Envelop(true, {
+      type: task.getTaskType(),
+      task: task.toDbJson(),
+    }, constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
     let responseEnvelop = null;
-    try{
-      responseEnvelop  = await this._controller.communicator().sendAndReceive(requestEnv);
-    }catch(e){
+    try {
+      responseEnvelop = await this._controller.communicator().sendAndReceive(requestEnv);
+    } catch (e) {
       return this._controller.logger().error(e);
     }
-    let response = responseEnvelop.content();
+    const response = responseEnvelop.content();
     // check for system error
-    if(response.msg){
-      //TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller.logger().error("response from Core" + response);
+    if (response.msg) {
+      // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
+      return this._controller.logger().error('response from Core' + response);
     }
     let result = null;
-    if(response.result){
+    if (response.result) {
       response.result.taskId = task.getTaskId();
     }
-    switch(response.type){
+    switch (response.type) {
       case taskTypes.FailedTask:
         response.result.status = constants.TASK_STATUS.FAILED;
         result = Result.FailedResult.buildFailedResult(response.result);
@@ -50,14 +50,14 @@ class ExecuteVerifiedAction{
         break;
     }
     // update task manager with the result
-    if(result){
-      try{
+    if (result) {
+      try {
         await this._controller.taskManager().asyncOnFinishTask(result);
-      }catch(e){
+      } catch (e) {
         this._controller.logger().error(e);
       }
-    }else{
-      this._controller.logger().error("failed building Result from Task");
+    } else {
+      this._controller.logger().error('failed building Result from Task');
     }
   }
 }

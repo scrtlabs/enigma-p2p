@@ -48,7 +48,7 @@ class ProtocolHandler extends EventEmitter {
 
     this._subscriptions = [
       PUBSUB_TOPICS.BROADCAST,
-      PUBSUB_TOPICS.TASK_RESULTS
+      PUBSUB_TOPICS.TASK_RESULTS,
     ];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
@@ -312,14 +312,14 @@ class ProtocolHandler extends EventEmitter {
     params.worker.getProtocolHandler()._logger.info(out);
     console.log('----------------------------------------------------');
   }
-  onTaskResultPublish(params, message){
+  onTaskResultPublish(params, message) {
     const selfId = params.worker.getSelfIdB58Str();
     const from = message.from;
     if (from === selfId) {
       return;
     }
     const self = params.worker.getProtocolHandler();
-    self.notify({notification:NOTIFICATION.RECEIVED_NEW_RESULT,params: message});
+    self.notify({notification: NOTIFICATION.RECEIVED_NEW_RESULT, params: message});
   }
 }
 

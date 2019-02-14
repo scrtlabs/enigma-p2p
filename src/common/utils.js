@@ -14,7 +14,7 @@ const rimraf = require('rimraf');
  * @example `await sleep(1000)` will sleep for a second and block.
  * */
 module.exports.sleep = function(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 /** turn peerbook into parsed obj
@@ -262,4 +262,6 @@ function _connectionStrToPeerInfo(candidate, onResult) {
  *   @param {string} path
  *   @param {function} callback ()=>{}
  */
-module.exports.deleteFolderFromOSRecursive = function (path, callback){rimraf(path, callback);}
+module.exports.deleteFolderFromOSRecursive = function(path, callback) {
+  rimraf(path, callback);
+};

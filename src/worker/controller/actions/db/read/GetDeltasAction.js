@@ -7,24 +7,25 @@ const Envelop = require('../../../../../main_controller/channels/Envelop');
  This action returns all the requested deltas.
  either from cache or directly from core.
  * */
-class GetDeltasAction{
-  constructor(controller){
+class GetDeltasAction {
+  constructor(controller) {
     this._controller = controller;
   }
-  execute(params){
-
-    let onResult = params.onResponse;
-    let queryMsg = params.requestMsg;
+  execute(params) {
+    const onResult = params.onResponse;
+    const queryMsg = params.requestMsg;
     // make query
-    let addr = queryMsg.contractAddress();
-    let range = queryMsg.getRange();
-    let from = range.fromIndex;
-    let to = range.toIndex;
-    let input = [{address:addr, from: from, to: to}];
+    const addr = queryMsg.contractAddress();
+    const range = queryMsg.getRange();
+    const from = range.fromIndex;
+    const to = range.toIndex;
+    const input = [{address: addr, from: from, to: to}];
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
-      dbQueryType : constants.CORE_REQUESTS.GetDeltas,
-      input : input,
-      onResponse : (err,result)=>{return onResult(err,result);}
+      dbQueryType: constants.CORE_REQUESTS.GetDeltas,
+      input: input,
+      onResponse: (err, result)=>{
+        return onResult(err, result);
+      },
     });
   }
 }
