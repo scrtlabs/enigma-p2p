@@ -25,10 +25,15 @@ class ProtocolHandler extends EventEmitter {
     }
 
     this._protocols = [
-      PROTOCOLS['ECHO'], PROTOCOLS['HANDSHAKE'],
-      PROTOCOLS['PEERS_PEER_BOOK'], PROTOCOLS['HEARTBEAT'],
-      PROTOCOLS['GROUP_DIAL'], PROTOCOLS['FIND_PEERS'],
-      PROTOCOLS.STATE_SYNC];
+      PROTOCOLS['ECHO'],
+      PROTOCOLS['HANDSHAKE'],
+      PROTOCOLS['PEERS_PEER_BOOK'],
+      PROTOCOLS['HEARTBEAT'],
+      PROTOCOLS['GROUP_DIAL'],
+      PROTOCOLS['FIND_PEERS'],
+      PROTOCOLS.STATE_SYNC,
+      PROTOCOLS.LOCAL_STATE_EXCHAGNE
+    ];
 
     // this._state = state;
     this.fallback = this.tempFallback;
@@ -44,6 +49,7 @@ class ProtocolHandler extends EventEmitter {
     this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
     this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
     this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync;
+    this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange;
     // list of active subscriptions pubsub
 
     this._subscriptions = [
@@ -64,7 +70,7 @@ class ProtocolHandler extends EventEmitter {
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAIN notification field
    */
-  notify(params) {
+    notify(params) {
     this.emit('notify', params);
   }
   /** Handle is a dispatching function
@@ -291,6 +297,27 @@ class ProtocolHandler extends EventEmitter {
   onStateSync(nodeBundle, params) {
     const self = params.worker.getProtocolHandler();
     self.notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
+  }
+  onLocalStateExchange(nodeBundle, params){
+    const self = params.worker.getProtocolHandler();
+    params.worker.getProtocolHandler()._logger.debug('[LOCAL_STATE] got local state request from remote peer.');
+    self.notify({
+      notification: NOTIFICATION.GET_ALL_TIPS,
+      useCaches: false,
+      onResponse: (err,tips)=>{
+        if(err){
+          params.worker.getProtocolHandler()._logger.debug(`[ERROR] get local tips ${err}.`);
+          return;
+        }
+        pull(
+            params.connection,
+            pull.map(msg=>{
+              return JSON.stringify(tips);
+            }),
+            params.connection
+        );
+      }
+    });
   }
   /**
    * This function is a response when subscribed to pubsub BROADCAST topic

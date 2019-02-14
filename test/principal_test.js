@@ -11,8 +11,13 @@ const fakeRequest = '84a46461746181a';
 const fakeSig = 'deadbeaf';
 const addresses = ['0xdeadbeaf'];
 const uri = 'http://127.0.0.1:';
+const test_tree = require('./test_tree').TEST_TREE;
 
 it('#1 Should Recieve Encrypted response message from mock principal', async function() {
+    let tree = test_tree.principal;
+    if(!tree['all'] || !tree['#1']){
+      this.skip();
+    }
   return new Promise(async (resolve) => {
     const server = getMockSPrincipalNode();
     await testUtils.sleep(500);
@@ -27,7 +32,10 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
 });
 
 it('#2 Should Simulate the principal node and run GetStateKeysAction', async function() {
-  this.timeout(10000);
+  let tree = test_tree.principal;
+  if(!tree['all'] || !tree['#2']){
+    this.skip();
+  }
 
   return new Promise(async (resolve) => {
     const server = getMockSPrincipalNode();

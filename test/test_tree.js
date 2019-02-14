@@ -61,6 +61,16 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
     '#6' : true,
+  },
+  'actions_tests':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+  },
+  'principal' : {
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
   }
 };
 

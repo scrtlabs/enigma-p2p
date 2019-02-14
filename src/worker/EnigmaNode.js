@@ -430,6 +430,64 @@ class EnigmaNode extends EventEmitter {
       this.node.dialProtocol(peerInfo, protocolName, onConnection);
     }
   }
+  /**
+   * Dial once send a request, receive a response
+   * @param {PeerInfo} peerInfo
+   * @param {string} protocolName,
+   * @param {JSON} reqMsg - request
+   * @return {Promise<Json>} response
+   * */
+  oneShotDial(peerInfo, protocolName,reqMsg) {
+    return new Promise((resolve,reject)=>{
+      if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
+        reject(new errors.P2PErr(MSG_STATUS.ERR_SELF_DIAL));
+      } else {
+        this.node.dialProtocol(peerInfo, protocolName, (err,connection)=>{
+          if(err){
+            return reject(err);
+          }
+          pull(
+              pull.values([reqMsg]),
+              connection,
+              pull.collect((err,responseMsg)=>{
+                console.log(responseMsg);
+                if(err){
+                  return reject(err);
+                }
+                return resolve(responseMsg);
+              })
+          );
+        });
+      }
+    });
+  }
+  /**
+   * Dial once send a request, receive a response and hang up - disconnect.
+   * @param {PeerInfo} peerInfo
+   * @param {string} protocolName,
+   * @param {JSON} reqMsg - request
+   * @return {Promise<Json>} response
+   * */
+  async oneShotDialAndClose(peerInfo, protocolName,reqMsg){
+    let response = null;
+    return new Promise(async (resolve,reject)=>{
+      try{
+        response = await this.oneShotDial(peerInfo,protocolName,reqMsg);
+      }catch(e){
+        this._logger.error(`[oneShotDialClose] on protocol ${protocolName}`);
+        reject(e);
+      }finally{
+        // drop connection
+        this.node.hangUp(peerInfo,(err)=>{
+          console.log('hanging up!!!!!!!!! err????? ' + err);
+          if(err){
+            reject(err);
+          }
+          resolve(response);
+        });
+      }
+    });
+  }
   /** Ping 0x1 message in the handshake process.
    * @param {PeerInfo} peerInfo , the peer info to handshake with
    * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
@@ -598,6 +656,51 @@ class EnigmaNode extends EventEmitter {
         if (err) rej(err);
         res(peerBook);
       });
+    });
+  }
+  /**
+   * given id lookup a peer in the network
+   * does not attempt to connect
+   * @param {string} b58Id
+   * @return {Promise<PeerInfo>} peerInfo
+   * */
+  async lookUpPeer(b58Id){
+    return new Promise((resolve,reject)=>{
+      let peerId = nodeUtils.b58ToPeerId(b58Id);
+      if(!peerId){
+        reject(new errors.TypeErr(`cant generate PeerId from ${b58Id}`));
+      }
+      this.node.peerRouting.findPeer(peerId,(err,peer)=>{
+        if(err) reject(err);
+        else{
+          resolve(peer);
+        }
+      });
+    });
+  }
+  /**
+   * get the local state of a remote peer
+   * if not connected already -> hang-up after message exchange
+   * */
+  getLocalStateOfRemote(peerInfo){
+    return new Promise(async (resolve,reject)=>{
+      if(!peerInfo instanceof PeerInfo){
+        reject(new errors.TypeErr(`peerInfo is not PeerInfo`));
+      }
+      let protocol = constants.PROTOCOLS.LOCAL_STATE_EXCHAGNE;
+      let isConnected = this.isConnected(peerInfo.id.toB58String());
+      let response = null;
+      try{
+        if(isConnected){
+          response = await this.oneShotDial(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
+        }else{
+          response = await this.oneShotDialAndClose(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
+        }
+        response = JSON.parse(response.toString('utf8').replace('\n', ''));
+        resolve(response);
+      }catch(e){
+        reject(e);
+      }
     });
   }
   /**

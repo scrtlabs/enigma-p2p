@@ -28,6 +28,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'TRY_RECEIVE_ALL': 'trcva', // try recieve all of the CID's
   'ANNOUNCE_LOCAL_STATE': 'alc', // announce local state (after being synced)
   'DB_REQUEST': 'dbreq', // some db request to core
+  GET_REMOTE_TIPS : 'gremotetipslocal', // get the local tips of some remote peer
   'GET_ALL_TIPS': 'getat', // get all tips from cache/core
   'GET_ALL_ADDRS': 'getaa', // get all addrs from cache/core
   'GET_DELTAS': 'getds', // get deltas request from core
@@ -64,6 +65,7 @@ module.exports.PROTOCOLS = {
   'GROUP_DIAL': '/groupdial',
   'HEARTBEAT': '/heartbeat/0.1',
   'STATE_SYNC': '/sync/0.1',
+  LOCAL_STATE_EXCHAGNE : '/localstateexchange/0.1',
 };
 
 /** DO NOT CHANGE THE VALUES SINCE ITS PART OF THE PROTOCOL MESSAGE FIELDS */

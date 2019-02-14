@@ -265,3 +265,12 @@ function _connectionStrToPeerInfo(candidate, onResult) {
 module.exports.deleteFolderFromOSRecursive = function(path, callback) {
   rimraf(path, callback);
 };
+
+/**
+ *  create PeerId from b58 string id
+ *  @param {string} b58Id base 58 id
+ *  @return {PeerId} peerId
+ * */
+
+module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)};
+
