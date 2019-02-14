@@ -33,11 +33,11 @@ class EncoderUtil {
       return '';
     }
     hex = hex.toString().replace(/\s+/gi, '');
-    let stack = [];
+    const stack = [];
     for (let n = 0; n < hex.length; n += 2) {
       const code = parseInt(hex.substr(n, 2), 16);
       if (!isNaN(code) && code !== 0) {
-        stack.push(String.fromCharCode(code))
+        stack.push(String.fromCharCode(code));
       }
     }
     return stack.join('');

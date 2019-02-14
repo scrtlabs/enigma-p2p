@@ -201,7 +201,7 @@ class EnigmaNode extends EventEmitter {
   /*
   * Unsubscribe from topic
   * **/
-  unsubscribe(topic,handler){
+  unsubscribe(topic, handler) {
     if (!this.started) {
       throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
@@ -216,10 +216,10 @@ class EnigmaNode extends EventEmitter {
    * get list of topics subscribed to
    * @param {Promise<Array<string>>} Calls back with an error or a list of topicIDs that this peer is subscribed to.
    * */
-  async getTopics(){
-    return new Promise((res,rej)=>{
-      this.node.pubsub.ls((err,topics)=>{
-        if(err) return rej(err);
+  async getTopics() {
+    return new Promise((res, rej)=>{
+      this.node.pubsub.ls((err, topics)=>{
+        if (err) return rej(err);
         res(topics);
       });
     });
@@ -481,7 +481,7 @@ class EnigmaNode extends EventEmitter {
             }
             // TODO:: REPLACE THAT with normal notify,
             // TODO:: The question is - where do I notify forall inbound/outbound handshakes
-            //see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
+            // see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
             this.emit('notify', pongMsg);
             onHandshake(err, peerInfo, ping, pongMsg);
             return pongMsg.toNetworkStream();
@@ -617,9 +617,9 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} connectionHandler (protocol,connection) =>{}
    */
   startStateSyncRequest(peerInfo, connectionHandler) {
-      this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
-        connectionHandler(protocol, connection);
-      });
+    this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
+      connectionHandler(protocol, connection);
+    });
   }
   /** TEMPORARY method
    * @param {String} protocolName
@@ -644,11 +644,11 @@ class EnigmaNode extends EventEmitter {
           pull.values([heartBeatRequest.toNetworkStream()]),
           conn,
           pull.collect((err, response)=>{
-            if (err){
+            if (err) {
               // TODO:: add Logger
               this._logger.error('[-] Err in collecting HBRes msg' + err);
               onResult(err, null);
-            }else{
+            } else {
               // validate HeartBeat Message response
               const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
               if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {
@@ -667,7 +667,6 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
-
 }
 
 

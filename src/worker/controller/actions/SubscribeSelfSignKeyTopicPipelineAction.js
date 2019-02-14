@@ -38,13 +38,13 @@ class SubscribeSelfSignKeyTopicPipelineAction {
         onPublish: (msg) =>{
           const data = JSON.parse(msg.data);
           const type = data.type;
-          this._controller.logger().info("[WORK_TOPIC_PUBLISH] " + type);
+          this._controller.logger().info('[WORK_TOPIC_PUBLISH] ' + type);
           const request = data.request;
           let targetTopic = null;
-          switch(type){
+          switch (type) {
             case msgs.NewTaskEncryptionKey:
               targetTopic = data.targetTopic;
-              this._executeNewTaskEncryptionKey(request,targetTopic);
+              this._executeNewTaskEncryptionKey(request, targetTopic);
               break;
             case msgs.DeploySecretContract:
             case msgs.ComputeTask:
@@ -52,26 +52,26 @@ class SubscribeSelfSignKeyTopicPipelineAction {
               break;
             case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
               targetTopic = data.targetTopic;
-              this._getTaskStatus(request,targetTopic);
+              this._getTaskStatus(request, targetTopic);
               break;
           };
         },
         onSubscribed: ()=>{
           this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
           if (params.onResponse) {
-            if(err){
+            if (err) {
               return params.onResponse(err);
             }
-            return params.onResponse(err,regParams.result.signingKey);
+            return params.onResponse(err, regParams.result.signingKey);
           }
         },
       });
     });
   }
-  _executeTask(msg){
-    this._controller.execCmd(constants.NODE_NOTIFICATIONS.START_TASK_EXEC,msg);
+  _executeTask(msg) {
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.START_TASK_EXEC, msg);
   }
-  _executeNewTaskEncryptionKey(request,targetTopic){
+  _executeNewTaskEncryptionKey(request, targetTopic) {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
       request,
       onResponse: (err, encKeyResult)=>{
@@ -79,27 +79,27 @@ class SubscribeSelfSignKeyTopicPipelineAction {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
           topic: targetTopic,
           message: JSON.stringify({
-            result : {
+            result: {
               workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
-              workerSig: encKeyResult.result.workerSig
-            }
+              workerSig: encKeyResult.result.workerSig,
+            },
           }),
         });
       },
     });
   }
-  _getTaskStatus(request,targetTopic){
-    this._controller.taskManager().getTaskStatus(request.taskId,(taskStatus)=>{
-      if(!taskStatus){
+  _getTaskStatus(request, targetTopic) {
+    this._controller.taskManager().getTaskStatus(request.taskId, (taskStatus)=>{
+      if (!taskStatus) {
         this._controller.logger().error('error check task status rpc taskId= ' + request.taskId);
         return;
       }
       this._controller.logger().debug('publishing task ' + taskStatus +' status ' + request.taskId);
-      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
-        topic : targetTopic,
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
+        topic: targetTopic,
         message: JSON.stringify({
-          result : taskStatus
-        })
+          result: taskStatus,
+        }),
       });
     });
   }

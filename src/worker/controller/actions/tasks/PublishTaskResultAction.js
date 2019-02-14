@@ -7,23 +7,23 @@
 const constants = require('../../../../common/constants');
 
 
-class PublishTaskResultAction{
+class PublishTaskResultAction {
   constructor(controller) {
     this._controller = controller;
   }
-  async execute(params){
-    let task = params.task;
-    this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB,{
-      topic : constants.PUBSUB_TOPICS.TASK_RESULTS,
-      message : JSON.stringify({
-      contractAddress : task.getContractAddr(),
-      result: task.getResult().toDbJson(),
-      type : task.getTaskType()
-      })
+  async execute(params) {
+    const task = params.task;
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
+      topic: constants.PUBSUB_TOPICS.TASK_RESULTS,
+      message: JSON.stringify({
+        contractAddress: task.getContractAddr(),
+        result: task.getResult().toDbJson(),
+        type: task.getTaskType(),
+      }),
     });
-    if(this._controller.hasEthereum()){
-      this._controller.execCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT ,{
-        task : task
+    if (this._controller.hasEthereum()) {
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
+        task: task,
       });
     }
   }

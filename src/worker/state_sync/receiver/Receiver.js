@@ -18,7 +18,7 @@ class Receiver extends EventEmitter {
     this._engNode = enigmaNode;
     this._logger = logger;
     this._remoteMissingStatesMap = null;
-    streams.setGlobalState({logger : this._logger, receiverContext : this});
+    streams.setGlobalState({logger: this._logger, receiverContext: this});
   }
 
   /**
@@ -36,19 +36,19 @@ class Receiver extends EventEmitter {
    * MUST CONTAIN a "notification" field
    * specifying the concrete Action
    * */
-  notify(params){
-    this.emit('notify',params);
+  notify(params) {
+    this.emit('notify', params);
   }
   /**
    * Calls the worker/DbWriteAction
    * @param {JSON} request ,must contain the fields: , callback(err,status) , data
    * */
-  dbWrite(request){
-    if(request.hasOwnProperty('callback') && request.hasOwnProperty('data')){
+  dbWrite(request) {
+    if (request.hasOwnProperty('callback') && request.hasOwnProperty('data')) {
       request.notification = constants.NODE_NOTIFICATIONS.UPDATE_DB;
       this.notify(request);
-    }else{
-      //TODO:: callback might be a missing field for some reason BUT it's ok since it better to crash here than sleep, fix later gracefully.
+    } else {
+      // TODO:: callback might be a missing field for some reason BUT it's ok since it better to crash here than sleep, fix later gracefully.
       request.callback('err missing fields');
     }
   }
@@ -62,10 +62,10 @@ class Receiver extends EventEmitter {
       * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
      * */
-  findProvidersBatch(descriptorsList, withEngCid,callback){
+  findProvidersBatch(descriptorsList, withEngCid, callback) {
     const timeout = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
     let engCids = descriptorsList;
-    if(!withEngCid){
+    if (!withEngCid) {
       engCids = descriptorsList.map((desc)=>{
         const h = CIDUtil.hashKeccack256(desc);
         return EngCID.createFromKeccack256(h);
@@ -104,9 +104,9 @@ class Receiver extends EventEmitter {
    * @param {Array<StateSyncReqMsg>} stateSyncReqMsgs
    * @param {Function} callback , (err,ResultList)=>{}
    * */
-  trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callback){
-    this._engNode.startStateSyncRequest(peerInfo, (err,connectionStream)=>{
-      if(err){
+  trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callback) {
+    this._engNode.startStateSyncRequest(peerInfo, (err, connectionStream)=>{
+      if (err) {
         return callback(err);
       }
       pull(
@@ -115,20 +115,20 @@ class Receiver extends EventEmitter {
           connectionStream,
           streams.verificationStream,
           streams.throughDbStream,
-          pull.map(data=>{
-            let status = {};
+          pull.map((data)=>{
+            const status = {};
             status.ipcType = data.status.type;
             status.msgType = data.data.type();
             status.success = data.status.success;
             status.payload = data.data;
             return status;
           }),
-          pull.collect((err,resultList)=>{
-            if(err){
-              this._logger.error("collection err " + err);
-              return callback(err,resultList);
-            }else{
-              return callback(null,resultList);
+          pull.collect((err, resultList)=>{
+            if (err) {
+              this._logger.error('collection err ' + err);
+              return callback(err, resultList);
+            } else {
+              return callback(null, resultList);
             }
           }),
       );
@@ -147,66 +147,66 @@ class Receiver extends EventEmitter {
    * //TODO:: define what resultList contains
    * @param {Function} callback , (err,isDone,resultList)=>{}
    * */
-  trySyncReceive(providersList, stateSyncMsgs, callback){
-    let jobs = [];
+  trySyncReceive(providersList, stateSyncMsgs, callback) {
+    const jobs = [];
     // init first job
-    let ctx = this;
+    const ctx = this;
     jobs.push((cb)=>{
-      ctx.trySyncOneContractOneRequest(providersList[0],stateSyncMsgs,(err,resultList)=>{
+      ctx.trySyncOneContractOneRequest(providersList[0], stateSyncMsgs, (err, resultList)=>{
         let isDone = true;
-        if(err) {
+        if (err) {
           // general error - retry
           isDone = false;
           cb(null, isDone, resultList);
         } else {
           // were done.
-          cb(null, isDone,resultList);
+          cb(null, isDone, resultList);
         }
       });
     });
 
     // init rest of the jobs except the last one
-    for(let i=1;i<providersList.length -1 ;++i){
-      jobs.push((isDone,resultList,cb)=>{
-        if(isDone){
+    for (let i=1; i<providersList.length -1; ++i) {
+      jobs.push((isDone, resultList, cb)=>{
+        if (isDone) {
           // were done.
-          return cb(null,isDone,resultList);
-        }else{
+          return cb(null, isDone, resultList);
+        } else {
           // retry
-          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err,resultList)=>{
+          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err, resultList)=>{
             let isDone = true;
-            if(err){
+            if (err) {
               // general error - retry
               isDone = false;
             }
             // were done.
-            return cb(null,isDone, resultList);
+            return cb(null, isDone, resultList);
           });
         }
       });
     }
 
-    jobs.push((isDone,resultList,cb)=>{
-      if(isDone){
+    jobs.push((isDone, resultList, cb)=>{
+      if (isDone) {
         // were done.
-        return cb(null,isDone, resultList);
-      }else{
+        return cb(null, isDone, resultList);
+      } else {
         // some error - retry
-        ctx.trySyncOneContractOneRequest(providersList[providersList.length-1], stateSyncMsgs,(err,resultList)=>{
+        ctx.trySyncOneContractOneRequest(providersList[providersList.length-1], stateSyncMsgs, (err, resultList)=>{
           // finish regardless if it worked or not.
-          if(err){
+          if (err) {
             // finish with error
-            return cb(err,false,resultList);
-          }else{
+            return cb(err, false, resultList);
+          } else {
             // finish with success
-            return cb(null,true,resultList);
+            return cb(null, true, resultList);
           }
         });
       }
     });
 
-    waterfall(jobs,(err,isDone,resultList)=>{
-      callback(err,isDone,resultList);
+    waterfall(jobs, (err, isDone, resultList)=>{
+      callback(err, isDone, resultList);
     });
   }
   /**
@@ -225,8 +225,5 @@ class Receiver extends EventEmitter {
   }
 }
 module.exports = Receiver;
-
-
-
 
 

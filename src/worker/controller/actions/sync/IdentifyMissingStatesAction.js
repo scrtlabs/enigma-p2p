@@ -24,12 +24,12 @@ class IdentifyMissingStatesAction {
   }
 
   execute(params) {
-    let useCache = params.cache;
-    let finalCallback = params.onResponse;
+    const useCache = params.cache;
+    const finalCallback = params.onResponse;
     if (useCache) {
       this._controller.cache().getAllTips((err, tipsList) => {
-        //TODO:: implement cache logic
-        //TODO:: if cache empty still query core since maybe it was deleted or first time
+        // TODO:: implement cache logic
+        // TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     } else {
       this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS, {
@@ -38,18 +38,18 @@ class IdentifyMissingStatesAction {
           // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
           if (err || !this._controller.hasEthereum()) {
             let error = err;
-            if(!this._controller.hasEthereum()){
-              error =  new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
+            if (!this._controller.hasEthereum()) {
+              error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
             }
             return finalCallback(error);
           }
           return IdentifyMissingStatesAction.
               _buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
-            if (err) {
-              return finalCallback(err);
-            }
-            return finalCallback(null, res);
-          });
+                if (err) {
+                  return finalCallback(err);
+                }
+                return finalCallback(null, res);
+              });
         },
       });
     }
@@ -57,16 +57,16 @@ class IdentifyMissingStatesAction {
 
   static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
     StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
-      let res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
+      const res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
 
       if (err) {
         return cb(err);
       }
 
-      let result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
-      let finalOutput = {};
-      for (let addrKey in result) {
-        let obj = result[addrKey];
+      const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
+      const finalOutput = {};
+      for (const addrKey in result) {
+        const obj = result[addrKey];
         if (obj.bcodeReq) {
           obj.deltasReq.push(obj.bcodeReq);
         }
@@ -78,9 +78,9 @@ class IdentifyMissingStatesAction {
     });
   }
   static _transformMissingStatesListToMap(missingStatesList) {
-    let missingStatesMap = {};
+    const missingStatesMap = {};
     for (let i=0; i<missingStatesList.length; ++i) {
-      let deltasMap = {};
+      const deltasMap = {};
       for (let j=0; j<missingStatesList[i].deltas.length; j++) {
         const index = missingStatesList[i].deltas[j].index;
         const deltaHash = missingStatesList[i].deltas[j].deltaHash;
@@ -88,8 +88,7 @@ class IdentifyMissingStatesAction {
       }
       if ('bytecodeHash' in missingStatesList[i]) {
         missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap, bytecodeHash: missingStatesList[i].bytecodeHash};
-      }
-      else {
+      } else {
         missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap};
       }
     }

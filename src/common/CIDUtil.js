@@ -8,7 +8,7 @@ class CIDUtil {
    * @param {Array<Byte>} delta
    * @return {string} hash
    * */
-  static hashByteArray(delta){
+  static hashByteArray(delta) {
     return CIDUtil.hashKeccack256(delta);
   }
   static hashKeccack256(value) {

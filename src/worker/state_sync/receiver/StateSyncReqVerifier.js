@@ -45,12 +45,10 @@ class StateSyncReqVerifier {
         if (!(address in remoteMissingStates)) {
           err = 'received an unknown address ' + address + ' in SyncBcodeRes';
           res = false;
-        }
-        else if (!('bytecodeHash' in remoteMissingStates[address])) {
+        } else if (!('bytecodeHash' in remoteMissingStates[address])) {
           err = 'received a bytecodeHash for unknown address ' + address;
           res = false;
-        }
-        else if (remoteMissingStates[address].bytecodeHash != bytecodeHash) {
+        } else if (remoteMissingStates[address].bytecodeHash != bytecodeHash) {
           err = 'bytecodeHash received for address ' + address + ' does not match remote hash';
           res = false;
         }
