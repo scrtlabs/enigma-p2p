@@ -34,6 +34,7 @@ const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAct
 const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
 const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
+const GetLocalTipsOfRemote = require('./actions/sync/GetLocalTipsOfRemote');
 const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
@@ -110,6 +111,7 @@ class NodeController {
       [NOTIFICATION.GET_DELTAS]: new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE]: new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE]: new ReceiveAllPipelineAction(this), // sync receiver pipeline
+      [NOTIFICATION.GET_REMOTE_TIPS] : new GetLocalTipsOfRemote(this), // get the local tips of a remote peer
       [NOTIFICATION.UPDATE_DB]: new UpdateDbAction(this), // write to db, bytecode or delta
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
@@ -406,11 +408,7 @@ class NodeController {
   }
   async getLocalStateOfRemote(b58Id){
     try{
-      let peerInfo = await this.lookUpPeer(b58Id);
-      if(!peerInfo){
-        throw new Error(`no such peer ${b58Id}`);
-      }
-      return await this.engNode().getLocalStateOfRemote(peerInfo);
+      return await this._actions[NOTIFICATION.GET_REMOTE_TIPS].execute({peerB58Id : b58Id});
     }catch(e){
       return null;
     }
