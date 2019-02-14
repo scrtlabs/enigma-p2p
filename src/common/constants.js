@@ -64,6 +64,7 @@ module.exports.PROTOCOLS = {
   'GROUP_DIAL': '/groupdial',
   'HEARTBEAT': '/heartbeat/0.1',
   'STATE_SYNC': '/sync/0.1',
+  LOCAL_STATE_EXCHAGNE : '/localstateexchange/0.1',
 };
 
 /** DO NOT CHANGE THE VALUES SINCE ITS PART OF THE PROTOCOL MESSAGE FIELDS */
