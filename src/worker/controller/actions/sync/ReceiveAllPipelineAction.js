@@ -15,15 +15,15 @@ const util = require('util');
  *
  * */
 class ReceiveAllPipelineAction {
-  constructor(controller){
+  constructor(controller) {
     this._controller = controller;
     this._running = false;
   }
   execute(params) {
-    let cache = params.cache;
-    let onEnd = params.onEnd;
+    const cache = params.cache;
+    const onEnd = params.onEnd;
 
-    if(this._running){
+    if (this._running) {
       return onEnd(new errs.SyncReceiverErr('already running'));
     }
     this._running = true;
@@ -41,11 +41,11 @@ class ReceiveAllPipelineAction {
     };
     const parseResults = (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
       let err = null;
-      let ecids = [];
-      //TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
-      let tempEcidToAddrMap = {};
-      for (let addrKey in missingStatesMsgsMap) {
-        let ecid = EngCid.createFromSCAddress(addrKey);
+      const ecids = [];
+      // TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
+      const tempEcidToAddrMap = {};
+      for (const addrKey in missingStatesMsgsMap) {
+        const ecid = EngCid.createFromSCAddress(addrKey);
         if (ecid) {
           tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
           ecids.push(ecid);
@@ -61,19 +61,19 @@ class ReceiveAllPipelineAction {
         isEngCid: true,
         next: (findProviderResult) => {
           return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
-        }
+        },
       });
     };
     const parseProviders = (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
-      if(findProviderResult.isCompleteError() || findProviderResult.isErrors()){
-        cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
+      if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
+        cb(new errs.SyncReceiverErr('[-] some error finding providers !'));
       }
       // parse to 1 object: cid => {providers, msgs} -> simple :)
-      let allReceiveData = [];
-      ecids.forEach(ecid => {
+      const allReceiveData = [];
+      ecids.forEach((ecid) => {
         allReceiveData.push({
           requestMessages: missingStatesMap[ecid.getScAddress()],
-          providers: findProviderResult.getProvidersFor(ecid)
+          providers: findProviderResult.getProvidersFor(ecid),
         });
       });
       return cb(null, allReceiveData, remoteMissingStatesMap);
@@ -83,8 +83,8 @@ class ReceiveAllPipelineAction {
         allMissingDataList: allReceiveData,
         remoteMissingStatesMap: remoteMissingStatesMap,
         onFinish: (err, allResults) => {
-          cb(err, allResults)
-        }
+          cb(err, allResults);
+        },
       });
     };
     waterfall([
@@ -92,10 +92,10 @@ class ReceiveAllPipelineAction {
       parseResults,
       findPRovider,
       parseProviders,
-      receiveAll
+      receiveAll,
     ], (err, result) => {
       this._running = false;
-      onEnd(err,result);
+      onEnd(err, result);
     });
   }
 }

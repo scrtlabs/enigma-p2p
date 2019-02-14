@@ -7,7 +7,7 @@ class ConsistentDiscoveryAction {
   constructor(controller) {
     this._controller = controller;
   }
-  _getStoppableTaskOptions(options, taskInput){
+  _getStoppableTaskOptions(options, taskInput) {
     const final = {};
 
     const maxRetry = options.maxRetry;
@@ -74,14 +74,14 @@ class ConsistentDiscoveryAction {
       console.log('result => ', JSON.stringify(result, null, 2));
       console.log('------------------- FINISHED STOPPABLE TASK ------------------');
 
-            if(options.callback){
-                options.callback(status,result);
-            }
+      if (options.callback) {
+        options.callback(status, result);
+      }
 
-            this._controller.connectionManager().onDonePersistentDiscovery(status,result);
+      this._controller.connectionManager().onDonePersistentDiscovery(status, result);
     };
 
-    let stopabbleTask = new StoppableTask(options,task,onFinish);
+    const stopabbleTask = new StoppableTask(options, task, onFinish);
 
     stopabbleTask.start();
   }

@@ -9,7 +9,7 @@ const errors = require('./errors');
  * */
 module.exports.hash = (value, with0x = true)=>{
   let h = _keccack256Hash(value);
-  if(!with0x && h.length > 2 && h.slice(0,2) === '0x'){
+  if (!with0x && h.length > 2 && h.slice(0, 2) === '0x') {
     h = h.substr(2);
   }
   return h;

@@ -21,7 +21,7 @@ class Logger {
       if (options.file !== undefined) {
         this._options.file = options.file;
       }
-      if(options.cli === undefined && options.pretty === true){
+      if (options.cli === undefined && options.pretty === true) {
         this._options.pretty = true;
       }
     }

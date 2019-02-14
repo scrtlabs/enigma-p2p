@@ -12,19 +12,19 @@ class PubsubSubscribeAction {
    * @param {Function} onSubscribed, ()=>{}
    * */
   execute(params) {
-    let topic = params.topic;
-    let topicHandler = params.onPublish;
-    let finalHandler = params.onSubscribed;
+    const topic = params.topic;
+    const topicHandler = params.onPublish;
+    const finalHandler = params.onSubscribed;
     this._controller.engNode().subscribe([
       {
-        topic : topic,
-        topic_handler : (msg)=>{
+        topic: topic,
+        topic_handler: (msg)=>{
           topicHandler(msg);
         },
-        final_handler : ()=>{
+        final_handler: ()=>{
           finalHandler();
-        }
-      }
+        },
+      },
     ]);
   }
 }

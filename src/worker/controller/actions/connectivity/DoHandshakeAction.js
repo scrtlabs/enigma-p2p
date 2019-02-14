@@ -2,11 +2,10 @@ const constants = require('../../../../common/constants');
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
 
-class DoHandshakeAction{
-
-    constructor(controller){
-        this._controller = controller;
-    }
+class DoHandshakeAction {
+  constructor(controller) {
+    this._controller = controller;
+  }
 
   execute(params) {
     params = params.params;

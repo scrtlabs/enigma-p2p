@@ -25,10 +25,15 @@ class ProtocolHandler extends EventEmitter {
     }
 
     this._protocols = [
-      PROTOCOLS['ECHO'], PROTOCOLS['HANDSHAKE'],
-      PROTOCOLS['PEERS_PEER_BOOK'], PROTOCOLS['HEARTBEAT'],
-      PROTOCOLS['GROUP_DIAL'], PROTOCOLS['FIND_PEERS'],
-      PROTOCOLS.STATE_SYNC];
+      PROTOCOLS['ECHO'],
+      PROTOCOLS['HANDSHAKE'],
+      PROTOCOLS['PEERS_PEER_BOOK'],
+      PROTOCOLS['HEARTBEAT'],
+      PROTOCOLS['GROUP_DIAL'],
+      PROTOCOLS['FIND_PEERS'],
+      PROTOCOLS.STATE_SYNC,
+      PROTOCOLS.LOCAL_STATE_EXCHAGNE
+    ];
 
     // this._state = state;
     this.fallback = this.tempFallback;
@@ -44,11 +49,12 @@ class ProtocolHandler extends EventEmitter {
     this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
     this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
     this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync;
+    this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange;
     // list of active subscriptions pubsub
 
     this._subscriptions = [
       PUBSUB_TOPICS.BROADCAST,
-      PUBSUB_TOPICS.TASK_RESULTS
+      PUBSUB_TOPICS.TASK_RESULTS,
     ];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
@@ -64,7 +70,7 @@ class ProtocolHandler extends EventEmitter {
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAIN notification field
    */
-  notify(params) {
+    notify(params) {
     this.emit('notify', params);
   }
   /** Handle is a dispatching function
@@ -292,6 +298,27 @@ class ProtocolHandler extends EventEmitter {
     const self = params.worker.getProtocolHandler();
     self.notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
   }
+  onLocalStateExchange(nodeBundle, params){
+    const self = params.worker.getProtocolHandler();
+    params.worker.getProtocolHandler()._logger.debug('[LOCAL_STATE] got local state request from remote peer.');
+    self.notify({
+      notification: NOTIFICATION.GET_ALL_TIPS,
+      useCaches: false,
+      onResponse: (err,tips)=>{
+        if(err){
+          params.worker.getProtocolHandler()._logger.debug(`[ERROR] get local tips ${err}.`);
+          return;
+        }
+        pull(
+            params.connection,
+            pull.map(msg=>{
+              return JSON.stringify(tips);
+            }),
+            params.connection
+        );
+      }
+    });
+  }
   /**
    * This function is a response when subscribed to pubsub BROADCAST topic
    * @param {Json} params (from and data fields)
@@ -312,14 +339,14 @@ class ProtocolHandler extends EventEmitter {
     params.worker.getProtocolHandler()._logger.info(out);
     console.log('----------------------------------------------------');
   }
-  onTaskResultPublish(params, message){
+  onTaskResultPublish(params, message) {
     const selfId = params.worker.getSelfIdB58Str();
     const from = message.from;
     if (from === selfId) {
       return;
     }
     const self = params.worker.getProtocolHandler();
-    self.notify({notification:NOTIFICATION.RECEIVED_NEW_RESULT,params: message});
+    self.notify({notification: NOTIFICATION.RECEIVED_NEW_RESULT, params: message});
   }
 }
 

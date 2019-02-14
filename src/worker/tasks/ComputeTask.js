@@ -1,21 +1,21 @@
 const Task = require('./Task');
-let Result = require('./Result');
+const Result = require('./Result');
 const constants = require('../../common/constants');
 const nodeUtils = require('../../common/utils');
-class ComputeTask extends Task{
+class ComputeTask extends Task {
   /**
    * @param {JSON} computeReqMsg , all fields specified in the `expected` list in the func
    * @return {ComputeTask} task
    * */
-  static buildTask(computeReqMsg){
-    let expected = ['taskId','encryptedArgs','encryptedFn','userDHKey','gasLimit','contractAddress'];
-    let isMissing = expected.some(attr=>{
+  static buildTask(computeReqMsg) {
+    const expected = ['taskId', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress'];
+    const isMissing = expected.some((attr)=>{
       return !(attr in computeReqMsg);
     });
-    //TODO:: check more stuff in each field when building the task
-    if(isMissing){
+    // TODO:: check more stuff in each field when building the task
+    if (isMissing) {
       return null;
-    }else{
+    } else {
       return new ComputeTask(
           computeReqMsg.taskId,
           computeReqMsg.encryptedArgs,
@@ -26,56 +26,56 @@ class ComputeTask extends Task{
       );
     }
   }
-  constructor(taskId,encryptedArgs,encryptedFn,userDHKey,gasLimit,contractAddr){
-    super(taskId,constants.CORE_REQUESTS.ComputeTask);
+  constructor(taskId, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr) {
+    super(taskId, constants.CORE_REQUESTS.ComputeTask);
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
     this._userDHKey = userDHKey;
     this._gasLimit = gasLimit;
     this._contractAddr = contractAddr;
   }
-  getEncyptedArgs(){
+  getEncyptedArgs() {
     return this._encryptedArgs;
   }
-  getEncryptedFn(){
+  getEncryptedFn() {
     return this._encryptedFn;
   }
-  getUserDHKey(){
+  getUserDHKey() {
     return this._userDHKey;
   }
-  getGasLimit(){
+  getGasLimit() {
     return this._gasLimit;
   }
-  getContractAddr(){
-    return this._contractAddr
+  getContractAddr() {
+    return this._contractAddr;
   }
-  toDbJson(){
-    let output = {
-      status : this.getStatus(),
-      taskId : this.getTaskId(),
-      encryptedArgs : this.getEncyptedArgs(),
-      encryptedFn : this.getEncryptedFn(),
-      userDHKey : this.getUserDHKey(),
-      gasLimit : this.getGasLimit(),
-      contractAddress : this.getContractAddr(),
+  toDbJson() {
+    const output = {
+      status: this.getStatus(),
+      taskId: this.getTaskId(),
+      encryptedArgs: this.getEncyptedArgs(),
+      encryptedFn: this.getEncryptedFn(),
+      userDHKey: this.getUserDHKey(),
+      gasLimit: this.getGasLimit(),
+      contractAddress: this.getContractAddr(),
     };
-    if(this.isFinished()){
+    if (this.isFinished()) {
       output.result = this._result.toDbJson();
     }
     return JSON.stringify(output);
   }
-  static fromDbJson(taskObj){
-    if(taskObj.status){
-      let task = ComputeTask.buildTask(taskObj);
+  static fromDbJson(taskObj) {
+    if (taskObj.status) {
+      const task = ComputeTask.buildTask(taskObj);
       task._setStatus(taskObj.status);
-      if(taskObj.result && nodeUtils.isString(taskObj.result)){
+      if (taskObj.result && nodeUtils.isString(taskObj.result)) {
         taskObj.result = JSON.parse(taskObj.result);
       }
-      if(taskObj.result && taskObj.result.status === constants.TASK_STATUS.SUCCESS){
-        let result = Result.ComputeResult.buildComputeResult(taskObj.result);
+      if (taskObj.result && taskObj.result.status === constants.TASK_STATUS.SUCCESS) {
+        const result = Result.ComputeResult.buildComputeResult(taskObj.result);
         task.setResult(result);
-      }else if(taskObj.result){
-        let result = Result.FailedResult.buildFailedResult(taskObj.result);
+      } else if (taskObj.result) {
+        const result = Result.FailedResult.buildFailedResult(taskObj.result);
         task.setResult(result);
       }
       return task;

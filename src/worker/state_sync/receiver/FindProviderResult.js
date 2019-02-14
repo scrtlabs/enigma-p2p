@@ -43,16 +43,16 @@ class FindProviderResult {
   getProvidersMap() {
     return this._map;
   }
-  getProvidersFor(ecid){
+  getProvidersFor(ecid) {
     const key = ecid.getKeccack256();
-    if(this._map[key]){
+    if (this._map[key]) {
       return this._map[key].providers;
     }
     return null;
   }
   /** the keys are the keccack hash of each ecid
    * @return {Array<string>}*/
-  getKeysList(){
+  getKeysList() {
     return Object.keys(this._map);
   }
 }

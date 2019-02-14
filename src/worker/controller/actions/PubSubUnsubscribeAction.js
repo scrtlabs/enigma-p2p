@@ -1,7 +1,7 @@
 const constants = require('../../../common/constants');
 const TOPICS = constants.PUBSUB_TOPICS;
 
-//TODO:: after pr https://github.com/ipfs/interface-js-ipfs-core/pull/437
+// TODO:: after pr https://github.com/ipfs/interface-js-ipfs-core/pull/437
 class PubSubUnsubscribeAction {
   constructor(controller) {
     this._controller = controller;

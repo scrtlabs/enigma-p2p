@@ -42,6 +42,7 @@ const getDefault = ()=>{
     proxyPort : null, // optional, either set port or random
     withTasksDb : true, // with tasks database
     taskDbPath : null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
+    principalUri: null,
   };
 };
 
@@ -75,13 +76,22 @@ const _createTwo = async (optionsOverrideBStrap,optionsOverridePeer)=>{
   let peerOpts = nodeUtils.applyDelta(getDefault(),optionsOverridePeer);
   let bNodeOpts = nodeUtils.applyDelta(getDefault(),optionsOverrideBStrap);
   // create bootstrap node here
-  let bNode = await createNode(bNodeOpts);
+  let bNode = await _createNode(bNodeOpts);
   // craete peeravishai@enigma.co
-  let peer = await createNode(peerOpts);
+  let peer = await _createNode(peerOpts);
   return {bNode : bNode, peer : peer};
 };
 
-const createNode = async (options)=>{
+module.exports.createNode = async function(options) {
+  let final = {};
+  if (options) {
+    final = options;
+  }
+  final = nodeUtils.applyDelta(getDefault(), final);
+  return await _createNode(final);
+};
+
+const _createNode = async (options)=>{
   let nodeConfigObject = {
     'bootstrapNodes': _B1Addr,
     'port': null,
@@ -146,7 +156,7 @@ const createNode = async (options)=>{
 
       dbPath = path.join(__dirname, '/'+nodeUtils.randId()+".deletedb");
     }
-    nodeConfigObject.extraConfig = {};
+    nodeConfigObject.extraConfig = {principal: {uri: options.principalUri}};
     nodeConfigObject.extraConfig.tm = {
       dbPath : dbPath
     };
@@ -158,4 +168,6 @@ const createNode = async (options)=>{
 const rand = (min, max)=>{
   return Math.ceil(Math.random() * (max - min) + min);
 };
+
+
 
