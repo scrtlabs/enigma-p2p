@@ -8,11 +8,20 @@ class GetDbAction{
   }
 
   execute(envelop){
-    let request = {
-      id : nodeUtils.randId(),
-      type :envelop.content().type,
-      input : envelop.content().input
-    };
+    let request;
+    if(envelop.content().type == Msg.PTTResponse) {
+      request = {
+        id : nodeUtils.randId(),
+        type : envelop.content().type,
+        response : envelop.content().input
+      };
+    } else {
+      request = {
+        id : nodeUtils.randId(),
+        type : envelop.content().type,
+        input : envelop.content().input
+      };
+    }
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,
       sendMsg : request,

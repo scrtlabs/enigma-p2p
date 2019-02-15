@@ -30,17 +30,18 @@ class GetStateKeysAction {
         this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return onResponse(err, null);
       }
-
-      const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
+      const msg = MsgPrincipal.build({request: coreResponse.request.request, sig: coreResponse.request.workerSig});
       let principalResponse;
       try {
         principalResponse = await this._controller.principal().getStateKeys(msg);
       } catch (err) {
         // TODO: Errors.
-        this._controller.logger().error(`Failed Principal node connection: ${err}`);
+        this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
         return onResponse(err, null);
       }
-      this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
+      let ppalResponse = JSON.parse(principalResponse);
+      console.log(ppalResponse);
+      this._pttResponse({response: ppalResponse.data, sig: principalResponse.sig}, (err, response) => {
         if (err || response.type === 'Error' || response.result.errors.length > 0) {
           if (response && coreResponse.type === 'Error') {
             err = coreResponse.msg;
@@ -50,6 +51,7 @@ class GetStateKeysAction {
           this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);
           return onResponse(err, null);
         }
+        console.log(response);
         return onResponse(null, null);
       });
     };
@@ -58,17 +60,20 @@ class GetStateKeysAction {
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
+          input: params.addresses,
           onResponse: onPTTRequestResponse,
         },
     );
   }
 
   _pttResponse(params, cb) {
+    console.log('Passing this to core');
+    console.log(params);
     this._controller.execCmd(
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.PTTResponse,
-          input: params,
+          input: params.response,
           onResponse: cb,
         },
     );

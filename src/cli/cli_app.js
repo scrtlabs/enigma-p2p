@@ -13,6 +13,9 @@ const DbUtils = require('../common/DbUtils');
 // const Multispinner = require('multispinner')
 // const spinners = ['core-alive', 'bootstrap-nodes', 'discover-optimal-dht','init-background-services' ,'synchronize-worker-state','init '];
 
+const constants = require('../common/constants');
+
+
 
 class CLI {
   constructor() {
@@ -24,6 +27,7 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -313,6 +317,9 @@ class CLI {
         .option('-E, --init-ethereum', 'init Ethereum', ()=>{
           this._initEthereum = true;
         })
+        .option('--principal-node [value]', 'specify the address and port of the Principal Node', (addressPort)=>{
+          this._principalNode = addressPort;
+        })
         .parse(process.argv);
   }
   _getFinalConfig() {
@@ -348,7 +355,10 @@ class CLI {
     }
     const nodeConfig = this._getFinalConfig();
     if (this._randomTasksDbPath) {
-      nodeConfig.extraConfig = {};
+      console.log('Connecting to Principal Node at '+this._principalNode);
+      nodeConfig.extraConfig = (typeof this._principalNode !== 'undefined' && this._principalNode) ?
+       {principal: {uri: this._principalNode}} :
+       {}
       nodeConfig.extraConfig.tm = {
         dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
       };
@@ -374,6 +384,9 @@ class CLI {
             out.singingKey = result.result.signingKey;
             console.log(out);
             this._node.ethereum().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
+            console.log('About to get State Keys');
+            this._node.execCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,{addresses: ['88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc']});
+
           }
         });
     }
