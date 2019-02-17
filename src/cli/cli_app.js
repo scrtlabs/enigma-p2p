@@ -60,6 +60,7 @@ class CLI {
             console.log('[-] ERROR $init ', err);
           }
           const uri ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          console.log("----------------------- ATTENTION --------------------------");
           console.log('please visit %s for more info', uri);
         });
       },
