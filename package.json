@@ -2,7 +2,7 @@
   "name": "enigma-p2p",
   "version": "0.1.0",
   "description": "Enigma P2P library based on libp2p-js ",
-  "main": "index.js",
+  "main": "src/index.js",
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 500000",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
