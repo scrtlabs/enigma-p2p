@@ -37,7 +37,7 @@ class InitWorkerAction {
     const C = constants.NODE_NOTIFICATIONS;
     const P = constants.CONSISTENT_DISCOVERY_PARAMS;
     // methods
-    const bootstrapAndDiscovery = (cb)=>{
+    const discovery = (cb)=>{
       this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
         delay: P.DELAY,
         maxRetry: P.MAX_RETRY,
@@ -50,6 +50,9 @@ class InitWorkerAction {
       });
     };
     const syncState = (cb)=>{
+      if(!this._controller.hasEthereum()){
+        return cb();
+      }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
         onEnd: (err, statusResult)=>{
@@ -94,7 +97,7 @@ class InitWorkerAction {
     };
     waterfall([
       // BOOTSTRAP + DISCOVERY:
-      bootstrapAndDiscovery,
+      discovery,
       // Sync State
       syncState,
       // Announce State:
