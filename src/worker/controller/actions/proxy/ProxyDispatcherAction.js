@@ -9,10 +9,10 @@ class ProxyDispatcherAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(requestEnvelop){
+  execute(requestEnvelop) {
     const type = requestEnvelop.content().type;
     let theAction = null;
-    switch(type){
+    switch (type) {
       case constants.CORE_REQUESTS.NewTaskEncryptionKey:
         theAction = constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC;
         const workerSignKey = requestEnvelop.content().workerSignKey;
@@ -22,11 +22,11 @@ class ProxyDispatcherAction {
         break;
       case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
         theAction = constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC;
-        let taskId =  requestEnvelop.content().taskId;
-        let workerAddr =  requestEnvelop.content().workerAddress;
-        requestEnvelop.content().targetTopic = taskId + workerAddr ;
+        const taskId = requestEnvelop.content().taskId;
+        const workerAddr = requestEnvelop.content().workerAddress;
+        requestEnvelop.content().targetTopic = taskId + workerAddr;
         requestEnvelop.content().workerSignKey = workerAddr;
-        if(!requestEnvelop.content().id){
+        if (!requestEnvelop.content().id) {
           requestEnvelop.content().id = taskId;
         }
         break;
@@ -35,8 +35,8 @@ class ProxyDispatcherAction {
         theAction =constants.NODE_NOTIFICATIONS.ROUTE_NON_BLOCK_RPC;
         break;
     }
-    this._controller.logger().debug("sending dispatched rpc request");
-    this._controller.execCmd(theAction,requestEnvelop);
+    this._controller.logger().debug('sending dispatched rpc request');
+    this._controller.execCmd(theAction, requestEnvelop);
   }
 }
 module.exports = ProxyDispatcherAction;

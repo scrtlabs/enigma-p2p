@@ -16,8 +16,8 @@ class GetAllTipsAction {
     const onResult = params.onResponse;
     if (useCache) {
       this._controller.cache().getAllTips((err, tipsList)=>{
-        //TODO:: implement cache logic
-        //TODO:: if cache empty still query core since maybe it was deleted or first time
+        // TODO:: implement cache logic
+        // TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     } else {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
@@ -27,6 +27,16 @@ class GetAllTipsAction {
         },
       });
     }
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      params.onResponse = function(err, tips) {
+        if (err) rej(err);
+        else res(tips);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = GetAllTipsAction;

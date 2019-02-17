@@ -88,6 +88,15 @@ class MockCoreServer {
         case MsgTypes.ComputeTask:
           MockCoreServer._send(this._socket,this._getComputeTaskResult(msg));
           break;
+        case MsgTypes.GetPTTRequest:
+          MockCoreServer._send(this._socket, MockCoreServer._getPTTRequest(msg));
+          break;
+        case MsgTypes.PTTResponse:
+          MockCoreServer._send(this._socket, MockCoreServer._PTTResponse(msg));
+          break;
+
+        default:
+          console.log('[Mock Server] Unknown command: ', msg);
       }
     });
   };
@@ -99,6 +108,25 @@ class MockCoreServer {
     }else{
       socket.send(JSON.stringify(error));
     }
+  }
+  static _getPTTRequest(msg) {
+    return {
+      id: msg.id,
+      type: msg.type,
+      result: {
+        request: 'the-message-packed-request',
+        workerSig: 'the-worker-sig',
+      },
+    };
+  }
+  static _PTTResponse(msg) {
+    return {
+      id: msg.id,
+      type: msg.type,
+      result: {
+        errors: [],
+      },
+    };
   }
   _getDeployTaskResult(msg){
     return {

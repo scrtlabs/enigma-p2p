@@ -24,11 +24,11 @@ module.exports.TEST_TREE = {
   },
   'ethereum' : {
     'all' : true,
-    '#1' : false,
-    '#2' : false,
-    '#3' : false,
-    '#4' : false,
-    '#5' : false,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
+    '#4' : true,
+    '#5' : true,
   },
   // bug with false
   'task_manager' :{
@@ -39,6 +39,10 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
+  'task_flow' : {
+    'all' :true,
+    '#1' : true,
+  },
   'sync_basic':{
     'all' : true,
     '#1' : true,
@@ -47,7 +51,6 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
-  // bug with false
   'jsonrpc_basic':{
     'all' : true,
     '#1' : true,
@@ -56,6 +59,16 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
     '#6' : true,
+  },
+  'actions_tests':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+  },
+  'principal' : {
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
   },
   'verifier':{
     'all' : true,

@@ -1,7 +1,7 @@
 const CIDUtil = require('./CIDUtil');
 const EncoderUtil = require('./EncoderUtil');
 /**
- * Abstraction - wrapper to libp2p-cid 
+ * Abstraction - wrapper to libp2p-cid
  * */
 class EngCID {
   constructor(encoder = EncoderUtil) {
@@ -9,7 +9,7 @@ class EngCID {
     this._cid = null;
     this._address = null;
   }
-  static createFromSCAddress(scAddr){
+  static createFromSCAddress(scAddr) {
     const cid = CIDUtil.createCID(scAddr);
     if (cid) {
       const engCid = new EngCID();
@@ -100,10 +100,10 @@ class EngCID {
   _setCID(cid) {
     this._cid = cid;
   }
-  _setScAddress(scAddr){
+  _setScAddress(scAddr) {
     this._address = scAddr;
   }
-  getScAddress(){
+  getScAddress() {
     return this._address;
   }
 }

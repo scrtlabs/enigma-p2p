@@ -39,6 +39,8 @@ class CoreRuntime{
       [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
       [constants.CORE_REQUESTS.GetTip] : null,
+      [constants.CORE_REQUESTS.GetPTTRequest]: getDbAction,
+      [constants.CORE_REQUESTS.PTTResponse]: getDbAction,
     };
   }
   /**

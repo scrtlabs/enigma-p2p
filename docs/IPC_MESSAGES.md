@@ -217,9 +217,11 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>,
-    type : GetPTTRequest,
-    addresses: [addrress]
+    id: <unique_request_id>,
+    type: GetPTTRequest,
+    input: {
+        addresses: [addrress]
+    } 
 }
 ```
 
@@ -250,7 +252,9 @@ Request:
 {
     id : <unique_request_id>,
     type : PTTResponse,
-    response: 'the-encrypted-response'
+    input: {
+        response: 'the-encrypted-response'
+    }
 }
 ```
 The response is a signed messagepack that looks like this:
@@ -326,12 +330,12 @@ Response:
     id: <unique_request_id>,
     type: DeploySecretContract,
     result : {
-        output: 'the-deployed-bytecode', // AKA preCode
+        output: 'the-deployed-bytecode', // AKA exeCode
         preCodeHash: 'hash-of-the-precode-bytecode',
         delta: {key: 0, data: ...},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
 
@@ -364,8 +368,8 @@ Response:
         output: 'the-output-of-the-execution',
         delta: {key, data},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
 

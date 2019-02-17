@@ -4,13 +4,13 @@ class NewTaskEncryptionKeyAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(params){
+  execute(params) {
     const onResponse = params.onResponse;
     const requestEnvelop = new Envelop(params.request.id, params.request,
-          constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
+        constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
     let err = null;
-    if(!requestEnvelop.isValidEnvelop()){
-      err = "invalid envelop";
+    if (!requestEnvelop.isValidEnvelop()) {
+      err = 'invalid envelop';
     }
     this._controller
         .communicator()
