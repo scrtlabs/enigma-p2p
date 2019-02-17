@@ -37,66 +37,73 @@ class InitWorkerAction {
 
     const C = constants.NODE_NOTIFICATIONS;
     const P = constants.CONSISTENT_DISCOVERY_PARAMS;
+    // methods
+    const bootstrapAndDiscovery = (cb)=>{
+      this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
+        delay: P.DELAY,
+        maxRetry: P.MAX_RETRY,
+        timeout: P.TIMEOUT,
+        callback: (status, result)=>{
+          const outMsg = 'Discovery status: ' + JSON.stringify(status);
+          this._controller.logger().info(outMsg);
+          cb(null);
+        },
+      });
+    };
+    const syncState = (cb)=>{
+      this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
+        cache: false,
+        onEnd: (err, statusResult)=>{
+          if (err) {
+            this._controller.logger().error('error receiving pipeline! ' + err);
+          } else {
+            this._controller.logger().debug(JSON.stringify(statusResult));
+            this._controller.logger().info('success syncing pipeline');
+          }
+          cb(err);
+        },
+      });
+    };
+    const announceState =(cb)=>{
+      this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
+        cache: false,
+        onResponse: (error, content)=>{
+          if (error) {
+            this._controller.logger().error('failed announcing ' + error);
+          } else {
+            content.forEach((ecid)=>{
+              this._controller.logger().debug('providing : ' + ecid.getKeccack256());
+            });
+          }
+          cb(error);
+        },
+      });
+    };
+    const backgroundServices = (cb)=>{
+      // TODO:: lena, here your EthereumServices should start. For example, read current Epoch data (like worker params)
+      // TODO:: everything that runs in an infinite loop in the program should be started here.
+      // TODO:: for example we could start here a process to always ping enigma-core and check if ok
+      // subscribe to self (for responding to rpc requests of other workers)
+      this._controller.execCmd(C.SELF_KEY_SUBSCRIBE, {});
+      // log finish this stage
+      this._controller.logger().debug('started background services');
+      cb(null);
+    };
+    const registerAndLoginWorker = (cb)=>{
+      console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
+      cb(null);
+    };
     waterfall([
       // BOOTSTRAP + DISCOVERY:
-      (cb)=>{
-        this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
-          delay: P.DELAY,
-          maxRetry: P.MAX_RETRY,
-          timeout: P.TIMEOUT,
-          callback: (status, result)=>{
-            const outMsg = 'Discovery status: ' + JSON.stringify(status);
-            this._controller.logger().info(outMsg);
-            cb(null);
-          },
-        });
-      },
+      bootstrapAndDiscovery,
       // Sync State
-      (cb)=>{
-        this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
-          cache: false,
-          onEnd: (err, statusResult)=>{
-            if (err) {
-              this._controller.logger().error('error receiving pipeline! ' + err);
-            } else {
-              this._controller.logger().debug(JSON.stringify(statusResult));
-              this._controller.logger().info('success syncing pipeline');
-            }
-            cb(err);
-          },
-        });
-      },
+      syncState,
       // Announce State:
-      (cb)=>{
-        this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
-          cache: false,
-          onResponse: (error, content)=>{
-            if (error) {
-              this._controller.logger().error('failed announcing ' + error);
-            } else {
-              content.forEach((ecid)=>{
-                this._controller.logger().debug('providing : ' + ecid.getKeccack256());
-              });
-            }
-            cb(error);
-          },
-        });
-      },
+      announceState,
       // Background Services:
-      (cb)=>{
-        // TODO:: lena, here your EthereumServices should start. For example, read current Epoch data (like worker params)
-        // TODO:: everything that runs in an infinite loop in the program should be started here.
-        // TODO:: for example we could start here a process to always ping enigma-core and check if ok
-        // subscribe to self (for responding to rpc requests of other workers)
-        this._controller.execCmd(C.SELF_KEY_SUBSCRIBE, {});
-        // log finish this stage
-        this._controller.logger().debug('started background services');
-        cb(null);
-      },
-      (cb)=>{
-        console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
-        cb(null);
-      },
+      backgroundServices,
+      // register and login worker
+      registerAndLoginWorker,
     ], (err)=>{
       if (err) {
         this._controller.logger().error('error InitWorkerAction ' + err);
