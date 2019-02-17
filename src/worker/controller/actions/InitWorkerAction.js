@@ -34,7 +34,6 @@ class InitWorkerAction {
    * */
   execute(params) {
     const callback = params.callback;
-
     const C = constants.NODE_NOTIFICATIONS;
     const P = constants.CONSISTENT_DISCOVERY_PARAMS;
     // methods
