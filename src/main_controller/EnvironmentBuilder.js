@@ -16,6 +16,13 @@ class EnvironmentBuilder{
     this._jsonRpcConfig = false;
     this._ethereumConfig = false;
   }
+  static fromFile(configFile){
+    let loggerConfig = configFile.logger;
+    let ipcConfig = configFile.core;
+    let jsonRpcConfig = configFile.proxy;
+    let ethereumConfig = configFile.ethereum;
+    let nodeConfig = configFile.node;
+  }
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
    * use reuse() before building another controller.
    * i.e in tests when you want 10 nodes but want to reuse the same builder */
