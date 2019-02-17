@@ -93,6 +93,9 @@ class InitWorkerAction {
     };
     const registerAndLoginWorker = (cb)=>{
       console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
+      if(this._controller.hasEthereum()){
+        
+      }
       cb(null);
     };
     waterfall([
