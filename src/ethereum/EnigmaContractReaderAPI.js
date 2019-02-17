@@ -1,3 +1,5 @@
+const errors = require('../common/errors');
+
 class EnigmaContractReaderAPI {
   /**
      * {string} enigmaContractAddress
@@ -183,6 +185,10 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
+        if (Object.keys(data).length != 2) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
+          reject(err);
+        }
         const params = {
           signer: data[0],
           report: this._web3.utils.hexToAscii(data[1]),
@@ -204,13 +210,13 @@ class EnigmaContractReaderAPI {
           reject(error);
         }
         const params = {
-          inputsHash: data[0],
-          gasLimit: parseInt(data[1]),
-          gasPrice: parseInt(data[2]),
-          proof: data[3],
-          senderAddress: data[4],
-          blockNumber: parseInt(data[5]),
-          status: parseInt(data[6]),
+          inputsHash: data.inputsHash,
+          gasLimit: parseInt(data.gasLimit),
+          gasPrice: parseInt(data.gasPx),
+          proof: data.proof,
+          senderAddress: data.sender,
+          blockNumber: parseInt(data.blockNumber),
+          status: parseInt(data.status),
         };
         resolve(params);
       });
@@ -245,12 +251,10 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * //TODO:: WTF is 'changed' ?
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
      * @param {Json} filter, in case a filter is required on top of the event itself.
      *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
-     * @param {Function} filterFunc, a function filter.
      * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
      * */
   subscribe(eventName, filter, callback) {
@@ -262,7 +266,6 @@ class EnigmaContractReaderAPI {
           callback(null, result);
         })
         .on('changed', (event)=> {
-          console.log('received a change of the event ', event);
           if (eventName in this._activeEventSubscriptions) {
             delete(this._activeEventSubscriptions[eventName]);
           }

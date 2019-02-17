@@ -2,9 +2,7 @@ const EventEmitter = require('events');
 const Web3 = require('web3');
 const DbUtils = require('../common/DbUtils');
 const FailedResult  = require('../worker/tasks/Result').FailedResult;
-const ComputeTask  = require('../worker/tasks/ComputeTask');
 const DeployTask  = require('../worker/tasks/DeployTask');
-const ComputeResult  = require('../worker/tasks/Result').ComputeResult;
 const DeployResult  = require('../worker/tasks/Result').DeployResult;
 
 const constants = require('../common/constants');

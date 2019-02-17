@@ -79,6 +79,14 @@ class WorkerSelectionVerificationErr extends Error{
   }
 }
 
+class EnigmaContractDataError extends Error{
+  constructor(message){
+    super(message);
+    Error.captureStackTrace(this,this.constructor);
+    this.name = this.constructor.name;
+  }
+}
+
 module.exports.SyncReceiverErr = SyncReceiverErr;
 module.exports.TypeErr = TypeErr;
 module.exports.InitPipelinesErr = InitPipelinesErr;
@@ -89,5 +97,6 @@ module.exports.TaskFailedErr = TaskFailedErr;
 module.exports.TaskValidityErr = TaskValidityErr;
 module.exports.TaskVerificationErr = TaskVerificationErr;
 module.exports.WorkerSelectionVerificationErr = WorkerSelectionVerificationErr;
+module.exports.EnigmaContractDataError = EnigmaContractDataError;
 
 
