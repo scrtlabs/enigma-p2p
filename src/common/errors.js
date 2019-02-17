@@ -45,5 +45,6 @@ module.exports.SyncReceiverErr = SyncReceiverErr;
 module.exports.TaskFailedErr = TaskFailedErr;
 module.exports.TaskValidityErr = TaskValidityErr;
 module.exports.TaskVerificationErr = TaskVerificationErr;
+module.exports.WorkerSelectionVerificationErr = WorkerSelectionVerificationErr;
 
 

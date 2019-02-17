@@ -494,7 +494,7 @@ describe('Ethereum tests', function() {
     });
   });
 
-  it('Test ethereum services ', async function() {
+  it('Test Ethereum services ', async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all'] || !tree['#5']) {
       await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
