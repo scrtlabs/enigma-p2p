@@ -145,7 +145,8 @@ describe('Ethereum tests', function() {
       const isDeployed = await api.isDeployed(secretContractAddress);
       assert.strictEqual(isDeployed, true);
 
-      const observedCodeHash = await api.getCodeHash(secretContractAddress);
+      let observedCodeHash = await api.getContractParams(secretContractAddress);
+      observedCodeHash = observedCodeHash.codeHash;
       assert.strictEqual(observedCodeHash, codeHash);
 
       const observedAddresses = await api.getSecretContractAddresses(0, 1);
@@ -206,17 +207,20 @@ describe('Ethereum tests', function() {
 
       await api2.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
+      let contractParams = await api2.getContractParams(secretContractAddress);
+
+      //assert.strictEqual(contractParams.owner, workerAddress);
+      assert.strictEqual(contractParams.preCodeHash, codeHash);
+      assert.strictEqual(contractParams.codeHash, codeHash);
+      //assert.strictEqual(contractParams.stateDeltaHashes, [initStateDeltaHash]);
+      assert.strictEqual(contractParams.status, 1);
+
       const taskId1 = web3_2.utils.randomHex(32);
       const taskId2 = web3_2.utils.randomHex(32);
       const taskId3 = web3_2.utils.randomHex(32);
       const taskId4 = web3_2.utils.randomHex(32);
 
-      // eventSubscribe(api2, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
-      //     (result)=> {
-      //       assert.strictEqual(result.taskId, taskId1);
-      //       assert.strictEqual(result.fee, taskFee1);
-      //       assert.strictEqual(result.senderAddress, taskSenderAddress1);
-      //     }));
+
       //
       // eventSubscribe(api2, 'TaskRecordsCreated', {}, getEventRecievedFunc('TaskRecordsCreated',
       //     (result)=> {
@@ -234,6 +238,33 @@ describe('Ethereum tests', function() {
       // await api2.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
       //
       // await api2.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
+
+
+      const inputsHash = web3_2.utils.randomHex(32);
+      const gasLimit = 7;
+      const gasPrice = 10;
+      const firstBlockNumber = 17;
+      const nonce = 0;
+
+      const mock_taskId ="0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
+
+      eventSubscribe(api2, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
+        (result)=> {
+          assert.strictEqual(result.taskId, mock_taskId);
+          assert.strictEqual(result.gasLimit, gasLimit);
+          assert.strictEqual(result.gasPrice, gasPrice);
+          assert.strictEqual(result.senderAddress, workerAddress);
+        }));
+
+      await api2.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce, {from: workerAddress});
+
+      const taskParams = await api2.getTaskParams(mock_taskId);
+      assert.strictEqual(inputsHash, taskParams.inputsHash);
+      assert.strictEqual(gasLimit, taskParams.gasLimit);
+      assert.strictEqual(gasPrice, taskParams.gasPrice);
+      assert.strictEqual(workerAddress, taskParams.senderAddress);
+      assert.strictEqual(8, taskParams.blockNumber);
+      assert.strictEqual(1, taskParams.status);
 
       const stateDeltaHash1 = web3_2.utils.randomHex(32);
       const stateDeltaHash2 = web3_2.utils.randomHex(32);
@@ -268,7 +299,7 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.signature, signature);
           }));
 
-      // Verify the number of state deltas is 0 before any commit
+      // Verify the number of state deltas is 1 before any commit
       const count1 = await api2.countStateDeltas(secretContractAddress);
       assert.strictEqual(count1, 1);
 
@@ -308,6 +339,8 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedStateDeltaHashes[3], stateDeltaHash3);
       assert.strictEqual(observedStateDeltaHashes.length, 4);
 
+
+
       api2.unsubscribeAll();
 
       await api2.logout({from: workerAddress});
@@ -318,7 +351,7 @@ describe('Ethereum tests', function() {
     });
   });
 
-  it('State sync - empty local tips', async function() {
+  it('State sync: empty local tips, partial local tips, partial local tips 2, full local tips', async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all'] || !tree['#3']) {
       await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
@@ -333,6 +366,7 @@ describe('Ethereum tests', function() {
       const secretContractAddress1 = web3.utils.randomHex(32); // accounts[5];
       const secretContractAddress2 = web3.utils.randomHex(32); // accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+      const codeHash2 = web3.utils.sha3(web3.utils.randomHex(32));
       const signature = api.w3().utils.randomHex(32);
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const gasUsed = 10;
@@ -343,7 +377,7 @@ describe('Ethereum tests', function() {
       await api.login({from: workerAddress});
 
       await api.deploySecretContract(secretContractAddress1, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-      await api.deploySecretContract(secretContractAddress2, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContract(secretContractAddress2, codeHash2, codeHash2, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
       const taskId1 = web3.utils.randomHex(32);
       const taskId2 = web3.utils.randomHex(32);
@@ -394,244 +428,58 @@ describe('Ethereum tests', function() {
         assert.strictEqual(results[1].deltas[1].index, 1);
         assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
         assert.strictEqual(results[1].deltas.length, 2);
-        assert.strictEqual(results[1].bytecodeHash, codeHash);
-
-        api.unsubscribeAll();
-        resolve();
-      });
-    });
-  });
-
-  it('State sync - partial local tips', async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#4']) {
-      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const accounts = await web3.eth.getAccounts();
-      const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = web3.utils.randomHex(32);// accounts[5];
-      const secretContractAddress2 = web3.utils.randomHex(32); // accounts[4];
-      const codeHash1 = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-      const codeHash2 = web3.utils.sha3(web3.utils.randomHex(32));
-      const signature = api.w3().utils.randomHex(32);
-      const initStateDeltaHash = api.w3().utils.randomHex(32);
-      const gasUsed = 10;
-      const outputHash = api.w3().utils.randomHex(32);
-
-      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-
-      await api.login({from: workerAddress});
-
-      await api.deploySecretContract(secretContractAddress1, codeHash1, codeHash1, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-      await api.deploySecretContract(secretContractAddress2, codeHash2, codeHash2, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-
-      const taskId1 = web3.utils.randomHex(32);
-
-      const taskId2 = web3.utils.randomHex(32);
-      const taskId3 = web3.utils.randomHex(32);
-      const taskId4 = web3.utils.randomHex(32);
-
-      // await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
-      //
-      // await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
-      //
-      // await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
-
-      const stateDeltaHash1 = web3.utils.randomHex(32);
-      const stateDeltaHash2 = web3.utils.randomHex(32);
-      const stateDeltaHash3 = web3.utils.randomHex(32);
-      const stateDeltaHash4 = web3.utils.randomHex(32);
-      const ethCall = web3.utils.randomHex(32);
-
-      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash1, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], outputHash,
-          [gasUsed, gasUsed], ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash4, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}], (err, results)=>{
-        // DONE results == [{address, deltas : [deltaHash, index]}]
-        assert.strictEqual(results.length, 2);
-
-        assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
-        assert.strictEqual(results[0].deltas[0].index, 1);
-        assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
-        assert.strictEqual(results[0].deltas[1].index, 2);
-        assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash2);
-        assert.strictEqual(results[0].deltas[2].index, 3);
-        assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
-        assert.strictEqual(results[0].deltas.length, 3);
-        assert.strictEqual('bytecodeHash' in results[0], false);
-
-        assert.strictEqual(results[1].address, secretContractAddress2.slice(2, secretContractAddress2.length));
-        assert.strictEqual(results[1].deltas[0].index, 0);
-        assert.strictEqual(results[1].deltas[0].deltaHash, initStateDeltaHash);
-        assert.strictEqual(results[1].deltas[1].index, 1);
-        assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
-        assert.strictEqual(results[1].deltas.length, 2);
         assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-        api.unsubscribeAll();
-        resolve();
-      });
-    });
-  });
+        StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}], (err, results)=>{
+          // DONE results == [{address, deltas : [deltaHash, index]}]
+          assert.strictEqual(results.length, 2);
 
-  it('State sync - partial local tips 2', async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#5']) {
-      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
-      this.skip();
-    }
+          assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
+          assert.strictEqual(results[0].deltas[0].index, 1);
+          assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
+          assert.strictEqual(results[0].deltas[1].index, 2);
+          assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash2);
+          assert.strictEqual(results[0].deltas[2].index, 3);
+          assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
+          assert.strictEqual(results[0].deltas.length, 3);
+          assert.strictEqual('bytecodeHash' in results[0], false);
 
-    return new Promise(async function(resolve) {
-      const accounts = await web3.eth.getAccounts();
-      const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = web3.utils.randomHex(32); // accounts[5];
-      const secretContractAddress2 = web3.utils.randomHex(32); // accounts[4];
-      const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-      const signature = api.w3().utils.randomHex(32);
-      const initStateDeltaHash = api.w3().utils.randomHex(32);
-      const gasUsed = 10;
-      const outputHash = api.w3().utils.randomHex(32);
+          assert.strictEqual(results[1].address, secretContractAddress2.slice(2, secretContractAddress2.length));
+          assert.strictEqual(results[1].deltas[0].index, 0);
+          assert.strictEqual(results[1].deltas[0].deltaHash, initStateDeltaHash);
+          assert.strictEqual(results[1].deltas[1].index, 1);
+          assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
+          assert.strictEqual(results[1].deltas.length, 2);
+          assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
+          StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 1}, {address: secretContractAddress2, key: 1}], (err, results)=>{
+            // DONE results == [{address, deltas : [deltaHash, index]}]
+            assert.strictEqual(results.length, 1);
 
-      await api.login({from: workerAddress});
+            assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
+            assert.strictEqual(results[0].deltas[0].index, 2);
+            assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
+            assert.strictEqual(results[0].deltas[1].index, 3);
+            assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
+            assert.strictEqual(results[0].deltas.length, 2);
+            assert.strictEqual('bytecodeHash' in results[0], false);
 
-      await api.deploySecretContract(secretContractAddress1, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-      await api.deploySecretContract(secretContractAddress2, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 3}, {address: secretContractAddress2, key: 1}], (err, results)=>{
+              // DONE results == [{address, deltas : [deltaHash, index]}]
+              assert.strictEqual(results.length, 0);
 
-      // await api.deploySecretContract(secretContractAddress1, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
-      // await api.deploySecretContract(secretContractAddress2, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
-
-      const taskId1 = web3.utils.randomHex(32);
-
-      const taskId2 = web3.utils.randomHex(32);
-      const taskId3 = web3.utils.randomHex(32);
-      const taskId4 = web3.utils.randomHex(32);
-
-      // await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
-      //
-      // await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
-      //
-      // await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
-
-      const stateDeltaHash1 = web3.utils.randomHex(32);
-      const stateDeltaHash2 = web3.utils.randomHex(32);
-      const stateDeltaHash3 = web3.utils.randomHex(32);
-      const stateDeltaHash4 = web3.utils.randomHex(32);
-      const ethCall = web3.utils.randomHex(32);
-
-      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash1, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], outputHash,
-          [gasUsed, gasUsed], ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash4, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 1}, {address: secretContractAddress2, key: 1}], (err, results)=>{
-        // DONE results == [{address, deltas : [deltaHash, index]}]
-        assert.strictEqual(results.length, 1);
-
-        assert.strictEqual(results[0].address, secretContractAddress1.slice(2, secretContractAddress1.length));
-        assert.strictEqual(results[0].deltas[0].index, 2);
-        assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
-        assert.strictEqual(results[0].deltas[1].index, 3);
-        assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
-        assert.strictEqual(results[0].deltas.length, 2);
-        assert.strictEqual('bytecodeHash' in results[0], false);
-
-        api.unsubscribeAll();
-        resolve();
-      });
-    });
-  });
-
-  it('State sync - full local tips', async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#6']) {
-      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const accounts = await web3.eth.getAccounts();
-      const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress1 = web3.utils.randomHex(32);// accounts[5];
-      const secretContractAddress2 = web3.utils.randomHex(32);// accounts[4];
-      const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-      const signature = api.w3().utils.randomHex(32);
-      const initStateDeltaHash = api.w3().utils.randomHex(32);
-      const gasUsed = 10;
-      const outputHash = api.w3().utils.randomHex(32);
-
-      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-
-      await api.login({from: workerAddress});
-
-      await api.deploySecretContract(secretContractAddress1, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-      await api.deploySecretContract(secretContractAddress2, codeHash, codeHash, initStateDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-
-      const taskId1 = web3.utils.randomHex(32);
-      const taskFee1 = 5;
-      const taskSenderAddress1 = accounts[9];
-
-      const taskId2 = web3.utils.randomHex(32);
-      const taskFee2 = 19;
-      const taskId3 = web3.utils.randomHex(32);
-      const taskFee3 = 58;
-      const taskId4 = web3.utils.randomHex(32);
-      const taskFee4 = 580;
-
-      // await api.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
-      //
-      // await api.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
-      //
-      // await api.createTaskRecord(taskId4, taskFee4, {from: workerAddress});
-
-      const stateDeltaHash1 = web3.utils.randomHex(32);
-      const stateDeltaHash2 = web3.utils.randomHex(32);
-      const stateDeltaHash3 = web3.utils.randomHex(32);
-      const stateDeltaHash4 = web3.utils.randomHex(32);
-      const ethCall = web3.utils.randomHex(32);
-
-      await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash1, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipts(secretContractAddress1, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], outputHash,
-          [gasUsed, gasUsed], ethCall, signature, {from: workerAddress});
-
-      await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash4, outputHash, gasUsed,
-          ethCall, signature, {from: workerAddress});
-
-      StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 3}, {address: secretContractAddress2, key: 1}], (err, results)=>{
-        // DONE results == [{address, deltas : [deltaHash, index]}]
-        assert.strictEqual(results.length, 0);
-
-        api.unsubscribeAll();
-        resolve();
+              api.unsubscribeAll();
+              resolve();
+            });
+          });
+        });
       });
     });
   });
 
   it('State sync - failure', async function() {
     const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#7']) {
+    if (!tree['all'] || !tree['#4']) {
       await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
       this.skip();
     }
@@ -646,9 +494,9 @@ describe('Ethereum tests', function() {
     });
   });
 
-  it('Test ethereum services ', async function() {
+  it('Test Ethereum services ', async function() {
     const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#8']) {
+    if (!tree['all'] || !tree['#5']) {
       await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
       this.skip();
     }
@@ -687,7 +535,7 @@ describe('Ethereum tests', function() {
 
       let taskIndex = 0;
 
-      services.initServices(['TaskCreation', 'TaskSubmission']);
+      services.initServices(['TaskCreation', 'TaskSuccessSubmission']);
 
       // services.on('TaskCreation', (err, result)=> {
       //   if (taskIndex === 0) {
@@ -719,7 +567,7 @@ describe('Ethereum tests', function() {
 
       const recieptIndex = 0;
 
-      services.on('TaskSubmission', (err, result)=> {
+      services.on('TaskSuccessSubmission', (err, result)=> {
         if (recieptIndex === 0) {
           assert.strictEqual(result.taskId, taskId1);
           assert.strictEqual(result.stateDeltaHash, stateDeltaHash1);

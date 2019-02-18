@@ -3,11 +3,12 @@ const EventEmitter = require('events');
 const constants = require('../common/constants');
 const EVENTS = constants.ETHEREUM_EVENTS;
 
-let servicesMap = {}
+let servicesMap = {};
 
 servicesMap[EVENTS.NewEpoch] = ['WorkersParameterized'];
 servicesMap[EVENTS.TaskCreation] = ['TaskRecordCreated', 'TaskRecordsCreated'];
-servicesMap[EVENTS.TaskSubmission] = ['ReceiptVerified', 'ReceiptsVerified'];
+servicesMap[EVENTS.TaskSuccessSubmission] = ['ReceiptVerified', 'ReceiptsVerified'];
+servicesMap[EVENTS.TaskFailureSubmission] = ['ReceiptFailed'];
 servicesMap[EVENTS.SecretContractDeployment] = ['SecretContractDeployed'];
 
 
@@ -44,6 +45,7 @@ class EthereumServices extends EventEmitter {
         if (err) {
           this.emit(serviceName, err);
         } else {
+          event.type = serviceName;
           this.emit(serviceName, null, event);
         }
       });
