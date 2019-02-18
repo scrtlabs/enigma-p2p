@@ -26,6 +26,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
   'IDENTIFY_MISSING_STATES_FROM_REMOTE': 'identify', // identify the missing states, compare local with remote
   'TRY_RECEIVE_ALL': 'trcva', // try recieve all of the CID's
+  ANNOUNCE_ENG_CIDS : 'aengcids' , // announce some general cids
   'ANNOUNCE_LOCAL_STATE': 'alc', // announce local state (after being synced)
   'DB_REQUEST': 'dbreq', // some db request to core
   GET_REMOTE_TIPS : 'gremotetipslocal', // get the local tips of some remote peer
