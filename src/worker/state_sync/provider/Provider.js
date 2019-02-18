@@ -51,6 +51,17 @@ class Provider extends EventEmitter {
       callback(isError, failedCids);
     });
   }
+  /** async version of provideContentsBatch */
+  asyncProvideContentsBatch(engCids){
+    return new Promise((resolve,reject)=>{
+      this.provideContentsBatch(engCids,true,(err,failedCids)=>{
+        if(err){
+          return reject(err);
+        }
+        resolve(failedCids);
+      });
+    });
+  }
   /** stream related methods
    * MUST CONTAIN a "notification" field
    * specifying the concrete Action
