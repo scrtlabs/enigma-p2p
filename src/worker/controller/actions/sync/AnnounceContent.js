@@ -1,9 +1,10 @@
 const errors = require('../../../../common/errors');
+const EngCid = require('../../../../common/EngCID');
 class AnnounceContent {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(params) {
+  async execute(params) {
     const onResponse = params.onResponse;
     const isEngCid = params.isEngCid;
     let engCids = params.engCids;
@@ -16,18 +17,18 @@ class AnnounceContent {
     }
     // extra safety, extra O(n)
     engCids = engCids.filter((ecid)=>{
-      return (ecid !== undefined && ecid !== null);
+      return (ecid instanceof EngCid);
     });
-    this._controller.provider().provideContentsBatch(engCids, isEngCid, (err, failedCids)=>{
-      if (err) {
-        if (onResponse) {
-          return onResponse({error: err, failedCids: failedCids});
-        }
-        return this._controller.logger().error(`[AnnounceContent] can't provide ${failedCids} message: ${err}`);
-      }
-      this._controller.logger().debug('[+] success providing cids');
+    try{
+      let failedCids = await this._controller.provide().asyncProvideContentsBatch(engCids);
+      this._controller.logger().debug(`[+] success announcing content, failedCids # =  ${failedCids.length}`);
       return onResponse(null);
-    });
+    }catch(e){
+      if (onResponse) {
+        return onResponse(e);
+      }
+      this._controller.logger().error(`[AnnounceContent] can't announce message: ${e}`);
+    }
   }
 }
 module.exports = AnnounceContent;
