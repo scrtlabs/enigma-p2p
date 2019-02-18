@@ -405,12 +405,10 @@ class EthereumAPI extends EventEmitter {
           this.deleteTaskCreationListener(taskId);
           return callback(event);
         }
-        else {
-          if (('tasks' in event) && (taskId in event.tasks)) {
-              let callback = this._getTaskCreationListener(taskId);
-              this.deleteTaskCreationListener(taskId);
-              return callback(event.tasks[taskId]);
-            }
+        else if (('tasks' in event) && (taskId in event.tasks)) {
+            let callback = this._getTaskCreationListener(taskId);
+            this.deleteTaskCreationListener(taskId);
+            return callback(event.tasks[taskId]);
           }
         }
       }
@@ -426,7 +424,7 @@ class EthereumAPI extends EventEmitter {
         if (event.taskId === taskId) {
           let callback = this._getTaskSubmissionListener(taskId);
           this.deleteTaskCreationListener(taskId);
-          return callback(event, false);
+          return callback(event);
         }
       }
     }
@@ -442,7 +440,7 @@ class EthereumAPI extends EventEmitter {
         if (event.secretContractAddress === taskId) {
           let callback = this._getTaskSubmissionListener(taskId);
           this.deleteTaskCreationListener(taskId);
-          return callback(event, true);
+          return callback(event);
         }
       }
     }
