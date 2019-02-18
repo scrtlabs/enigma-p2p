@@ -19,7 +19,7 @@ class AnnounceContent {
       return (ecid instanceof EngCid);
     });
     try{
-      let failedCids = await this._controller.provide().asyncProvideContentsBatch(engCids);
+      let failedCids = await this._controller.provider().asyncProvideContentsBatch(engCids);
       this._controller.logger().debug(`[+] success announcing content, failedCids # =  ${failedCids.length}`);
       return onResponse(null,failedCids);
     }catch(e){
