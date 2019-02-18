@@ -1,0 +1,47 @@
+{
+  "logger" : {
+    "level" : "debug", // log level
+    "cli" : true, // output to std
+    "file" : false // output to file, if set path then will save to file else none.
+  },
+  "node" : {
+    "network" : {
+      "port" : "0", // if 0 then chose random port,
+      "multiAddrs" : ["/ip4/0.0.0.0/tcp/"],
+      "namespace" : "ipfs",
+      "bootstrapNodes" : ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm",
+        "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"],
+      "consistentDiscovery" : {
+        "persistent" : true, // do persistent discovery i.e every disconnect below lowDht
+        "delay": 500, // delay between each attempt
+        "maxRetry": 10, // max number of retires to reach optimal dht
+        "timeout": 100000 // maxtimeout before canceling discovery
+      },
+      "optimalDht" : 8,
+      "criticalLowDht" : 5
+    },
+    "idPath" : null, // load PeerId, if null-> create one
+    "isDiscover" : true, // should do discovery ?
+    // the inner task manager of the node controller
+    "taskManager" : {
+      "dbPath" : null // the db path for storage, if null saves in default
+    },
+    // epoch related config
+    "principalNode" : {
+      "uri" : null //principal node url,  default if null
+    }
+  },
+  // IPC
+  "core" : {
+    "uri" : null // ipc uri if null default
+  },
+  // JsonRpc config
+  "proxy" : {
+    "port" : null // integer or null will default in constants
+  },
+  // Ethereum related configuration
+  "ethereum" :{
+    "ethereumWebsocketProvider" : "", //websocket provider,
+    "enigmaContractAddress" : "" // enigma contract address
+  }
+}
