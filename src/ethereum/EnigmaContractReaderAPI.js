@@ -1,3 +1,5 @@
+const errors = require('../common/errors');
+
 class EnigmaContractReaderAPI {
   /**
      * {string} enigmaContractAddress
@@ -31,15 +33,23 @@ class EnigmaContractReaderAPI {
   /**
      * get a secret contract hash
      * @param {string} secrectContractAddress
-     * @return {Promise} string
+     * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status
      * */
-  getCodeHash(secrectContractAddress) {
+  getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.contracts(secrectContractAddress).call((error, data)=> {
         if (error) {
           reject(error);
         }
-        resolve(data.codeHash);
+        const params = {
+          owner: data.owner,
+          preCodeHash: data.preCodeHash,
+          codeHash: data.codeHash,
+          outputHash: data.outputHash,
+          status: parseInt(data.status),
+        };
+        resolve(params);
       });
     });
   }
@@ -167,13 +177,17 @@ class EnigmaContractReaderAPI {
   /**
      * * Get the Worker report
      * @param {string} workerAddress
-     * @return {JSON} : {string} signer, {string} report
+     * @return {Promise} returning {JSON} : {string} signer, {string} report
      * */
   getReport(workerAddress) {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.getReport(workerAddress).call((error, data)=> {
         if (error) {
           reject(error);
+        }
+        if (Object.keys(data).length != 2) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
+          reject(err);
         }
         const params = {
           signer: data[0],
@@ -184,8 +198,33 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * * Get task parameters
+   * @param {string} taskId
+   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof, {string} senderAddress,
+   *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
+   * */
+  getTaskParams(taskId) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.tasks(taskId).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        const params = {
+          inputsHash: data.inputsHash,
+          gasLimit: parseInt(data.gasLimit),
+          gasPrice: parseInt(data.gasPx),
+          proof: data.proof,
+          senderAddress: data.sender,
+          blockNumber: parseInt(data.blockNumber),
+          status: parseInt(data.status),
+        };
+        resolve(params);
+      });
+    });
+  }
+  /**
    * * Get Ethereum block number
-   * @return {Integer} : blockNumber
+   * @return {Promise} returning {Integer} : blockNumber
    * */
   getEthereumBlockNumber() {
     return new Promise((resolve, reject) => {
@@ -198,10 +237,24 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * //TODO:: WTF is 'changed' ?
+   * * Get Epoch size
+   * @return {Promise} returning {Integer} : epochSize
+   * */
+  getEpochSize() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.epochSize().call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
-     * @param {Json} filter, incase a filter is required on top of the event itself. //TODO:: add an example HERE of a filter
+     * @param {Json} filter, in case a filter is required on top of the event itself.
+     *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
      * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
      * */
   subscribe(eventName, filter, callback) {
@@ -213,7 +266,6 @@ class EnigmaContractReaderAPI {
           callback(null, result);
         })
         .on('changed', (event)=> {
-          console.log('received a change of the event ', event);
           if (eventName in this._activeEventSubscriptions) {
             delete(this._activeEventSubscriptions[eventName]);
           }
@@ -230,7 +282,6 @@ class EnigmaContractReaderAPI {
      * */
   unsubscribeAll() {
     for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
-      // console.log("unsubscribing " + eventName);
       eventWatcher.unsubscribe();
     }
     return true;
@@ -281,30 +332,26 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {Array<string>} taskIds , {Array<Integer>} gasLimits,
-             *                 {Array<Integer>} gasPrices, {string} senderAddress
-             * */
+       * @return {JSON}: {string} senderAddress,
+       *                 {JSON} tasks, indexed by the taskId, each element has: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+       * */
       'TaskRecordsCreated': (event) => {
-        const parsedGasLimit = [];
-        event.returnValues.gasLimits.forEach(function(element) {
-          parsedGasLimit.push(parseInt(element));
-        });
-        const parsedGasPrice = [];
-        event.returnValues.gasPxs.forEach(function(element) {
-          parsedGasPrice.push(parseInt(element));
-        });
-        return {
-          taskIds: event.returnValues.taskIds,
-          gasLimits: parsedGasLimit,
-          gasPrices: parsedGasPrice,
-          senderAddress: event.returnValues.sender,
-        };
+        let res = {tasks: {}, senderAddress: event.returnValues.sender};
+        for (let i = 0; i < event.returnValues.taskIds.length, i++;) {
+          const taskId = event.returnValues.taskIds[i];
+          res.tasks[taskId] = {
+            taskId: taskId,
+            gasLimit: parseInt(event.returnValues.gasLimits[i]),
+            gasPrice: parseInt(event.returnValues.gasPrices[i]),
+          }
+        }
+        return res;
       },
       /**
              * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
              *                 {string} ethCall, {string} signature
              * */
-      'ReceiptVerified': (event, web3) => {
+      'ReceiptVerified': (event) => {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
@@ -317,7 +364,7 @@ class EnigmaContractReaderAPI {
              * @return {JSON}: {Array<string>} taskIds , {Array<string>} stateDeltaHashes, {string} outputHash,
              *                 {string} ethCall, {string} signature
              * */
-      'ReceiptsVerified': (event, web3) => {
+      'ReceiptsVerified': (event) => {
         return {
           taskIds: event.returnValues.taskIds,
           stateDeltaHashes: event.returnValues.stateDeltaHashes,
@@ -329,7 +376,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      'ReceiptFailed': (event, web3) => {
+      'ReceiptFailed': (event) => {
         return {
           taskId: event.returnValues.taskId,
           signature: event.returnValues.sig,
@@ -338,7 +385,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId
        * */
-      'TaskFeeReturned': (event, web3) => {
+      'TaskFeeReturned': (event) => {
         return {
           taskId: event.returnValues.taskId,
         };
