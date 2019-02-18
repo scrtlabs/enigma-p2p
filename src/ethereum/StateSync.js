@@ -52,7 +52,8 @@ async function getRemoteMissingStates(api, localTips, callback) {
               else {
                 firstMissingIndex = 0;
                 missingAddress = true;
-                missingCodeHash = await api.getCodeHash(secretContractAddress);
+                const contractParams = await api.getContractParams(secretContractAddress);
+                missingCodeHash = contractParams.codeHash;
               }
               api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
                   .then((deltasArray)=>{

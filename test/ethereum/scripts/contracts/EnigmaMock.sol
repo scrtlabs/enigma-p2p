@@ -512,19 +512,23 @@ contract EnigmaMock {
     )
     public
     {
+        //MOCK
         // Check that the locally-generated nonce matches the on-chain value, otherwise _scAddr is invalid
-        require(userTaskDeployments[msg.sender] == _nonce, "Incorrect nonce yielding bad secret contract address");
+        //require(userTaskDeployments[msg.sender] == _nonce, "Incorrect nonce yielding bad secret contract address");
 
+        //MOCK
         // Worker deploying task must be the appropriate worker as per the worker selection algorithm
-        require(_firstBlockNumber == getFirstBlockNumber(block.number), "Wrong epoch for this task");
+        //require(_firstBlockNumber == getFirstBlockNumber(block.number), "Wrong epoch for this task");
 
+        //MOCK
         // Transfer fee from sender to contract
-        uint fee = _gasLimit.mul(_gasPx);
-        require(engToken.allowance(msg.sender, address(this)) >= fee, "Allowance not enough");
-        require(engToken.transferFrom(msg.sender, address(this), fee), "Transfer not valid");
+        //uint fee = _gasLimit.mul(_gasPx);
+        //require(engToken.allowance(msg.sender, address(this)) >= fee, "Allowance not enough");
+        //require(engToken.transferFrom(msg.sender, address(this), fee), "Transfer not valid");
 
         // Create taskId and TaskRecord
-        bytes32 taskId = keccak256(abi.encodePacked(msg.sender, userTaskDeployments[msg.sender]));
+        //MOCK
+        bytes32 taskId = 0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9;//_nonce;
         TaskRecord storage task = tasks[taskId];
         require(task.sender == address(0), "Task already exists");
         task.inputsHash = _inputsHash;

@@ -170,6 +170,30 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       });
     });
   }
+  /**
+     * Irrelevant for workers -> users create deployment tasks with it
+     * */
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce, txParams) {
+    return new Promise((resolve, reject) => {
+      const defaultOptions = config.default;
+      let transactionOptions = defaultOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, defaultOptions);
+      }
+      this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce)
+          .send(transactionOptions, (error, receipt)=> {
+            if (error) {
+              reject(error);
+            }
+            resolve(receipt);
+          });
+    });
+  }
   // /**
   //    * Irrelevant for workers -> users create tasks with it
   //    * */
