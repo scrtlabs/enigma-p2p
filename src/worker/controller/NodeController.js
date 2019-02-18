@@ -400,6 +400,9 @@ class NodeController {
   async getTopics() {
     return await this.engNode().getTopics();
   }
+  getSelfB58Id(){
+    return this.engNode().getSelfIdB58Str();
+  }
   getSelfAddrs() {
     return this.engNode().getListeningAddrs();
   }
@@ -644,6 +647,14 @@ class NodeController {
       next: (findProvidersResult)=>{
         callback(findProvidersResult);
       },
+    });
+  }
+  /** promise based version of findProviders */
+  asyncFindProviders(ecids){
+    return new Promise((resolve,reject)=>{
+      this.findProviders(ecids,(findProvidersResult)=>{
+        resolve(findProvidersResult);
+      });
     });
   }
 }
