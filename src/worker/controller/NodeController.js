@@ -24,36 +24,41 @@ const TaskManager = require('../tasks/TaskManager');
 const PrincipalNode = require('../handlers/PrincipalNode');
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
+const PubsubPublishAction = require('./actions/PubsubPublishAction');
+const PubsubSubscribeAction = require('./actions/PubsubSubscribeAction');
+const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
+const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
+const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
+const GetStateKeysAction = require('./actions/GetStateKeysAction');
+// connectivity
+const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
+const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
 const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
-const PubsubPublishAction = require('./actions/PubsubPublishAction');
-const PubsubSubscribeAction = require('./actions/PubsubSubscribeAction');
-const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
-const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
-const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
-const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
-const GetLocalTipsOfRemote = require('./actions/sync/GetLocalTipsOfRemote');
-const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
-const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
-const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
-const DbRequestAction = require('./actions/db/DbRequestAction');
-const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
-const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
-const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
-const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
-const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
-const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
-const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
-const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
-const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
+//tasks
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
 const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
 const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
-const GetStateKeysAction = require('./actions/GetStateKeysAction');
+// db
+const DbRequestAction = require('./actions/db/DbRequestAction');
+const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
+const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
+const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
+const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
+const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
+//sync related
+const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
+const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
+const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
+const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
+const GetLocalTipsOfRemote = require('./actions/sync/GetLocalTipsOfRemote');
+const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
+const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
+const AnnounceContent = require('./actions/sync/AnnounceContent');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
@@ -91,40 +96,46 @@ class NodeController {
     this._initController();
     // actions
     this._actions = {
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.INIT_WORKER]: new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
+      [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
+      [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
+      [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
+      // connectivity
+      [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
+      [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
       [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
-      [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
-      [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
-      [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
-      [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
-      [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
-      [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
-      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(this),
-      [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
-      [NOTIFICATION.TRY_RECEIVE_ALL]: new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
+      // tasks
+      [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
+      [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
+      [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
+      [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
+      [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
+      // db
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
-      [NOTIFICATION.ANNOUNCE_LOCAL_STATE]: new AnnounceLocalStateAction(this),
+      [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
       [NOTIFICATION.GET_ALL_ADDRS]: new GetAllAddrsAction(this), // get all the addresses from core or from cache
       [NOTIFICATION.GET_DELTAS]: new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE]: new GetContractCodeAction(this), // get bytecode
+      [NOTIFICATION.UPDATE_DB]: new UpdateDbAction(this), // write to db, bytecode or delta
+      // sync
+      [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
+      [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
+      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(this),
+      [NOTIFICATION.TRY_RECEIVE_ALL]: new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
+      [NOTIFICATION.ANNOUNCE_LOCAL_STATE]: new AnnounceLocalStateAction(this),
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE]: new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.GET_REMOTE_TIPS] : new GetLocalTipsOfRemote(this), // get the local tips of a remote peer
-      [NOTIFICATION.UPDATE_DB]: new UpdateDbAction(this), // write to db, bytecode or delta
+      [NOTIFICATION.ANNOUNCE_ENG_CIDS] : new AnnounceContent(this), // announce some general content given cids, async
+      // jsonrpc related
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
-      [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
-      [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
-      [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
-      [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
-      [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
-      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
-      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
-      [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
-      [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
     };
   }
   /**
