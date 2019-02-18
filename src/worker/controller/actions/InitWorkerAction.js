@@ -51,7 +51,7 @@ class InitWorkerAction {
     };
     const syncState = (cb)=>{
       if(!this._controller.hasEthereum()){
-        return cb();
+        return cb(null);
       }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
@@ -94,7 +94,7 @@ class InitWorkerAction {
     const registerAndLoginWorker = (cb)=>{
       console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
       if(this._controller.hasEthereum()){
-        
+
       }
       cb(null);
     };

@@ -58,7 +58,7 @@ const FindContentProviderAction = require('./actions/sync/FindContentProviderAct
 const GetLocalTipsOfRemote = require('./actions/sync/GetLocalTipsOfRemote');
 const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
 const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
-const AnnounceContent = require('./actions/sync/AnnounceContent');
+const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 // gateway jsonrpc
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
@@ -131,7 +131,7 @@ class NodeController {
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE]: new AnnounceLocalStateAction(this),
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE]: new ReceiveAllPipelineAction(this), // sync receiver pipeline
       [NOTIFICATION.GET_REMOTE_TIPS] : new GetLocalTipsOfRemote(this), // get the local tips of a remote peer
-      [NOTIFICATION.ANNOUNCE_ENG_CIDS] : new AnnounceContent(this), // announce some general content given cids, async
+      [NOTIFICATION.ANNOUNCE_ENG_CIDS] : new AnnounceContentAction(this), // announce some general content given cids, async
       // jsonrpc related
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus

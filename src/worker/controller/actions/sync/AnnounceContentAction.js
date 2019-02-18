@@ -1,6 +1,6 @@
 const errors = require('../../../../common/errors');
 const EngCid = require('../../../../common/EngCID');
-class AnnounceContent {
+class AnnounceContentAction {
   constructor(controller) {
     this._controller = controller;
   }
@@ -40,6 +40,6 @@ class AnnounceContent {
     });
   }
 }
-module.exports = AnnounceContent;
+module.exports = AnnounceContentAction;
 
 
