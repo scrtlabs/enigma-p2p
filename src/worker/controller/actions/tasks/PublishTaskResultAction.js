@@ -5,8 +5,8 @@
  * - publish the result back to etherum
  * */
 const constants = require('../../../../common/constants');
-
-
+const DeployTask = require('../../../tasks/DeployTask');
+const EngCid = require('../../../../common/EngCID');
 class PublishTaskResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -21,6 +21,18 @@ class PublishTaskResultAction {
         type: task.getTaskType(),
       }),
     });
+    // announce as provider if its deployment and successfull
+    if(task instanceof DeployTask && task.getResult().isSuccess()){
+      let ecid = EngCid.createFromSCAddress(task.getContractAddr());
+      if(ecid){
+        try{
+          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,[ecid]);
+        }catch(e){
+          this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
+        }
+      }
+    }
+    // commit to ethereum
     if (this._controller.hasEthereum()) {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
         task: task,

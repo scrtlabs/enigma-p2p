@@ -8,6 +8,11 @@ const CoreServer = require('../core/core_server_mock/core_server');
 const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
 const cryptography = require('../common/cryptography');
 const DbUtils = require('../common/DbUtils');
+//TODO:: add to manager events with spinner link below
+//https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
+// const Multispinner = require('multispinner')
+// const spinners = ['core-alive', 'bootstrap-nodes', 'discover-optimal-dht','init-background-services' ,'synchronize-worker-state','init '];
+
 class CLI {
   constructor() {
     // mock server
@@ -55,6 +60,7 @@ class CLI {
             console.log('[-] ERROR $init ', err);
           }
           const uri ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          console.log("----------------------- ATTENTION --------------------------");
           console.log('please visit %s for more info', uri);
         });
       },

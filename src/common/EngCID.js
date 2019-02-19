@@ -1,5 +1,6 @@
 const CIDUtil = require('./CIDUtil');
 const EncoderUtil = require('./EncoderUtil');
+
 /**
  * Abstraction - wrapper to libp2p-cid
  * */
@@ -8,6 +9,10 @@ class EngCID {
     this._encoder = encoder;
     this._cid = null;
     this._address = null;
+  }
+  static createFromByteArray(bytes){
+    const h = CIDUtil.hashByteArray(bytes);
+    return this.createFromKeccack256(h);
   }
   static createFromSCAddress(scAddr) {
     const cid = CIDUtil.createCID(scAddr);
