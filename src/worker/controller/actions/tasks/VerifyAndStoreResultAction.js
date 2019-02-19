@@ -6,6 +6,7 @@
  * - update local storage
  * */
 const constants = require('../../../../common/constants');
+const EngCid = require('../../../../common/EngCID');
 class VerifyAndStoreResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -34,7 +35,18 @@ class VerifyAndStoreResultAction {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
       if (coreMsg) {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {
-          callback: (err, result)=>{
+          callback: async (err, result)=>{
+            // announce as provider if its deployment and successfull
+            if(type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS){
+              let ecid = EngCid.createFromSCAddress(resultObj.taskId);
+              if(ecid){
+                try{
+                  await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
+                }catch(e){
+                  this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
+                }
+              }
+            }
             if (optionalCallback) {
               return optionalCallback(err, result);
             }
