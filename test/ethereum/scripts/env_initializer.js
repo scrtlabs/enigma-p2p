@@ -44,8 +44,8 @@ async function init(truffleDirectory) {
   const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
   // from https://github.com/ethereum/web3.js/issues/1354
-  provider.on('error', (e) => console.error('WS Error: ', e)); // provider.on('error', e => console.error('WS Error', e));
-  provider.on('end', (e) => console.log('WS End')); // provider.on('end', e => console.error('WS End', e));
+  // provider.on('error', (e) => console.error('WS Error: ', e)); // provider.on('error', e => console.error('WS Error', e));
+  // provider.on('end', (e) => console.log('WS End')); // provider.on('end', e => console.error('WS End', e));
 
   const web3 = new Web3(provider);
 
