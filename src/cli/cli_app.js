@@ -5,7 +5,6 @@ const Parsers = require('./Parsers');
 const nodeUtils = require('../common/utils');
 const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
 const CoreServer = require('../core/core_server_mock/core_server');
-const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
 const cryptography = require('../common/cryptography');
 const DbUtils = require('../common/DbUtils');
 //TODO:: add to manager events with spinner link below
