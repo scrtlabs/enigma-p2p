@@ -23,7 +23,7 @@ module.exports = Channel;
 //
 //   c1.setOnMessage((envelop)=>{
 //     console.log(envelop);
-//     let e = new Envelop(envelop.id(),{msg : 'this is lena '}, 'later');
+//     let e = new Envelop(envelop.id(),{msg : 'this is '}, 'later');
 //     c1.send(e);
 //   });
 //   // envelop

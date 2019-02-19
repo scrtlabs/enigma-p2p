@@ -119,9 +119,9 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     } else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
 
     return new EnigmaContractHandler(this.api, this);
