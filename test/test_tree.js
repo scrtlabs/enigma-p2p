@@ -1,19 +1,19 @@
 module.exports.TEST_TREE = {
   'basic' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'ipc' :{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
     '#4': true,
   },
   'coverage' :{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -23,7 +23,7 @@ module.exports.TEST_TREE = {
     '#1' : true
   },
   'ethereum' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -32,7 +32,7 @@ module.exports.TEST_TREE = {
   },
   // bug with false
   'task_manager' :{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -40,19 +40,23 @@ module.exports.TEST_TREE = {
     '#5' : true,
   },
   'task_flow' : {
-    'all' :true,
+    'all' :false,
     '#1' : true,
   },
   'sync_basic':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
     '#4' : true,
     '#5' : true,
   },
-  'jsonrpc_basic':{
+  'sync_network':{
     'all' : true,
+    '#1' : true,
+  },
+  'jsonrpc_basic':{
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -61,18 +65,18 @@ module.exports.TEST_TREE = {
     '#6' : true,
   },
   'actions_tests':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
   },
   'principal' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
   },
   'verifier':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
