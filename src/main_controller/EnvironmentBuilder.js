@@ -83,7 +83,7 @@ class EnvironmentBuilder{
     if(this._nodeConfig){
       let enigmaContractHandler = null;
       if(this._ethereumConfig){
-        const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
+        const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(logger);
         enigmaContractHandler = await enigmaContractAPIbuilder.setConfigAndBuild(
             this._ethereumConfig.enigmaContractAddress, this._ethereumConfig.ethereumWebsocketProvider);
       }
