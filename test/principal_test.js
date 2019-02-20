@@ -54,7 +54,6 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     await mainController.shutdownSystem();
     controllers.coreServer.disconnect();
     server.close();
-    console.log(recivedRequest);
     assert(recivedRequest, 'The principal mock never recived a message');
     resolve();
   });
