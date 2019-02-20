@@ -1,107 +1,146 @@
 {
   "BASE_SCHEME": {
     "type": "object",
+    "additionalProperties": false,
     "properties": {
       "type": {"type": "string"},
       "id": {"type": "string"}
-    }
+    },
+    "required": ["type", "id"]
   },
   "GetRegistrationParams": {},
   "GetTip": {
-    "input": {"type": "string"}
+    "properties": {
+      "input": {
+        "type": "string"
+      }
+    },
+    "required": ["input"]
   },
   "GetTips": {
-    "input": {
-      "type": "array",
-      "items": {"type": "string"}
-    }
+    "properties": {
+      "input": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "minItems": 1
+        }
+      }
+    },
+    "required": ["input"]
   },
   "GetAllTips": {},
   "GetAllAddrs": {},
   "GetDelta": {
-    "input": {
-      "type": "object",
-      "properties": {
-        "address": {"type": "string"},
-        "key": {"type": "number"}
-      }
-    }
-  },
-  "GetDeltas": {
-    "input": {
-      "type": "array",
-      "items": {
-        "address": {"type": "string"},
-        "from": {"type": "number"},
-        "to": {"type": "number"}
-      }
-    }
-  },
-  "GetContract": {
-    "input": {"type": "string"}
-  },
-  "UpdateNewContract": {
-    "address": {"type": "string"},
-    "bytecode": {"type": "string"}
-  },
-  "UpdateDeltas": {
-    "deltas":{
-      "type": "array",
-      "items": {
+    "properties": {
+      "input": {
         "type": "object",
         "properties": {
           "address": {"type": "string"},
-          "key": {"type": "number"},
-          "data": {"type": "string"}
+          "key": {"type": "number"}
+        },
+        "required": ["address", "key"]
+      }
+    },
+    "required": ["input"]
+  },
+  "GetDeltas": {
+    "properties": {
+      "input": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {"type": "string"},
+            "from": {"type": "number"},
+            "to": {"type": "number"}
+          },
+          "required": ["address", "from", "to"]
         }
       }
-    }
+    },
+    "required": ["input"]
+  },
+  "GetContract": {
+    "properties": {
+      "input": {"type": "string"}
+    },
+    "required": ["input"]
+  },
+  "UpdateNewContract": {
+    "properties": {
+      "address": {"type": "string"},
+      "bytecode": {"type": "string"}
+    },
+    "required": ["address", "bytecode"]
+  },
+  "UpdateDeltas": {
+    "properties": {
+      "deltas":{
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {"type": "string"},
+            "key": {"type": "number"},
+            "data": {"type": "string"}
+          },
+          "required": ["address", "key", "data"]
+        }
+      }
+    },
+    "required": ["deltas"]
   },
   "NewTaskEncryptionKey": {
-    "userPubKey": {"type": "string"}
+    "properties": {
+      "userPubKey": {"type": "string"}
+    },
+    "required": ["userPubKey"]
   },
   "DeploySecretContract": {
-    "input": {
-      "type": "object",
-      "properties": {
-        "preCode": {"type": "string"},
-        "encryptedArgs": {"type": "string"},
-        "encryptedFn": {"type": "string"},
-        "userDHKey": {"type": "string"},
-        "gasLimit": {"type": "number"},
-        "contractAddress": {"type": "string"}
+    "properties": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "preCode": {"type": "string"},
+          "encryptedArgs": {"type": "string"},
+          "encryptedFn": {"type": "string"},
+          "userDHKey": {"type": "string"},
+          "gasLimit": {"type": "number"},
+          "contractAddress": {"type": "string"}
+        },
+        "required": ["preCode", "encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"]
       }
-    }
+    },
+    "required": ["input"]
   },
   "ComputeTask": {
-    "input": {
-      "type": "object",
-      "properties": {
-        "encryptedArgs": {"type": "string"},
-        "encryptedFn": {"type": "string"},
-        "userDHKey": {"type": "string"},
-        "gasLimit": {"type": "number"},
-        "contractAddress": {"type": "string"}
+    "properties": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "encryptedArgs": {"type": "string"},
+          "encryptedFn": {"type": "string"},
+          "userDHKey": {"type": "string"},
+          "gasLimit": {"type": "number"},
+          "contractAddress": {"type": "string"}
+        },
+        "required": ["encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"]
       }
-    }
+    },
+    "required": ["input"]
   },
-  "GetPTTRequest": {
-    "input": {
-      "type": "object",
-      "properties": {
-        "addresses": {
-          "type": "array",
-          "items": {"type": "string"}
-        }
-      }
-    }
-  },
+  "GetPTTRequest": {},
   "PTTResponse": {
-    "input": {
-      "type": "object",
-      "properties": {
-        "response": {"type": "string"}
+    "properties": {
+      "input": {
+        "type": "object",
+        "properties": {
+          "response": {"type": "string"}
+        },
+        "required": ["response"]
       }
-    }
+    },
+    "required": ["input"]
   }
 }
