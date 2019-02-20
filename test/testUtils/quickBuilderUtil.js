@@ -97,6 +97,7 @@ const _createNode = async (options)=>{
     'port': null,
     'nickname': null,
     'idPath': null,
+    'extraConfig': {},
   };
   if(options.isBootstrap){
     let bNodes = [];
@@ -156,11 +157,12 @@ const _createNode = async (options)=>{
 
       dbPath = path.join(__dirname, '/'+nodeUtils.randId()+".deletedb");
     }
-    nodeConfigObject.extraConfig = {principal: {uri: options.principalUri}};
     nodeConfigObject.extraConfig.tm = {
       dbPath : dbPath
     };
   }
+
+  nodeConfigObject.extraConfig.principal = {uri: options.principalUri};
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {mainController : mainController, coreServer : coreServer , tasksDbPath :dbPath };
 };
