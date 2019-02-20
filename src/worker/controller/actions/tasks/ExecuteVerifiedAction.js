@@ -17,7 +17,7 @@ class ExecuteVerifiedAction {
     const task = params.task;
     const requestEnv = new Envelop(true, {
       type: task.getTaskType(),
-      task: task.toDbJson(),
+      task: task.toCoreJson(),
     }, constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
     let responseEnvelop = null;
     try {

@@ -6,13 +6,12 @@ class GetStateKeysAction {
     this._controller = controller;
   }
 
-  execute(params) {
+  execute() {
     const onPTTRequestResponse = async (err, coreResponse) => {
-      if (err) {
+      if (err || coreResponse.type === 'Error') {
         this._controller.logger().error(`Failed Core connection: ${err}`);
         return;
       }
-
       const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {
@@ -34,7 +33,6 @@ class GetStateKeysAction {
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
-          input: {addresses: params.addresses},
           onResponse: onPTTRequestResponse,
         },
     );

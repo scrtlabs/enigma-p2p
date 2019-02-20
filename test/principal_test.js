@@ -9,17 +9,17 @@ const constants = require('../src/common/constants');
 const fakeResponse = '0061d93b5412c0c9';
 const fakeRequest = '84a46461746181a';
 const fakeSig = 'deadbeaf';
-const addresses = ['0xdeadbeaf'];
 const uri = 'http://127.0.0.1:';
-const test_tree = require('./test_tree').TEST_TREE;
+const TEST_TREE = require('./test_tree').TEST_TREE;
+let recivedRequest = false;
 
 it('#1 Should Recieve Encrypted response message from mock principal', async function() {
-    let tree = test_tree.principal;
-    if(!tree['all'] || !tree['#1']){
-      this.skip();
-    }
+  const tree = TEST_TREE.principal;
+  if (!tree['all'] || !tree['#1']) {
+    this.skip();
+  }
   return new Promise(async (resolve) => {
-    const server = getMockSPrincipalNode();
+    const server = getMockPrincipalNode();
     await testUtils.sleep(500);
     const port = server.address().port;
 
@@ -31,38 +31,43 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
   });
 });
 
+
 it('#2 Should Simulate the principal node and run GetStateKeysAction', async function() {
-  let tree = test_tree.principal;
-  if(!tree['all'] || !tree['#2']){
+  recivedRequest = false;
+  const tree = TEST_TREE.principal;
+  if (!tree['all'] || !tree['#2']) {
     this.skip();
   }
 
   return new Promise(async (resolve) => {
-    const server = getMockSPrincipalNode();
+    const server = getMockPrincipalNode();
     await testUtils.sleep(150);
     const port = server.address().port;
 
-    const controllers = await ControllerBuilder.createNode({principalUri: uri + port});
+    const controllers = await ControllerBuilder.createNode({principalUri: uri + port, withTasksDb: false});
     const mainController = controllers.mainController;
 
     mainController.getNode().execCmd(
         constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-        {addresses: addresses}
     );
     await testUtils.sleep(1500);
     await mainController.shutdownSystem();
     controllers.coreServer.disconnect();
-    server.close(resolve);
+    server.close();
+    assert(recivedRequest, 'The principal mock never recived a message');
+    resolve();
   });
 });
 
-function getMockSPrincipalNode() {
+function getMockPrincipalNode() {
   const server = jayson.server({
     getStateKeys: function(args, callback) {
-      if (args.requestMessage) {
+      if (args.requestMessage && args.workerSig) {
+        recivedRequest = true;
         const result = {encryptedResponseMessage: fakeResponse};
         callback(null, result);
       } else {
+        assert(false);
         callback('Missing requestMessage', null);
       }
     },
