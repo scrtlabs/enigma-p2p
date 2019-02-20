@@ -63,6 +63,8 @@ const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
+// ethereum related
+const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -136,6 +138,8 @@ class NodeController {
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
+      // ethereum
+      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
   /**
