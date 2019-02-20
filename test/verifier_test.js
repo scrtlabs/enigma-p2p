@@ -2,7 +2,7 @@ const assert = require('assert');
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const EthereumServices = require('../src/ethereum/EthereumServices');
 
-const EthereumAPI = require('../src/ethereum/EthereumAPI');
+const EthereumVerifier = require('../src/ethereum/EthereumVerifier');
 
 const EnigmaContractMock = require('./ethereum/EnigmaContractMock');
 const ComputeTask  = require('../src/worker/tasks/ComputeTask');
@@ -19,7 +19,7 @@ const Web3 = require('web3');
 describe('Verifier tests', function() {
   let web3 = new Web3();
 
-  async function verifyMinedTaskSubmission(isComputeTask, apiMock, ethereumApi, taskId, output, delta, outputHash, deltaHash, blockNumber) {
+  async function verifyMinedTaskSubmission(isComputeTask, apiMock, verifier, taskId, output, delta, outputHash, deltaHash, blockNumber) {
     let task = null;
     let res = null;
 
@@ -34,31 +34,31 @@ describe('Verifier tests', function() {
 
     // ok
     apiMock.setTaskParams(taskId, deltaHash, outputHash, blockNumber, status);
-    res = await ethereumApi.verifyTaskSubmission(task);
+    res = await verifier.verifyTaskSubmission(task);
     assert.strictEqual(res.isVerified, true);
     assert.strictEqual(res.error, null);
 
     // wrong deltaHash
     apiMock.setTaskParams(taskId, web3.utils.randomHex(32), outputHash, blockNumber, status);
-    res = await ethereumApi.verifyTaskSubmission(task);
+    res = await verifier.verifyTaskSubmission(task);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
     // wrong outputHash
     apiMock.setTaskParams(taskId, deltaHash, web3.utils.randomHex(32), blockNumber, status);
-    res = await ethereumApi.verifyTaskSubmission(task);
+    res = await verifier.verifyTaskSubmission(task);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
     // status == RECEIPT_FAILED
     status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
     apiMock.setTaskParams(taskId, deltaHash, outputHash, blockNumber, status);
-    res = await ethereumApi.verifyTaskSubmission(task);
+    res = await verifier.verifyTaskSubmission(task);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
 
     task = new FailedResult(taskId, constants.TASK_STATUS.FAILED, output, 5, "signature");
-    res = await ethereumApi.verifyTaskSubmission(task);
+    res = await verifier.verifyTaskSubmission(task);
     assert.strictEqual(res.isVerified, true);
     assert.strictEqual(res.error, null);
   }
@@ -66,16 +66,16 @@ describe('Verifier tests', function() {
   async function init() {
     const apiMock = new EnigmaContractMock();
     const services = new EthereumServices(apiMock);
-    const ethereumApi = new EthereumAPI(apiMock, services);
+    const verifier = new EthereumVerifier(apiMock, services);
 
     services.initServices();
-    await ethereumApi.init();
+    await verifier.init();
 
-    return {apiMock: apiMock, services: services, ethereumApi: ethereumApi};
+    return {apiMock: apiMock, services: services, verifier: verifier};
   }
 
   async function initStuffForTaskSubmission() {
-    let {apiMock, services, ethereumApi} = await init();
+    let {apiMock, services, verifier} = await init();
 
     const taskId = web3.utils.randomHex(32);
     let delta = web3.utils.randomHex(32);
@@ -84,7 +84,7 @@ describe('Verifier tests', function() {
     let outputHash = DbUtils.kecckak256Hash(output);
     let blockNumber = 0;
 
-    return {apiMock: apiMock, services: services, ethereumApi: ethereumApi, taskId: taskId, delta: delta, deltaHash: deltaHash,
+    return {apiMock: apiMock, services: services, verifier: verifier, taskId: taskId, delta: delta, deltaHash: deltaHash,
       outputHash: outputHash, output:output, blockNumber: blockNumber};
   }
 
@@ -108,7 +108,7 @@ describe('Verifier tests', function() {
   async function initStuffForWorkerSelection () {
     const apiMock = new EnigmaContractMock();
     const services = new EthereumServices(apiMock);
-    const ethereumApi = new EthereumAPI(apiMock, services);
+    const verifier = new EthereumVerifier(apiMock, services);
 
     const workersA = [{signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)},
       {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}];
@@ -130,13 +130,13 @@ describe('Verifier tests', function() {
     apiMock.setEpochSize(100);
     apiMock.setWorkerParams(Array.from(params));
     services.initServices();
-    await ethereumApi.init();
+    await verifier.init();
 
     const secretContractAddress = web3.utils.randomHex(32);
 
     const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA).signer;
 
-    return {apiMock: apiMock, services: services, ethereumApi: ethereumApi, params: params, expectedAddress: expected,
+    return {apiMock: apiMock, services: services, verifier: verifier, params: params, expectedAddress: expected,
       expectedParams: params[0], secretContractAddress: secretContractAddress};
 
   }
@@ -148,7 +148,7 @@ describe('Verifier tests', function() {
     const encryptedArgs = web3.utils.randomHex(32);
     const encryptedFn = web3.utils.randomHex(32);
     const userDHKey = web3.utils.randomHex(32);
-    const gasLimit = web3.utils.randomHex(32);
+    const gasLimit = 10;
 
     a['taskId'] = taskId;
     a['preCode'] = preCode;
@@ -170,8 +170,8 @@ describe('Verifier tests', function() {
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskSubmission();
       // VERIFY SUBMISSION WHEN THE TASK IS MINED ALREADY
-      await verifyMinedTaskSubmission(true, a.apiMock, a.ethereumApi, a.taskId, a.output, a.delta, a.outputHash, a.deltaHash, a.blockNumber);
-      await verifyMinedTaskSubmission(false, a.apiMock, a.ethereumApi, a.taskId, a.output, a.delta, a.outputHash, a.deltaHash, a.blockNumber);
+      await verifyMinedTaskSubmission(true, a.apiMock, a.verifier, a.taskId, a.output, a.delta, a.outputHash, a.deltaHash, a.blockNumber);
+      await verifyMinedTaskSubmission(false, a.apiMock, a.verifier, a.taskId, a.output, a.delta, a.outputHash, a.deltaHash, a.blockNumber);
       resolve();
     });
   });
@@ -189,7 +189,7 @@ describe('Verifier tests', function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
@@ -214,7 +214,7 @@ describe('Verifier tests', function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -238,7 +238,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -262,7 +262,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
@@ -286,7 +286,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
@@ -310,7 +310,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
@@ -334,7 +334,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
@@ -359,7 +359,7 @@ describe('Verifier tests', function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
@@ -384,7 +384,7 @@ describe('Verifier tests', function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -408,7 +408,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -432,7 +432,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
@@ -456,7 +456,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
@@ -480,12 +480,12 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         // SHOULD FAIL IF GETS HERE
         assert.strictEqual(true, false);
       });
 
-      a.ethereumApi.deleteTaskSubmissionListener(a.taskId);
+      a.verifier.deleteTaskSubmissionListener(a.taskId);
       const event = {stateDeltaHash: a.deltaHash, outputHash: web3.utils.randomHex(32), taskId: a.taskId};
       a.apiMock.triggerEvent('ReceiptVerified', event);
       resolve();
@@ -504,12 +504,12 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskSubmission(task).then( (res)=> {
+      a.verifier.verifyTaskSubmission(task).then( (res)=> {
         // SHOULD FAIL IF GETS HERE
         assert.strictEqual(true, false);
       });
 
-      a.ethereumApi.deleteTaskSubmissionListener(a.taskId);
+      a.verifier.deleteTaskSubmissionListener(a.taskId);
       const event = {stateDeltaHash: a.deltaHash, codeHash: web3.utils.randomHex(32), secretContractAddress: a.taskId};
       a.apiMock.triggerEvent('SecretContractDeployed', event);
       resolve();
@@ -526,7 +526,7 @@ describe('Verifier tests', function() {
       let a = await initStuffForWorkerSelection();
 
       // 1.Verify only the algorithm
-      const observed = EthereumAPI.selectWorkerGroup(a.secretContractAddress, a.expectedParams, web3, 1)[0];
+      const observed = EthereumVerifier.selectWorkerGroup(a.secretContractAddress, a.expectedParams, web3, 1)[0];
       assert.strictEqual(observed.signer, a.expectedAddress);
 
       // 2. Verify the entire flow of params update
@@ -535,11 +535,11 @@ describe('Verifier tests', function() {
       // with using ComputeTask
       let task = new ComputeTask(web3.utils.randomHex(32), "encryptedArgs","encryptedFn","userDHKey",
         5, a.secretContractAddress);
-      let res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      let res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, web3.utils.randomHex(32));
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3.utils.randomHex(32));
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
 
@@ -547,17 +547,17 @@ describe('Verifier tests', function() {
       task = new DeployTask(a.secretContractAddress, "preCode","encryptedArgs","encryptedFn","userDHKey",
         5, web3.utils.randomHex(32));
 
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, web3.utils.randomHex(32));
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3.utils.randomHex(32));
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
 
       // verify unexpected future block number
       blockNumber = 550;
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
 
@@ -565,13 +565,13 @@ describe('Verifier tests', function() {
       const event = {seed: a.expectedParams.seed, blockNumber: 500, workers: a.expectedParams.workers, balances: a.expectedParams.balances, nonce: a.expectedParams.nonce};
       a.apiMock.triggerEvent('WorkersParameterized', event);
 
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
       // verify unexpected past block number
       blockNumber = 0;
-      res = await a.ethereumApi.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
 
@@ -594,7 +594,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
         resolve();
@@ -617,7 +617,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -640,7 +640,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -663,7 +663,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -682,15 +682,16 @@ describe('Verifier tests', function() {
       let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
-      a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
+      a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
         resolve();
       });
 
-      const event = {taskId: a.secretContractAddress, inputsHash: a.inputsHash};
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      const event = {taskId: a.secretContractAddress, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordCreated', event);
     });
   });
@@ -706,17 +707,17 @@ describe('Verifier tests', function() {
       let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
-      a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
+      a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
         resolve();
       });
 
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
       let event = {tasks: {}};
-      event.tasks[a.secretContractAddress] = {taskId: a.secretContractAddress, inputsHash: a.inputsHash};
-      event.tasks[web3.utils.randomHex(32)] = {taskId: a.secretContractAddress, inputsHash: a.inputsHash};
+      event.tasks[a.secretContractAddress] = {taskId: a.secretContractAddress, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
+      event.tasks[web3.utils.randomHex(32)] = {taskId: a.secretContractAddress, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordsCreated', event);
     });
   });
@@ -733,11 +734,10 @@ describe('Verifier tests', function() {
 
       let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
         resolve();
@@ -756,11 +756,10 @@ describe('Verifier tests', function() {
 
       let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -779,11 +778,10 @@ describe('Verifier tests', function() {
 
       let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
-
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -802,11 +800,10 @@ describe('Verifier tests', function() {
 
       let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
-
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -822,18 +819,18 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
-      a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
+      a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
         resolve();
       });
 
-      const event = {taskId: a.taskId, inputsHash: a.inputsHash};
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+      const event = {taskId: a.taskId, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordCreated', event);
     });
   });
@@ -846,21 +843,70 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
-      a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), a.blockNumber, status);
-      a.ethereumApi.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
+      a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
         resolve();
       });
 
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
       let event = {tasks: {}};
-      event.tasks[a.taskId] = {taskId: a.taskId, inputsHash: a.inputsHash};
-      event.tasks[web3.utils.randomHex(32)] = {taskId: a.taskId, inputsHash: a.inputsHash};
+      event.tasks[a.taskId] = {taskId: a.taskId, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
+      event.tasks[web3.utils.randomHex(32)] = {taskId: a.taskId, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordsCreated', event);
+    });
+  });
+
+  it('Wrong deploy task creation pre-mined due to selection algorithm', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#29']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
+
+      a.apiMock.setTaskParams(a.secretContractAddress, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
+        resolve();
+      });
+
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      const event = {taskId: a.secretContractAddress, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
+      a.apiMock.triggerEvent('TaskRecordCreated', event);
+    });
+  });
+
+  it('Wrong compute task creation pre-mined due to selection algorithm', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#30']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
+
+      a.apiMock.setTaskParams(a.taskId, web3.utils.randomHex(32), web3.utils.randomHex(32), 0, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
+        resolve();
+      });
+
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+      const event = {taskId: a.taskId, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
+      a.apiMock.triggerEvent('TaskRecordCreated', event);
     });
   });
 

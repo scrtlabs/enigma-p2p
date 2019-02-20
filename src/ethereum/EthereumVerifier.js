@@ -1,4 +1,3 @@
-const EventEmitter = require('events');
 const Web3 = require('web3');
 const DbUtils = require('../common/DbUtils');
 const FailedResult  = require('../worker/tasks/Result').FailedResult;
@@ -8,14 +7,13 @@ const DeployResult  = require('../worker/tasks/Result').DeployResult;
 const constants = require('../common/constants');
 const errors = require('../common/errors');
 
-class EthereumAPI extends EventEmitter {
+class EthereumVerifier {
   /**
    * {EnigmaContractReaderAPI} enigmaContractAPI
    * {EthereumServices} ethereumServices
    * {Object} logger
    * */
   constructor(contractAPI, ethereumServices, logger) {
-    super();
     this._logger = logger;
     this._contractApi = contractAPI;
     this._ethereumServices = ethereumServices;
@@ -47,15 +45,15 @@ class EthereumAPI extends EventEmitter {
    */
   verifyTaskCreation(task, workerAddress) {
     return new Promise((resolve) => {
-      this._createTaskCreationListener(task, resolve);
+      this._createTaskCreationListener(task, workerAddress, resolve);
       this._verifyTaskCreationNow(task, async (res, taskParams) => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
           if (res.isVerified) {
             let res2 = await this.verifySelectedWorker(task, taskParams.blockNumber, workerAddress);
-            resolve({error: res2.error, isVerified: res2.isVerified});
+            return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: taskParams.gasLimit});
           }
-          resolve({error: res.error, isVerified: false});
+          return resolve({error: res.error, isVerified: false, gasLimit: null});
         }
       });
     });
@@ -79,10 +77,18 @@ class EthereumAPI extends EventEmitter {
     });
   }
 
+  /**
+   * Delete task creation listener for the specific taskId
+   * @param {String} taskId
+   */
   deleteTaskCreationListener(taskId) {
     delete this._unverifiedCreateTasks[taskId];
   }
 
+  /**
+   * Delete task submission listener for the specific taskId
+   * @param {String} taskId
+   */
   deleteTaskSubmissionListener(taskId) {
     delete this._unverifiedSubmitTasks[taskId];
   }
@@ -113,11 +119,15 @@ class EthereumAPI extends EventEmitter {
     });
   }
 
-  _createTaskCreationListener(task, resolve) {
+  _createTaskCreationListener(task, workerAddress, resolve) {
     const taskId = task.getTaskId();
-    this._setTaskCreationListener(taskId, (event) => {
+    this._setTaskCreationListener(taskId, async (event) => {
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
-      return resolve(res);
+      if (res.isVerified) {
+        let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
+        return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: event.gasLimit});
+      }
+      return resolve({error: res.error, isVerified: res.isVerified, gasLimit: null});
     });
   }
 
@@ -276,7 +286,7 @@ class EthereumAPI extends EventEmitter {
     // In order to not be bound to Ethereum, we create a new web3 instance here and not use the
     // EnigmaContractApi instance
     const web3 = new Web3();
-    const selectedWorker = EthereumAPI.selectWorkerGroup(secretContractAddress, params, web3, 1)[0];
+    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, web3, 1)[0];
     if (selectedWorker.signer === workerAddress) {
       return {error: null, isVerified: true};
     }
@@ -369,7 +379,7 @@ class EthereumAPI extends EventEmitter {
   }
 
   _findWorkerParamForTask(blockNumber) {
-    if (this._workerParamArray.length <= 0) {
+    if ((this._workerParamArray.length <= 0) || (!blockNumber)) {
       return null;
     }
 
@@ -478,4 +488,4 @@ class EthereumAPI extends EventEmitter {
 }
 
 
-module.exports = EthereumAPI;
+module.exports = EthereumVerifier;
