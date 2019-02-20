@@ -10,6 +10,7 @@ const fakeResponse = '0061d93b5412c0c9';
 const fakeRequest = '84a46461746181a';
 const fakeSig = 'deadbeaf';
 const uri = 'http://127.0.0.1:';
+const addresses = ['0xdeadbeaf'];
 const TEST_TREE = require('./test_tree').TEST_TREE;
 let recivedRequest = false;
 
@@ -49,6 +50,7 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
 
     mainController.getNode().execCmd(
         constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
+        {addresses: addresses},
     );
     await testUtils.sleep(1500);
     await mainController.shutdownSystem();

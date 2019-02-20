@@ -6,7 +6,7 @@ class GetStateKeysAction {
     this._controller = controller;
   }
 
-  execute() {
+  execute(params) {
     const onPTTRequestResponse = async (err, coreResponse) => {
       if (err || coreResponse.type === 'Error') {
         this._controller.logger().error(`Failed Core connection: ${err}`);
@@ -33,6 +33,7 @@ class GetStateKeysAction {
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
+          input: {addresses: params.addresses},
           onResponse: onPTTRequestResponse,
         },
     );
