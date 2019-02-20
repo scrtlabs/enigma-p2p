@@ -65,6 +65,8 @@ const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
+// ethereum related
+const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -140,6 +142,13 @@ class NodeController {
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.DISPATCH_STATUS_REQ_RPC] : new GetStatusProxyAction(this), // dispatch get status request
+      [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
+      [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
+      // ethereum
+      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
   /**
