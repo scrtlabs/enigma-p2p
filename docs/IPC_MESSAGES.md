@@ -219,6 +219,9 @@ Request:
 {
     id: <unique_request_id>,
     type: GetPTTRequest,
+    input: {
+        addresses: [addrress]
+    }
 }
 ```
 
