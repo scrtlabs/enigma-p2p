@@ -28,6 +28,7 @@ const _B2Addr = '/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk
 // all config per node
 const getDefault = ()=>{
   return {
+    withLogger : true, // with logger output to std
     isBootstrap : false, // if is event bootsrap node or not
     isB1Bootstrap : true, // default B1 else B2 if false
     bootstrapNodes : [], // default B1
@@ -189,7 +190,12 @@ const _createNode = async (options)=>{
       dbPath : dbPath
     };
   }
-
+  if(!options.withLogger){
+    builder.setLoggerConfig({
+      'cli': false,
+      'file' : false
+    });
+  }
   nodeConfigObject.extraConfig.principal = {uri: options.principalUri};
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {mainController : mainController, coreServer : coreServer , tasksDbPath :dbPath };
