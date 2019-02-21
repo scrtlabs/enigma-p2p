@@ -27,10 +27,9 @@ class VerifyAndStoreResultAction {
     const type = msgObj.type;
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
-    // TODO:: lena,a here verify the task result correctness
-    // let isVerified = await ethereum().verify(result)
-    const isVerified = true;
-    if (isVerified) {
+    // TODO: decide what to do with the error...
+    const res = await this._controller.ethereum.verifier().verifyTaskSubmission(resultObj);
+    if (res.isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
       if (coreMsg) {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {

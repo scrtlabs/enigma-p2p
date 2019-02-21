@@ -1,11 +1,6 @@
-/**
- @TODO lena commit receipt back to ethereum contract
- * */
 const cryptography = require('../../../../common/cryptography');
-const Result = require('../../../tasks/Result');
-const FailedResult = Result.FailedResult;
-const constants = require('../../../../common/constants');
 const errors = require('../../../../common/errors');
+
 class CommitReceiptAction {
   constructor(controller) {
     this._controller = controller;
@@ -30,7 +25,7 @@ class CommitReceiptAction {
     throw errors.TypeErr(`wrong type or missing fields in Result`);
   }
   _commitFailedTask(task) {
-    return this._controller.ethereum().commitTaskFailure(
+    return this._controller.ethereum().api().commitTaskFailure(
         task.getContractAddr(),
         task.getTaskId(),
         task.getResult().getUsedGas(),
@@ -38,7 +33,7 @@ class CommitReceiptAction {
     );
   }
   _commitSuccessTask(task) {
-    return this._controller.ethereum().commitReceipt(
+    return this._controller.ethereum().api().commitReceipt(
         task.getContractAddr(),
         task.getTaskId(),
         cryptography.hash(task.getResult().getDelta().data),

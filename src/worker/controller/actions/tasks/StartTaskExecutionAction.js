@@ -15,8 +15,8 @@ class StartTaskExecutionAction {
     const type = params.type;
     const request = params.request;
     let task = null;
-    // TODO:: lena: refer to the diagrams, fake gasLimit
-    request.gasLimit = 1544;
+
+    request.gasLimit = 1544; // a fake gasLimit is set here, but is being overwritten in the VerifyNewTaskAction
     switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;
