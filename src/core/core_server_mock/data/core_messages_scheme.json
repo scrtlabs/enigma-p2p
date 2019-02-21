@@ -1,0 +1,107 @@
+{
+  "BASE_SCHEME": {
+    "type": "object",
+    "properties": {
+      "type": {"type": "string"},
+      "id": {"type": "string"}
+    }
+  },
+  "GetRegistrationParams": {},
+  "GetTip": {
+    "input": {"type": "string"}
+  },
+  "GetTips": {
+    "input": {
+      "type": "array",
+      "items": {"type": "string"}
+    }
+  },
+  "GetAllTips": {},
+  "GetAllAddrs": {},
+  "GetDelta": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "address": {"type": "string"},
+        "key": {"type": "number"}
+      }
+    }
+  },
+  "GetDeltas": {
+    "input": {
+      "type": "array",
+      "items": {
+        "address": {"type": "string"},
+        "from": {"type": "number"},
+        "to": {"type": "number"}
+      }
+    }
+  },
+  "GetContract": {
+    "input": {"type": "string"}
+  },
+  "UpdateNewContract": {
+    "address": {"type": "string"},
+    "bytecode": {"type": "string"}
+  },
+  "UpdateDeltas": {
+    "deltas":{
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "address": {"type": "string"},
+          "key": {"type": "number"},
+          "data": {"type": "string"}
+        }
+      }
+    }
+  },
+  "NewTaskEncryptionKey": {
+    "userPubKey": {"type": "string"}
+  },
+  "DeploySecretContract": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "preCode": {"type": "string"},
+        "encryptedArgs": {"type": "string"},
+        "encryptedFn": {"type": "string"},
+        "userDHKey": {"type": "string"},
+        "gasLimit": {"type": "number"},
+        "contractAddress": {"type": "string"}
+      }
+    }
+  },
+  "ComputeTask": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "encryptedArgs": {"type": "string"},
+        "encryptedFn": {"type": "string"},
+        "userDHKey": {"type": "string"},
+        "gasLimit": {"type": "number"},
+        "contractAddress": {"type": "string"}
+      }
+    }
+  },
+  "GetPTTRequest": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "addresses": {
+          "type": "array",
+          "items": {"type": "string"}
+        }
+      }
+    }
+  },
+  "PTTResponse": {
+    "input": {
+      "type": "object",
+      "properties": {
+        "response": {"type": "string"}
+      }
+    }
+  }
+}

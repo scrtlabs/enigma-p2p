@@ -8,11 +8,10 @@ class GetStateKeysAction {
 
   execute(params) {
     const onPTTRequestResponse = async (err, coreResponse) => {
-      if (err) {
+      if (err || coreResponse.type === 'Error') {
         this._controller.logger().error(`Failed Core connection: ${err}`);
         return;
       }
-
       const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {

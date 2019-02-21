@@ -30,7 +30,6 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
-  // bug with false
   'task_manager' :{
     'all' : false,
     '#1' : true,
