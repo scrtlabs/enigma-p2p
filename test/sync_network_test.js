@@ -1,10 +1,19 @@
 const assert = require('assert');
+const EngCid = require('../src/common/EngCID');
 const tree = require('./test_tree').TEST_TREE.sync_network;
 const constants = require('../src/common/constants');
 const testBuilder = require('./testUtils/quickBuilderUtil');
 const testUtils = require('./testUtils/utils');
 const DeployTask = require('../src/worker/tasks/DeployTask');
 const Result = require('../src/worker/tasks/Result');
+const noLoggerOpts = {
+  bOpts : {
+    withLogger : false,
+  },
+  pOpts : {
+    withLogger : false,
+  },
+};
 describe('sync_network_tests',()=> {
   /**
    * plan:
@@ -21,7 +30,8 @@ describe('sync_network_tests',()=> {
       this.skip();
     }
     return new Promise(async resolve => {
-      let {peers,bNode} = await testBuilder.createN(15);
+      let peersNum = 15;
+      let {peers,bNode} = await testBuilder.createN(peersNum,noLoggerOpts);
       await testUtils.sleep(5000);
       let bNodeController = bNode.mainController;
       let bNodeCoreServer = bNode.coreServer;
@@ -44,7 +54,15 @@ describe('sync_network_tests',()=> {
       let task = getDeployResultTask();
       let workerPeer = peers[0];
       let verifierPeer = peers[1];
-      // TODO:: HW CONTIBUE FROM HERE 
+      // publish the task
+      workerPeer.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      await testUtils.sleep(3000);
+      let ecid = EngCid.createFromSCAddress(task.getContractAddr());
+      let findProvidersResult = await verifierPeer.mainController.getNode().asyncFindProviders([ecid]);
+      assert.strictEqual(false, findProvidersResult.isErrors(), ' errors found in find provider result');
+      let providers = findProvidersResult.getProvidersFor(ecid);
+      let providersNum = Object.keys(providers).length;
+      assert.strictEqual(peersNum+1, providersNum, `wrong providers number current = ${providersNum} instead of ${peersNum+1}`);
       await stopTest();
     });
   });
