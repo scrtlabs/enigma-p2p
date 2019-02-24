@@ -71,7 +71,7 @@ class DeployTask extends Task {
     return JSON.stringify(output);
   }
   toCoreJson() {
-    const output = {
+    return {
       preCode: this.getPreCode(),
       encryptedArgs: this.getEncyptedArgs(),
       encryptedFn: this.getEncryptedFn(),
@@ -79,7 +79,6 @@ class DeployTask extends Task {
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
     };
-    return JSON.stringify(output);
   }
   static fromDbJson(taskObj) {
     if (taskObj.status) {
