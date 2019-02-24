@@ -28,6 +28,7 @@ const _B2Addr = '/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk
 // all config per node
 const getDefault = ()=>{
   return {
+    withLogger : true, // with logger output to std
     isBootstrap : false, // if is event bootsrap node or not
     isB1Bootstrap : true, // default B1 else B2 if false
     bootstrapNodes : [], // default B1
@@ -46,9 +47,37 @@ const getDefault = ()=>{
   };
 };
 
-
 /**
- * craete 2 nodes
+ * create n number of nodes all connected to bStrap
+ * */
+module.exports.createN = async (n,optionsOverride)=>{
+  let optionsOverrideBStrap = {};
+  let optionsOverridePeer= {};
+  let finalBstrapOpts = {};
+  if(optionsOverride){
+    if(optionsOverride.bOpts){
+      optionsOverrideBStrap= optionsOverride.bOpts;
+    }
+    if(optionsOverride.pOpts){
+      optionsOverridePeer= optionsOverride.pOpts;
+    }
+  }
+  if(optionsOverrideBStrap){
+    finalBstrapOpts = optionsOverrideBStrap;
+  }
+  finalBstrapOpts.isBootstrap = true;
+  finalBstrapOpts = nodeUtils.applyDelta(getDefault(),optionsOverrideBStrap);
+  optionsOverridePeer = nodeUtils.applyDelta(getDefault(),optionsOverridePeer);;
+  let bNode = await _createNode(finalBstrapOpts);
+  let peers = [];
+  for(let i =0;i<n;++i){
+    let p = await _createNode(optionsOverridePeer);
+    peers.push(p);
+  }
+  return {peers : peers, bNode : bNode};
+};
+/**
+ * craete connected 2 nodes
  * */
 
 module.exports.createTwo = async (optionsOverride)=>{
@@ -161,7 +190,12 @@ const _createNode = async (options)=>{
       dbPath : dbPath
     };
   }
-
+  if(!options.withLogger){
+    builder.setLoggerConfig({
+      'cli': false,
+      'file' : false
+    });
+  }
   nodeConfigObject.extraConfig.principal = {uri: options.principalUri};
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {mainController : mainController, coreServer : coreServer , tasksDbPath :dbPath };
