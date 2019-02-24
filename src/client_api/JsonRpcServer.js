@@ -78,8 +78,10 @@ class JsonRpcServer extends EventEmitter {
             return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
           if('withResult' in args && args.withResult === true){
-            // TODO:: get the result from task manager
-            // TODO:: call callback
+            // if withResult => attach the result
+            if (coreRes.result === constants.TASK_STATUS.SUCCESS || constants.TASK_STATUS.FAILED){
+              // TODO????
+            }
           }
           return callback(null,coreRes);
         }else{

@@ -381,11 +381,11 @@ describe('TaskManager isolated tests', ()=>{
       let tasks = await taskManager.asyncGetAllTasks();
       assert.strictEqual(1,tasks.length,"not 1, current tasks len = "+tasks.length);
       assert.strictEqual(t.getTaskId(),tasks[0].getTaskId(),"task id not equal");
-      assert.strictEqual(constants.TASK_STATUS.SUCCESS,tasks[0].getStatus(), "task success");
+      assert.strictEqual(constants.TASK_STATUS.SUCCESS,tasks[0].getStatus(), "task SUCCESS");
       // verify getTaskById
       ta = await taskManager.asyncGetTask(t.getTaskId());
-      assert.strictEqual(t.getTaskId(),ta.getTaskId(),"task id not equal");
-      assert.strictEqual(constants.TASK_STATUS.SUCCESS,ta.getStatus(), "task success");
+      assert.strictEqual(t.getTaskId(),ta.getTaskId(),"taskId not equal");
+      assert.strictEqual(constants.TASK_STATUS.SUCCESS,ta.getStatus(), "task SUCCESS");
       // stop the test
       await taskManager.asyncStop();
       destroyDb(dbPath,resolve);

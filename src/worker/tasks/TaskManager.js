@@ -58,7 +58,7 @@ class TaskManager extends EventEmitter {
    * */
   addOutsideResult(type,outsideTask){
     return new Promise((res,rej)=>{
-      if(result instanceof OutsideTask){
+      if(outsideTask instanceof OutsideTask){
         this._db.put(outsideTask.getTaskId(), outsideTask.toDbJson(),(err)=>{
           if(err){
             return rej(err);
@@ -66,7 +66,7 @@ class TaskManager extends EventEmitter {
           res(true);
         });
       }else{
-        reject(new errors.TypeErr(`result is not instanceof OutsideTask`));
+        rej(new errors.TypeErr(`result is not instanceof OutsideTask`));
       }
     });
   }
@@ -159,7 +159,7 @@ class TaskManager extends EventEmitter {
    * promise based version of getTask
    * */
   async asyncGetTask(taskId){
-    return Promise((res,rej)=>{
+    return new Promise((res,rej)=>{
       this.getTask(taskId,(err,task)=>{
         if(err){
           return rej(err);
@@ -413,12 +413,12 @@ class TaskManager extends EventEmitter {
     this._db.get(taskId, (err, res)=>{
       if (err) return callback(err);
       let task = null;
-      // result received from outside node
-      // if(res.outsideResult){
-      //   task = Result.buildFromRaw(res.type,res);
-      // }
+      //OutsideTask result received from outside node
+      if(res.outsideTask){
+        task = OutsideTask.fromDbJson(res);
+      }
       // deploy task
-      if (res.preCode) {
+      else if (res.preCode) {
         task = DeployTask.fromDbJson(res);
       } else {
         task = ComputeTask.fromDbJson(res);

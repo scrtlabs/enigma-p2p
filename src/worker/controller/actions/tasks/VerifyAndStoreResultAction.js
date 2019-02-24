@@ -7,6 +7,7 @@
  * */
 const constants = require('../../../../common/constants');
 const EngCid = require('../../../../common/EngCID');
+const OutsideTask = require('../../../tasks/OutsideTask');
 class VerifyAndStoreResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -41,16 +42,22 @@ class VerifyAndStoreResultAction {
               let ecid = EngCid.createFromSCAddress(resultObj.taskId);
               if(ecid){
                 try{
+                  // announce the network
                   await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
+                  // store result in TaskManager mapped with taskId
+                  let outsideTask = OutsideTask.buildTask(type,resultObj);
+                  if(outsideTask){
+                    await this._controller.taskManager().addOutsideResult(type,outsideTask);
+                  }
                 }catch(e){
-                  this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
+                  this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid or store in TaskManager -> ${e}`);
                 }
               }
             }
             if (optionalCallback) {
               return optionalCallback(err, result);
             }
-            this._controller.logger().debug(`[UPDATE_DB] : is_err = ${err} result = ${result}`);
+            this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${err}`);
           },
           data: coreMsg,
         });

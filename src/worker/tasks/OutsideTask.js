@@ -17,12 +17,14 @@ class OutsideTask extends Task{
     return null;
   }
   toDbJson(){
-    return Json.toString({
+    let output = {
+      outsideTask : true,
       status : this.getResult().getStatus(),
       type : this.getTaskType(),
       taskId : this.getTaskId(),
       result : this.getResult().toDbJson(),
-    });
+    };
+    return JSON.stringify(output);
   }
   static fromDbJson(taskObj){
     if (taskObj.status){

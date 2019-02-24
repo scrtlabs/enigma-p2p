@@ -233,6 +233,12 @@ class CLI {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
+      'getResult' : async (args)=>{
+        const taskId = args[1];
+        let result = await this._node.getTaskResult(taskId);
+        console.log(`-------------> Result for ${taskId} <-------------`);
+        console.log(result);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');

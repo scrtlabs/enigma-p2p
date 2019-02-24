@@ -533,6 +533,15 @@ class NodeController {
   getAllHandshakedPeers() {
     return this.engNode().getAllPeersInfo();
   }
+  /**
+   * from TaskManager
+   * @param {string} taskId
+   * @return {Result} result
+   * */
+  async getTaskResult(taskId){
+    let task = await this.taskManager().asyncGetTask(taskId);
+    return task.getResult();
+  }
   /** temp - findPeersRequest
    *  @param {PeerInfo} peerInfo,
    *  @param {Function} onResponse callback , (err,request, response)=>{}
