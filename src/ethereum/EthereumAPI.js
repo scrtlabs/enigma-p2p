@@ -19,7 +19,7 @@ class EthereumAPI {
     this._environment = res.environment;
 
     this._services = new EthereumServices(this._api);
-    this._services.init();
+    this._services.initServices();
 
     this._verifier = new EthereumVerifier(this._api, this._services, this._logger);
     await this._verifier.init();

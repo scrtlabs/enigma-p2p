@@ -83,8 +83,8 @@ class EnvironmentBuilder{
     if(this._nodeConfig){
       let ethereumApi = null;
       if(this._ethereumConfig){
-        const ethereumApiBuilder = new EthereumAPI(logger);
-        ethereumApi = await ethereumApiBuilder.init(this._ethereumConfig.enigmaContractAddress,
+        ethereumApi = new EthereumAPI(logger);
+        await ethereumApi.init(this._ethereumConfig.enigmaContractAddress,
           this._ethereumConfig.ethereumWebsocketProvider);
       }
       let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);

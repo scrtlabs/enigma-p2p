@@ -12,7 +12,7 @@ class VerifyNewTaskAction {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
       onResponse: async (err, regParams)=>{
         // TODO: should the signingKey be passed as is?
-        const res = await this._controller.ethereum.verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
+        const res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
         // TODO: decide what to do with the error...
         if (res.isVerified) {
           unverifiedTask.setGasLimit(res.gasLimit);

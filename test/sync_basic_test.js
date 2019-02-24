@@ -373,11 +373,14 @@ function syncTest(scenario) {
     const peerController = await peerBuilder
         .setNodeConfig(peerConfig)
         .setIpcConfig({uri: peerMockUri})
+        .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
-    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-    const config = {enigmaContractAddress: enigmaContractAddress};
-    const enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
-    await peerController.getNode().setEthereumApi(enigmaContractHandler);
+
+    //const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
+    //const config = {enigmaContractAddress: enigmaContractAddress};
+    //const enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
+    //await peerController.getNode().setEthereumApi(enigmaContractHandler);
+
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([

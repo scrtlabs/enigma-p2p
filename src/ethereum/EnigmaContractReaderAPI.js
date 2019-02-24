@@ -261,6 +261,15 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * * TODO:: lena :: implement this once moving to the updated contract
+   *
+   * */
+  getAllWorkerParams() {
+    return new Promise((resolve, reject) => {
+      resolve([]);
+    });
+  }
+  /**
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
      * @param {Json} filter, in case a filter is required on top of the event itself.
