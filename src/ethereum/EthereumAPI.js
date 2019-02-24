@@ -36,6 +36,10 @@ class EthereumAPI {
   verifier() {
     return this._verifier;
   }
+
+  services() {
+    return this._services;
+  }
 }
 
 module.exports = EthereumAPI;
