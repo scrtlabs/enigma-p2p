@@ -8,6 +8,9 @@ class SendToCoreAction {
     const sendMsg = params.sendMsg;
     const envelop = params.envelop;
     const client = this._coreRuntime.getIpcClient();
+    if(!sendMsg.id){
+      sendMsg.id = envelop.id();
+    }
     client.sendJsonAndReceive(sendMsg, (err, responseMsg) => {
       if (err) {
         console.error(`[Error] Failed in Send JSON And Receive: ${err}`);

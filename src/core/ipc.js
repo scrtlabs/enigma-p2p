@@ -97,7 +97,7 @@ class IpcClient extends EventEmitter {
    * */
   async sendJsonAndReceive(msg, callback) {
     if (!msg.id) {
-      callback(new Errors.SyncReceiverErr('Missing msg ID'));
+      callback(new Errors.MissingFieldsErr('Missing msg ID'));
     }
     this._msgMapping[msg.id] = callback;
     try {
