@@ -50,6 +50,10 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
+  'sync_network':{
+    'all' : true,
+    '#1' : true,
+  },
   'jsonrpc_basic':{
     'all' : true,
     '#1' : true,
