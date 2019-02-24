@@ -28,8 +28,12 @@ class VerifyAndStoreResultAction {
     const type = msgObj.type;
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
-    // TODO: decide what to do with the error...
-    const res = await this._controller.ethereum.verifier().verifyTaskSubmission(resultObj);
+    // TODO: remove this default!!!!
+    let res = {isVerified : true};
+    if(this._controller.hasEthereum()) {
+      // TODO: decide what to do with the error...
+      res = await this._controller.ethereum().verifier().verifyTaskSubmission(resultObj);
+    }
     if (res.isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
       if (coreMsg) {
