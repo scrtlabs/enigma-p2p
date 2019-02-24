@@ -221,7 +221,7 @@ Request:
     type: GetPTTRequest,
     input: {
         addresses: [addrress]
-    } 
+    }
 }
 ```
 
@@ -349,7 +349,6 @@ Request:
     id: <unique_request_id>,
     type: ComputeTask,
     input: {
-        taskID: 'the ID of the task'
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
         userDHKey: 'the-user-dh-pubkey',

@@ -73,6 +73,17 @@ class DeployTask extends Task {
     }
     return JSON.stringify(output);
   }
+  toCoreJson() {
+    const output = {
+      preCode: this.getPreCode(),
+      encryptedArgs: this.getEncyptedArgs(),
+      encryptedFn: this.getEncryptedFn(),
+      userDHKey: this.getUserDHKey(),
+      gasLimit: this.getGasLimit(),
+      contractAddress: this.getContractAddr(),
+    };
+    return JSON.stringify(output);
+  }
   static fromDbJson(taskObj) {
     if (taskObj.status) {
       const task = DeployTask.buildTask(taskObj);

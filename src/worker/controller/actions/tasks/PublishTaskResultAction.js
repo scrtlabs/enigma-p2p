@@ -26,10 +26,12 @@ class PublishTaskResultAction {
       let ecid = EngCid.createFromSCAddress(task.getContractAddr());
       if(ecid){
         try{
-          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,[ecid]);
+          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
         }catch(e){
           this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
         }
+      }else{
+        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
       }
     }
     // commit to ethereum
