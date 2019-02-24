@@ -111,6 +111,8 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 
 `workerAddress` - target worker address
 
+`withResult` - **OPTIONAL** if set to `true` will return the `output` of the task if and only if the task status is `SUCCESS` or `FAILED` and exists. 
+
 **Returns**
 
 ## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
