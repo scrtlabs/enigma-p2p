@@ -18,6 +18,30 @@ class Result {
   isFailed() {
     return !this.isSuccess();
   }
+  /**
+   * build the relevant result
+   * @param {string} type
+   * @param {Json} rawResult
+   * @return {Task} the concrete instance
+   * */
+  static buildFromRaw(type,rawResult){
+    let result = null;
+    switch(type){
+      case constants.CORE_REQUESTS.FailedTask:
+        rawResult.status = constants.TASK_STATUS.FAILED;
+        result = FailedResult.buildFailedResult(rawResult);
+        break;
+      case constants.CORE_REQUESTS.DeploySecretContract:
+        rawResult.status = constants.TASK_STATUS.SUCCESS;
+        result = DeployResult.buildDeployResult(rawResult);
+        break;
+      case constants.CORE_REQUESTS.ComputeTask:
+        rawResult.status = constants.TASK_STATUS.SUCCESS;
+        result = ComputeResult.buildComputeResult(rawResult);
+        break;
+    }
+    return result;
+  }
 }
 class ComputeResult extends Result {
   constructor(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature) {

@@ -1,3 +1,4 @@
+const errors = require('../../common/errors');
 const DbApi = require('../../db/LevelDbApi');
 const constants = require('../../common/constants');
 const path = require('path');
@@ -6,6 +7,7 @@ const EventEmitter = require('events').EventEmitter;
 const nodeUtils = require('../../common/utils');
 const DeployTask = require('./DeployTask');
 const ComputeTask = require('./ComputeTask');
+const OutsideTask = require('./OutsideTask');
 const parallel = require('async/parallel');
 const Result = require('./Result');
 
@@ -30,17 +32,6 @@ class TaskManager extends EventEmitter {
     this._unverifiedPool = {};
   }
   /**
-   * promise based addTask wrapper
-   * */
-  async asyncAddTask(unverifiedTask) {
-    return new Promise((resolve, reject)=>{
-      this.addTask(unverifiedTask, (err, isVerified)=>{
-        if (err) return reject(isVerified);
-        resolve(isVerified);
-      });
-    });
-  }
-  /**
    * add a new task to the unverified (in-memory) pool.
    * @param {Task} unverifiedTask
    * */
@@ -59,8 +50,26 @@ class TaskManager extends EventEmitter {
     }
     return err;
   }
-
-
+  /**
+   * store a result of a task computed by OTHER worker from the network.
+   * used to serve other for querys of type "getResult by taskId" since core does not save anything related to task Id.
+   * @param {OutsideTask} outsideTask
+   * @return {Promise<true>} if succeeded otherwise throws.
+   * */
+  addOutsideResult(type,outsideTask){
+    return new Promise((res,rej)=>{
+      if(result instanceof OutsideTask){
+        this._db.put(outsideTask.getTaskId(), outsideTask.toDbJson(),(err)=>{
+          if(err){
+            return rej(err);
+          }
+          res(true);
+        });
+      }else{
+        reject(new errors.TypeErr(`result is not instanceof OutsideTask`));
+      }
+    });
+  }
   /**
    * Save a task into the db
    * @param {DeployTask/ComputeTask} task,
@@ -144,6 +153,19 @@ class TaskManager extends EventEmitter {
       } else {
         return callback(null, allTasks.concat(tasks));
       }
+    });
+  }
+  /**
+   * promise based version of getTask
+   * */
+  async asyncGetTask(taskId){
+    return Promise((res,rej)=>{
+      this.getTask(taskId,(err,task)=>{
+        if(err){
+          return rej(err);
+        }
+        res(task);
+      });
     });
   }
   /**
@@ -391,6 +413,10 @@ class TaskManager extends EventEmitter {
     this._db.get(taskId, (err, res)=>{
       if (err) return callback(err);
       let task = null;
+      // result received from outside node
+      // if(res.outsideResult){
+      //   task = Result.buildFromRaw(res.type,res);
+      // }
       // deploy task
       if (res.preCode) {
         task = DeployTask.fromDbJson(res);
