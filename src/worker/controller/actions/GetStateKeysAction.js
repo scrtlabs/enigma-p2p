@@ -58,7 +58,6 @@ class GetStateKeysAction {
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
-          input: {addresses: params.addresses},
           onResponse: onPTTRequestResponse,
         },
     );
