@@ -146,6 +146,10 @@ const _createNode = async (options)=>{
     nodeConfigObject.bootstrapNodes = bNodes;
   }
   nodeConfigObject.bootstrapNodes = [_B1Addr];
+  // check if bootstrapNodes is passed
+  if (!options.bootstrapNodes) {
+    nodeConfigObject.bootstrapNodes = options.bootstrapNodes;
+  }
   let mainController;
   let builder = new EnviornmentBuilder();
   let coreServer = null;
