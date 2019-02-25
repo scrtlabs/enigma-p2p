@@ -25,7 +25,7 @@ class DbRequestAction {
         .sendAndReceive(requestEnvelop)
         .then((responseEnvelop)=>{
           const parsedResponse = responseEnvelop.content();
-          onResponse(null, parsedResponse);
+          onResponse(parsedResponse.error, parsedResponse);
         });
   }
   _validateRequest(reqType) {

@@ -168,9 +168,10 @@
       "input": {
         "type": "object",
         "properties": {
-          "response": {"type": "string"}
+          "response": {"type": "string"},
+          "sig": {"type": "string"}
         },
-        "required": ["response"],
+        "required": ["response", "sig"],
         "additionalProperties": false
       }
     },

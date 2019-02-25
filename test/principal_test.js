@@ -46,10 +46,11 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     await testUtils.sleep(150);
     const port = server.address().port;
 
-    const controllers = await ControllerBuilder.createNode({principalUri: uri + port, withTasksDb: false});
+    const nodeConfig = {principalUri: uri + port, withTasksDb: false, bootstrapNodes: []};
+    const controllers = await ControllerBuilder.createNode(nodeConfig);
     const mainController = controllers.mainController;
 
-    mainController.getNode().execCmd(
+    await mainController.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
         {addresses: addresses},
     );
