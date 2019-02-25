@@ -3,9 +3,8 @@ const zmq = require('zeromq');
 const EventEmitter = require('events').EventEmitter;
 const Logger = require('../common/logger');
 const SCHEMES = require('./core_messages_scheme');
-const Utils = require('../common/utils');
 const validate = require('jsonschema').validate;
-const Errors = require('../common/errors');
+const errors = require('../common/errors');
 
 
 class IpcClient extends EventEmitter {
@@ -51,7 +50,7 @@ class IpcClient extends EventEmitter {
       if (!scheme) {
         reject(`Missing type scheme: ${msg.type}`);
       }
-      const finalScheme = Utils.applyDelta(SCHEMES.BASE_SCHEME, scheme);
+      const finalScheme = nodeUtils.applyDelta(SCHEMES.BASE_SCHEME, scheme);
       finalScheme.additionalProperties = true; // This can be override because we're removing all additional
       const result = validate(msg, finalScheme, {
         rewrite: (instance, schema) => {
@@ -97,7 +96,7 @@ class IpcClient extends EventEmitter {
    * */
   async sendJsonAndReceive(msg, callback) {
     if (!msg.id) {
-      callback(new Errors.MissingFieldsErr('Missing msg ID'));
+      callback(new errors.MissingFieldsErr('Missing msg ID'));
     }
     this._msgMapping[msg.id] = callback;
     try {
