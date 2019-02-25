@@ -78,10 +78,9 @@ class JsonRpcServer extends EventEmitter {
           if(coreRes === null){
             return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
-          // if('withResult' in args && args.withResult === true){
-          //   // if withResult => attach the result
-          //
-          // }
+          if(!('withResult' in args && args.withResult === true)){
+            coreRes.output = null;
+          }
           return callback(null,coreRes);
         }else{
           return callback({code: this._INVALID_PARAM , message: 'Invalid params'});

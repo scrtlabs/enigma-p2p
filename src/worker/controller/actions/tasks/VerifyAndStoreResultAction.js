@@ -44,15 +44,24 @@ class VerifyAndStoreResultAction {
                 try{
                   // announce the network
                   await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-                  // store result in TaskManager mapped with taskId
-                  let outsideTask = OutsideTask.buildTask(type,resultObj);
-                  if(outsideTask){
-                    await this._controller.taskManager().addOutsideResult(type,outsideTask);
-                  }
+                  // // store result in TaskManager mapped with taskId
+                  // let outsideTask = OutsideTask.buildTask(type,resultObj);
+                  // if(outsideTask){
+                  //   await this._controller.taskManager().addOutsideResult(type,outsideTask);
+                  // }
                 }catch(e){
-                  this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid or store in TaskManager -> ${e}`);
+                  this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
                 }
               }
+            }
+            try{
+              // store result in TaskManager mapped with taskId
+              let outsideTask = OutsideTask.buildTask(type,resultObj);
+              if(outsideTask){
+                await this._controller.taskManager().addOutsideResult(type,outsideTask);
+              }
+            }catch(e){
+              this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
             }
             if (optionalCallback) {
               return optionalCallback(err, result);
