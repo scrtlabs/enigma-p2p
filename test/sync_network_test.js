@@ -30,7 +30,7 @@ describe('sync_network_tests',()=> {
       this.skip();
     }
     return new Promise(async resolve => {
-      let peersNum = 15;
+      let peersNum = 3;
       let {peers,bNode} = await testBuilder.createN(peersNum,noLoggerOpts);
       await testUtils.sleep(5000);
       let bNodeController = bNode.mainController;

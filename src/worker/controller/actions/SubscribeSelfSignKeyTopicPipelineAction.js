@@ -13,6 +13,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
   constructor(controller) {
     this._controller = controller;
   }
+
   execute(params) {
     waterfall([
       (cb)=>{
@@ -74,7 +75,11 @@ class SubscribeSelfSignKeyTopicPipelineAction {
   _executeNewTaskEncryptionKey(request, targetTopic) {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.NEW_TASK_INPUT_ENC_KEY, {
       request,
-      onResponse: (err, encKeyResult)=>{
+      onResponse: (err, encKeyResult) => {
+        if (err || encKeyResult.type === 'Error') {
+          this._controller.logger().error(`Failed Core connection: err: ${err}, encKeyResult: ${JSON.stringify(encKeyResult)}`);
+          return;
+        }
         this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
           topic: targetTopic,
