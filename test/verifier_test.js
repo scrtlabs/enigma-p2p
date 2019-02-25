@@ -1,10 +1,7 @@
 const assert = require('assert');
 const TEST_TREE = require('./test_tree').TEST_TREE;
-const EthereumServices = require('../src/ethereum/EthereumServices');
-
+const EthereumAPIMock = require('../src/ethereum/EthereumAPI').EthereumAPIMock;
 const EthereumVerifier = require('../src/ethereum/EthereumVerifier');
-
-const EnigmaContractMock = require('./ethereum/EnigmaContractMock');
 const ComputeTask  = require('../src/worker/tasks/ComputeTask');
 const DeployTask  = require('../src/worker/tasks/DeployTask');
 const FailedResult  = require('../src/worker/tasks/Result').FailedResult;
@@ -64,14 +61,10 @@ describe('Verifier tests', function() {
   }
 
   async function init() {
-    const apiMock = new EnigmaContractMock();
-    const services = new EthereumServices(apiMock);
-    const verifier = new EthereumVerifier(apiMock, services);
+    const ethereumAPI = new EthereumAPIMock();
+    await ethereumAPI.init();
 
-    services.initServices();
-    await verifier.init();
-
-    return {apiMock: apiMock, services: services, verifier: verifier};
+    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier()};
   }
 
   async function initStuffForTaskSubmission() {
@@ -106,9 +99,10 @@ describe('Verifier tests', function() {
   }
 
   async function initStuffForWorkerSelection () {
-    const apiMock = new EnigmaContractMock();
-    const services = new EthereumServices(apiMock);
-    const verifier = new EthereumVerifier(apiMock, services);
+    // const apiMock = new EnigmaContractMock();
+    // const services = new EthereumServices(apiMock);
+    // const verifier = new EthereumVerifier(apiMock, services);
+    const ethereumAPI = new EthereumAPIMock();
 
     const workersA = [{signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)},
       {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}];
@@ -127,16 +121,17 @@ describe('Verifier tests', function() {
 
     let balancesSum = balancesA.reduce((a, b) => a + b, 0);
 
-    apiMock.setEpochSize(100);
-    apiMock.setWorkerParams(Array.from(params));
-    services.initServices();
-    await verifier.init();
+    ethereumAPI.api().setEpochSize(100);
+    ethereumAPI.api().setWorkerParams(Array.from(params));
+    // ethereumAPI.services().initServices();
+    // await verifier.init();
+    await ethereumAPI.init();
 
     const secretContractAddress = web3.utils.randomHex(32);
 
     const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA).signer;
 
-    return {apiMock: apiMock, services: services, verifier: verifier, params: params, expectedAddress: expected,
+    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), params: params, expectedAddress: expected,
       expectedParams: params[0], secretContractAddress: secretContractAddress};
 
   }
