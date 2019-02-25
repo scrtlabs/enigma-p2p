@@ -27,7 +27,7 @@ class PrincipalNode {
         }
         if (err) return reject(err);
         if (response.error) return reject(response.error);
-        resolve(response.result.encryptedResponseMessage);
+        resolve(response.result);
       });
     });
   }

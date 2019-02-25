@@ -21,7 +21,7 @@ class GetStateKeysAction {
         this._controller.logger().error(`Failed Principal node connection: ${err}`);
         return;
       }
-      this._pttResponse({response: principalResponse}, (err, response) => {
+      this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
         if (err || response.type === 'Error' || response.result.errors.length > 0) {
           // TODO: Errors.
           this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);

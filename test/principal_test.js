@@ -27,7 +27,8 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
     const principalClient = new PrincipalNode({uri: uri + port});
     const msg = MsgPrincipal.build({request: fakeRequest, sig: fakeSig});
     const result = await principalClient.getStateKeys(msg);
-    assert.strictEqual(result, fakeResponse);
+    assert.strictEqual(result.data, fakeResponse);
+    assert.strictEqual(result.sig, fakeSig);
     server.close(resolve);
   });
 });
@@ -66,7 +67,7 @@ function getMockPrincipalNode() {
     getStateKeys: function(args, callback) {
       if (args.requestMessage && args.workerSig) {
         recivedRequest = true;
-        const result = {encryptedResponseMessage: fakeResponse};
+        const result = {data: fakeResponse, sig: fakeSig};
         callback(null, result);
       } else {
         assert(false);
