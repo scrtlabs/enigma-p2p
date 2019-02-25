@@ -238,6 +238,7 @@ class CLI {
         let result = await this._node.getTaskResult(taskId);
         console.log(`-------------> Result for ${taskId} <-------------`);
         console.log(result);
+        console.log(`>----------------------------------------------<`);
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
