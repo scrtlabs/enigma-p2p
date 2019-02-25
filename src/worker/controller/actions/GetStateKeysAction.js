@@ -9,7 +9,7 @@ class GetStateKeysAction {
   execute(params) {
     const onPTTRequestResponse = async (err, coreResponse) => {
       if (err || coreResponse.type === 'Error') {
-        this._controller.logger().error(`Failed Core connection: ${err}`);
+        this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return;
       }
       const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
@@ -22,9 +22,9 @@ class GetStateKeysAction {
         return;
       }
       this._pttResponse({response: principalResponse}, (err, response) => {
-        if (err || response.result.errors.length > 0) {
+        if (err || response.type === 'Error' || response.result.errors.length > 0) {
           // TODO: Errors.
-          this._controller.logger().error(`Failed Core connection: ${err}, \n ${response}`);
+          this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);
         }
       });
     };
