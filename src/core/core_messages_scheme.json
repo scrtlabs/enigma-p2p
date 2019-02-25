@@ -125,17 +125,18 @@
       "input": {
         "type": "object",
         "properties": {
+          "encryptedArgs": {"type": "string"},
+          "encryptedFn": {"type": "string"},
+          "userDHKey": {"type": "string"},
+          "gasLimit": {"type": "number"},
+          "contractAddress": {"type": "string"},
           "preCode": {
             "type": "array",
             "items": {
               "type": "number",
               "minItems": 1
             }
-          },          "encryptedArgs": {"type": "string"},
-          "encryptedFn": {"type": "string"},
-          "userDHKey": {"type": "string"},
-          "gasLimit": {"type": "number"},
-          "contractAddress": {"type": "string"}
+          }
         },
         "required": ["preCode", "encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
         "additionalProperties": false
