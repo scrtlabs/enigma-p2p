@@ -21,7 +21,7 @@ class ProxyDispatcherAction {
         requestEnvelop.content().targetTopic = selfId + workerSignKey + sequence;
         break;
       case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
-        theAction = constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC;
+        theAction = constants.NODE_NOTIFICATIONS.DISPATCH_STATUS_REQ_RPC;
         const taskId = requestEnvelop.content().taskId;
         const workerAddr = requestEnvelop.content().workerAddress;
         requestEnvelop.content().targetTopic = taskId + workerAddr;

@@ -38,6 +38,7 @@ const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 //tasks
+const GetResultAction = require('./actions/tasks/GetResultAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
@@ -63,6 +64,7 @@ const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
+const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -116,6 +118,7 @@ class NodeController {
       [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
       [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
+      [NOTIFICATION.GET_TASK_RESULT] : new GetResultAction(this), // get the task result given a taskId
       // db
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
@@ -136,6 +139,7 @@ class NodeController {
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
+      [NOTIFICATION.DISPATCH_STATUS_REQ_RPC] : new GetStatusProxyAction(this), // dispatch get status request
     };
   }
   /**
@@ -539,8 +543,7 @@ class NodeController {
    * @return {Result} result
    * */
   async getTaskResult(taskId){
-    let task = await this.taskManager().asyncGetTask(taskId);
-    return task.getResult();
+    return await this.asyncExecCmd(NOTIFICATION.GET_TASK_RESULT,{taskId : taskId});
   }
   /** temp - findPeersRequest
    *  @param {PeerInfo} peerInfo,

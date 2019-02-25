@@ -43,7 +43,9 @@ module.exports.NODE_NOTIFICATIONS = {
   'START_TASK_EXEC': 'stexec', // start task execution process, worker side
   'ROUTE_BLOCKING_RPC': 'rbrpc', // blocking rpc call for getStatus and getRegistrationParams
   'ROUTE_NON_BLOCK_RPC': 'rnbrpc', // non blocking rpc i.e deploy and compute
+  DISPATCH_STATUS_REQ_RPC : 'dissrrpc' , // get task status rpc
   // task computation related
+  GET_TASK_RESULT : 'gltresult' , // get local task result given a task id
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
