@@ -267,8 +267,10 @@ describe('JsonRPC tests', () => {
       this.skip();
     }
     return new Promise(async resolve => {
-      let signKey = await workerController.getNode().getSelfSubscriptionKey();
-      await testUtils.sleep(1500);
+      let signKey = await workerController.getNode().selfSubscribeAction();
+      await testUtils.sleep(1000);
+      // let signKey = await workerController.getNode().getSelfSubscriptionKey();
+      // await testUtils.sleep(1500);
       const deployInput = {
         contractAddress: '0x4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
         preCode : [22,33,100,202,111,223,211,22],
@@ -278,7 +280,7 @@ describe('JsonRPC tests', () => {
         userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
       };
       JsonRpcClient.request('deploySecretContract',deployInput,async (err,res)=>{
-        await testUtils.sleep(1500);
+        await testUtils.sleep(5000);
         assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
         JsonRpcClient.request('getTaskStatus' ,
             {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress, "withResult" : true},

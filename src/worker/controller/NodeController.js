@@ -98,7 +98,6 @@ class NodeController {
     this._initController();
     // actions
     this._actions = {
-      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.INIT_WORKER]: new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
@@ -113,6 +112,7 @@ class NodeController {
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       // tasks
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy

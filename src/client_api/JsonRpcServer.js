@@ -86,6 +86,18 @@ class JsonRpcServer extends EventEmitter {
           return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
         }
       },
+      getTaskResult : async (args,callback)=>{
+        if(args.taskId){
+          this._logger.info("[+] JsonRpc: getTaskResult" );
+          let coreRes = await this._routeNext({taskId : args.taskId, type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
+          if(coreRes === null){
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
+          }
+          return callback(null,coreRes);
+        }else{
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
+        }
+      },
     },
     {
       collect: true // collect params in a single argument

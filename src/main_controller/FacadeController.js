@@ -31,6 +31,9 @@ class FacadeController extends MainController{
     return this._runtimesMap[runtimesTypes.JsonRpc];
   }
   async shutdownSystem(){
+    if(this.getJsonRpcServer()){
+      this.getJsonRpcServer().close();
+    }
     this.getIpcClient().disconnect();
     await this.getNode().stop();
   }
