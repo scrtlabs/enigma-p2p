@@ -57,6 +57,8 @@ class ComputeResult extends Result {
     if (nodeUtils.isString(result)) {
       result = JSON.parse(result);
     }
+    console.log(result);
+
     const expected = ['taskId', 'status', 'output', 'delta', 'usedGas', 'ethereumPayload', 'ethereumAddress', 'signature'];
     const isMissing = expected.some((attr)=>{
       return !(attr in result);
@@ -90,6 +92,9 @@ class ComputeResult extends Result {
   getSignature() {
     return this._signature;
   };
+  getPreCodeHash() {
+    return this._preCodeHash;
+  }
   toDbJson() {
     return JSON.stringify({
       taskId: this.getTaskId(),

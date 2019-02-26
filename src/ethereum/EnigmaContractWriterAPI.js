@@ -252,7 +252,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, gasUsed, ethCall, signature, txParams) {
+  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -264,7 +264,12 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, gasUsed, ethCall, signature)
+      if(typeof ethCall === 'string' && ethCall === "") {
+        ethCall = '0x00';
+      }
+      console.log('Secret Contract Address: '+'0x'+secretContractAddress);
+      this._enigmaContract.methods.deploySecretContract('0x'+taskId,
+        '0x'+secretContractAddress, '0x'+taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, '0x'+signature)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -295,6 +300,33 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           });
     });
   }
+
+  commitDeploySecretContract(taskId, preCodeHash, codeHash, stateDeltaHash, ethCall, ethAddr, gasUsed, signature, txParams) {
+    return new Promise((resolve, reject) => {
+      const defaultOptions = config.default;
+      let transactionOptions = defaultOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, defaultOptions);
+      }
+      if(typeof ethCall === 'string' && ethCall === "") {
+        ethCall = '0x00';
+      }
+      this._enigmaContract.methods.deploySecretContract('0x'+taskId, '0x'+preCodeHash, codeHash, stateDeltaHash,
+         ethCall, '0x'+ethAddr, gasUsed, '0x'+signature)
+          .send(transactionOptions, (error, receipt)=> {
+            if (error) {
+              reject(error);
+            }
+            resolve(receipt);
+          });
+    });
+  }
+
   /**
    * Worker commits the failed task result on-chain
    * @param {string} secretContractAddress
@@ -348,6 +380,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   _validateTxParams(txParams) {
+    console.log(typeof txParams);
+    console.log(txParams);
     if ('gas' in txParams) {
       if (txParams.gas < config.valid.gasMin || txParams.gas > config.valid.gasMax) {
         return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + config.valid.gasMin + '-' + config.valid.gasMax;

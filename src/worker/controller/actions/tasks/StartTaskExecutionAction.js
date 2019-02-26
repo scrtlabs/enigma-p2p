@@ -16,7 +16,7 @@ class StartTaskExecutionAction {
     const request = params.request;
     let task = null;
     // TODO:: lena: refer to the diagrams, fake gasLimit
-    request.gasLimit = 1544;
+    request.gasLimit = 100000;
     switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;

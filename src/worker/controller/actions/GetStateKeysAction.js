@@ -30,7 +30,7 @@ class GetStateKeysAction {
         this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return onResponse(err, null);
       }
-      const msg = MsgPrincipal.build({request: coreResponse.request.request, sig: coreResponse.request.workerSig});
+      const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {
         principalResponse = await this._controller.principal().getStateKeys(msg);
@@ -68,12 +68,12 @@ class GetStateKeysAction {
 
   _pttResponse(params, cb) {
     console.log('Passing this to core');
-    console.log(params);
+    console.log(params.response.data);
     this._controller.execCmd(
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.PTTResponse,
-          input: params.response,
+          input: {response: params.response.data},
           onResponse: cb,
         },
     );

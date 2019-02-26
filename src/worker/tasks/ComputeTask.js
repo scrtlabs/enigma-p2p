@@ -49,6 +49,17 @@ class ComputeTask extends Task {
   getContractAddr() {
     return this._contractAddr;
   }
+  toDbObject(){
+    let output ={
+      encryptedArgs : this.getEncyptedArgs(),
+      encryptedFn : this.getEncryptedFn(),
+      userDHKey : this.getUserDHKey(),
+      gasLimit : this.getGasLimit(),
+      // remove leading 0x if present from contractAddress
+      contractAddress : this.getContractAddr().slice(-64),
+    };
+    return output;
+  }
   toDbJson() {
     const output = {
       status: this.getStatus(),

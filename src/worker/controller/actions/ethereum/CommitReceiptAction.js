@@ -37,15 +37,30 @@ class CommitReceiptAction {
         task.getResult().getSignature(),
     );
   }
+  // _commitSuccessTask(task) {
+  //   return this._controller.ethereum().commitReceipt(
+  //       task.getContractAddr(),
+  //       task.getTaskId(),
+  //       cryptography.hash(task.getResult().getDelta().data),
+  //       cryptography.hash(task.getResult().getOutput()),
+  //       task.getResult().getEthPayload(),
+  //       task.getResult().getEthAddr(),
+  //       task.getResult().getUsedGas(),
+  //       task.getResult().getSignature(),
+  //       {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'}
+  //   );
+  // }
   _commitSuccessTask(task) {
-    return this._controller.ethereum().commitReceipt(
-        task.getContractAddr(),
+    return this._controller.ethereum().commitDeploySecretContract(
         task.getTaskId(),
-        cryptography.hash(task.getResult().getDelta().data),
+        task.getResult().getPreCodeHash(),
         cryptography.hash(task.getResult().getOutput()),
-        task.getResult().getUsedGas(),
+        cryptography.hash(task.getResult().getDelta().data),
         task.getResult().getEthPayload(),
-        task.getResult().getSignature()
+        task.getResult().getEthAddr(),
+        task.getResult().getUsedGas(),
+        task.getResult().getSignature(),
+        {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'}
     );
   }
 }
