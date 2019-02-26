@@ -192,7 +192,6 @@ class MockCoreServer {
     this._uri = uri;
     this._socket = zmq.socket('rep');
     this._socket.bindSync(uri);
-    console.log('Server mock on %s ', uri);
 
     this._socket.on('message', (msg) => {
       msg = JSON.parse(msg);

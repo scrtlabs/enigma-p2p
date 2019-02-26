@@ -108,7 +108,7 @@ it('#3 GetAllTips - mock server', async function() {
     await nodeUtils.sleep(2000);
     const fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates)=>{
-      expect(err).toBeNull();
+      expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
       expect(missingStates.length).toBe(3);
       expect(missingStates[0].key).toBe(10);
       expect(missingStates[1].key).toBe(34);
