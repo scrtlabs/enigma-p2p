@@ -94,16 +94,17 @@ class SubscribeSelfSignKeyTopicPipelineAction {
     });
   }
   _getTaskStatus(request, targetTopic) {
+    let final = null;
     this._controller.taskManager().getTaskStatus(request.taskId, (taskStatus)=>{
+      final = taskStatus;
       if (!taskStatus) {
         this._controller.logger().error('error check task status rpc taskId= ' + request.taskId);
-        return;
       }
-      this._controller.logger().debug('publishing task ' + taskStatus +' status ' + request.taskId);
+      this._controller.logger().debug('publishing task ' + final +' status ' + request.taskId);
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
         topic: targetTopic,
         message: JSON.stringify({
-          result: taskStatus,
+          result: final,
         }),
       });
     });
