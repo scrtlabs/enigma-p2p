@@ -56,6 +56,9 @@ class EthereumAPIMock extends EthereumAPI {
     this._services.initServices();
     await this._verifier.init();
   }
+
+  async destroy() {
+  }
 }
 
 module.exports.EthereumAPI = EthereumAPI;

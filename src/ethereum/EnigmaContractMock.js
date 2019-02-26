@@ -7,12 +7,13 @@ class EnigmaContractMock {
     this._workersParams = [];
   }
 
-  setTaskParams(taskId, deltaHash, outputHash, blockNumber, status) {
+  setTaskParams(taskId, deltaHash, outputHash, blockNumber, status, gasLimit) {
     this._taskRecords[taskId] = {taskId: taskId,
                                  deltaHash: deltaHash,
                                  outputHash: outputHash,
                                  blockNumber: blockNumber,
-                                 status: status};
+                                 status: status,
+                                 gasLimit: gasLimit};
   }
 
   setEpochSize(size) {

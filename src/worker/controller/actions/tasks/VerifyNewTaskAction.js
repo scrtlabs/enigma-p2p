@@ -23,12 +23,12 @@ class VerifyNewTaskAction {
         }
         await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), res.isVerified);
         if(onResult){
-          onResult(null,res);
+          onResult(null, res);
         }
       },
     });
   }
-  //TODO:: look at isabs combina
+
   async asyncExecute(params) {
     const action = this;
     return new Promise((res, rej)=>{

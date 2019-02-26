@@ -106,6 +106,11 @@ module.exports.TEST_TREE = {
     '#28' : true,
     '#29' : true,
     '#30' : true,
+  },
+  'ethereum_integration':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
   }
 };
 

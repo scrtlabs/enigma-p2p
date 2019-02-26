@@ -14,6 +14,7 @@ class StartTaskExecutionAction {
   execute(params) {
     const type = params.type;
     const request = params.request;
+    const onResponse = params.onResponse;
     let task = null;
 
     request.gasLimit = 1544; // a fake gasLimit is set here, but is being overwritten in the VerifyNewTaskAction
@@ -29,6 +30,19 @@ class StartTaskExecutionAction {
     if (task) {
       this._controller.taskManager().addTaskUnverified(task);
     }
+    if(onResponse){
+      onResponse(null);
+    }
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      params.onResponse = function(err, verificationResult) {
+        if (err) rej(err);
+        else res(verificationResult);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = StartTaskExecutionAction;

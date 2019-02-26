@@ -11,7 +11,9 @@ const DeployResult  = require('../src/worker/tasks/Result').DeployResult;
 const constants = require('../src/common/constants');
 const errors = require('../src/common/errors');
 const DbUtils = require('../src/common/DbUtils');
+const testUtils = require('./ethereum/utils');
 const Web3 = require('web3');
+const defaultsDeep = require('@nodeutils/defaults-deep');
 
 describe('Verifier tests', function() {
   let web3 = new Web3();
@@ -60,15 +62,9 @@ describe('Verifier tests', function() {
     assert.strictEqual(res.error, null);
   }
 
-  async function init() {
+  async function initStuffForTaskSubmission() {
     const ethereumAPI = new EthereumAPIMock();
     await ethereumAPI.init();
-
-    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier()};
-  }
-
-  async function initStuffForTaskSubmission() {
-    let {apiMock, services, verifier} = await init();
 
     const taskId = web3.utils.randomHex(32);
     let delta = web3.utils.randomHex(32);
@@ -77,82 +73,29 @@ describe('Verifier tests', function() {
     let outputHash = DbUtils.kecckak256Hash(output);
     let blockNumber = 0;
 
-    return {apiMock: apiMock, services: services, verifier: verifier, taskId: taskId, delta: delta, deltaHash: deltaHash,
+    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), taskId: taskId, delta: delta, deltaHash: deltaHash,
       outputHash: outputHash, output:output, blockNumber: blockNumber};
   }
 
-  function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
-    const hash = web3.utils.soliditySha3(
-      {t: 'uint256', v: seed},
-      {t: 'bytes32', v: secretContractAddress},
-      {t: 'uint256', v: nonce},
-    );
-    // Find random number between [0, tokenCpt)
-    let randVal = (web3.utils.toBN(hash).mod(web3.utils.toBN(balancesSum))).toNumber();
-
-    for (let i = 0; i <= balances.length; i++) {
-      randVal -= balances[i];
-      if (randVal <= 0) {
-        return workers[i];
-      }
-    }
-  }
-
   async function initStuffForWorkerSelection () {
-    // const apiMock = new EnigmaContractMock();
-    // const services = new EthereumServices(apiMock);
-    // const verifier = new EthereumVerifier(apiMock, services);
+    let {params, expectedAddress, expectedParams, secretContractAddress, epochSize} = testUtils.createDataForSelectionAlgorithm();
+
     const ethereumAPI = new EthereumAPIMock();
 
-    const workersA = [{signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)},
-      {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}];
-    const workersB = [{signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)},
-      {signer: web3.utils.randomHex(32)}, {signer: web3.utils.randomHex(32)}];
-    const balancesA = [1, 2, 3, 4, 5];
-    const balancesB = [5, 4, 3, 2, 1];
-    const seed = 10;
-    const nonce = 0;
-
-    let params = [{workers: workersA, balances: balancesA, seed: seed, nonce: nonce, firstBlockNumber: 300},
-      {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 400},
-      {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 0},
-      {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 100},
-      {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 200}];
-
-    let balancesSum = balancesA.reduce((a, b) => a + b, 0);
-
-    ethereumAPI.api().setEpochSize(100);
+    ethereumAPI.api().setEpochSize(epochSize);
     ethereumAPI.api().setWorkerParams(Array.from(params));
-    // ethereumAPI.services().initServices();
-    // await verifier.init();
     await ethereumAPI.init();
 
-    const secretContractAddress = web3.utils.randomHex(32);
-
-    const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA).signer;
-
-    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), params: params, expectedAddress: expected,
-      expectedParams: params[0], secretContractAddress: secretContractAddress};
+    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), params: params, expectedAddress: expectedAddress,
+      expectedParams: expectedParams, secretContractAddress: secretContractAddress};
 
   }
 
   async function initStuffForTaskCreation() {
-    let a = await initStuffForWorkerSelection();
-    const taskId = web3.utils.randomHex(32);
-    const preCode = web3.utils.randomHex(32);
-    const encryptedArgs = web3.utils.randomHex(32);
-    const encryptedFn = web3.utils.randomHex(32);
-    const userDHKey = web3.utils.randomHex(32);
-    const gasLimit = 10;
+    let workerSelectionData = await initStuffForWorkerSelection();
+    let taskData = testUtils.createDataForTaskCreation();
 
-    a['taskId'] = taskId;
-    a['preCode'] = preCode;
-    a['encryptedArgs'] = encryptedArgs;
-    a['encryptedFn']= encryptedFn;
-    a['userDHKey'] = userDHKey;
-    a['gasLimit'] = gasLimit;
-
-    return a;
+    return defaultsDeep(workerSelectionData, taskData);
   }
 
 
