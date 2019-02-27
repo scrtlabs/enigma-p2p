@@ -37,6 +37,12 @@ class VerifyAndStoreResultAction {
       if (coreMsg) {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {
           callback: async (err, result)=>{
+            if(err){
+              if(optionalCallback){
+                return optionalCallback(err);
+              }
+              return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${err}`);
+            }
             // announce as provider if its deployment and successfull
             if(type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS){
               let ecid = EngCid.createFromSCAddress(resultObj.taskId);
@@ -44,13 +50,9 @@ class VerifyAndStoreResultAction {
                 try{
                   // announce the network
                   await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-                  // // store result in TaskManager mapped with taskId
-                  // let outsideTask = OutsideTask.buildTask(type,resultObj);
-                  // if(outsideTask){
-                  //   await this._controller.taskManager().addOutsideResult(type,outsideTask);
-                  // }
                 }catch(e){
                   this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
+                  err = e;
                 }
               }
             }
@@ -62,9 +64,10 @@ class VerifyAndStoreResultAction {
               }
             }catch(e){
               this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+              err = e;
             }
             if (optionalCallback) {
-              return optionalCallback(err, result);
+              return optionalCallback(err);
             }
             this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${err}`);
           },
