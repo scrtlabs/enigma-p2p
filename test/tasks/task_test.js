@@ -1,6 +1,7 @@
 const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
+const OutsideTask = require('../../src/worker/tasks/OutsideTask');
 const DeployResult = require('../../src/worker/tasks/Result').DeployResult;
 const FailedResult = require('../../src/worker/tasks/Result').FailedResult;
 const ComputeResult = require('../../src/worker/tasks/Result').ComputeResult;
@@ -154,5 +155,27 @@ it('#4 Should test FailedResult', function(done) {
   assert.strictEqual(false, deployTask.isUnverified(), "task is unverified");
   assert.strictEqual(true,deployTask.isFinished(), "task is not finished");
   assert.strictEqual(true,deployTask.isFailed(), "task is not failed");
+  done();
+});
+
+it('#5 Should test OutsideTask', function(done){
+  let resultRawObj = {
+    taskId:userTaskId,
+    status: 'SUCCESS',
+    preCodeHash: 'hash-of-the-precode-bytecode',
+    output: 'the-deployed-bytecode',
+    delta: { key: 0, data: [ 11, 2, 3, 5, 41, 44 ] },
+    usedGas: 'amount-of-gas-used',
+    ethereumPayload: 'hex of payload',
+    ethereumAddress: 'address of the payload',
+    signature: 'enclave-signature'
+  };
+
+  let outsideTask = OutsideTask.buildTask(constants.CORE_REQUESTS.DeploySecretContract,resultRawObj);
+  assert.strictEqual(resultRawObj.taskId, outsideTask.getTaskId(),
+      `taskId dont ${outsideTask.getTaskId()} match original ${resultRawObj.taskId}`);
+  assert.strictEqual(constants.TASK_STATUS.SUCCESS, outsideTask.getStatus(),`task status is ${outsideTask.getStatus()}`);
+  let d = outsideTask.getResult().getDelta();
+  assert.strictEqual(0,d.key,`keys ${d.key} don't match`);
   done();
 });

@@ -233,6 +233,13 @@ class CLI {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
+      'getResult' : async (args)=>{
+        const taskId = args[1];
+        let result = await this._node.getTaskResult(taskId);
+        console.log(`-------------> Result for ${taskId} <-------------`);
+        console.log(result);
+        console.log(`>----------------------------------------------<`);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
@@ -253,6 +260,7 @@ class CLI {
         console.log('$announce : announce the network worker synchronized on states');
         console.log('$sync : sync the worker from the network and get all the missing states');
         console.log('$isConnected <PeerId>: check if some peer is connected');
+        console.log('$getResult <taskId>: check locally if task result exists');
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$topics : list of subscribed topics');
