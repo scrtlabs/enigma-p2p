@@ -15,7 +15,7 @@ const DbUtils = require('../common/DbUtils');
 class CLI {
   constructor() {
     // mock server
-    this._corePort = null;
+    this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
     // Ethereum stuff
@@ -287,8 +287,8 @@ class CLI {
         .option('-i, --path [value]', 'id path', (theIdPath)=>{
           Parsers.idPath(theIdPath, this._globalWrapper);
         })
-        .option('-c, --core [value]', '[TEST] specify port and start with core mock server', (portStr)=>{
-          this._corePort = portStr;
+        .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+          this._coreAddressPort = addrPortStr;
         })
         .option('--random-db', 'random tasks db', (randomPath)=>{
           if (randomPath) {
@@ -322,8 +322,8 @@ class CLI {
   }
   async _initEnvironment() {
     const builder = new EnviornmentBuilder();
-    if (this._corePort) {
-      const uri ='tcp://127.0.0.1:' + this._corePort;
+    if (this._coreAddressPort) {
+      const uri ='tcp://' + this._coreAddressPort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       const coreServer = new CoreServer();
       coreServer.setProvider(true);
