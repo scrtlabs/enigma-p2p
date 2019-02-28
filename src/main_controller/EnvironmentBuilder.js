@@ -20,18 +20,40 @@ class EnvironmentBuilder{
    * build everything from a file in /configs/templateX.json
    * @return {Promise<MainController>}
    * */
-  static fromFile(configFile){
-    let loggerConfig = configFile.logger;
-    let ipcConfig = configFile.core;
-    let jsonRpcConfig = configFile.proxy;
-    let ethereumConfig = configFile.ethereum;
-    let nodeConfig = configFile.node;
-    let b = new EnvironmentBuilder();
-    b.setIpcConfig(ipcConfig);
-    b.setNodeConfig(nodeConfig);
-    b.setEthereumConfig(ethereumConfig);
-    b.setJsonRpcConfig(jsonRpcConfig);
+  static buildFromSingle(configFile){
+    const b = new EnvironmentBuilder();
+    /** logger */
+    const loggerConfig = configFile.logger;
     b.setLoggerConfig(loggerConfig);
+    /** ipc */
+    const ipcConfig = configFile.core;
+    b.setIpcConfig(ipcConfig);
+    /** jsonrpc  */
+    const jsonRpcConfig = configFile.proxy;
+    if(jsonRpcConfig.withProxy){
+      b.setJsonRpcConfig(jsonRpcConfig);
+    }
+    /** ethereum */
+    const ethereumConfig = configFile.ethereum;
+    if(ethereumConfig.withEthereum){
+      b.setEthereumConfig(ethereumConfig);
+    }
+    /** node */
+    const nodeConfig = configFile.node;
+    const nodeConfigObject = {
+      bootstrapNodes: nodeConfig.network.bootstrapNodes,
+      port: nodeConfig.network.port,
+      idPath: nodeConfig.idPath,
+      extraConfig: {
+        tm : {
+          dbPath : null || nodeConfig.taskManager.dbPath,
+        },
+        principal : {
+          uri : null || nodeConfig.principalNode.uri,
+        }
+      },
+    };
+    b.setNodeConfig(nodeConfigObject);
     return b.build();
   }
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
