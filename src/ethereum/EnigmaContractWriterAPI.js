@@ -380,8 +380,6 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   _validateTxParams(txParams) {
-    console.log(typeof txParams);
-    console.log(txParams);
     if ('gas' in txParams) {
       if (txParams.gas < config.valid.gasMin || txParams.gas > config.valid.gasMax) {
         return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + config.valid.gasMin + '-' + config.valid.gasMax;

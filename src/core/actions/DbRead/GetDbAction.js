@@ -9,9 +9,9 @@ class GetDbAction{
 
   execute(envelop){
     let request = {
-        id : nodeUtils.randId(),
-        type : envelop.content().type,
-        input : envelop.content().input
+      id : nodeUtils.randId(),
+      type :envelop.content().type,
+      input : envelop.content().input
     };
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,

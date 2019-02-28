@@ -57,8 +57,6 @@ class ComputeResult extends Result {
     if (nodeUtils.isString(result)) {
       result = JSON.parse(result);
     }
-    console.log(result);
-
     const expected = ['taskId', 'status', 'output', 'delta', 'usedGas', 'ethereumPayload', 'ethereumAddress', 'signature'];
     const isMissing = expected.some((attr)=>{
       return !(attr in result);
