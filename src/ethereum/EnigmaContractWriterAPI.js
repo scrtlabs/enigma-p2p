@@ -268,8 +268,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         ethCall = '0x00';
       }
       console.log('Secret Contract Address: '+'0x'+secretContractAddress);
-      this._enigmaContract.methods.deploySecretContract('0x'+taskId,
-        '0x'+secretContractAddress, '0x'+taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, '0x'+signature)
+      console.log(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams);
+      this._enigmaContract.methods.commitReceipt('0x'+secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, '0x'+signature)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);

@@ -333,10 +333,12 @@ class CLI {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
       const uri ='tcp://' + this._coreAddressPort;
-      // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      // const coreServer = new CoreServer();
-      // coreServer.setProvider(true);
-      // coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      if (this._corePort == '127.0.0.1:1543'){
+        // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
+        const coreServer = new CoreServer();
+        coreServer.setProvider(true);
+        coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      }
       builder.setIpcConfig({uri: uri});
     }
     if (this._rpcPort) {
@@ -371,8 +373,9 @@ class CLI {
       await n.stop();
       process.exit();
     });
-    if(this._corePort){
+    if(this._corePort && this._corePort != '127.0.0.1:1543'){
       this._node.selfSubscribeAction();
+      console.log('About to getRegistrationParams');
       this._node.getRegistrationParams((err,result)=>{
           if(err){
             console.log('err in getRegistration' + err);
@@ -387,8 +390,8 @@ class CLI {
             console.log('About to get State Keys');
             this._node.execCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,{addresses: ['88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc',]});
 
-          }
-        });
+         }
+       });
     }
   }
   start() {

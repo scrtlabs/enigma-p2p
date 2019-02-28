@@ -8,6 +8,8 @@
 const constants = require('../../../../common/constants');
 const EngCid = require('../../../../common/EngCID');
 const OutsideTask = require('../../../tasks/OutsideTask');
+const DBUtils = require('../../../../common/DbUtils');
+
 class VerifyAndStoreResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -24,7 +26,8 @@ class VerifyAndStoreResultAction {
     const from = message.from; // b58 id
     const data = message.data;
     const msgObj = JSON.parse(data.toString());
-    const resultObj = JSON.parse(msgObj.result);
+    let resultObj = JSON.parse(msgObj.result);
+    resultObj.delta.data = DBUtils.hexToBytes(resultObj.delta.data);
     const contractAddress = msgObj.contractAddress;
     const type = msgObj.type;
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';

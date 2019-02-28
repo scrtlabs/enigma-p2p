@@ -39,9 +39,7 @@ class GetStateKeysAction {
         this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
         return onResponse(err, null);
       }
-      let ppalResponse = JSON.parse(principalResponse);
-      console.log(ppalResponse);
-      this._pttResponse({response: ppalResponse.data, sig: principalResponse.sig}, (err, response) => {
+      this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
         if (err || response.type === 'Error' || response.result.errors.length > 0) {
           if (response && coreResponse.type === 'Error') {
             err = coreResponse.msg;
@@ -67,13 +65,11 @@ class GetStateKeysAction {
   }
 
   _pttResponse(params, cb) {
-    console.log('Passing this to core');
-    console.log(params.response.data);
     this._controller.execCmd(
         constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           dbQueryType: constants.CORE_REQUESTS.PTTResponse,
-          input: {response: params.response.data},
+          input: params,
           onResponse: cb,
         },
     );
