@@ -93,8 +93,6 @@ describe('Verifier tests', function() {
     const gasLimit = 989;
 
     ethereumAPI.api().setTaskParams(taskId,
-      web3.utils.randomHex(32),
-      web3.utils.randomHex(32),
       expectedParams.firstBlockNumber + 50,
       constants.ETHEREUM_TASK_STATUS.RECORD_CREATED,
       gasLimit);

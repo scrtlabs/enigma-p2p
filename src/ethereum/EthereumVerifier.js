@@ -65,10 +65,10 @@ class EthereumVerifier {
    * @return {Promise} returning {JSON} {Boolean} isVerified - true/false if the task verified,
    *                                    {Error} error
    */
-  verifyTaskSubmission(task) {
+  verifyTaskSubmission(task, contractAddress) {
     return new Promise((resolve) => {
       this._createTaskSubmissionListener(task, resolve);
-      this._verifyTaskSubmissionNow(task, (res) => {
+      this._verifyTaskSubmissionNow(task, contractAddress, (res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
           resolve({error: res.error, isVerified: res.isVerified});
@@ -236,7 +236,7 @@ class EthereumVerifier {
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
-  async _verifyTaskSubmissionNow(task, callback) {
+  async _verifyTaskSubmissionNow(task, contractAddress, callback) {
     let res = {};
     const taskId = task.getTaskId();
     const taskParams = await this._contractApi.getTaskParams(taskId);
@@ -249,7 +249,19 @@ class EthereumVerifier {
         res.error = new errors.TaskValidityErr('Task ' + taskId + ' did not fail');
       }
       else {
-        const result = await this._verifyTaskResultsParams(taskParams.deltaHash, taskParams.outputHash, task);
+        let deltaHash;
+        let outputHash;
+        if (task instanceof DeployResult) {
+          let contractParams = await this._contractApi.getContractParams(task.getTaskId());
+          outputHash = contractParams.codeHash;
+          deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), 0);
+        }
+        else {
+          const deltaKey = task.getDelta().key;
+          outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey-1);
+          deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+        }
+        const result = await this._verifyTaskResultsParams(deltaHash, outputHash, task);
         res.isVerified = result.isVerified;
         res.error = result.error;
       }
@@ -362,7 +374,7 @@ class EthereumVerifier {
   _verifyTaskResultsParams(deltaHash, outputHash, task) {
     let res = {};
     if (DbUtils.kecckak256Hash(task.getOutput()) === outputHash) {
-      if (DbUtils.kecckak256Hash(task.getDelta()) === deltaHash) {
+      if (DbUtils.kecckak256Hash(task.getDelta().data) === deltaHash) {
         res.isVerified = true;
         res.error = null;
       }

@@ -32,7 +32,7 @@ class VerifyAndStoreResultAction {
     let res = {isVerified : true};
     if(this._controller.hasEthereum()) {
       // TODO: decide what to do with the error...
-      res = await this._controller.ethereum().verifier().verifyTaskSubmission(resultObj);
+      res = await this._controller.ethereum().verifier().verifyTaskSubmission(resultObj, contractAddress);
     }
     if (res.isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
