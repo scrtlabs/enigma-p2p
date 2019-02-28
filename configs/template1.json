@@ -21,6 +21,7 @@
       "criticalLowDht" : 5
     },
     "idPath" : null, // load PeerId, if null-> create one
+    "id" : null, // either idPath or id -> actuall object here are acceptable if both are set, idPath is the default
     "isDiscover" : true, // should do discovery ?
     // the inner task manager of the node controller
     "taskManager" : {
@@ -43,5 +44,9 @@
   "ethereum" :{
     "ethereumWebsocketProvider" : "", //websocket provider,
     "enigmaContractAddress" : "" // enigma contract address
+  },
+  /** CURRENTLY IGNORED */
+  "dev:":{
+    "truffleDir" : ""
   }
 }
