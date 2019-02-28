@@ -1,4 +1,4 @@
-{
+module.exports = {
   "logger" : {
     "level" : "debug", // log level
     "cli" : true, // output to std
@@ -47,12 +47,15 @@
   },
   // Ethereum related configuration
   "ethereum" :{
-    "withEthereum" : false, // default use ethereum or not
-    "ethereumWebsocketProvider" : "", //websocket provider,
-    "enigmaContractAddress" : "" // enigma contract address
+    //default use ethereum or not
+    "withEthereum" : false,
+    // websocket provider
+    "ethereumWebsocketProvider" : "",
+    // enigma contract address
+    "enigmaContractAddress" : ""
   },
-  /** CURRENTLY IGNORED */
+  // TODO:: CURRENTLY IGNORED
   "dev:":{
     "truffleDir" : ""
   }
-}
+};
