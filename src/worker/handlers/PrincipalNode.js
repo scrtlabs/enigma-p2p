@@ -21,7 +21,7 @@ class PrincipalNode {
         reject(new Error('getStateKeys accepts only object of type MsgPrincipal'));
       }
 
-      this._client.request('get_state_keys', msg.toJson(), (err, response) => {
+      this._client.request('getStateKeys', msg.toJson(), (err, response) => {
         if (this._logger) {
           this._logger.debug('Connecting to principal node: ' + this._uri);
         }
