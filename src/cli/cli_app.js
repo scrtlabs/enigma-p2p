@@ -373,7 +373,7 @@ class CLI {
       await n.stop();
       process.exit();
     });
-    if(this._corePort && this._corePort != '127.0.0.1:1543'){
+    if(this._coreAddressPort && this._coreAddressPort != '127.0.0.1:1543'){
       this._node.selfSubscribeAction();
       console.log('About to getRegistrationParams');
       this._node.getRegistrationParams((err,result)=>{
