@@ -10,7 +10,6 @@ const DeployResult  = require('../src/worker/tasks/Result').DeployResult;
 
 const constants = require('../src/common/constants');
 const errors = require('../src/common/errors');
-const DbUtils = require('../src/common/DbUtils');
 const testUtils = require('./ethereum/utils');
 const Web3 = require('web3');
 const defaultsDeep = require('@nodeutils/defaults-deep');
@@ -85,18 +84,11 @@ describe('Verifier tests', function() {
   }
 
   async function initStuffForTaskSubmission() {
+    let taskData = testUtils.createDataForTaskSubmission();
     const ethereumAPI = new EthereumAPIMock();
     await ethereumAPI.init();
 
-    const taskId = web3.utils.randomHex(32);
-    let delta = web3.utils.randomHex(32);
-    let output = web3.utils.randomHex(32);
-    let deltaHash = DbUtils.kecckak256Hash(delta);
-    let outputHash = DbUtils.kecckak256Hash(output);
-    let blockNumber = 0;
-
-    return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), taskId: taskId, delta: delta, deltaHash: deltaHash,
-      outputHash: outputHash, output:output, blockNumber: blockNumber};
+    return defaultsDeep({apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier()}, taskData);
   }
 
   async function initStuffForWorkerSelection () {

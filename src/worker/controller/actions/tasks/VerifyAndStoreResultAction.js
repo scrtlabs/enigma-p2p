@@ -7,6 +7,9 @@
  * */
 const constants = require('../../../../common/constants');
 const EngCid = require('../../../../common/EngCID');
+const DeployResult  = require('../../../tasks/Result').DeployResult;
+const ComputeResult  = require('../../../tasks/Result').ComputeResult;
+
 class VerifyAndStoreResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -32,7 +35,14 @@ class VerifyAndStoreResultAction {
     let res = {isVerified : true};
     if(this._controller.hasEthereum()) {
       // TODO: decide what to do with the error...
-      res = await this._controller.ethereum().verifier().verifyTaskSubmission(resultObj, contractAddress);
+      let result;
+      if (type == constants.CORE_REQUESTS.DeploySecretContract) {
+        result = DeployResult.buildDeployResult(resultObj);
+      }
+      else {
+        result = ComputeResult.buildComputeResult(resultObj);
+      }
+      res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
     }
     if (res.isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);

@@ -1,4 +1,5 @@
 const Web3 = require('web3');
+const DbUtils = require('../../src/common/DbUtils');
 
 let web3 = new Web3();
 
@@ -39,6 +40,35 @@ module.exports.createDataForTaskCreation = function() {
   };
 };
 
+module.exports.createDataForTaskSubmission = function() {
+  const taskId = web3.utils.randomHex(32);
+  const delta = web3.utils.randomHex(32);
+  const output = web3.utils.randomHex(32);
+  const deltaHash = DbUtils.kecckak256Hash(delta);
+  const outputHash = DbUtils.kecckak256Hash(output);
+  const blockNumber = 0;
+  const usedGas = 90;
+  const ethereumPayload = "";
+  const ethereumAddress = "";
+  const signature = "";
+  const preCodeHash = "";
+  const status = "SUCCESS";
+
+  return {
+    taskId: taskId,
+    delta: delta,
+    deltaHash: deltaHash,
+    outputHash: outputHash,
+    output:output,
+    blockNumber: blockNumber,
+    usedGas: usedGas,
+    ethereumPayload: ethereumPayload,
+    ethereumAddress: ethereumAddress,
+    signature: signature,
+    preCodeHash: preCodeHash,
+    status: status};
+}
+
 module.exports.createDataForSelectionAlgorithm = function() {
   const workersA = [{signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)},
     {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}];
@@ -69,3 +99,4 @@ module.exports.createDataForSelectionAlgorithm = function() {
     epochSize: epochSize
   };
 };
+

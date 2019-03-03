@@ -40,20 +40,14 @@ class EnigmaContractMock {
   }
 
   getContractParams(contractAddress) {
-    // console.log("contract address=" + contractAddress);
-    // console.log("contracts=" + JSON.stringify(this._contracts));
     return this._contracts[contractAddress];
   }
 
   getStateDeltaHash(contractAddress, key) {
-    // console.log("contract address=" + contractAddress);
-    // console.log("contracts=" + JSON.stringify(this._contracts));
     return this._contracts[contractAddress].deltas[key];
   }
 
   getOutputHash(contractAddress, key) {
-    console.log("contract address=" + contractAddress);
-    console.log("contracts=" + JSON.stringify(this._contracts));
     return this._contracts[contractAddress].outputs[key];
   }
 
