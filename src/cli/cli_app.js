@@ -15,7 +15,7 @@ const DbUtils = require('../common/DbUtils');
 class CLI {
   constructor() {
     // mock server
-    this._corePort = null;
+    this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
     // Ethereum stuff
@@ -233,6 +233,13 @@ class CLI {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
+      'getResult' : async (args)=>{
+        const taskId = args[1];
+        let result = await this._node.getTaskResult(taskId);
+        console.log(`-------------> Result for ${taskId} <-------------`);
+        console.log(result);
+        console.log(`>----------------------------------------------<`);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
@@ -253,6 +260,7 @@ class CLI {
         console.log('$announce : announce the network worker synchronized on states');
         console.log('$sync : sync the worker from the network and get all the missing states');
         console.log('$isConnected <PeerId>: check if some peer is connected');
+        console.log('$getResult <taskId>: check locally if task result exists');
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$topics : list of subscribed topics');
@@ -279,8 +287,8 @@ class CLI {
         .option('-i, --path [value]', 'id path', (theIdPath)=>{
           Parsers.idPath(theIdPath, this._globalWrapper);
         })
-        .option('-c, --core [value]', '[TEST] specify port and start with core mock server', (portStr)=>{
-          this._corePort = portStr;
+        .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+          this._coreAddressPort = addrPortStr;
         })
         .option('--random-db', 'random tasks db', (randomPath)=>{
           if (randomPath) {
@@ -314,8 +322,8 @@ class CLI {
   }
   async _initEnvironment() {
     const builder = new EnviornmentBuilder();
-    if (this._corePort) {
-      const uri ='tcp://127.0.0.1:' + this._corePort;
+    if (this._coreAddressPort) {
+      const uri ='tcp://' + this._coreAddressPort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       const coreServer = new CoreServer();
       coreServer.setProvider(true);

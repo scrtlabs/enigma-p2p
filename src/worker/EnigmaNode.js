@@ -479,7 +479,6 @@ class EnigmaNode extends EventEmitter {
       }finally{
         // drop connection
         this.node.hangUp(peerInfo,(err)=>{
-          console.log('hanging up!!!!!!!!! err????? ' + err);
           if(err){
             reject(err);
           }

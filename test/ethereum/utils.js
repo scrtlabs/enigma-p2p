@@ -42,8 +42,8 @@ module.exports.createDataForTaskCreation = function() {
 
 module.exports.createDataForTaskSubmission = function() {
   const taskId = web3.utils.randomHex(32);
-  const delta = web3.utils.randomHex(32);
-  const output = web3.utils.randomHex(32);
+  const delta = [20, 30, 66];
+  const output = [59, 230, 1];
   const deltaHash = DbUtils.kecckak256Hash(delta);
   const outputHash = DbUtils.kecckak256Hash(output);
   const blockNumber = 0;

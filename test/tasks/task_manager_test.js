@@ -3,6 +3,7 @@ const path = require('path');
 const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
+const OutsideTask = require('../../src/worker/tasks/OutsideTask');
 const Result = require('../../src/worker/tasks/Result');
 const assert = require('assert');
 const constants = require('../../src/common/constants');
@@ -137,6 +138,7 @@ describe('TaskManager isolated tests', ()=>{
      logger = new Logger({
       'level': 'debug',
       'cli': false,
+       'file' : false,
     });
     dbPath = path.join(__dirname, '/tasks_temp_db');
   });
@@ -148,6 +150,7 @@ describe('TaskManager isolated tests', ()=>{
       done();
     });
   });
+
   it('#1 Should add 1 task', async function(){
     if(!tree['all'] || !tree['#1']){
       this.skip();
@@ -364,7 +367,47 @@ describe('TaskManager isolated tests', ()=>{
       destroyDb(dbPath,resolve);
     });
   });
-
+  it('#6 Should addOutsideResult()', async function(){
+    if(!tree['all'] || !tree['#6']){
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      // initialize the taskManager
+      let taskManager = new TaskManager(dbPath, logger);
+      // add task
+      let t = getOutsideDeployTask();
+      await taskManager.addOutsideResult(t);
+      // verify task using getAll
+      let tasks = await taskManager.asyncGetAllTasks();
+      assert.strictEqual(1,tasks.length,"not 1, current tasks len = "+tasks.length);
+      assert.strictEqual(t.getTaskId(),tasks[0].getTaskId(),"task id not equal");
+      assert.strictEqual(constants.TASK_STATUS.SUCCESS,tasks[0].getStatus(), "task SUCCESS");
+      // verify getTaskById
+      ta = await taskManager.asyncGetTask(t.getTaskId());
+      assert.strictEqual(t.getTaskId(),ta.getTaskId(),"taskId not equal");
+      assert.strictEqual(constants.TASK_STATUS.SUCCESS,ta.getStatus(), "task SUCCESS");
+      // stop the test
+      await taskManager.asyncStop();
+      destroyDb(dbPath,resolve);
+    });
+  });
   // end of suite
 });
+
+
+
+function getOutsideDeployTask(){
+  let resultRawObj = {
+    taskId:'ae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02b3',
+    status: 'SUCCESS',
+    preCodeHash: 'hash-of-the-precode-bytecode',
+    output: 'the-deployed-bytecode',
+    delta: { key: 0, data: [ 11, 2, 3, 5, 41, 44 ] },
+    usedGas: 'amount-of-gas-used',
+    ethereumPayload: 'hex of payload',
+    ethereumAddress: 'address of the payload',
+    signature: 'enclave-signature'
+  };
+  return OutsideTask.buildTask(constants.CORE_REQUESTS.DeploySecretContract,resultRawObj);
+}
 

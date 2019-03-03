@@ -73,7 +73,23 @@ class JsonRpcServer extends EventEmitter {
         if(args.workerAddress && args.taskId){
           this._logger.info("[+] JsonRpc: getTaskStatus" );
           let coreRes = await this._routeNext({taskId : args.taskId, workerAddress : args.workerAddress,
+            withResult : args.withResult,
           type : constants.NODE_NOTIFICATIONS.GET_TASK_STATUS});
+          if(coreRes === null){
+            return callback({code: this._SERVER_ERR , message: 'Server error'});
+          }
+          if(!('withResult' in args && args.withResult === true)){
+            coreRes.output = null;
+          }
+          return callback(null,coreRes);
+        }else{
+          return callback({code: this._INVALID_PARAM , message: 'Invalid params'});
+        }
+      },
+      getTaskResult : async (args,callback)=>{
+        if(args.taskId){
+          this._logger.info("[+] JsonRpc: getTaskResult" );
+          let coreRes = await this._routeNext({taskId : args.taskId, type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
           if(coreRes === null){
             return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
@@ -91,7 +107,8 @@ class JsonRpcServer extends EventEmitter {
     const envelop = new Envelop(true,content, PROXY_FLAG);
     try{
       let resEnv= await this.getCommunicator().sendAndReceive(envelop);
-      return resEnv.content();
+      let result = resEnv.content();
+      return result;
     }catch(e){
       this._logger.error("[-] JsonRpc ERR: " + e);
       return null;

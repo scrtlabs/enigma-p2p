@@ -111,27 +111,91 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 
 `workerAddress` - target worker address
 
+`withResult` - **OPTIONAL** defaults to `false`. 
+if set to `true` will return the `output` of the task if and only if the task status is `SUCCESS` or `FAILED` and exists. 
+
 **Returns**
 
 ## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
 
-`STATUS` - One of the following values:
-- `0`: TaskId not found
+`result` - status of one of the following values:
+- `null`: TaskId not found
 - `UNVERIFIED`: TaskId exists, but it has not been verified
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
 - `SUCCESS`: Success
 - `FAILED`: Failure
 
+`output` - byte array representing the output of the computation
+
 **Example**
 
 ```sh
 // Request
-curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method":"getTaskStatus", "params": ["0x9f4d74fc0cfd33501e38684274b65e44315ace570a66fd43315760a0891d5fae"] }'
+curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0","id":1,"method":"getTaskStatus","params":{"withResult":true,"workerAddress":"0x163affa85315f89ca25bf22cfd6577d58d89328a","taskId":"0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538"}}' 127.0.0.1:3346
 
+// if withTrue == true and output exists. (i.e task finished and updated)
 // Result
 {
 	"jsonrpc":"2.0",
-	"id": 1,
-	"result": 0}
+	"id":1,
+	"result":{
+		"result":"SUCCESS",
+		"output":[22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99],
+	}
+}
+```
+
+## getTaskResult
+
+Queries the node for the potential result of a given Task identified by its `taskId`. The Enigma.JS library provides in its [enigma-utils.js](https://github.com/enigmampc/enigma-contract-internal/blob/master/enigma-js/src/enigma-utils.js) file a function called `generateTaskId` with the following signature `function generateTaskId(fn, args, scAddr, blockNumber, userPubKey)`, which in turn returns a `taskId` that can be passed as an input to this method.
+
+**Parameters**
+
+`taskId` - Identifier of the Task to check its status
+
+**Returns**
+
+## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
+
+`result` - status of one of the following values:
+- `null`: TaskId not found
+- `UNVERIFIED`: TaskId exists, but it has not been verified
+- `INPROGRESS`: TaskId exists and it has been verified, in-progress
+- `SUCCESS`: Success
+- `FAILED`: Failure
+
+`output` - byte array representing the output of the computation.
+
+`delta` - The delta that was added 
+
+`usedGas` - the gas that was used during the computation 
+
+`ethereumPayload`  - ethereum payload
+
+`ethereumAddress` - ethereum address for payload call 
+
+`signature` - signature of the computation result 
+
+**Example**
+
+```sh
+// Request
+curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0","id":1,"method":"getTaskResult","params":{"taskId":"0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538"}}' 127.0.0.1:3346
+
+// Result
+{
+	"jsonrpc":"2.0","id":1,
+	"result":
+	{
+		"result":
+	 	{
+		 "taskId":"0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538",
+		 "status":"SUCCESS",
+		 "preCodeHash":"hash-of-the-precode-bytecode",
+		 "output":[22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99],"delta":{"key":0,"data":[11,2,3,5,41,44]},"usedGas":"amount-of-gas-used",
+		 "ethereumPayload":"hex of payload",
+		 "ethereumAddress":"address of the payload","signature":"enclave-signature"
+		}
+	}
 }
 ```

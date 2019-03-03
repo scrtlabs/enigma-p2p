@@ -155,10 +155,8 @@ describe('Verifier tests', function() {
         resolve();
       };
 
-      const callback = async (err, res) => {
+      const callback = async (err) => {
         assert.strictEqual(err, null);
-        assert.strictEqual(res.type, constants.CORE_REQUESTS.UpdateNewContract);
-        assert.strictEqual(res.success, true);
         await stopTest();
       };
 
@@ -189,10 +187,8 @@ describe('Verifier tests', function() {
         resolve();
       };
 
-      const callback = async (err, res) => {
+      const callback = async (err) => {
         assert.strictEqual(err, null);
-        assert.strictEqual(res.type, constants.CORE_REQUESTS.UpdateDeltas);
-        assert.strictEqual(res.success, true);
         await stopTest();
       };
 

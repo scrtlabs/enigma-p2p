@@ -1,6 +1,15 @@
 /*
  * TODO:: Add errors! (if i forget before main net i owe 1 ether to elichai)
  */
+
+class MissingFieldsErr extends Error {
+  constructor(message) {
+    super(message);
+    Error.captureStackTrace(this, this.constructor);
+    this.name = this.constructor.name;
+  }
+}
+
 class SyncReceiverErr extends Error {
   constructor(message) {
     super(message);
@@ -98,5 +107,4 @@ module.exports.TaskValidityErr = TaskValidityErr;
 module.exports.TaskVerificationErr = TaskVerificationErr;
 module.exports.WorkerSelectionVerificationErr = WorkerSelectionVerificationErr;
 module.exports.EnigmaContractDataError = EnigmaContractDataError;
-
-
+module.exports.MissingFieldsErr = MissingFieldsErr;

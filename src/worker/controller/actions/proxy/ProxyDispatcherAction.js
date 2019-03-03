@@ -9,7 +9,7 @@ class ProxyDispatcherAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(requestEnvelop) {
+  async execute(requestEnvelop) {
     const type = requestEnvelop.content().type;
     let theAction = null;
     switch (type) {
@@ -21,12 +21,12 @@ class ProxyDispatcherAction {
         requestEnvelop.content().targetTopic = selfId + workerSignKey + sequence;
         break;
       case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
-        theAction = constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC;
+        theAction = constants.NODE_NOTIFICATIONS.DISPATCH_STATUS_REQ_RPC;
         const taskId = requestEnvelop.content().taskId;
         const workerAddr = requestEnvelop.content().workerAddress;
         requestEnvelop.content().targetTopic = taskId + workerAddr;
         requestEnvelop.content().workerSignKey = workerAddr;
-        if (!requestEnvelop.content().id) {
+        if (!requestEnvelop.content().id) { 
           requestEnvelop.content().id = taskId;
         }
         break;
@@ -34,9 +34,26 @@ class ProxyDispatcherAction {
       case constants.CORE_REQUESTS.ComputeTask:
         theAction =constants.NODE_NOTIFICATIONS.ROUTE_NON_BLOCK_RPC;
         break;
+      case constants.NODE_NOTIFICATIONS.GET_TASK_RESULT:
+        this._getTaskResult(type,requestEnvelop);
+        break;
     }
-    this._controller.logger().debug('sending dispatched rpc request');
-    this._controller.execCmd(theAction, requestEnvelop);
+    if(theAction){
+      this._controller.logger().debug('[PROXY_DISPATCH] sending dispatched rpc request');
+      this._controller.execCmd(theAction, requestEnvelop);
+    }
+  }
+  async _getTaskResult(type,requestEnvelop){
+    let result = null;
+    try{
+      result = await this._controller.asyncExecCmd(type,{taskId : requestEnvelop.content().taskId});
+      result = JSON.parse(result.toDbJson());
+    }catch (e) {
+      this._controller.logger().error(`[PROXY_DISPATCH] error getting result ${e}`);
+    }finally {
+      const responseEnvelop = new Envelop(requestEnvelop.id(), {result:result}, requestEnvelop.type());
+      this._controller.communicator().send(responseEnvelop);
+    }
   }
 }
 module.exports = ProxyDispatcherAction;
