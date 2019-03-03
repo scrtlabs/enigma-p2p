@@ -22,7 +22,6 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
-    this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -312,9 +311,6 @@ class CLI {
         .option('-E, --init-ethereum', 'init Ethereum', ()=>{
           this._initEthereum = true;
         })
-        .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
-          this._principalNode = addrPortstr;
-        })
         .parse(process.argv);
   }
   _getFinalConfig() {
@@ -349,13 +345,8 @@ class CLI {
       });
     }
     const nodeConfig = this._getFinalConfig();
-    if (this._randomTasksDbPath || this._principalNode) {
-      if(this._principalNode) {
-        console.log('Connecting to Principal Node at ' + this._principalNode);
-        nodeConfig.extraConfig = {principal: {uri: this._principalNode}}
-      } else {
-        nodeConfig.extraConfig = {};
-      }
+    if (this._randomTasksDbPath) {
+      nodeConfig.extraConfig = {};
       nodeConfig.extraConfig.tm = {
         dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
       };
