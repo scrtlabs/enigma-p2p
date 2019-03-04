@@ -1,3 +1,5 @@
+const constants = require('../../../../common/constants');
+
 class RegisterAction {
   constructor(controller) {
     this._controller = controller;

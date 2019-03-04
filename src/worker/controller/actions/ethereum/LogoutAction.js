@@ -1,3 +1,5 @@
+const constants = require('../../../../common/constants');
+
 class LogoutAction {
   constructor(controller) {
     this._controller = controller;

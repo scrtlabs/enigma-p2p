@@ -686,19 +686,19 @@ class NodeController {
    * @return {Promise} returning boolean indicating a successful login
    * */
   login() {
-    return this._actions[NOTIFICATION.LOGIN].asyncExecute();
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute({});
   }
   /** Logout to Enigma contract
    * @return {Promise} returning boolean indicating a successful logout
    * */
   logout() {
-    return this._actions[NOTIFICATION.LOGOUT].asyncExecute();
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute({});
   }
   /** Register to Enigma contract
    * @return {Promise} returning boolean indicating a successful registration
    * */
   register() {
-    return this._actions[NOTIFICATION.REGISTER].asyncExecute();
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute({});
   }
   /** Deposit to Enigma contract
    * @param {Integer} amount

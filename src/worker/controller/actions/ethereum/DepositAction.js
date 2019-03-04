@@ -1,3 +1,5 @@
+const constants = require('../../../../common/constants');
+
 class DepositAction {
   constructor(controller) {
     this._controller = controller;
