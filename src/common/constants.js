@@ -55,6 +55,11 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_STATE_KEYS': 'getstatekeys', // PTT process
   // ethereum related
   'COMMIT_RECEIPT': 'creceipt', // commit computation result on chain
+  'REGISTER': 'register', // withdraw stacking to Enigma contract
+  'LOGIN': 'login', // login to Enigma contract
+  'LOGOUT': 'logout', // logout from Enigma contract
+  'DEPOSIT': 'deposit', // deposit stacking to Enigma contract
+  'WITHDRAW': 'withdraw', // withdraw stacking to Enigma contract
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {

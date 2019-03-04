@@ -240,6 +240,23 @@ class CLI {
         console.log(result);
         console.log(`>----------------------------------------------<`);
       },
+      'register' : async ()=>{
+        await this._node.register();
+      },
+      'login' : async ()=>{
+        await this._node.login();
+      },
+      'logout' : async ()=>{
+        await this._node.logout();
+      },
+      'deposit' : async (args)=>{
+        const amount = args[1];
+        await this._node.deposit(amount);
+      },
+      'withdraw' : async (args)=>{
+        const amount = args[1];
+        await this._node.withdraw(amount);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
@@ -264,6 +281,11 @@ class CLI {
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$topics : list of subscribed topics');
+        console.log('$register : register to Enigma contract');
+        console.log('$login : login to Enigma contract');
+        console.log('$logout : logout from Enigma contract');
+        console.log('$deposit <amount>: deposit to Enigma contract');
+        console.log('$withdraw <amount>: withdraw from Enigma contract');
         console.log('$help : help');
         console.log('>------------------------<');
       },

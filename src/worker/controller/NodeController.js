@@ -65,6 +65,13 @@ const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
+// ethereum
+const RegisterAction = require('./actions/ethereum/RegisterAction');
+const LoginAction = require('./actions/ethereum/LoginAction');
+const LogoutAction = require('./actions/ethereum/LogoutAction');
+const DepositAction = require('./actions/ethereum/DepositAction');
+const WithdrawAction = require('./actions/ethereum/WithdrawAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -140,6 +147,12 @@ class NodeController {
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
       [NOTIFICATION.DISPATCH_STATUS_REQ_RPC] : new GetStatusProxyAction(this), // dispatch get status request
+      // ethereum
+      [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
+      [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
+      [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
+      [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
+      [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
     };
   }
   /**
@@ -668,6 +681,38 @@ class NodeController {
         resolve(findProvidersResult);
       });
     });
+  }
+  /** Login to Enigma contract
+   * @return {Promise} returning boolean indicating a successful login
+   * */
+  login() {
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute();
+  }
+  /** Logout to Enigma contract
+   * @return {Promise} returning boolean indicating a successful logout
+   * */
+  logout() {
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute();
+  }
+  /** Register to Enigma contract
+   * @return {Promise} returning boolean indicating a successful registration
+   * */
+  register() {
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute();
+  }
+  /** Deposit to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful deposit
+   * */
+  deposit(amount) {
+    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({amount: amount});
+  }
+  /** Withdraw to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful withdrawal
+   * */
+  withdraw(amount) {
+    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({amount: amount});
   }
 }
 module.exports = NodeController;
