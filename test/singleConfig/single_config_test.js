@@ -28,7 +28,7 @@ function getCoreServer(uri){
 }
 
 describe('single_config_tests',()=> {
-  
+
   it('#1 Should create node and shutdown', async function() {
     if (!tree['all'] || !tree['#1']) {
       this.skip();
