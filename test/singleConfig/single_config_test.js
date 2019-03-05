@@ -28,27 +28,7 @@ function getCoreServer(uri){
 }
 
 describe('single_config_tests',()=> {
-
-  before(async function() {
-    if(!tree['all']){
-      this.skip();
-    }
-    // runs before all tests in this block
-    logger = new Logger({
-      'level': 'debug',
-      'cli': false,
-      'file' : false,
-    });
-    dbPath = path.join(__dirname, '/tasks_temp_db');
-  });
-  after((done)=>{
-    if(!tree['all']){
-      return done();
-    }
-    testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
-      done();
-    });
-  });
+  
   it('#1 Should create node and shutdown', async function() {
     if (!tree['all'] || !tree['#1']) {
       this.skip();
