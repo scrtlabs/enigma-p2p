@@ -33,8 +33,8 @@ describe('single_config_tests',()=> {
     if (!tree['all'] || !tree['#1']) {
       this.skip();
     }
-    return new Promise(async resolve => {
       const c = getConfig();
+      return new Promise(async resolve => {
       let coreServer = getCoreServer(c.core.uri);
       let mainController = await EnvironmentBuilder.buildFromSingle(c);
       expect(mainController).toEqual(expect.anything());
