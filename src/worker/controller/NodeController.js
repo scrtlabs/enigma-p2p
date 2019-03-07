@@ -31,6 +31,8 @@ const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 const GetStateKeysAction = require('./actions/GetStateKeysAction');
 // connectivity
+const GetHandshakedConsAction = require('./actions/connectivity/GetHandshakedConsAction');
+const OnDisconnectAction = require('./actions/connectivity/OnDisconnectAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
@@ -65,6 +67,7 @@ const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -105,12 +108,14 @@ class NodeController {
       [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // connectivity
+      [NOTIFICATION.GET_HANDSHAKE_NUM]: new GetHandshakedConsAction(this),
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
       [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
+      [NOTIFICATION.ON_DISCONNECT] : new OnDisconnectAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
@@ -271,6 +276,12 @@ class NodeController {
   /** start the node */
   async start() {
     await this.engNode().syncRun();
+  }
+  getExtraConfig(){
+    if(this._extraConfig){
+      return this._extraConfig;
+    }
+    return {}
   }
   /** replace existing or add new action
    * @param {string} name
@@ -454,9 +465,9 @@ class NodeController {
   // TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
-      'delay': 500,
-      'maxRetry': 10,
-      'timeout': 100000,
+      'delay': constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
+      'maxRetry': constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
+      'timeout': constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT,
       'callback': callback,
     });
   }

@@ -286,7 +286,9 @@ class ProtocolHandler extends EventEmitter {
    * TODO:: Every disconnect check if should re-build table and add more peers.
    */
   onPeerDisconnect(nodeBundle, params) {
-    params.worker.getProtocolHandler()._logger.info('peer disconnected from ' + params.peer.id.toB58String());
+    params.worker.getProtocolHandler()._logger.debug('peer disconnected from ' + params.peer.id.toB58String());
+    const self = params.worker.getProtocolHandler();
+    self.notify({'notification': NOTIFICATION.ON_DISCONNECT, 'params': params});
   }
   /**
    * Dispatching a a state sync request.
