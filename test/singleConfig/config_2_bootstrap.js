@@ -13,7 +13,7 @@ module.exports = {
       "bootstrapNodes" : ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"],
       // TODO:: ignored because of constants/CONSISTENT_DISCOVERY_PARAMS
       "consistentDiscovery" : {
-        "persistent" : true, // do persistent discovery i.e every disconnect below lowDht
+        "persistent" : false, // do persistent discovery i.e every disconnect below lowDht
         "delay": 500, // delay between each attempt
         "maxRetry": 10, // max number of retires to reach optimal dht
         "timeout": 100000 // maxtimeout before canceling discovery
