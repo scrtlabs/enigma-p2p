@@ -8,9 +8,11 @@ module.exports.LOG_CONFIG = {
   'cli': true,
 };
 module.exports.NODE_NOTIFICATIONS = {
+  'ON_DISCONNECT' : 'onpdisconnected' , // peer disconnected
   'INIT_WORKER': 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
   'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
   // (ready to be discovered) -> 'peer:discovery' event.
+  'GET_HANDSHAKE_NUM' : 'ghcnumber' , // get number of outbound and inbound handshakes active connections
   'HANDSHAKE_OUTBOUND': 'hs_outbound', // performed handshake with node as outbound operation, e.g. outbound connection
   'HANDSHAKE_INBOUND': 'hs_inbound', // performed answer to handshake // meaning responded to incoming request
   'HANDSHAKE_UPDATE': 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
@@ -97,6 +99,7 @@ module.exports.MSG_STATUS = {
 };
 
 module.exports.CONSISTENT_DISCOVERY_PARAMS = {
+  SHOULD_PERSIST : false, // if false the onDisconnect will do nothing otherwise will trigger again
   MAX_RETRY: 10, // stop if more than 10 tries
   TIMEOUT: 100000, // stop if timeout millis
   DELAY: 500, // delay between each try millis
