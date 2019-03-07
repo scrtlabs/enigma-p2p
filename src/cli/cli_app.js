@@ -14,6 +14,7 @@ const DbUtils = require('../common/DbUtils');
 
 class CLI {
   constructor() {
+    this._persistent = false;
     // mock server
     this._coreAddressPort = null;
     // tasks random path db
@@ -315,6 +316,9 @@ class CLI {
         .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
           this._principalNode = addrPortstr;
         })
+        .option('--persistent', 'if critical low dht -> retry discovery', ()=>{
+          this._persistent = true;
+        })
         .parse(process.argv);
   }
   _getFinalConfig() {
@@ -359,6 +363,9 @@ class CLI {
       nodeConfig.extraConfig.tm = {
         dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
       };
+    }
+    if(this._persistent){
+      nodeConfig.extraConfig.discovery = { persistent : true}
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
