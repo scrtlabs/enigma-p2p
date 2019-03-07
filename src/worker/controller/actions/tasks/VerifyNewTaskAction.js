@@ -13,17 +13,27 @@ class VerifyNewTaskAction {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
       onResponse: async (err, regParams)=>{
         // TODO: remove this default!!!!
-        let res = {isVerified : true};
+        let isVerified = true;
         if(this._controller.hasEthereum()){
-          res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
-          // TODO: decide what to do with the error...
-          if (res.isVerified) {
-            unverifiedTask.setGasLimit(res.gasLimit);
+          isVerified = false;
+          try {
+            let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
+            if (res.error) {
+              this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.taskId}: ${res.error}`);
+            }
+            else if (res.isVerified) {
+              unverifiedTask.setGasLimit(res.gasLimit);
+              this._controller.logger().debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.taskId}`);
+              isVerified = true;
+            }
+          }
+          catch (err) {
+            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task = ${unverifiedTask.taskId}`);
           }
         }
-        await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), res.isVerified);
+        await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
         if(onResult){
-          onResult(null, res);
+          onResult(null, isVerified);
         }
       },
     });

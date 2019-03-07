@@ -3,7 +3,7 @@ const MainController = require('../main_controller/FacadeController');
 const CoreRuntime = require('../core/CoreRuntime');
 const JsonRpcServer = require('../client_api/JsonRpcServer');
 const Logger = require('../common/logger');
-const EthereumAPI = require('../ethereum/EthereumAPI').EthereumAPI;
+const EthereumAPI = require('../ethereum/EthereumAPI');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();

@@ -2,7 +2,7 @@ const assert = require('assert');
 const TEST_TREE = require('../test_tree').TEST_TREE;
 const ethTestUtils = require('./utils');
 const ControllerBuilder = require('../testUtils/quickBuilderUtil');
-const EthereumAPIMock = require('../../src/ethereum/EthereumAPI').EthereumAPIMock;
+const EthereumAPIMock = require('./EthereumAPIMock');
 const ComputeTask  = require('../../src/worker/tasks/ComputeTask');
 const DeployTask  = require('../../src/worker/tasks/DeployTask');
 const ComputeResult  = require('../../src/worker/tasks/Result').ComputeResult;
@@ -102,9 +102,9 @@ describe('Verifier tests', function() {
       const task = DeployTask.buildTask(taskData);
       const res = await controller.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-      assert.strictEqual(res.gasLimit, gasLimit);
+      assert.strictEqual(res, true);
+      //assert.strictEqual(res.error, null);
+      //assert.strictEqual(res.gasLimit, gasLimit);
 
       await stopTest();
     });
@@ -130,9 +130,9 @@ describe('Verifier tests', function() {
       const task = ComputeTask.buildTask(taskData);
       const res = await controller.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-      assert.strictEqual(res.gasLimit, gasLimit);
+      assert.strictEqual(res, true);
+      //assert.strictEqual(res.error, null);
+      //assert.strictEqual(res.gasLimit, gasLimit);
 
       await stopTest();
     });

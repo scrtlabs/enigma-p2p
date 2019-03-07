@@ -1,11 +1,14 @@
 const Web3 = require('web3');
 const DbUtils = require('../common/DbUtils');
 const FailedResult  = require('../worker/tasks/Result').FailedResult;
+const Task = require('../worker/tasks/Task');
 const DeployTask  = require('../worker/tasks/DeployTask');
 const DeployResult  = require('../worker/tasks/Result').DeployResult;
 
 const constants = require('../common/constants');
 const errors = require('../common/errors');
+
+const web3 = new Web3();
 
 class EthereumVerifier {
   /**
@@ -45,15 +48,29 @@ class EthereumVerifier {
    */
   verifyTaskCreation(task, workerAddress) {
     return new Promise((resolve) => {
+      let result = {isVerified: false, gasLimit: null, error: null};
+      if (!(task instanceof Task)) {
+        result.error = new errors.TypeErr('Wrong task type');
+        return resolve(result);
+      }
+      if (!DbUtils.isValidEthereumAddress(workerAddress)) {
+        result.error = new errors.TypeErr('Worker address is not a valid Ethereum address');
+        return resolve(result);
+      }
       this._createTaskCreationListener(task, workerAddress, resolve);
       this._verifyTaskCreationNow(task, async (res, taskParams) => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
           if (res.isVerified) {
             let res2 = await this.verifySelectedWorker(task, taskParams.blockNumber, workerAddress);
-            return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: taskParams.gasLimit});
+            result.error = res2.error;
+            result.isVerified = res2.isVerified;
+            result.gasLimit = taskParams.gasLimit;
           }
-          return resolve({error: res.error, isVerified: false, gasLimit: null});
+          else {
+            result.error = res.error;
+          }
+          resolve(result);
         }
       });
     });
@@ -105,17 +122,11 @@ class EthereumVerifier {
       const params = this._findWorkerParamForTask(blockNumber);
       if (params === null) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
-        resolve({error: err, isVerified: false});
+        return resolve({error: err, isVerified: false});
       }
-      let secretContractAddress;
-      if (task instanceof DeployTask) {
-        secretContractAddress = task.getTaskId();
-      }
-      else { // (task instanceof ComputeTask)
-        secretContractAddress = task.getContractAddr();
-      }
+      let secretContractAddress = task.getContractAddr();
       const res = this._verifySelectedWorker(secretContractAddress, workerAddress, params);
-      resolve({error: res.error, isVerified: res.isVerified});
+      return resolve({error: res.error, isVerified: res.isVerified});
     });
   }
 
@@ -291,19 +302,18 @@ class EthereumVerifier {
    * @param {string} secretContractAddress - Secret contract address
    * @param {string} workerAddress - Worker address
    * @param {JSON} params - task epoch params
-   * @return {JSON} : {Boolean} isVerified - true if the worker is in the selected group
+   * @return {{isVerified: boolean, error: null}} : isVerified - true if the worker is in the selected group
    *                   err - null or Error Class
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
-    // In order to not be bound to Ethereum, we create a new web3 instance here and not use the
-    // EnigmaContractApi instance
-    const web3 = new Web3();
+    let result = {error: null, isVerified: true};
     const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, web3, 1)[0];
-    if (selectedWorker.signer === workerAddress) {
-      return {error: null, isVerified: true};
+    if (selectedWorker.signer !== workerAddress) {
+      const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
+      result.error = err;
+      result.isVerified = false;
     }
-    const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
-    return {error: err, isVerified: false};
+    return result;
   }
 
   /**
@@ -391,7 +401,7 @@ class EthereumVerifier {
   }
 
   _findWorkerParamForTask(blockNumber) {
-    if ((this._workerParamArray.length <= 0) || (!blockNumber)) {
+    if ((this._workerParamArray.length === 0) || (!blockNumber)) {
       return null;
     }
 
