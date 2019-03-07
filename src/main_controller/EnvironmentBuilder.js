@@ -53,6 +53,9 @@ class EnvironmentBuilder{
         }
       },
     };
+    if(nodeConfig.network.consistentDiscovery){
+      nodeConfigObject.extraConfig.discovery  = { persistent : nodeConfig.network.consistentDiscovery.persistent}
+    }
     b.setNodeConfig(nodeConfigObject);
     return b.build();
   }
