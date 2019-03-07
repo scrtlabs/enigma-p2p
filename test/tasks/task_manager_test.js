@@ -378,9 +378,9 @@ describe('TaskManager isolated tests', ()=>{
       let taskManager = new TaskManager(dbPath, logger);
       // add task
       let t = getOutsideDeployTask();
-      await taskManager.addOutsideResult(t);
+      await taskManager.addOutsideResult(t.getTaskType(),t);
       // verify task using getAll
-      let tasks = await taskManager.asyncGetAllTasks();
+      let tasks = [await taskManager.asyncGetTask(t.getTaskId())]
       assert.strictEqual(1,tasks.length,"not 1, current tasks len = "+tasks.length);
       assert.strictEqual(t.getTaskId(),tasks[0].getTaskId(),"task id not equal");
       assert.strictEqual(constants.TASK_STATUS.SUCCESS,tasks[0].getStatus(), "task SUCCESS");
