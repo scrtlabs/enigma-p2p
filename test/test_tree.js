@@ -109,6 +109,12 @@ module.exports.TEST_TREE = {
     '#26' : true,
     '#27' : true,
     '#28' : true,
+  },
+  'single_config':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
   }
 };
 

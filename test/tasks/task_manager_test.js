@@ -130,15 +130,16 @@ describe('TaskManager isolated tests', ()=>{
   let logger;
   let dbPath;
 
+
   before(async function() {
     if(!tree['all']){
       this.skip();
     }
     // runs before all tests in this block
-     logger = new Logger({
+    logger = new Logger({
       'level': 'debug',
       'cli': false,
-       'file' : false,
+      'file' : false,
     });
     dbPath = path.join(__dirname, '/tasks_temp_db');
   });
@@ -150,6 +151,7 @@ describe('TaskManager isolated tests', ()=>{
       done();
     });
   });
+
 
   it('#1 Should add 1 task', async function(){
     if(!tree['all'] || !tree['#1']){
