@@ -33,9 +33,9 @@ class VerifyAndStoreResultAction {
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
     // TODO: remove this default!!!!
-    let res = {isVerified : true};
+    let isVerified = true;
     if(this._controller.hasEthereum()) {
-      // TODO: decide what to do with the error...
+      isVerified = false;
       let result;
       if (type == constants.CORE_REQUESTS.DeploySecretContract) {
         result = DeployResult.buildDeployResult(resultObj);
@@ -43,9 +43,21 @@ class VerifyAndStoreResultAction {
       else {
         result = ComputeResult.buildComputeResult(resultObj);
       }
-      res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
+      try {
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
+        if (res.error) {
+          this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
+        }
+        else if (res.isVerified) {
+          this._controller.logger().debug(`[VERIFY_TASK_RESULT] successful verification of task ${result.getTaskId()}`);
+          isVerified = true;
+        }
+      }
+      catch (e) {
+        this._controller.logger().error(`[VERIFY_TASK_RESULT] an exception occurred while trying to verify result of task ${result.getTaskId()}: ${e}`);
+      }
     }
-    if (res.isVerified) {
+    if (isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
       if (coreMsg) {
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {

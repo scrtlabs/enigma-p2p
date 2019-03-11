@@ -17,7 +17,7 @@ class StartTaskExecutionAction {
     const onResponse = params.onResponse;
     let task = null;
 
-    request.gasLimit = 1544; // a fake gasLimit is set here, but is being overwritten in the VerifyNewTaskAction
+    request.gasLimit = 0; // it is being overwritten in the VerifyNewTaskAction
     switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;

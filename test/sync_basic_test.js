@@ -25,7 +25,6 @@ const truffleDir = path.join(__dirname, './ethereum/scripts');
 const Verifier = require('../src/worker/state_sync/receiver/StateSyncReqVerifier');
 const Web3 = require('web3');
 
-const EnigmaContractAPIBuilder = require('../src/ethereum/EnigmaContractAPIBuilder');
 const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncMsgBuilder;
 
 const parallel = require('async/parallel');
@@ -113,22 +112,17 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
 
     const hexString = '0x' + DbUtils.toHexString(addressInByteArray);
     const codeHash = web3.utils.keccak256(secretContractData[-1]);
-    //const firstDelta = secretContractData[0];
     const firstDeltaHash = web3.utils.keccak256(secretContractData[0]);
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
-    //await api.deploySecretContract(hexString, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
     await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
     let i = 1;
-    //let prevDeltaHash = initDeltaHash;
 
     while (i in secretContractData) {
       const taskId = web3.utils.randomHex(32);
-      //const fee = 5;
       const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
-      //await api.createTaskRecord(taskId, fee, {from: workerAddress});
       const stateDeltaHash = web3.utils.keccak256(delta);
       await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, gasUsed, ethCall,
           workerEnclaveSigningAddress, {from: workerAddress});
@@ -353,8 +347,6 @@ function syncTest(scenario) {
     peerMockCore.setReceiverTips(tips);
     await testUtils.sleep(1500);
     const ethereumInfo = await initEthereumStuff();
-    // {enigmaContractApi: enigmaContractApi, web3: web3, workerEnclaveSigningAddress: workerEnclaveSigningAddress,
-    //  workerAddress: workerAddress};
     const api = ethereumInfo.enigmaContractApi;
     const web3 = ethereumInfo.web3;
     const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
@@ -375,11 +367,6 @@ function syncTest(scenario) {
         .setIpcConfig({uri: peerMockUri})
         .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
-
-    //const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-    //const config = {enigmaContractAddress: enigmaContractAddress};
-    //const enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
-    //await peerController.getNode().setEthereumApi(enigmaContractHandler);
 
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);

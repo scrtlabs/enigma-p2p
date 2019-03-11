@@ -28,7 +28,7 @@ class VerifyNewTaskAction {
             }
           }
           catch (err) {
-            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task = ${unverifiedTask.taskId}`);
+            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.taskId}`);
           }
         }
         await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);

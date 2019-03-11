@@ -103,9 +103,6 @@ describe('Verifier tests', function() {
       const res = await controller.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
       assert.strictEqual(res, true);
-      //assert.strictEqual(res.error, null);
-      //assert.strictEqual(res.gasLimit, gasLimit);
-
       await stopTest();
     });
   });
@@ -131,9 +128,6 @@ describe('Verifier tests', function() {
       const res = await controller.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
       assert.strictEqual(res, true);
-      //assert.strictEqual(res.error, null);
-      //assert.strictEqual(res.gasLimit, gasLimit);
-
       await stopTest();
     });
   });

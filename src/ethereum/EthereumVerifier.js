@@ -1,14 +1,13 @@
-const Web3 = require('web3');
 const DbUtils = require('../common/DbUtils');
-const FailedResult  = require('../worker/tasks/Result').FailedResult;
 const Task = require('../worker/tasks/Task');
-const DeployTask  = require('../worker/tasks/DeployTask');
-const DeployResult  = require('../worker/tasks/Result').DeployResult;
-
 const constants = require('../common/constants');
+const cryptography = require('../common/cryptography');
 const errors = require('../common/errors');
 
-const web3 = new Web3();
+const result = require('../worker/tasks/Result');
+const Result = result.Result;
+const DeployResult  = result.DeployResult;
+const FailedResult  = result.FailedResult;
 
 class EthereumVerifier {
   /**
@@ -84,6 +83,11 @@ class EthereumVerifier {
    */
   verifyTaskSubmission(task, contractAddress) {
     return new Promise((resolve) => {
+      let result = {isVerified: false, error: null};
+      if (!(task instanceof Result)) {
+        result.error = new errors.TypeErr('Wrong task result type');
+        return resolve(result);
+      }
       this._createTaskSubmissionListener(task, resolve);
       this._verifyTaskSubmissionNow(task, contractAddress, (res) => {
         if (res.canBeVerified) {
@@ -175,7 +179,7 @@ class EthereumVerifier {
           }
         else {
           if (task instanceof DeployResult) {
-            if (event.type != constants.ETHEREUM_EVENTS.SecretContractDeployment) {
+            if (event.type !== constants.ETHEREUM_EVENTS.SecretContractDeployment) {
               const err = new errors.TaskValidityErr('Wrong event received (=' + event.type + ') for task ' + taskId);
               resolve({error:err, isVerified: false});
             }
@@ -185,7 +189,7 @@ class EthereumVerifier {
             }
           }
           else { //task instanceof ComputeResult
-            if (event.type != constants.ETHEREUM_EVENTS.TaskSuccessSubmission) {
+            if (event.type !== constants.ETHEREUM_EVENTS.TaskSuccessSubmission) {
               const err = new errors.TaskValidityErr('Wrong event received (=' + event.type + ') for task ' + taskId);
               resolve({error:err, isVerified: false});
             }
@@ -220,8 +224,20 @@ class EthereumVerifier {
    */
   async _verifyTaskCreationNow(task, callback) {
     let res = {};
+    let taskParams;
     const taskId = task.getTaskId();
-    const taskParams = await this._contractApi.getTaskParams(taskId);
+
+    try {
+      taskParams = await this._contractApi.getTaskParams(taskId);
+    }
+    catch (e) {
+      this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
+      // TODO: consider adding a retry mechanism
+      res.canBeVerified = true;
+      res.isVerified = false;
+      res.error = e;
+      return callback(res, null);
+    }
 
     if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
       res = await this._verifyTaskCreateParams(taskParams.inputsHash, task);
@@ -235,7 +251,7 @@ class EthereumVerifier {
     else {
       res.canBeVerified = true;
       res.isVerified = false;
-      res.error = new errors.TaskValidityErr('Task remote status is not expected (=' + taskParams.status + ')');
+      res.error = new errors.TaskValidityErr(`Task remote status is not expected (=${taskParams.status})`);
     }
     return callback(res, taskParams);
   }
@@ -250,51 +266,58 @@ class EthereumVerifier {
   async _verifyTaskSubmissionNow(task, contractAddress, callback) {
     let res = {};
     const taskId = task.getTaskId();
-    const taskParams = await this._contractApi.getTaskParams(taskId);
+    let taskParams;
 
-    if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
-      res.canBeVerified = true;
+    try {
+      taskParams = await this._contractApi.getTaskParams(taskId);
 
-      if (task instanceof FailedResult) {
-        res.isVerified = false;
-        res.error = new errors.TaskValidityErr('Task ' + taskId + ' did not fail');
-      }
-      else {
-        let deltaHash;
-        let outputHash;
-        if (task instanceof DeployResult) {
-          let contractParams = await this._contractApi.getContractParams(task.getTaskId());
-          outputHash = contractParams.codeHash;
-          deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), 0);
-        }
-        else {
-          const deltaKey = task.getDelta().key;
-          outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey-1);
-          deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
-        }
-        const result = await this._verifyTaskResultsParams(deltaHash, outputHash, task);
-        res.isVerified = result.isVerified;
-        res.error = result.error;
-      }
-    }
-    else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
-      if (task instanceof FailedResult) {
+      if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
         res.canBeVerified = true;
-        res.isVerified = true;
+
+        if (task instanceof FailedResult) {
+          res.isVerified = false;
+          res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
+        } else {
+          let deltaHash;
+          let outputHash;
+          if (task instanceof DeployResult) {
+            let contractParams = await this._contractApi.getContractParams(task.getTaskId());
+            outputHash = contractParams.codeHash;
+            deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), 0);
+          } else {
+            const deltaKey = task.getDelta().key;
+            outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
+            deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+          }
+          const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
+          res.isVerified = result.isVerified;
+          res.error = result.error;
+        }
+      } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
+        if (task instanceof FailedResult) {
+          res.canBeVerified = true;
+          res.isVerified = true;
+          res.error = null;
+        } else {
+          res.canBeVerified = true;
+          res.isVerified = false;
+          res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
+        }
+      } else {
+        res.canBeVerified = false;
+        res.isVerified = null;
         res.error = null;
       }
-      else {
-        res.canBeVerified = true;
-        res.isVerified = false;
-        res.error = new errors.TaskFailedErr('Task ' + taskId + ' has failed');
-      }
+      return callback(res);
     }
-    else {
-      res.canBeVerified = false;
-      res.isVerified = null;
-      res.error =  null;
+    catch (e) {
+      this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
+      // TODO: consider adding a retry mechanism
+      res.canBeVerified = true;
+      res.isVerified = false;
+      res.error = e;
+      return callback(res);
     }
-    return callback(res);
   }
 
   /**
@@ -307,7 +330,7 @@ class EthereumVerifier {
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
-    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, web3, 1)[0];
+    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
     if (selectedWorker.signer !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
@@ -321,25 +344,24 @@ class EthereumVerifier {
    *
    * @param {string} scAddr - Secret contract address
    * @param {Object} params - Worker params
-   * @param {Object} web3
    * @param {number} workerGroupSize - Number of workers to be selected for task
    * @return {Array} An array of selected workers where each selected worker is chosen with probability equal to
    * number of staked tokens
    */
-  static selectWorkerGroup(secretContractAddress, params, web3, workerGroupSize) {
+  static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
     // Find total number of staked tokens for workers
     const tokenCpt = params.balances.reduce((a, b) => a + b, 0);
     let nonce = 0;
     const selectedWorkers = [];
     do {
       // Unique hash for epoch, secret contract address, and nonce
-      const hash = web3.utils.soliditySha3(
-          {t: 'uint256', v: params.seed},
-          {t: 'bytes32', v: secretContractAddress},
-          {t: 'uint256', v: nonce},
-      );
+      const hash = cryptography.soliditySha3(
+        {t: 'uint256', v: params.seed},
+        {t: 'bytes32', v: secretContractAddress},
+        {t: 'uint256', v: nonce});
+
       // Find random number between [0, tokenCpt)
-      let randVal = (web3.utils.toBN(hash).mod(web3.utils.toBN(tokenCpt))).toNumber();
+      let randVal = (cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt))).toNumber();
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
