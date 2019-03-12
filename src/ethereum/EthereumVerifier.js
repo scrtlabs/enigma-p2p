@@ -280,12 +280,12 @@ class EthereumVerifier {
         } else {
           let deltaHash;
           let outputHash;
+          const deltaKey = task.getDelta().key;
           if (task instanceof DeployResult) {
             let contractParams = await this._contractApi.getContractParams(task.getTaskId());
             outputHash = contractParams.codeHash;
-            deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), 0);
+            deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
           } else {
-            const deltaKey = task.getDelta().key;
             outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
             deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
           }

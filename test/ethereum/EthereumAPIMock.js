@@ -9,7 +9,7 @@ class EthereumAPIMock extends EthereumAPI {
     super(logger);
     this._api = new EnigmaContractMock();
     this._services = new EthereumServices(this._api);
-    this._verifier = new EthereumVerifier(this._api, this._services);
+    this._verifier = new EthereumVerifier(this._api, this._services, logger);
   }
 
   async init() {

@@ -47,7 +47,6 @@ describe('Verifier tests', function() {
     assert.strictEqual(res.error, null);
 
     // wrong deltaHash
-    apiMock.setTaskParams(taskId, blockNumber, status);
     if (isComputeTask) {
       apiMock.setContractParams(contractAddress, null, {1: web3.utils.randomHex(32)}, {0: outputHash});
     }
@@ -58,6 +57,25 @@ describe('Verifier tests', function() {
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
+    // wrong deltaHash key
+    if (isComputeTask) {
+      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {0: outputHash});
+    }
+    else {
+      apiMock.setContractParams(taskId, outputHash, {2: deltaHash}, null);
+    }
+    res = await verifier.verifyTaskSubmission(task, contractAddress);
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+
+    // wrong outputHash key
+    if (isComputeTask) {
+      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {3: outputHash});
+      res = await verifier.verifyTaskSubmission(task, contractAddress);
+      assert.strictEqual(res.isVerified, false);
+      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+    }
+
     // wrong outputHash
     if (isComputeTask) {
       apiMock.setContractParams(contractAddress, null, {1: deltaHash}, {0: web3.utils.randomHex(32)});
@@ -65,7 +83,6 @@ describe('Verifier tests', function() {
     else {
       apiMock.setContractParams(contractAddress, web3.utils.randomHex(32), {0: deltaHash}, null);
     }
-    apiMock.setTaskParams(taskId, blockNumber, status);
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -303,7 +320,7 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Good compute task submission before pre-mined', async function() {
+  it('Good compute task submission pre-mined', async function() {
     const tree = TEST_TREE.verifier;
     if (!tree['all'] || !tree['#9']) {
       this.skip();
@@ -896,6 +913,45 @@ describe('Verifier tests', function() {
   });
 
   it('Wrong deploy task creation post-mined due to wrong worker address', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#32']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(22)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong task creation post-mined due to wrong task type', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#33']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      a.verifier.verifyTaskCreation({}, a.expectedAddress).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong deploy task creation post-mined due to wrongd elta key', async function() {
     const tree = TEST_TREE.verifier;
     if (!tree['all'] || !tree['#32']) {
       this.skip();

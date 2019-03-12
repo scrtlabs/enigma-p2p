@@ -8,6 +8,7 @@ const DeployTask  = require('../../src/worker/tasks/DeployTask');
 const ComputeResult  = require('../../src/worker/tasks/Result').ComputeResult;
 const DeployResult  = require('../../src/worker/tasks/Result').DeployResult;
 const constants = require('../../src/common/constants');
+const errors = require('../../src/common/errors');
 const Web3 = require('web3');
 const testUtils = require('../testUtils/utils');
 
@@ -17,15 +18,16 @@ describe('Verifier tests', function() {
   let web3 = new Web3();
 
   async function init(isDeploy, taskCreation) {
+    const builder = await ControllerBuilder.createNode();
+    const controller = builder.mainController;
+
     let {params, expectedAddress, expectedParams, secretContractAddress, epochSize} = ethTestUtils.createDataForSelectionAlgorithm();
-    const ethereumAPI = new EthereumAPIMock();
+    const ethereumAPI = new EthereumAPIMock(controller.getNode().logger());
 
     ethereumAPI.api().setEpochSize(epochSize);
     ethereumAPI.api().setWorkerParams(Array.from(params));
     await ethereumAPI.init();
 
-    const builder = await ControllerBuilder.createNode();
-    const controller = builder.mainController;
     controller.getNode().setEthereumApi(ethereumAPI);
 
     let taskStatus;
@@ -132,9 +134,63 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Verify deploy task submission action', async function() {
+  it('Compute task verification action wrong worker address', async function() {
     const tree = TEST_TREE.ethereum_integration;
     if (!tree['all'] || !tree['#3']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let {controller, coreServer, dbPath, taskData, gasLimit} = await init(false, true);
+
+      // stop the test
+      const stopTest = async ()=>{
+        await controller.shutdownSystem();
+        coreServer.disconnect();
+        await testUtils.rm_Minus_Rf(dbPath);
+        resolve();
+      };
+
+      coreServer.setSigningKey(web3.utils.randomHex(20));
+
+      const task = ComputeTask.buildTask(taskData);
+      const res = await controller.getNode().asyncExecCmd(
+        constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
+      assert.strictEqual(res, false);
+      await stopTest();
+    });
+  });
+
+  it('Deploy task verification action ethereum exception', async function() {
+    const tree = TEST_TREE.ethereum_integration;
+    if (!tree['all'] || !tree['#4']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let {controller, coreServer, dbPath, taskData, gasLimit} = await init(true, true);
+
+      // stop the test
+      const stopTest = async ()=>{
+        await controller.shutdownSystem();
+        coreServer.disconnect();
+        await testUtils.rm_Minus_Rf(dbPath);
+        resolve();
+      };
+
+      controller.getNode().ethereum().api().triggerException();
+
+      const task = DeployTask.buildTask(taskData);
+      const res = await controller.getNode().asyncExecCmd(
+        constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {task: task});
+      assert.strictEqual(res, false);
+      await stopTest();
+    });
+  });
+
+  it('Verify deploy task submission action', async function() {
+    const tree = TEST_TREE.ethereum_integration;
+    if (!tree['all'] || !tree['#5']) {
       this.skip();
     }
 
@@ -166,7 +222,7 @@ describe('Verifier tests', function() {
 
   it('Verify compute task submission action', async function() {
     const tree = TEST_TREE.ethereum_integration;
-    if (!tree['all'] || !tree['#4']) {
+    if (!tree['all'] || !tree['#6']) {
       this.skip();
     }
 
@@ -185,6 +241,74 @@ describe('Verifier tests', function() {
         assert.strictEqual(err, null);
         await stopTest();
       };
+
+      const task = ComputeResult.buildComputeResult(taskData);
+      const rawMessage = Buffer.from(JSON.stringify({result: task.toDbJson(),
+        contractAddress: taskData.contractAddress,
+        type: constants.CORE_REQUESTS.ComputeTask}));
+
+      controller.getNode().execCmd(
+        constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, {params: {data: rawMessage}, callback: callback});
+    });
+  });
+
+  it('Deploy task submission action verification error', async function() {
+    const tree = TEST_TREE.ethereum_integration;
+    if (!tree['all'] || !tree['#7']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let {controller, coreServer, dbPath, taskData, gasLimit} = await init(true, false);
+
+      // stop the test
+      const stopTest = async () => {
+        await controller.shutdownSystem();
+        coreServer.disconnect();
+        await testUtils.rm_Minus_Rf(dbPath);
+        resolve();
+      };
+
+      const callback = async (err) => {
+        assert.strictEqual(err instanceof errors.TaskVerificationErr, true);
+        await stopTest();
+      };
+
+      taskData.delta.data = web3.utils.randomHex(20);
+
+      const task = DeployResult.buildDeployResult(taskData);
+      const rawMessage = Buffer.from(JSON.stringify({result: task.toDbJson(),
+        contractAddress: taskData.contractAddress,
+        type: constants.CORE_REQUESTS.DeploySecretContract}));
+
+      controller.getNode().execCmd(
+        constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, {params: {data: rawMessage}, callback: callback});
+    });
+  });
+
+  it('Compute task submission action ethereum exception', async function() {
+    const tree = TEST_TREE.ethereum_integration;
+    if (!tree['all'] || !tree['#8']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let {controller, coreServer, dbPath, taskData, gasLimit} = await init(false, false);
+
+      // stop the test
+      const stopTest = async () => {
+        await controller.shutdownSystem();
+        coreServer.disconnect();
+        await testUtils.rm_Minus_Rf(dbPath);
+        resolve();
+      };
+
+      const callback = async (err) => {
+        assert.strictEqual(err instanceof Error, true);
+        await stopTest();
+      };
+
+      controller.getNode().ethereum().api().triggerException();
 
       const task = ComputeResult.buildComputeResult(taskData);
       const rawMessage = Buffer.from(JSON.stringify({result: task.toDbJson(),
