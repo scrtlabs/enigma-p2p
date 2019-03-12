@@ -540,7 +540,8 @@ class NodeController {
    */
   isSimpleConnected(nodeId) {
     const isConnected = this._engNode.isConnected(nodeId);
-    console.log('Connection test : ' + nodeId + ' ? ' + isConnected);
+    this._logger.debug(`Connection test: ${nodeId} -> ${isConnected}`)
+    return isConnected;
   }
   /** get self Peer Book (All connected peers)
    * @return {Array}

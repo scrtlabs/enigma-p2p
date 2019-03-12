@@ -31,6 +31,7 @@ const getDefault = ()=>{
     withTasksDb: true, // with tasks database
     taskDbPath: null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
     principalUri: null,
+    persistentDiscovery : false, // on disconnect event
   };
 };
 
@@ -187,6 +188,7 @@ const _createNode = async (options)=>{
     });
   }
   nodeConfigObject.extraConfig.principal = {uri: options.principalUri};
+  nodeConfigObject.extraConfig.discovery =  { persistent : options.persistentDiscovery};
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {mainController: mainController, coreServer: coreServer, tasksDbPath: dbPath};
 };
