@@ -125,7 +125,7 @@ function _toNetworkSyncReqParser(read) {
     });
   };
 }
-function _fakeParseFromDbToNetwork(dbResult, callback) {
+function _parseFromDbToNetwork(dbResult, callback) {
   // TODO:: add toNetwork() method to all the dbResults.
   // parse all to network
   if (dbResult.type === constants.CORE_REQUESTS.GetDeltas) {
@@ -144,7 +144,7 @@ function _toNetworkParse(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data!=null) {
-        _fakeParseFromDbToNetwork(data, (err, parsedResult)=>{
+        _parseFromDbToNetwork(data, (err, parsedResult)=>{
           if (err) {
             cb(err, null);
           } else {
@@ -200,7 +200,7 @@ function _fromDbStream(read) {
 
 // used by _requestParserStream() this should parse the msgs from network
 // into something that core can read and load from db
-function _fakeRequestParser(data, callback) {
+function _requestParser(data, callback) {
   let err = null;
   // TODO:: validate network input validity
   data = EncoderUtil.decode(data);
@@ -215,7 +215,7 @@ function _requestParserStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data != null) {
-        _fakeRequestParser(data, (err, parsed)=>{
+        _requestParser(data, (err, parsed)=>{
           if (err) {
             cb(true, null);
           } else {

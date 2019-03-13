@@ -37,6 +37,7 @@ module.exports.TEST_TREE = {
     '#3' : true,
     '#4' : true,
     '#5' : true,
+    '#6' : true,
   },
   'task_flow' : {
     'all' :true,
@@ -125,6 +126,12 @@ module.exports.TEST_TREE = {
     '#6' : true,
     '#7' : true,
     '#8' : true,
+  },
+  'single_config':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
   }
 };
 
