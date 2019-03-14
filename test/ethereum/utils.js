@@ -70,10 +70,17 @@ module.exports.createDataForTaskSubmission = function() {
 }
 
 module.exports.createDataForSelectionAlgorithm = function() {
-  const workersA = [{signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)},
-    {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}];
-  const workersB = [{signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)},
-    {signer: web3.utils.randomHex(20)}, {signer: web3.utils.randomHex(20)}];
+  const workersA = [{signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))}];
+  const workersB = [{signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))},
+    {signer: web3.utils.toChecksumAddress(web3.utils.randomHex(20))}];
+
   const balancesA = [1, 2, 3, 4, 5];
   const balancesB = [5, 4, 3, 2, 1];
   const seed = 10;

@@ -1,6 +1,6 @@
 const assert = require('assert');
 const TEST_TREE = require('./test_tree').TEST_TREE;
-const EthereumAPIMock = require('../src/ethereum/EthereumAPI').EthereumAPIMock;
+const EthereumAPIMock = require('./ethereum/EthereumAPIMock');
 const EthereumVerifier = require('../src/ethereum/EthereumVerifier');
 const ComputeTask  = require('../src/worker/tasks/ComputeTask');
 const DeployTask  = require('../src/worker/tasks/DeployTask');
@@ -47,7 +47,6 @@ describe('Verifier tests', function() {
     assert.strictEqual(res.error, null);
 
     // wrong deltaHash
-    apiMock.setTaskParams(taskId, blockNumber, status);
     if (isComputeTask) {
       apiMock.setContractParams(contractAddress, null, {1: web3.utils.randomHex(32)}, {0: outputHash});
     }
@@ -58,6 +57,25 @@ describe('Verifier tests', function() {
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
+    // wrong deltaHash key
+    if (isComputeTask) {
+      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {0: outputHash});
+    }
+    else {
+      apiMock.setContractParams(taskId, outputHash, {2: deltaHash}, null);
+    }
+    res = await verifier.verifyTaskSubmission(task, contractAddress);
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+
+    // wrong outputHash key
+    if (isComputeTask) {
+      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {3: outputHash});
+      res = await verifier.verifyTaskSubmission(task, contractAddress);
+      assert.strictEqual(res.isVerified, false);
+      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+    }
+
     // wrong outputHash
     if (isComputeTask) {
       apiMock.setContractParams(contractAddress, null, {1: deltaHash}, {0: web3.utils.randomHex(32)});
@@ -65,7 +83,6 @@ describe('Verifier tests', function() {
     else {
       apiMock.setContractParams(contractAddress, web3.utils.randomHex(32), {0: deltaHash}, null);
     }
-    apiMock.setTaskParams(taskId, blockNumber, status);
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
@@ -303,7 +320,7 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Good compute task submission before pre-mined', async function() {
+  it('Good compute task submission pre-mined', async function() {
     const tree = TEST_TREE.verifier;
     if (!tree['all'] || !tree['#9']) {
       this.skip();
@@ -508,7 +525,7 @@ describe('Verifier tests', function() {
 
       // with using DeployTask
       task = new DeployTask(a.secretContractAddress, "preCode","encryptedArgs","encryptedFn","userDHKey",
-        5, web3.utils.randomHex(32));
+        5, a.secretContractAddress);
 
       res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
@@ -551,7 +568,7 @@ describe('Verifier tests', function() {
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
 
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
@@ -574,13 +591,13 @@ describe('Verifier tests', function() {
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
 
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3.utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -597,7 +614,7 @@ describe('Verifier tests', function() {
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
 
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
@@ -620,7 +637,7 @@ describe('Verifier tests', function() {
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
 
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
@@ -642,7 +659,7 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status);
@@ -667,7 +684,7 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status);
@@ -722,7 +739,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, blockNumber, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3.utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -832,11 +849,11 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, web3.utils.randomHex(32));
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3.utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -861,7 +878,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
       a.apiMock.setTaskParams(a.taskId,0, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(32)).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3.utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -870,6 +887,106 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
       const event = {taskId: a.taskId, inputsHash: a.inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordCreated', event);
+    });
+  });
+
+  it('Wrong compute task creation post-mined due to wrong worker address', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#31']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(22)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong deploy task creation post-mined due to wrong worker address', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#32']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(22)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong task creation post-mined due to wrong task type', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#33']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      a.verifier.verifyTaskCreation({}, a.expectedAddress).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong deploy task creation post-mined due to wrongd elta key', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#32']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status);
+      a.verifier.verifyTaskCreation(task, web3.utils.randomHex(22)).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
+    });
+  });
+
+  it('Wrong task creation post-mined due to wrong task type', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#33']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskCreation();
+
+      a.verifier.verifyTaskCreation({}, a.expectedAddress).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
     });
   });
 

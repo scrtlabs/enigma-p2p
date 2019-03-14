@@ -1,11 +1,14 @@
-const Web3 = require('web3');
+const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
-const FailedResult  = require('../worker/tasks/Result').FailedResult;
-const DeployTask  = require('../worker/tasks/DeployTask');
-const DeployResult  = require('../worker/tasks/Result').DeployResult;
-
+const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
+const cryptography = require('../common/cryptography');
 const errors = require('../common/errors');
+
+const result = require('../worker/tasks/Result');
+const Result = result.Result;
+const DeployResult  = result.DeployResult;
+const FailedResult  = result.FailedResult;
 
 class EthereumVerifier {
   /**
@@ -45,15 +48,29 @@ class EthereumVerifier {
    */
   verifyTaskCreation(task, workerAddress) {
     return new Promise((resolve) => {
+      let result = {isVerified: false, gasLimit: null, error: null};
+      if (!(task instanceof Task)) {
+        result.error = new errors.TypeErr('Wrong task type');
+        return resolve(result);
+      }
+      if (!DbUtils.isValidEthereumAddress(workerAddress)) {
+        result.error = new errors.TypeErr('Worker address is not a valid Ethereum address');
+        return resolve(result);
+      }
       this._createTaskCreationListener(task, workerAddress, resolve);
-      this._verifyTaskCreationNow(task, async (res, taskParams) => {
+      this._verifyTaskCreationNow(task).then(async (res) => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
           if (res.isVerified) {
-            let res2 = await this.verifySelectedWorker(task, taskParams.blockNumber, workerAddress);
-            return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: taskParams.gasLimit});
+            let res2 = await this.verifySelectedWorker(task, res.taskParams.blockNumber, workerAddress);
+            result.error = res2.error;
+            result.isVerified = res2.isVerified;
+            result.gasLimit = res.taskParams.gasLimit;
           }
-          return resolve({error: res.error, isVerified: false, gasLimit: null});
+          else {
+            result.error = res.error;
+          }
+          resolve(result);
         }
       });
     });
@@ -67,8 +84,13 @@ class EthereumVerifier {
    */
   verifyTaskSubmission(task, contractAddress) {
     return new Promise((resolve) => {
+      let result = {isVerified: false, error: null};
+      if (!(task instanceof Result)) {
+        result.error = new errors.TypeErr('Wrong task result type');
+        return resolve(result);
+      }
       this._createTaskSubmissionListener(task, resolve);
-      this._verifyTaskSubmissionNow(task, contractAddress, (res) => {
+      this._verifyTaskSubmissionNow(task, contractAddress).then( (res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
           resolve({error: res.error, isVerified: res.isVerified});
@@ -105,17 +127,11 @@ class EthereumVerifier {
       const params = this._findWorkerParamForTask(blockNumber);
       if (params === null) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
-        resolve({error: err, isVerified: false});
+        return resolve({error: err, isVerified: false});
       }
-      let secretContractAddress;
-      if (task instanceof DeployTask) {
-        secretContractAddress = task.getTaskId();
-      }
-      else { // (task instanceof ComputeTask)
-        secretContractAddress = task.getContractAddr();
-      }
+      let secretContractAddress = task.getContractAddr();
       const res = this._verifySelectedWorker(secretContractAddress, workerAddress, params);
-      resolve({error: res.error, isVerified: res.isVerified});
+      return resolve({error: res.error, isVerified: res.isVerified});
     });
   }
 
@@ -164,7 +180,7 @@ class EthereumVerifier {
           }
         else {
           if (task instanceof DeployResult) {
-            if (event.type != constants.ETHEREUM_EVENTS.SecretContractDeployment) {
+            if (event.type !== constants.ETHEREUM_EVENTS.SecretContractDeployment) {
               const err = new errors.TaskValidityErr('Wrong event received (=' + event.type + ') for task ' + taskId);
               resolve({error:err, isVerified: false});
             }
@@ -174,7 +190,7 @@ class EthereumVerifier {
             }
           }
           else { //task instanceof ComputeResult
-            if (event.type != constants.ETHEREUM_EVENTS.TaskSuccessSubmission) {
+            if (event.type !== constants.ETHEREUM_EVENTS.TaskSuccessSubmission) {
               const err = new errors.TaskValidityErr('Wrong event received (=' + event.type + ') for task ' + taskId);
               resolve({error:err, isVerified: false});
             }
@@ -207,26 +223,39 @@ class EthereumVerifier {
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
-  async _verifyTaskCreationNow(task, callback) {
-    let res = {};
-    const taskId = task.getTaskId();
-    const taskParams = await this._contractApi.getTaskParams(taskId);
+  _verifyTaskCreationNow(task) {
+    return new Promise(async (resolve) => {
+      let res = {};
+      const taskId = task.getTaskId();
 
-    if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
-      res = await this._verifyTaskCreateParams(taskParams.inputsHash, task);
-      res.canBeVerified = true;
-    }
-    else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
-      res.canBeVerified = false;
-      res.isVerified = null;
-      res.error = null;
-    }
-    else {
-      res.canBeVerified = true;
-      res.isVerified = false;
-      res.error = new errors.TaskValidityErr('Task remote status is not expected (=' + taskParams.status + ')');
-    }
-    return callback(res, taskParams);
+      try {
+        res.taskParams = await this._contractApi.getTaskParams(taskId);
+      }
+      catch (e) {
+        this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
+        // TODO: consider adding a retry mechanism
+        res.canBeVerified = true;
+        res.isVerified = false;
+        res.error = e;
+        return resolve(res);
+      }
+
+      if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
+        res = defaultsDeep(res, this._verifyTaskCreateParams(res.taskParams.inputsHash, task));
+        res.canBeVerified = true;
+      }
+      else if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
+        res.canBeVerified = false;
+        res.isVerified = null;
+        res.error = null;
+      }
+      else {
+        res.canBeVerified = true;
+        res.isVerified = false;
+        res.error = new errors.TaskValidityErr(`Task remote status is not expected (=${res.taskParams.status})`);
+      }
+      return resolve(res);
+    });
   }
 
   /**
@@ -236,54 +265,62 @@ class EthereumVerifier {
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
-  async _verifyTaskSubmissionNow(task, contractAddress, callback) {
-    let res = {};
-    const taskId = task.getTaskId();
-    const taskParams = await this._contractApi.getTaskParams(taskId);
+  async _verifyTaskSubmissionNow(task, contractAddress) {
+    return new Promise(async (resolve) => {
+      let res = {};
+      const taskId = task.getTaskId();
+      let taskParams;
 
-    if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
-      res.canBeVerified = true;
+      try {
+        taskParams = await this._contractApi.getTaskParams(taskId);
 
-      if (task instanceof FailedResult) {
-        res.isVerified = false;
-        res.error = new errors.TaskValidityErr('Task ' + taskId + ' did not fail');
-      }
-      else {
-        let deltaHash;
-        let outputHash;
-        if (task instanceof DeployResult) {
-          let contractParams = await this._contractApi.getContractParams(task.getTaskId());
-          outputHash = contractParams.codeHash;
-          deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), 0);
+        if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
+          res.canBeVerified = true;
+
+          if (task instanceof FailedResult) {
+            res.isVerified = false;
+            res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
+          } else {
+            let deltaHash;
+            let outputHash;
+            const deltaKey = task.getDelta().key;
+            if (task instanceof DeployResult) {
+              let contractParams = await this._contractApi.getContractParams(task.getTaskId());
+              outputHash = contractParams.codeHash;
+              deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
+            } else {
+              outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
+              deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+            }
+            const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
+            res.isVerified = result.isVerified;
+            res.error = result.error;
+          }
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
+          if (task instanceof FailedResult) {
+            res.canBeVerified = true;
+            res.isVerified = true;
+            res.error = null;
+          } else {
+            res.canBeVerified = true;
+            res.isVerified = false;
+            res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
+          }
+        } else {
+          res.canBeVerified = false;
+          res.isVerified = null;
+          res.error = null;
         }
-        else {
-          const deltaKey = task.getDelta().key;
-          outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey-1);
-          deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
-        }
-        const result = await this._verifyTaskResultsParams(deltaHash, outputHash, task);
-        res.isVerified = result.isVerified;
-        res.error = result.error;
-      }
-    }
-    else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
-      if (task instanceof FailedResult) {
-        res.canBeVerified = true;
-        res.isVerified = true;
-        res.error = null;
-      }
-      else {
+        return resolve(res);
+      } catch (e) {
+        this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
+        // TODO: consider adding a retry mechanism
         res.canBeVerified = true;
         res.isVerified = false;
-        res.error = new errors.TaskFailedErr('Task ' + taskId + ' has failed');
+        res.error = e;
+        return resolve(res);
       }
-    }
-    else {
-      res.canBeVerified = false;
-      res.isVerified = null;
-      res.error =  null;
-    }
-    return callback(res);
+    });
   }
 
   /**
@@ -291,19 +328,18 @@ class EthereumVerifier {
    * @param {string} secretContractAddress - Secret contract address
    * @param {string} workerAddress - Worker address
    * @param {JSON} params - task epoch params
-   * @return {JSON} : {Boolean} isVerified - true if the worker is in the selected group
+   * @return {{isVerified: boolean, error: null}} : isVerified - true if the worker is in the selected group
    *                   err - null or Error Class
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
-    // In order to not be bound to Ethereum, we create a new web3 instance here and not use the
-    // EnigmaContractApi instance
-    const web3 = new Web3();
-    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, web3, 1)[0];
-    if (selectedWorker.signer === workerAddress) {
-      return {error: null, isVerified: true};
+    let result = {error: null, isVerified: true};
+    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
+    if (selectedWorker.signer !== workerAddress) {
+      const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
+      result.error = err;
+      result.isVerified = false;
     }
-    const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
-    return {error: err, isVerified: false};
+    return result;
   }
 
   /**
@@ -311,25 +347,24 @@ class EthereumVerifier {
    *
    * @param {string} scAddr - Secret contract address
    * @param {Object} params - Worker params
-   * @param {Object} web3
    * @param {number} workerGroupSize - Number of workers to be selected for task
    * @return {Array} An array of selected workers where each selected worker is chosen with probability equal to
    * number of staked tokens
    */
-  static selectWorkerGroup(secretContractAddress, params, web3, workerGroupSize) {
+  static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
     // Find total number of staked tokens for workers
     const tokenCpt = params.balances.reduce((a, b) => a + b, 0);
     let nonce = 0;
     const selectedWorkers = [];
     do {
       // Unique hash for epoch, secret contract address, and nonce
-      const hash = web3.utils.soliditySha3(
-          {t: 'uint256', v: params.seed},
-          {t: 'bytes32', v: secretContractAddress},
-          {t: 'uint256', v: nonce},
-      );
+      const hash = cryptography.soliditySha3(
+        {t: 'uint256', v: params.seed},
+        {t: 'bytes32', v: secretContractAddress},
+        {t: 'uint256', v: nonce});
+
       // Find random number between [0, tokenCpt)
-      let randVal = (web3.utils.toBN(hash).mod(web3.utils.toBN(tokenCpt))).toNumber();
+      let randVal = (cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt))).toNumber();
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
@@ -391,7 +426,7 @@ class EthereumVerifier {
   }
 
   _findWorkerParamForTask(blockNumber) {
-    if ((this._workerParamArray.length <= 0) || (!blockNumber)) {
+    if ((this._workerParamArray.length === 0) || (!blockNumber)) {
       return null;
     }
 

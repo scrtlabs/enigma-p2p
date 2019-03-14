@@ -6,6 +6,7 @@ class EnigmaContractMock {
     this._epochSize = null;
     this._eventListeners = {};
     this._workersParams = [];
+    this._except = false;
   }
 
   setTaskParams(taskId, blockNumber, status, gasLimit) {
@@ -28,6 +29,9 @@ class EnigmaContractMock {
   }
 
   getTaskParams(taskId) {
+    if (this._except) {
+      throw Error("Ethereum Mock exception");
+    }
     return this._taskRecords[taskId];
   }
 
@@ -57,6 +61,10 @@ class EnigmaContractMock {
 
   triggerEvent(eventName, event) {
     this._eventListeners[eventName](null, event);
+  }
+
+  triggerException() {
+    this._except = true;
   }
 }
 

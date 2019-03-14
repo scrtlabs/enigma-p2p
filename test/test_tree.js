@@ -37,6 +37,7 @@ module.exports.TEST_TREE = {
     '#3' : true,
     '#4' : true,
     '#5' : true,
+    '#6' : true,
   },
   'task_flow' : {
     'all' :true,
@@ -111,6 +112,9 @@ module.exports.TEST_TREE = {
     '#28' : true,
     '#29' : true,
     '#30' : true,
+    '#31' : true,
+    '#32' : true,
+    '#33' : true,
   },
   'ethereum_integration':{
     'all' : true,
@@ -118,6 +122,16 @@ module.exports.TEST_TREE = {
     '#2' : true,
     '#3' : true,
     '#4' : true,
+    '#5' : true,
+    '#6' : true,
+    '#7' : true,
+    '#8' : true,
+  },
+  'single_config':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
   }
 };
 
