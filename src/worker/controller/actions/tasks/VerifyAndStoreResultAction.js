@@ -7,7 +7,10 @@
  * */
 const constants = require('../../../../common/constants');
 const EngCid = require('../../../../common/EngCID');
+const DeployResult  = require('../../../tasks/Result').DeployResult;
+const ComputeResult  = require('../../../tasks/Result').ComputeResult;
 const OutsideTask = require('../../../tasks/OutsideTask');
+
 class VerifyAndStoreResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -28,10 +31,35 @@ class VerifyAndStoreResultAction {
     const contractAddress = msgObj.contractAddress;
     const type = msgObj.type;
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
+    let error = null;
     this._controller.logger().debug(log);
-    // TODO:: lena,a here verify the task result correctness
-    // let isVerified = await ethereum().verify(result)
-    const isVerified = true;
+    // TODO: remove this default!!!!
+    let isVerified = true;
+    if(this._controller.hasEthereum()) {
+      isVerified = false;
+      let result;
+      if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+        result = DeployResult.buildDeployResult(resultObj);
+      }
+      else {
+        result = ComputeResult.buildComputeResult(resultObj);
+      }
+      try {
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
+        if (res.error) {
+          this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
+          error = res.error;
+        }
+        else if (res.isVerified) {
+          this._controller.logger().debug(`[VERIFY_TASK_RESULT] successful verification of task ${result.getTaskId()}`);
+          isVerified = true;
+        }
+      }
+      catch (e) {
+        this._controller.logger().error(`[VERIFY_TASK_RESULT] an exception occurred while trying to verify result of task ${result.getTaskId()}: ${e}`);
+        error = e;
+      }
+    }
     if (isVerified) {
       const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
       if (coreMsg) {
@@ -43,6 +71,7 @@ class VerifyAndStoreResultAction {
               }
               return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${err}`);
             }
+            err = null;
             // announce as provider if its deployment and successfull
             if(type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS){
               let ecid = EngCid.createFromSCAddress(resultObj.taskId);
@@ -73,6 +102,11 @@ class VerifyAndStoreResultAction {
           },
           data: coreMsg,
         });
+      }
+    }
+    else {
+      if(optionalCallback){
+        return optionalCallback(error);
       }
     }
   }

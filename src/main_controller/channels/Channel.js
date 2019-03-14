@@ -14,25 +14,3 @@ class Channel {
 }
 
 module.exports = Channel;
-
-// const Envelop = require('./Envelop');
-// async function doStuff(){
-//   let communicators = Channel.biDirectChannel();
-//   let c1 = communicators.channel1;
-//   let c2 = communicators.channel2;
-//
-//   c1.setOnMessage((envelop)=>{
-//     console.log(envelop);
-//     let e = new Envelop(envelop.id(),{msg : 'this is lena '}, 'later');
-//     c1.send(e);
-//   });
-//   // envelop
-//   let e1 = new Envelop(true,{msg : 'who is it? '}, 'later');
-//
-//   let responseEnvelop = await c2.sendAndReceive(e1);
-//   console.log("response: ");
-//   console.log(responseEnvelop);
-// }
-//
-// doStuff();
-

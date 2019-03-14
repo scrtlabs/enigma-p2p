@@ -92,7 +92,7 @@ class NodeController {
     this._taskManager = null;
 
     // // init ethereum api
-    this._enigmaContractHandler = null;
+    this._ethereumApi = null;
 
     // init logic
     this._initController();
@@ -261,8 +261,8 @@ class NodeController {
   /** stop Ethereum, if needed
    * */
   async _stopEthereum() {
-    if (this._enigmaContractHandler) {
-      await this._enigmaContractHandler.destroy();
+    if (this._ethereumApi) {
+      await this._ethereumApi.destroy();
     }
   }
   /** *********************
@@ -291,10 +291,10 @@ class NodeController {
     });
   }
   /** set Ethereum API
-   * @param {EnigmaContractHandler} handler
+   * @param {EthereumAPI} api
    * */
-  setEthereumApi(handler) {
-    this._enigmaContractHandler = handler;
+  setEthereumApi(api) {
+    this._ethereumApi = api;
   }
   /** * stop the node */
   async stop() {
@@ -348,7 +348,7 @@ class NodeController {
     return this._taskManager;
   }
   ethereum() {
-    return this._enigmaContractHandler.api();
+    return this._ethereumApi;
   }
   logger() {
     return this._logger;
@@ -488,7 +488,7 @@ class NodeController {
     });
   }
   hasEthereum() {
-    return this._enigmaContractHandler;
+    return this._ethereumApi;
   }
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);

@@ -184,6 +184,10 @@ class MockCoreServer {
     this._receiverTips = tips;
   };
 
+  setSigningKey(key) {
+    this._signKey = key;
+  };
+
   disconnect() {
     this._socket.disconnect(this._uri);
   };

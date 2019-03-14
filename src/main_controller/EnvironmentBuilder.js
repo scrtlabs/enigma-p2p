@@ -3,7 +3,7 @@ const MainController = require('../main_controller/FacadeController');
 const CoreRuntime = require('../core/CoreRuntime');
 const JsonRpcServer = require('../client_api/JsonRpcServer');
 const Logger = require('../common/logger');
-const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
+const EthereumAPI = require('../ethereum/EthereumAPI');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
@@ -103,16 +103,16 @@ class EnvironmentBuilder{
     // init node
     let nodePeerId = null;
     if(this._nodeConfig){
-      let enigmaContractHandler = null;
+      let ethereumApi = null;
       if(this._ethereumConfig){
-        const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder(logger);
-        enigmaContractHandler = await enigmaContractAPIbuilder.setConfigAndBuild(
-            this._ethereumConfig.enigmaContractAddress, this._ethereumConfig.ethereumWebsocketProvider);
+        ethereumApi = new EthereumAPI(logger);
+        await ethereumApi.init(this._ethereumConfig.enigmaContractAddress,
+          this._ethereumConfig.ethereumWebsocketProvider);
       }
       let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
       await node.start();
-      if(enigmaContractHandler){
-        node.setEthereumApi(enigmaContractHandler);
+      if(ethereumApi){
+        node.setEthereumApi(ethereumApi);
       }
       nodePeerId = node.engNode().getSelfIdB58Str();
       runtimes.push(node);

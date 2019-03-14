@@ -44,7 +44,7 @@ class IdentifyMissingStatesAction {
             return finalCallback(error);
           }
           return IdentifyMissingStatesAction.
-              _buildMissingStatesResult(this._controller.ethereum(), localTips, (err, res)=> {
+              _buildMissingStatesResult(this._controller.ethereum().api(), localTips, (err, res)=> {
                 if (err) {
                   return finalCallback(err);
                 }

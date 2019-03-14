@@ -15,19 +15,6 @@ const defaultConfig = {
   truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
 };
 
-class EnigmaContractHandler {
-  constructor(api, environment) {
-    this._api = api;
-    this._environment = environment;
-  }
-  api() {
-    return this._api;
-  }
-  async destroy() {
-    await this._environment.destroy();
-  }
-}
-
 class EnigmaContractAPIBuilder {
   constructor(logger) {
     this.apiWriterFlag = true;
@@ -119,12 +106,12 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     } else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
 
-    return new EnigmaContractHandler(this.api, this);
+    return {api: this.api, environment: this};
   }
 
   /**
@@ -134,18 +121,18 @@ class EnigmaContractAPIBuilder {
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
   async setConfigAndBuild(enigmaContractAddress, url) {
-    let enigmaContractHandler;
+    let res;
 
     if (enigmaContractAddress) {
       let config = {enigmaContractAddress: enigmaContractAddress};
       if (url) {
         config.url = url;
       }
-      enigmaContractHandler = await this.useDeployed(config).build();
+      res = await this.useDeployed(config).build();
     } else {
-      enigmaContractHandler = await this.createNetwork().deploy().build();
+      res = await this.createNetwork().deploy().build();
     }
-    return enigmaContractHandler;
+    return res;
   }
 
   _resetEnv(truffleDirectory) {

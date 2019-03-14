@@ -1,4 +1,5 @@
 const errors = require('../common/errors');
+const Logger = require('../common/logger');
 
 class EnigmaContractReaderAPI {
   /**
@@ -6,14 +7,23 @@ class EnigmaContractReaderAPI {
      * {Json} enigmaContractABI
      * {Web3} web3
      * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
     this._activeEventSubscriptions = {};
     this._initEventParsers();
+
+    if (logger) {
+      this._logger = logger;
+    } else {
+      this._logger = new Logger();
+    }
   }
   w3() {
     return this._web3;
+  }
+  logger() {
+    return this._logger;
   }
   /**
      * check if a secret contract is deployed
@@ -251,6 +261,15 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * * TODO:: lena :: implement this once moving to the updated contract
+   *
+   * */
+  getAllWorkerParams() {
+    return new Promise((resolve, reject) => {
+      resolve([]);
+    });
+  }
+  /**
      * Listen to events emmited by the Enigma.sol contract and trigger a callback
      * @param {string} eventName
      * @param {Json} filter, in case a filter is required on top of the event itself.
@@ -266,6 +285,7 @@ class EnigmaContractReaderAPI {
           callback(null, result);
         })
         .on('changed', (event)=> {
+          this.logger().info('received a change of the event ' + event + '. Deleting its listener');
           if (eventName in this._activeEventSubscriptions) {
             delete(this._activeEventSubscriptions[eventName]);
           }
