@@ -38,7 +38,7 @@ module.exports = {
   },
   // IPC
   "core" : {
-    "uri" : "tcp://127.0.0.1:5552" // ipc uri
+    "uri" : "tcp://127.0.0.1:5522" // ipc uri
   },
   // JsonRpc config
   "proxy" : {
