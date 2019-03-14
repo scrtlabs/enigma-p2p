@@ -16,7 +16,7 @@ class MockCoreServer {
     this._socket = null;
     this._uri = null;
     this._isProvider = false;
-    this._signKey = null;
+    this._signKey = null; //"0x5e9c469c2cb6cab4f15b64a39311297c48812a89";
     this._receiverTips = DEFAULT_TIPS;
     if (name) {
       this._name = name;
