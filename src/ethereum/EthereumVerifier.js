@@ -1,3 +1,4 @@
+const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
 const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
@@ -57,14 +58,14 @@ class EthereumVerifier {
         return resolve(result);
       }
       this._createTaskCreationListener(task, workerAddress, resolve);
-      this._verifyTaskCreationNow(task, async (res, taskParams) => {
+      this._verifyTaskCreationNow(task).then(async (res) => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
           if (res.isVerified) {
-            let res2 = await this.verifySelectedWorker(task, taskParams.blockNumber, workerAddress);
+            let res2 = await this.verifySelectedWorker(task, res.taskParams.blockNumber, workerAddress);
             result.error = res2.error;
             result.isVerified = res2.isVerified;
-            result.gasLimit = taskParams.gasLimit;
+            result.gasLimit = res.taskParams.gasLimit;
           }
           else {
             result.error = res.error;
@@ -89,7 +90,7 @@ class EthereumVerifier {
         return resolve(result);
       }
       this._createTaskSubmissionListener(task, resolve);
-      this._verifyTaskSubmissionNow(task, contractAddress, (res) => {
+      this._verifyTaskSubmissionNow(task, contractAddress).then( (res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
           resolve({error: res.error, isVerified: res.isVerified});
@@ -222,38 +223,39 @@ class EthereumVerifier {
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
-  async _verifyTaskCreationNow(task, callback) {
-    let res = {};
-    let taskParams;
-    const taskId = task.getTaskId();
+  _verifyTaskCreationNow(task) {
+    return new Promise(async (resolve) => {
+      let res = {};
+      const taskId = task.getTaskId();
 
-    try {
-      taskParams = await this._contractApi.getTaskParams(taskId);
-    }
-    catch (e) {
-      this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
-      // TODO: consider adding a retry mechanism
-      res.canBeVerified = true;
-      res.isVerified = false;
-      res.error = e;
-      return callback(res, null);
-    }
+      try {
+        res.taskParams = await this._contractApi.getTaskParams(taskId);
+      }
+      catch (e) {
+        this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
+        // TODO: consider adding a retry mechanism
+        res.canBeVerified = true;
+        res.isVerified = false;
+        res.error = e;
+        return resolve(res);
+      }
 
-    if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
-      res = await this._verifyTaskCreateParams(taskParams.inputsHash, task);
-      res.canBeVerified = true;
-    }
-    else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
-      res.canBeVerified = false;
-      res.isVerified = null;
-      res.error = null;
-    }
-    else {
-      res.canBeVerified = true;
-      res.isVerified = false;
-      res.error = new errors.TaskValidityErr(`Task remote status is not expected (=${taskParams.status})`);
-    }
-    return callback(res, taskParams);
+      if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
+        res = defaultsDeep(res, this._verifyTaskCreateParams(res.taskParams.inputsHash, task));
+        res.canBeVerified = true;
+      }
+      else if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
+        res.canBeVerified = false;
+        res.isVerified = null;
+        res.error = null;
+      }
+      else {
+        res.canBeVerified = true;
+        res.isVerified = false;
+        res.error = new errors.TaskValidityErr(`Task remote status is not expected (=${res.taskParams.status})`);
+      }
+      return resolve(res);
+    });
   }
 
   /**
@@ -263,61 +265,62 @@ class EthereumVerifier {
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
-  async _verifyTaskSubmissionNow(task, contractAddress, callback) {
-    let res = {};
-    const taskId = task.getTaskId();
-    let taskParams;
+  async _verifyTaskSubmissionNow(task, contractAddress) {
+    return new Promise(async (resolve) => {
+      let res = {};
+      const taskId = task.getTaskId();
+      let taskParams;
 
-    try {
-      taskParams = await this._contractApi.getTaskParams(taskId);
+      try {
+        taskParams = await this._contractApi.getTaskParams(taskId);
 
-      if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
-        res.canBeVerified = true;
+        if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
+          res.canBeVerified = true;
 
-        if (task instanceof FailedResult) {
-          res.isVerified = false;
-          res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
-        } else {
-          let deltaHash;
-          let outputHash;
-          const deltaKey = task.getDelta().key;
-          if (task instanceof DeployResult) {
-            let contractParams = await this._contractApi.getContractParams(task.getTaskId());
-            outputHash = contractParams.codeHash;
-            deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
+          if (task instanceof FailedResult) {
+            res.isVerified = false;
+            res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
           } else {
-            outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
-            deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+            let deltaHash;
+            let outputHash;
+            const deltaKey = task.getDelta().key;
+            if (task instanceof DeployResult) {
+              let contractParams = await this._contractApi.getContractParams(task.getTaskId());
+              outputHash = contractParams.codeHash;
+              deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
+            } else {
+              outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
+              deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+            }
+            const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
+            res.isVerified = result.isVerified;
+            res.error = result.error;
           }
-          const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
-          res.isVerified = result.isVerified;
-          res.error = result.error;
-        }
-      } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
-        if (task instanceof FailedResult) {
-          res.canBeVerified = true;
-          res.isVerified = true;
-          res.error = null;
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
+          if (task instanceof FailedResult) {
+            res.canBeVerified = true;
+            res.isVerified = true;
+            res.error = null;
+          } else {
+            res.canBeVerified = true;
+            res.isVerified = false;
+            res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
+          }
         } else {
-          res.canBeVerified = true;
-          res.isVerified = false;
-          res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
+          res.canBeVerified = false;
+          res.isVerified = null;
+          res.error = null;
         }
-      } else {
-        res.canBeVerified = false;
-        res.isVerified = null;
-        res.error = null;
+        return resolve(res);
+      } catch (e) {
+        this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
+        // TODO: consider adding a retry mechanism
+        res.canBeVerified = true;
+        res.isVerified = false;
+        res.error = e;
+        return resolve(res);
       }
-      return callback(res);
-    }
-    catch (e) {
-      this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
-      // TODO: consider adding a retry mechanism
-      res.canBeVerified = true;
-      res.isVerified = false;
-      res.error = e;
-      return callback(res);
-    }
+    });
   }
 
   /**
