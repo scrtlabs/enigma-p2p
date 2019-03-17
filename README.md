@@ -25,7 +25,7 @@ For interactive-options help type `$help` while running.
 
 For quick launching with default the CLI with 1 bootstrap node type:
 
-`node cli_app.js -n dns -i B1 -b B1 -p B1 --core <port> --proxy <port>`
+`node cli_app.js -n dns -i B1 -b B1 -p B1 --core <ip>:<port> --proxy <port>`
 
 For the run-time commands the node can do:
 
@@ -33,9 +33,9 @@ For the run-time commands the node can do:
 
 for quick launch with default worker(s) in a different terminal type:
 
-`node cli_app.js -b B1 --core <port> --proxy <port>`
+`node cli_app.js -b B1 --core <ip>:<port> --proxy <port>`
 
-`--core <port>` flag will start a mock server on the given port and connect to it. 
+`--core <ip>:<port>` flag will start a mock server on the given port and connect to it. 
 
 `--proxy <port>` will start up the JSONrpc server as well.
  
