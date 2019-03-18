@@ -8,6 +8,59 @@
 
 The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
 
+# Table of Contents
+
+- [enigma-p2p](#enigma-p2p)
+- [Table of Contents](#table-of-contents)
+- [Getting Started](#getting-started)
+  - [Quick CLI](#quick-cli)
+- [Architechture](#architechture)
+  - [Core P2P and the outside world](#core-p2p-and-the-outside-world)
+  - [P2P High level design](#p2p-high-level-design)
+  - [NodeController and internals](#nodecontroller-and-internals)
+  - [General concepts](#general-concepts)
+    - [Event driven and notifications](#event-driven-and-notifications)
+    - [Command pattern and Actions](#command-pattern-and-actions)
+    - [Controllers](#controllers)
+    - [Constants](#constants)
+  - [Runtimes and the main controller](#runtimes-and-the-main-controller)
+    - [Main controller](#main-controller)
+    - [Runtimes](#runtimes)
+    - [Channels and Communicators](#channels-and-communicators)
+    - [Api controller](#api-controller)
+    - [Creating main controller instance](#creating-main-controller-instance)
+  - [The Worker - everything libp2p.](#the-worker---everything-libp2p)
+    - [Libp2p configuration](#libp2p-configuration)
+    - [EnigmaNode](#enigmanode)
+    - [P2P Messages](#p2p-messages)
+    - [Incoming requests](#incoming-requests)
+    - [PeerBank](#peerbank)
+    - [Discovery and bootstrap](#discovery-and-bootstrap)
+    - [State synchronization](#state-synchronization)
+    - [PubSub - how to "broadcast"](#pubsub---how-to-%22broadcast%22)
+    - [Connecting it all - controller](#connecting-it-all---controller)
+    - [creating NodeController instance](#creating-nodecontroller-instance)
+  - [Prerequisites](#prerequisites)
+  - [Installing](#installing)
+- [Running the Node](#running-the-node)
+- [Running the tests](#running-the-tests)
+- [How it works](#how-it-works)
+  - [Overview on start](#overview-on-start)
+  - [Persistent Peer Discovery](#persistent-peer-discovery)
+  - [Syncing a Worker](#syncing-a-worker)
+    - [Consensus](#consensus)
+    - [Content Routing](#content-routing)
+    - [Database](#database)
+    - [Provide Content](#provide-content)
+    - [Find Content](#find-content)
+    - [Find Content Providers](#find-content-providers)
+    - [Synchronize Content](#synchronize-content)
+  - [JSON RPC API](#json-rpc-api)
+  - [Built With](#built-with)
+  - [Authors](#authors)
+  - [License](#license)
+
+
 # Getting Started
 
 ## Quick CLI
@@ -41,12 +94,12 @@ for quick launch with default worker(s) in a different terminal type:
  
 # Architechture
 
-## Core, Enigma-P2P and the outside world
+## Core P2P and the outside world
 
 <img src="docs/overview1.jpg"
      alt="Implementation 1" />
 
-## Enigma-P2P High level design
+## P2P High level design
 
 <img src="docs/overview2.jpg"
      alt="Implementation 2" />
@@ -58,11 +111,16 @@ for quick launch with default worker(s) in a different terminal type:
 <img src="docs/overview3.jpg"
      alt="Implementation 3" />
 
-## General concepts.
+## NodeController and internals
+
+<img src="docs/NodeControllerDiagrams.jpg"
+     alt="Implementation 1" />
+
+## General concepts
 
 The enigma-p2p is asynchronous in its nature and has different concepts that are applied in the architecture.
 
-### Event driven - notifications  
+### Event driven and notifications  
 
 Everything is based on notifications and responses to those notifications. 
 Notifications in the project come in 2 forms: 
@@ -76,7 +134,7 @@ Notifications in the project come in 2 forms:
     -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless. 
 
 
-### Command pattern - Actions 
+### Command pattern and Actions 
 
 Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modidications to fit NodeJS style. 
 Terminology wise, it's called **Actions**. 
@@ -112,7 +170,7 @@ This is how user can call direct `Actions` such as `connect to peers` etc.
 All the constants go [here](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/common/constants.js). 
 
 
-## Runtimes and the main controller. 
+## Runtimes and the main controller
 
 Each component such as the Worker, CoreRuntime, etc are `Runtimes` and there is a main controller that connects between them. 
 
