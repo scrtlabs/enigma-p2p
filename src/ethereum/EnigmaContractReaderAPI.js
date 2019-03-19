@@ -252,7 +252,7 @@ class EnigmaContractReaderAPI {
    * */
   getEpochSize() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.epochSize().call((error, data)=> {
+      this._enigmaContract.methods.getEpochSize().call((error, data)=> {
         if (error) {
           reject(error);
         }
