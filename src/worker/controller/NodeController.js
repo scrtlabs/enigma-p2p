@@ -65,8 +65,13 @@ const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
 const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
-// ethereum related
+const RegisterAction = require('./actions/ethereum/RegisterAction');
+const LoginAction = require('./actions/ethereum/LoginAction');
+const LogoutAction = require('./actions/ethereum/LogoutAction');
+const DepositAction = require('./actions/ethereum/DepositAction');
+const WithdrawAction = require('./actions/ethereum/WithdrawAction');
 const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -94,7 +99,7 @@ class NodeController {
     this._taskManager = null;
 
     // // init ethereum api
-    this._enigmaContractHandler = null;
+    this._ethereumApi = null;
 
     // init logic
     this._initController();
@@ -148,6 +153,11 @@ class NodeController {
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // ethereum
+      [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
+      [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
+      [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
+      [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
+      [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
@@ -270,8 +280,8 @@ class NodeController {
   /** stop Ethereum, if needed
    * */
   async _stopEthereum() {
-    if (this._enigmaContractHandler) {
-      await this._enigmaContractHandler.destroy();
+    if (this._ethereumApi) {
+      await this._ethereumApi.destroy();
     }
   }
   /** *********************
@@ -300,10 +310,10 @@ class NodeController {
     });
   }
   /** set Ethereum API
-   * @param {EnigmaContractHandler} handler
+   * @param {EthereumAPI} api
    * */
-  setEthereumApi(handler) {
-    this._enigmaContractHandler = handler;
+  setEthereumApi(api) {
+    this._ethereumApi = api;
   }
   /** * stop the node */
   async stop() {
@@ -357,7 +367,7 @@ class NodeController {
     return this._taskManager;
   }
   ethereum() {
-    return this._enigmaContractHandler.api();
+    return this._ethereumApi;
   }
   logger() {
     return this._logger;
@@ -497,7 +507,7 @@ class NodeController {
     });
   }
   hasEthereum() {
-    return this._enigmaContractHandler;
+    return this._ethereumApi;
   }
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);
@@ -677,6 +687,38 @@ class NodeController {
         resolve(findProvidersResult);
       });
     });
+  }
+  /** Login to Enigma contract
+   * @return {Promise} returning boolean indicating a successful login
+   * */
+  login() {
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute({});
+  }
+  /** Logout to Enigma contract
+   * @return {Promise} returning boolean indicating a successful logout
+   * */
+  logout() {
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute({});
+  }
+  /** Register to Enigma contract
+   * @return {Promise} returning boolean indicating a successful registration
+   * */
+  register() {
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute({});
+  }
+  /** Deposit to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful deposit
+   * */
+  deposit(amount) {
+    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({amount: amount});
+  }
+  /** Withdraw to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful withdrawal
+   * */
+  withdraw(amount) {
+    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({amount: amount});
   }
 }
 module.exports = NodeController;

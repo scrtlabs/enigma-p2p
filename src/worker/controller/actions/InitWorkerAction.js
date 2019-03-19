@@ -83,6 +83,17 @@ class InitWorkerAction {
     };
     const backgroundServices = (cb)=>{
       // TODO:: lena, here your EthereumServices should start. For example, read current Epoch data (like worker params)
+      if(this._controller.hasEthereum()){
+        this._controller.ethereum().services().on(constants.ETHEREUM_EVENTS.NewEpoch,
+          function (error, event) {
+            if (err) {
+              this._controller.logger().error('failed subscribing to NewEpoch events ' + error);
+            }
+            else {
+              this._controller.execCmd(C.GET_STATE_KEYS);
+            }
+          });
+      }
       // TODO:: everything that runs in an infinite loop in the program should be started here.
       // TODO:: for example we could start here a process to always ping enigma-core and check if ok
       // subscribe to self (for responding to rpc requests of other workers)

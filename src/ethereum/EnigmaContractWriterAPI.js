@@ -5,8 +5,8 @@ const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 const config = require('./config.json');
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3) {
-    super(enigmaContractAddress, enigmaContractABI, web3);
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
+    super(enigmaContractAddress, enigmaContractABI, web3, logger);
   }
   /**
      * Step 1 in registration

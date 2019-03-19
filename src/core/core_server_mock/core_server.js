@@ -16,7 +16,7 @@ class MockCoreServer {
     this._socket = null;
     this._uri = null;
     this._isProvider = false;
-    this._signKey = null;
+    this._signKey = null; //"0x5e9c469c2cb6cab4f15b64a39311297c48812a89";
     this._receiverTips = DEFAULT_TIPS;
     if (name) {
       this._name = name;
@@ -184,6 +184,10 @@ class MockCoreServer {
     this._receiverTips = tips;
   };
 
+  setSigningKey(key) {
+    this._signKey = key;
+  };
+
   disconnect() {
     this._socket.disconnect(this._uri);
   };
@@ -192,7 +196,6 @@ class MockCoreServer {
     this._uri = uri;
     this._socket = zmq.socket('rep');
     this._socket.bindSync(uri);
-
     this._socket.on('message', (msg) => {
       msg = JSON.parse(msg);
       if (this._name) {

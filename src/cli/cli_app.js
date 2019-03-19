@@ -246,6 +246,23 @@ class CLI {
         console.log(result);
         console.log(`>----------------------------------------------<`);
       },
+      'register' : async ()=>{
+        await this._node.register();
+      },
+      'login' : async ()=>{
+        await this._node.login();
+      },
+      'logout' : async ()=>{
+        await this._node.logout();
+      },
+      'deposit' : async (args)=>{
+        const amount = args[1];
+        await this._node.deposit(amount);
+      },
+      'withdraw' : async (args)=>{
+        const amount = args[1];
+        await this._node.withdraw(amount);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
@@ -270,6 +287,11 @@ class CLI {
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$topics : list of subscribed topics');
+        console.log('$register : register to Enigma contract');
+        console.log('$login : login to Enigma contract');
+        console.log('$logout : logout from Enigma contract');
+        console.log('$deposit <amount>: deposit to Enigma contract');
+        console.log('$withdraw <amount>: withdraw from Enigma contract');
         console.log('$help : help');
         console.log('>------------------------<');
       },
@@ -317,8 +339,8 @@ class CLI {
         .option('-E, --init-ethereum', 'init Ethereum', ()=>{
           this._initEthereum = true;
         })
-        .option('--principal-node [value]', 'specify the address and port of the Principal Node', (addressPort)=>{
-          this._principalNode = addressPort;
+        .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
+          this._principalNode = addrPortstr;
         })
         .parse(process.argv);
   }
@@ -356,11 +378,13 @@ class CLI {
       });
     }
     const nodeConfig = this._getFinalConfig();
-    if (this._randomTasksDbPath) {
-      console.log('Connecting to Principal Node at '+this._principalNode);
-      nodeConfig.extraConfig = (typeof this._principalNode !== 'undefined' && this._principalNode) ?
-       {principal: {uri: this._principalNode}} :
-       {}
+    if (this._randomTasksDbPath || this._principalNode) {
+      if(this._principalNode) {
+        console.log('Connecting to Principal Node at ' + this._principalNode);
+        nodeConfig.extraConfig = {principal: {uri: this._principalNode}}
+      } else {
+        nodeConfig.extraConfig = {};
+      }
       nodeConfig.extraConfig.tm = {
         dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
       };

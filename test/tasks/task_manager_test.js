@@ -130,15 +130,16 @@ describe('TaskManager isolated tests', ()=>{
   let logger;
   let dbPath;
 
+
   before(async function() {
     if(!tree['all']){
       this.skip();
     }
     // runs before all tests in this block
-     logger = new Logger({
+    logger = new Logger({
       'level': 'debug',
       'cli': false,
-       'file' : false,
+      'file' : false,
     });
     dbPath = path.join(__dirname, '/tasks_temp_db');
   });
@@ -150,6 +151,7 @@ describe('TaskManager isolated tests', ()=>{
       done();
     });
   });
+
 
   it('#1 Should add 1 task', async function(){
     if(!tree['all'] || !tree['#1']){
@@ -376,9 +378,9 @@ describe('TaskManager isolated tests', ()=>{
       let taskManager = new TaskManager(dbPath, logger);
       // add task
       let t = getOutsideDeployTask();
-      await taskManager.addOutsideResult(t);
+      await taskManager.addOutsideResult(t.getTaskType(),t);
       // verify task using getAll
-      let tasks = await taskManager.asyncGetAllTasks();
+      let tasks = [await taskManager.asyncGetTask(t.getTaskId())]
       assert.strictEqual(1,tasks.length,"not 1, current tasks len = "+tasks.length);
       assert.strictEqual(t.getTaskId(),tasks[0].getTaskId(),"task id not equal");
       assert.strictEqual(constants.TASK_STATUS.SUCCESS,tasks[0].getStatus(), "task SUCCESS");
