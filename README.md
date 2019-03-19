@@ -100,9 +100,11 @@ for quick launch with default worker(s) in a different terminal type:
      alt="Implementation 1" />
 
 ## P2P High level design
+ 
 
-<img src="docs/overview2.jpg"
+<img src="docs/MainController.jpg"
      alt="Implementation 2" />
+
 
 * The components are essentially autonomous "runtimes".
 * The MainController relays the communication with different Actions.
