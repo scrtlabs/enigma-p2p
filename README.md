@@ -101,17 +101,16 @@ for quick launch with default worker(s) in a different terminal type:
 
 ## P2P High level design
  
+ 
 
 <img src="docs/MainController.jpg"
      alt="Implementation 2" />
 
 
-* The components are essentially autonomous "runtimes".
+* The components `NodeController`, `JsonRpcServer`, `CoreRuntime` are essentially autonomous "runtimes".
 * The MainController relays the communication with different Actions.
 * The communication is done via Channels, which are bi-directional message-sending implementations.
-
-<img src="docs/overview3.jpg"
-     alt="Implementation 3" />
+  
 
 ## NodeController and internals
 
