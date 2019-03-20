@@ -92,6 +92,7 @@ module.exports.PUBSUB_TOPICS = {
 module.exports.DHT_STATUS = {
   CRITICAL_HIGH_DHT_SIZE: 20,
   OPTIMAL_DHT_SIZE: 8,
+  MAX_OUTBOUND : 120,
   CRITICAL_LOW_DHT_SIZE: 3,
 };
 module.exports.MSG_STATUS = {

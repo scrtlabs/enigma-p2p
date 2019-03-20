@@ -34,8 +34,29 @@ class FacadeController extends MainController{
     if(this.getJsonRpcServer()){
       this.getJsonRpcServer().close();
     }
+    console.log("1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
     this.getIpcClient().disconnect();
+    console.log("222222222222222 1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
     await this.getNode().stop();
+    console.log("33333333333333333333 1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
+  }
+  /**
+   * connectivity:
+   * checks if > criticlal DHT and if < max outbound
+   * @returns {Json} result {status : bool, connection : {status : bool, outbound : number, inbound : number}}
+   * */
+  healthcheck(){
+    // user constants.js
+    // getNode() : NodeController
+    //
+    // return {
+    //   status : true,
+    //   connection : {
+    //     status : true,
+    //     inbound : 13,
+    //     outbound : 8,
+    //   }
+    // }
   }
 }
 
