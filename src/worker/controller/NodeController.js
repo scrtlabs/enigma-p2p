@@ -313,8 +313,11 @@ class NodeController {
   async stop() {
     await this.engNode().syncStop();
     await this._stopEthereum();
-    if (this._taskManager && this._extraConfig.tm.dbPath) {
+    // using some random path for testing (pre tmp feature)
+    if (this._taskManager && this._extraConfig.tm.dbPath && this._extraConfig.tm.dbPath.indexOf('/tmp/') === -1) {
       await this._taskManager.asyncStopAndDropDb();
+    }else if(this._taskManager && this._extraConfig.tm.dbPath ){
+      await this._taskManager.asyncStop();
     }
   }
   /**

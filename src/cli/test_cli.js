@@ -8,6 +8,8 @@ const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = require('../common/cryptography');
 const DbUtils = main.Utils.dbUtils;
+const tempdir = require('tempdir');
+
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
@@ -380,7 +382,7 @@ class CLI {
         nodeConfig.extraConfig = {};
       }
       nodeConfig.extraConfig.tm = {
-        dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
+        dbPath: tempdir.sync()
       };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
