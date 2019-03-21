@@ -35,8 +35,8 @@ describe('task_flow_tests',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       const verifyPublish = async (params)=>{
