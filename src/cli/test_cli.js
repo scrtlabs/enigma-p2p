@@ -3,10 +3,10 @@ const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
-const nodeUtils = require('../common/utils');
+const nodeUtils = main.Utils.nodeUtils;
 const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
-const cryptography = require('../common/cryptography');
+const cryptography = main.cryptography
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
 
