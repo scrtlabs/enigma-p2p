@@ -96,14 +96,14 @@ for quick launch with default worker(s) in a different terminal type:
 
 ## Core P2P and the outside world
 
-<img src="docs/overview1.jpg"
+<img src="./overview1.jpg"
      alt="Implementation 1" />
 
 ## P2P High level design
  
  
 
-<img src="docs/MainController.jpg"
+<img src="./MainController.jpg"
      alt="Implementation 2" />
 
 
@@ -114,7 +114,7 @@ for quick launch with default worker(s) in a different terminal type:
 
 ## NodeController and internals
 
-<img src="docs/NodeControllerDiagrams.jpg"
+<img src="./NodeControllerDiagrams.jpg"
      alt="Implementation 1" />
 
 ## General concepts
@@ -326,7 +326,7 @@ There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/m
 At a very high level, the Worker needs to execute a sequence of steps 
 and only then, it can start "working". Here is a diagram explaining all of the initial steps the Worker has to do: 
 
-<img src="docs/start_flow.jpg"
+<img src="./start_flow.jpg"
      alt="Implementation 4" />
 
 * Start
@@ -378,12 +378,12 @@ This can be called upon everytime a [disconnect event](https://github.com/enigma
 First, Bootstrapping the network (happens before `ConsistentPeerDiscovery`). 
 We start handshaking `Bootstrap nodes` that are hardcoded into the code or added manually in the [cli](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/cli/cli_app.js#L171).
 
-<img src="docs/DiscoveryBoot.png"
+<img src="./DiscoveryBoot.png"
      alt="Implementation 5" />
 
 Then we do persistent discovery based on Visitor Pattern.
 
-<img src="docs/PersistentDiscovery.png"
+<img src="./PersistentDiscovery.png"
      alt="Implementation 6" />
 ## Syncing a Worker
 
@@ -459,7 +459,7 @@ The delta between the Remote and the local is **what needs to be synched**.
 This is a diagram demonstrating the use of the action [IdentifyMissingStatesAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/IdentifyMissingStatesAction.js) that will take care of both steps (thanks to @lenak25 implementation of remote states). 
 
 
-<img src="docs/IdentifySyncDiagram.png"
+<img src="./IdentifySyncDiagram.png"
      alt="identify 2" />
 
 **TODO::** from cache is currently not integrated but definitely implemented with [tests](https://github.com/enigmampc/enigma-p2p/blob/develop/test/db_cache_test.js) to support it.
@@ -471,7 +471,7 @@ Ok, so we know **what** is missing, now we need to find **who** can provide it. 
 Again, this is from the `Receiver` perspective triggering [ContentProviderAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/FindContentProviderAction.js). 
 
 
-<img src="docs/FindProvidersAction.png"
+<img src="./FindProvidersAction.png"
      alt="find providers 2" />
 
 The end result of this action is a map of `CID`'s to `providers` (peers) that can provide that CID. 
@@ -487,12 +487,12 @@ each contract one-by-one because:
 
 At the high-level the process of managing the synchronization of **all** the secret contracts: 
 
-<img src="docs/SyncHighLevel.png"
+<img src="./SyncHighLevel.png"
      alt="sync high level" />
 
 Phew, this is not simple. If we go deeper, there can be faults i.e peer go offline, malicious peer, corrupted data etc. So this is the process of receiving **one** secret contract (this is in-depth look into the yellow circle saying `Sync` in the above diagram): 
 
-<img src="docs/TrySyncReceiveOneContract.png"
+<img src="./TrySyncReceiveOneContract.png"
      alt="sync one " />
 
 It's not over yet, if we look deeper, in the above diagram there is a state that's called `Sync-Receive contract`. This is the actuall flow of passing bytes around between 2 peers: 
@@ -508,12 +508,12 @@ The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/
 - SYNC_BCODE_REQ/RES
 
 
-<img src="docs/streams_diagram_sync.png"
+<img src="./streams_diagram_sync.png"
      alt="streams flow " />
 
 ## JSON RPC API
 
-<img src="docs/jsonrpc.png"
+<img src="./jsonrpc.png"
      alt="streams flow " />
 
 ## Built With
