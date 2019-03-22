@@ -1065,4 +1065,8 @@ contract EnigmaMock {
 
         return SolRsaVerify.pkcs1Sha256VerifyRaw(data, signature, exponent, modulus);
     }
+
+    function getTaskRecord(bytes32 _taskId) public view returns (TaskRecord memory) {
+        return tasks[_taskId];
+    }
 }

@@ -215,7 +215,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskParams(taskId) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.tasks(taskId).call((error, data)=> {
+      this._enigmaContract.methods.getTaskRecord('0x'+taskId).call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -252,7 +252,7 @@ class EnigmaContractReaderAPI {
    * */
   getEpochSize() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.epochSize().call((error, data)=> {
+      this._enigmaContract.methods.getEpochSize().call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -332,11 +332,14 @@ class EnigmaContractReaderAPI {
              * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Array<string>} workers, {Array<Integer>} balances, {Integer} nonce
              * */
       'WorkersParameterized': (event) => {
+        console.log('################################## WorkersParameterized #############################');
+        console.log(event);
         return {
           seed: event.returnValues.seed,
-          blockNumber: event.returnValues.blockNumber,
+          firstBlockNumber: event.returnValues.firstBlockNumber,
+          inclusionBlockNumber: event.returnValues.inclusionBlockNumber,
           workers: event.returnValues.workers,
-          balances: event.returnValues.balances,
+          balances: event.returnValues.stakes,
           nonce: parseInt(event.returnValues.nonce),
         };
       },

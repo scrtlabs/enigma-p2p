@@ -398,6 +398,15 @@ class CLI {
       process.exit();
     });
     if(this._coreAddressPort && this._coreAddressPort != '127.0.0.1:1543'){
+      this._node.ethereum().services().on(constants.ETHEREUM_EVENTS.NewEpoch,
+          function (error, event) {
+            if (error) {
+              this._node.logger().error('failed subscribing to NewEpoch events ' + error);
+            }
+            else {
+              this._node.execCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS, {addresses: ['88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc',]});
+            }
+          }.bind(this));
       this._node.selfSubscribeAction();
       console.log('About to getRegistrationParams');
       this._node.getRegistrationParams((err,result)=>{
@@ -410,10 +419,9 @@ class CLI {
             out.signature = result.result.signature;
             out.singingKey = result.result.signingKey;
             console.log(out);
-            this._node.ethereum().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
-            console.log('About to get State Keys');
-            this._node.execCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,{addresses: ['88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc',]});
-
+            this._node.ethereum().api().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
+            // console.log('About to get State Keys');
+            // this._node.execCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,{addresses: ['88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc',]});
          }
        });
     }

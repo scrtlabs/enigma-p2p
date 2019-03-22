@@ -18,7 +18,12 @@ class GetStateKeysAction {
   }
 
   execute(params) {
-    let onResponse = params.onResponse;
+    let onResponse;
+    try {
+      onResponse = params.onResponse;
+    } catch (e) {
+      onResponse = () => {};
+    }
     if (!onResponse) {
       onResponse = () => {};
     }
