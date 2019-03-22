@@ -1065,4 +1065,8 @@ contract EnigmaMock {
 
         return SolRsaVerify.pkcs1Sha256VerifyRaw(data, signature, exponent, modulus);
     }
+
+    function getEpochSize() public view returns (uint) {
+        return epochSize;
+    }
 }
