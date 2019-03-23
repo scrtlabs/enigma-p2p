@@ -1,5 +1,6 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
+const nodeUtils = require('../common/utils');
 const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
@@ -125,7 +126,7 @@ class EthereumVerifier {
   verifySelectedWorker(task, blockNumber, workerAddress) {
     return new Promise((resolve) => {
       const params = this._findWorkerParamForTask(blockNumber);
-      if (params === null) {
+      if (typeof params === 'undefined' || params === null) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
         return resolve({error: err, isVerified: false});
       }
@@ -333,8 +334,9 @@ class EthereumVerifier {
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
-    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    if (selectedWorker.signer !== workerAddress) {
+    let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
+    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
+    if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
       result.isVerified = false;
