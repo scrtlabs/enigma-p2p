@@ -190,3 +190,10 @@ it('should connectionStrToPeerInfo', function() {
     assert(p.multiaddrs.has(multiaddr(peerUrl)));
   });
 });
+
+it('should remove0x where present', function() {
+  const str = '0123456789';
+  assert.strictEqual(str, nodeUtils.remove0x(str));
+  const str0x = '0x' + str;
+  assert.strictEqual(str, nodeUtils.remove0x(str0x));
+});

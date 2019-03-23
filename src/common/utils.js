@@ -274,3 +274,17 @@ module.exports.deleteFolderFromOSRecursive = function(path, callback) {
 
 module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)};
 
+/**
+ * Removes '0x' from a hex string, if present
+ *
+ * @param {string} hexString
+ * @return {string}
+ */
+module.exports.remove0x = function(hexString) {
+  if (hexString.substring(0, 2) == '0x') {
+    return hexString.substring(2);
+  } else {
+    return hexString;
+  }
+}
+

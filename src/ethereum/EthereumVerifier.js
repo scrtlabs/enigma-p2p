@@ -1,5 +1,6 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
+const nodeUtils = require('../common/utils');
 const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
@@ -125,8 +126,6 @@ class EthereumVerifier {
   verifySelectedWorker(task, blockNumber, workerAddress) {
     return new Promise((resolve) => {
       const params = this._findWorkerParamForTask(blockNumber);
-      console.log('-------- VERIFYSELECTEDWORKER ----------');
-      console.log(params);
       if (typeof params === 'undefined' || params === null) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
         return resolve({error: err, isVerified: false});
@@ -335,8 +334,8 @@ class EthereumVerifier {
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
-    const selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    console.log('workerAddress is '+workerAddress);
+    let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
+    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
     if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
@@ -359,12 +358,6 @@ class EthereumVerifier {
     const tokenCpt = params.balances.reduce((a, b) => a + b, 0);
     let nonce = 0;
     const selectedWorkers = [];
-
-    console.log('^^^^^^^^^^^^^^^^ selectWorkerGroup ^^^^^^^^^^^^^^^^^^^^^^');
-    console.log(secretContractAddress);
-    console.log(params);
-    console.log(workerGroupSize);
-
     do {
       // Unique hash for epoch, secret contract address, and nonce
       const hash = cryptography.soliditySha3(
@@ -391,7 +384,6 @@ class EthereumVerifier {
       nonce++;
     }
     while (selectedWorkers.length < workerGroupSize);
-    console.log(selectedWorkers);
     return selectedWorkers;
   }
 
@@ -452,8 +444,6 @@ class EthereumVerifier {
       this._logger.error('an error occurred while listening to new epoch event. Error=' + err);
     }
     else {
-      console.log("~~~~~~~~~~~~ newEpochEventCallback ~~~~~~~~~~~~~~~~~`")
-      console.log(event);
       this._workerParamArray.push(event);
       if (this._workerParamArray.length > this._workerParamArrayMaxSize) {
         this._workerParamArray.shift();
@@ -516,9 +506,7 @@ class EthereumVerifier {
   }
 
   async _updateWorkerParamNow() {
-    console.log('========= updateWorkerParamNow ==============');
     let workerParamArray = await this._contractApi.getAllWorkerParams();
-    console.log(workerParamArray);
     this._workerParamArray = this._sortWorkerParams(workerParamArray);
     this._epochSize = await this._contractApi.getEpochSize();
     // Note that if in any case, the array wasn't empty, due to an event received just before this call,
