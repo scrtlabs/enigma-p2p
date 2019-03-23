@@ -6,7 +6,7 @@
  * Fetch from the providers all the bytecode/deltas
  * */
 const waterfall = require('async/waterfall');
-
+const errors = require('../../../../common/errors');
 class TryReceiveAllAction {
   constructor(controller) {
     this._controller = controller;
@@ -25,7 +25,7 @@ class TryReceiveAllAction {
     const receiver = this._controller.receiver();
 
     if (allMissingDataList.length === 0) {
-      return onFinish('No missing data');
+      return onFinish(new errors.SyncReceiverErr('No missing data'));
     }
 
     const jobs = [];

@@ -3,7 +3,7 @@ const MainController = require('../main_controller/FacadeController');
 const CoreRuntime = require('../core/CoreRuntime');
 const JsonRpcServer = require('../client_api/JsonRpcServer');
 const Logger = require('../common/logger');
-const EnigmaContractAPIBuilder = require('../ethereum/EnigmaContractAPIBuilder');
+const EthereumAPI = require('../ethereum/EthereumAPI');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
@@ -15,6 +15,46 @@ class EnvironmentBuilder{
     this._loggerConfig = false;
     this._jsonRpcConfig = false;
     this._ethereumConfig = false;
+  }
+  /**
+   * build everything from a file in /configs/templateX.json
+   * @return {Promise<MainController>}
+   * */
+  static buildFromSingle(configFile){
+    const b = new EnvironmentBuilder();
+    /** logger */
+    const loggerConfig = configFile.logger;
+    b.setLoggerConfig(loggerConfig);
+    /** ipc */
+    const ipcConfig = configFile.core;
+    b.setIpcConfig(ipcConfig);
+    /** jsonrpc  */
+    const jsonRpcConfig = configFile.proxy;
+    if(jsonRpcConfig.withProxy){
+      b.setJsonRpcConfig(jsonRpcConfig);
+    }
+    /** ethereum */
+    const ethereumConfig = configFile.ethereum;
+    if(ethereumConfig.withEthereum){
+      b.setEthereumConfig(ethereumConfig);
+    }
+    /** node */
+    const nodeConfig = configFile.node;
+    const nodeConfigObject = {
+      bootstrapNodes: nodeConfig.network.bootstrapNodes,
+      port: nodeConfig.network.port,
+      idPath: nodeConfig.idPath,
+      extraConfig: {
+        tm : {
+          dbPath : null || nodeConfig.taskManager.dbPath,
+        },
+        principal : {
+          uri : null || nodeConfig.principalNode.uri,
+        }
+      },
+    };
+    b.setNodeConfig(nodeConfigObject);
+    return b.build();
   }
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
    * use reuse() before building another controller.
@@ -63,16 +103,16 @@ class EnvironmentBuilder{
     // init node
     let nodePeerId = null;
     if(this._nodeConfig){
-      let enigmaContractHandler = null;
+      let ethereumApi = null;
       if(this._ethereumConfig){
-        const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-        enigmaContractHandler = await enigmaContractAPIbuilder.setConfigAndBuild(
-            this._ethereumConfig.enigmaContractAddress, this._ethereumConfig.ethereumWebsocketProvider);
+        ethereumApi = new EthereumAPI(logger);
+        await ethereumApi.init(this._ethereumConfig.enigmaContractAddress,
+          this._ethereumConfig.ethereumWebsocketProvider);
       }
       let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
       await node.start();
-      if(enigmaContractHandler){
-        node.setEthereumApi(enigmaContractHandler);
+      if(ethereumApi){
+        node.setEthereumApi(ethereumApi);
       }
       nodePeerId = node.engNode().getSelfIdB58Str();
       runtimes.push(node);

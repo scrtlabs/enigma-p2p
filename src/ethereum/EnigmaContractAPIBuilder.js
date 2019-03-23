@@ -1,5 +1,6 @@
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
+const Logger = require('../common/logger');
 const path = require('path');
 const {exec, spawn} = require('child_process');
 const Web3 = require('web3');
@@ -14,21 +15,8 @@ const defaultConfig = {
   truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
 };
 
-class EnigmaContractHandler {
-  constructor(api, environment) {
-    this._api = api;
-    this._environment = environment;
-  }
-  api() {
-    return this._api;
-  }
-  async destroy() {
-    await this._environment.destroy();
-  }
-}
-
 class EnigmaContractAPIBuilder {
-  constructor() {
+  constructor(logger) {
     this.apiWriterFlag = true;
     this.createNetworkFlag = false;
     this.deployFlag = true;
@@ -37,6 +25,13 @@ class EnigmaContractAPIBuilder {
     this.api = null;
     this.environment ={};
     this.config = defaultConfig;
+
+    if (logger) {
+      this._logger = logger;
+    } else {
+      this._logger = new Logger({'cli': false});
+    }
+
     return this;
   }
 
@@ -111,12 +106,12 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     } else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3);
+      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
 
-    return new EnigmaContractHandler(this.api, this);
+    return {api: this.api, environment: this};
   }
 
   /**
@@ -126,18 +121,18 @@ class EnigmaContractAPIBuilder {
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
   async setConfigAndBuild(enigmaContractAddress, url) {
-    let enigmaContractHandler;
+    let res;
 
     if (enigmaContractAddress) {
       let config = {enigmaContractAddress: enigmaContractAddress};
       if (url) {
         config.url = url;
       }
-      enigmaContractHandler = await this.useDeployed(config).build();
+      res = await this.useDeployed(config).build();
     } else {
-      enigmaContractHandler = await this.createNetwork().deploy().build();
+      res = await this.createNetwork().deploy().build();
     }
-    return enigmaContractHandler;
+    return res;
   }
 
   _resetEnv(truffleDirectory) {
@@ -167,8 +162,8 @@ class EnigmaContractAPIBuilder {
   async _initEnv() {
     const truffleDirectory = this.config.truffleDirectory;
 
-    await this._buildEnv(truffleDirectory);// .then(console.log).catch(console.log);
-    await this._resetEnv(truffleDirectory);// .then(console.log).catch(console.log);
+    await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
+    await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
     const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaMock.json'));
     const EnigmaTokenContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaToken.json'));
@@ -203,7 +198,7 @@ class EnigmaContractAPIBuilder {
 
     this.enigmaContractAddress = enigmaContractInstance.options.address;
     this.enigmaContractABI = EnigmaContractJson.abi;
-    console.log('Deployed the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
+    this.logger().info('Deployed the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
   }
 
   _connectToContract() {
@@ -213,7 +208,7 @@ class EnigmaContractAPIBuilder {
     this.enigmaContractAddress = this.config.enigmaContractAddress;
     this.enigmaContractABI = this.config.enigmaContractABI;
 
-    console.log('Connecting to the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
+    this.logger().info('Connecting to the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
   }
 
   _initWeb3() {
@@ -224,11 +219,15 @@ class EnigmaContractAPIBuilder {
     const websocketProvider = this.config.url;
     const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
-    // from https://github.com/ethereum/web3.js/issues/1354
-    provider.on('error', (e) => console.error('WS Error: ', e));
-    provider.on('end', (e) => console.log('WS End'));
+    // from htinitps://github.com/ethereum/web3.js/issues/1354
+    provider.on('error', (e) => this.logger().error('WS Error: ', e));
+    provider.on('end', (e) => this.logger().info('WS End'));
 
     this.web3 = new Web3(provider);
+  }
+
+  logger() {
+    return this._logger;
   }
 
   async _startNetwork() {

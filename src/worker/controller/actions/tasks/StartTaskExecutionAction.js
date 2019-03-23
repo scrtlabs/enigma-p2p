@@ -7,17 +7,18 @@ const ComputeTask = require('../../../tasks/ComputeTask');
 const DeployTask = require('../../../tasks/DeployTask');
 const taskTypes = require('../../../../common/constants').CORE_REQUESTS;
 
-class StartTaskExecutionAction{
+class StartTaskExecutionAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(params){
-    let type = params.type;
-    let request = params.request;
+  execute(params) {
+    const type = params.type;
+    const request = params.request;
+    const onResponse = params.onResponse;
     let task = null;
-    //TODO:: lena: refer to the diagrams, fake gasLimit
-    request.gasLimit = 1544;
-    switch(type){
+    // TODO:: lena: refer to the diagrams, fake gasLimit
+    request.gasLimit = 100000;
+    switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;
         task = DeployTask.buildTask(request);
@@ -26,9 +27,22 @@ class StartTaskExecutionAction{
         task = ComputeTask.buildTask(request);
         break;
     }
-    if(task){
+    if (task) {
       this._controller.taskManager().addTaskUnverified(task);
     }
+    if(onResponse){
+      onResponse(null);
+    }
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      params.onResponse = function(err, verificationResult) {
+        if (err) rej(err);
+        else res(verificationResult);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = StartTaskExecutionAction;

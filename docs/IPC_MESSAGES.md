@@ -48,7 +48,7 @@ Response:
    type : GetTip,
    result : {
        key : [],
-       delta : []
+       data : []
    }
 }
 ```
@@ -68,7 +68,7 @@ Response:
     id : <unique_request_id>,
     type : GetTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -86,7 +86,7 @@ Response:
     id : <unique_request_id>,
     type: GetAllTips,
     result : {
-        tips : [Array<{address,key,delta}>]
+        tips : [Array<{address,key,data}>]
     }
 }
 ```
@@ -217,9 +217,11 @@ Response:
 Request:
 ```
 {
-    id : <unique_request_id>,
-    type : GetPTTRequest,
-    addresses: [addrress]
+    id: <unique_request_id>,
+    type: GetPTTRequest,
+    input: {
+        addresses: [addrress]
+    }
 }
 ```
 
@@ -234,7 +236,7 @@ Response:
     }
 }
 ```
-The request is a signed messagepack that looks like this: 
+The request is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -250,10 +252,12 @@ Request:
 {
     id : <unique_request_id>,
     type : PTTResponse,
-    response: 'the-encrypted-response'
+    input: {
+        response: 'the-encrypted-response'
+    }
 }
 ```
-The response is a signed messagepack that looks like this: 
+The response is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
@@ -326,15 +330,15 @@ Response:
     id: <unique_request_id>,
     type: DeploySecretContract,
     result : {
-        output: 'the-deployed-bytecode', // AKA preCode
+        output: 'the-deployed-bytecode', // AKA exeCode
         preCodeHash: 'hash-of-the-precode-bytecode',
-        delta: {0, delta},
+        delta: {key: 0, data: ...},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
@@ -345,7 +349,6 @@ Request:
     id: <unique_request_id>,
     type: ComputeTask,
     input: {
-        taskID: 'the ID of the task'
         encryptedArgs: 'hex of the encrypted args',
         encryptedFn: 'hex of the encrypted function signature',
         userDHKey: 'the-user-dh-pubkey',
@@ -362,17 +365,17 @@ Response:
     type: ComputeTask,
     result : {
         output: 'the-output-of-the-execution',
-        delta: {key, delta},
+        delta: {key, data},
         usedGas: 'amount-of-gas-used',
-        ethereumPayload: 'hex of payload',
-        ethereumAddress: 'address of the payload',
+        ethereumPayload: 'hex of payload for a call to the ethereum contract'',
+        ethereumAddress: 'address of the ethereum contract to call',
         signature: 'enclave-signature',
     }
-    
+
 }
 ```
 
-### `FailedTask` error message 
+### `FailedTask` error message
 If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
 ```
 {
@@ -388,7 +391,7 @@ If a `ComputeTask` or `DeployTask` fails on the protocol level this message will
 
 ## General `Error` system message
 
-Any Code error: 
+Any Code error:
 
 ```
 {

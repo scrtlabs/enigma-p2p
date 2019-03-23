@@ -8,7 +8,7 @@ class CIDUtil {
    * @param {Array<Byte>} delta
    * @return {string} hash
    * */
-  static hashByteArray(delta){
+  static hashByteArray(delta) {
     return CIDUtil.hashKeccack256(delta);
   }
   static hashKeccack256(value) {
@@ -45,7 +45,7 @@ class CIDUtil {
      * */
   static parseHashStr(h) {
     let final = null;
-    if (h.length == 64) {
+    if (h.length == 64 ) {
       final = h;
     } else if (h.length == 66) {
       final = h.substring(2, h.length);

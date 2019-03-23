@@ -1,6 +1,5 @@
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const IpcClient = require('../src/core/ipc');
-const waterfall = require('async/waterfall');
 const zmq = require('zeromq');
 const CoreRuntime = require('../src/core/CoreRuntime');
 const CoreServer = require('../src/core/core_server_mock/core_server');
@@ -10,6 +9,8 @@ const constants = require('../src/common/constants');
 const nodeUtils = require('../src/common/utils');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const expect = require('expect');
+
+
 it('#1 send acks to each other', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#1']) {
@@ -18,44 +19,31 @@ it('#1 send acks to each other', async function() {
 
   return new Promise(async (resolve)=>{
     const uri = 'tcp://127.0.0.1:5555';
-    let serverSocket;
-    let ipcClient;
     let serverOk = false; let clientOk = false;
+    const fakeMessage = {id: 'deadbeaf', type: 'GetRegistrationParams'};
 
-    waterfall([
-      /** run the server - simulate core */
-      (cb)=>{
-        serverSocket = zmq.socket('rep');
-        serverSocket.bindSync(uri);
+    const serverSocket = zmq.socket('rep');
+    serverSocket.bindSync(uri);
 
-        serverSocket.on('message', (msg)=>{
-          serverOk = JSON.parse(msg).clientOk;
-          serverSocket.send(JSON.stringify({'serverOk': true}));
-        });
-        cb(null);
-      },
-      /** run the client */
-      (cb)=>{
-        ipcClient = new IpcClient(uri);
-        ipcClient.setResponseHandler((msg)=>{
-          clientOk = msg.serverOk;
-          cb(null);
-        });
+    serverSocket.on('message', (msg)=>{
+      if (JSON.parse(msg).type === 'GetRegistrationParams') {
+        serverOk = true;
+      }
+      serverSocket.send(JSON.stringify({'serverOk': true}));
+    });
 
-        ipcClient.connect();
-        ipcClient.sendJson({'clientOk': true});
-      },
-    ], (err)=>{
+    const ipcClient = new IpcClient(uri);
+    ipcClient.setResponseHandler( (msg) => {
+      clientOk = msg.serverOk;
       ipcClient.disconnect();
       serverSocket.disconnect(uri);
-      if (err) {
-        expect(err).toBeFalsy();
-      } else {
-        expect(serverOk).toBeTruthy();
-        expect(clientOk).toBeTruthy();
-        resolve();
-      }
+      expect(serverOk).toBeTruthy();
+      expect(clientOk).toBeTruthy();
+      resolve();
     });
+
+    ipcClient.connect();
+    await ipcClient.sendJson(fakeMessage);
   });
 });
 
@@ -69,9 +57,9 @@ it('#2 GetRegistrationParams - mock server', async function() {
   return new Promise(async (resolve) => {
     // start the server
     const uri = 'tcp://127.0.0.1:5556';
-    let coreServer = new CoreServer();
+    const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(1000);
+    await nodeUtils.sleep(100);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
@@ -108,7 +96,7 @@ it('#3 GetAllTips - mock server', async function() {
   const uri = 'tcp://127.0.0.1:5557';
   return new Promise(async (resolve) => {
     // start the server (core)
-    let coreServer = new CoreServer();
+    const coreServer = new CoreServer();
     coreServer.runServer(uri);
     await nodeUtils.sleep(1500);
     // start the client (enigma-p2p)
@@ -120,7 +108,7 @@ it('#3 GetAllTips - mock server', async function() {
     await nodeUtils.sleep(2000);
     const fromCache = false;
     mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates)=>{
-      expect(err).toBeNull();
+      expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
       expect(missingStates.length).toBe(3);
       expect(missingStates[0].key).toBe(10);
       expect(missingStates[1].key).toBe(34);
@@ -143,7 +131,7 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
   return new Promise(async (resolve) => {
     // start the server
     const uri = 'tcp://127.0.0.1:5558';
-    let coreServer = new CoreServer();
+    const coreServer = new CoreServer();
     coreServer.runServer(uri);
     await nodeUtils.sleep(1000);
     // start the client

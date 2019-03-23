@@ -1,18 +1,25 @@
 const Envelop = require('../../main_controller/channels/Envelop');
 
-class SendToCoreAction{
-  constructor(coreRuntime){
+class SendToCoreAction {
+  constructor(coreRuntime) {
     this._coreRuntime = coreRuntime;
   }
-  execute(params){
-    let sendMsg = params.sendMsg;
-    let envelop = params.envelop;
-    let client = this._coreRuntime.getIpcClient();
-    client.sendJsonAndReceive(sendMsg,(responseMsg)=>{
-      const resEnv = new Envelop(envelop.id(),responseMsg, envelop.type());
+  execute(params) {
+    const sendMsg = params.sendMsg;
+    const envelop = params.envelop;
+    const client = this._coreRuntime.getIpcClient();
+    if (!sendMsg.id) {
+      sendMsg.id = envelop.id();
+    }
+    client.sendJsonAndReceive(sendMsg, (err, responseMsg) => {
+      if (err) {
+        console.error(`[Error] Failed in Send JSON And Receive: ${err}`);
+        responseMsg = {error: err};
+      }
+      const resEnv = new Envelop(envelop.id(), responseMsg, envelop.type());
       this._coreRuntime.getCommunicator()
-      .send(resEnv);
-    });
+          .send(resEnv);
+    }).catch(console.error);
   }
 }
 module.exports = SendToCoreAction;

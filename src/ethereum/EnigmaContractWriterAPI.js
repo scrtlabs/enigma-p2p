@@ -5,8 +5,8 @@ const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 const config = require('./config.json');
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3) {
-    super(enigmaContractAddress, enigmaContractABI, web3);
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
+    super(enigmaContractAddress, enigmaContractABI, web3, logger);
   }
   /**
      * Step 1 in registration
@@ -170,6 +170,30 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       });
     });
   }
+  /**
+     * Irrelevant for workers -> users create deployment tasks with it
+     * */
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce, txParams) {
+    return new Promise((resolve, reject) => {
+      const defaultOptions = config.default;
+      let transactionOptions = defaultOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, defaultOptions);
+      }
+      this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce)
+          .send(transactionOptions, (error, receipt)=> {
+            if (error) {
+              reject(error);
+            }
+            resolve(receipt);
+          });
+    });
+  }
   // /**
   //    * Irrelevant for workers -> users create tasks with it
   //    * */
@@ -228,7 +252,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, gasUsed, ethCall, signature, txParams) {
+  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -240,7 +264,12 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, gasUsed, ethCall, signature)
+      if(typeof ethCall === 'string' && ethCall === "") {
+        ethCall = '0x00';
+      }
+      console.log('Secret Contract Address: '+'0x'+secretContractAddress);
+      console.log(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams);
+      this._enigmaContract.methods.commitReceipt('0x'+secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, '0x'+signature)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -271,17 +300,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           });
     });
   }
-  /**
-   * Worker commits the failed task result on-chain
-   * @param {string} secretContractAddress
-   * @param {string} taskId
-   * @param {Integer} gasUsed
-   * @param {string} ethCall
-   * @param {string} signature
-   * @param {JSON} txParams
-   * @return {Promise} receipt
-   * */
-  commitTaskFailure(secretContractAddress, taskId, gasUsed, ethCall, signature, txParams) {
+
+  commitDeploySecretContract(taskId, preCodeHash, codeHash, stateDeltaHash, ethCall, ethAddr, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -293,7 +313,42 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, ethCall, signature)
+      if(typeof ethCall === 'string' && ethCall === "") {
+        ethCall = '0x00';
+      }
+      this._enigmaContract.methods.deploySecretContract('0x'+taskId, '0x'+preCodeHash, codeHash, stateDeltaHash,
+         ethCall, '0x'+ethAddr, gasUsed, '0x'+signature)
+          .send(transactionOptions, (error, receipt)=> {
+            if (error) {
+              reject(error);
+            }
+            resolve(receipt);
+          });
+    });
+  }
+
+  /**
+   * Worker commits the failed task result on-chain
+   * @param {string} secretContractAddress
+   * @param {string} taskId
+   * @param {Integer} gasUsed
+   * @param {string} signature
+   * @param {JSON} txParams
+   * @return {Promise} receipt
+   * */
+  commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams) {
+    return new Promise((resolve, reject) => {
+      const defaultOptions = config.default;
+      let transactionOptions = defaultOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, defaultOptions);
+      }
+      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, signature)
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);

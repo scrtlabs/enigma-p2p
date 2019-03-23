@@ -5,8 +5,13 @@ const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy extends EventEmitter {
-  constructor(){
+  constructor(isStrict){
     super();
+
+    this._isStrict = true;
+    if(isStrict === false){
+      this._isStrict = false;
+    }
     this._version = '0.1';
     // TODO:: define from config
     this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE;
@@ -98,6 +103,12 @@ class Policy extends EventEmitter {
     if (n>0) {
       return true;
     }
+  }
+  /**
+   * non- Strict mode - no ethereum
+   * */
+  isStrict(){
+    return this._isStrict;
   }
 }
 

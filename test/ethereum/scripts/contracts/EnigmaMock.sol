@@ -85,7 +85,7 @@ contract EnigmaMock {
     event TaskRecordsCreated(bytes32[] taskIds, uint[] gasLimits, uint[] gasPxs, address sender);
     event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, bytes ethCall, bytes sig);
     event ReceiptsVerified(bytes32[] taskIds, bytes32[] stateDeltaHashes, bytes32 outputHash, bytes ethCall, bytes sig);
-    event ReceiptFailed(bytes32 taskId, bytes ethCall, bytes sig);
+    event ReceiptFailed(bytes32 taskId, bytes sig);
     event TaskFeeReturned(bytes32 taskId);
     event DepositSuccessful(address from, uint value);
     event WithdrawSuccessful(address to, uint value);
@@ -512,19 +512,23 @@ contract EnigmaMock {
     )
     public
     {
+        //MOCK
         // Check that the locally-generated nonce matches the on-chain value, otherwise _scAddr is invalid
-        require(userTaskDeployments[msg.sender] == _nonce, "Incorrect nonce yielding bad secret contract address");
+        //require(userTaskDeployments[msg.sender] == _nonce, "Incorrect nonce yielding bad secret contract address");
 
+        //MOCK
         // Worker deploying task must be the appropriate worker as per the worker selection algorithm
-        require(_firstBlockNumber == getFirstBlockNumber(block.number), "Wrong epoch for this task");
+        //require(_firstBlockNumber == getFirstBlockNumber(block.number), "Wrong epoch for this task");
 
+        //MOCK
         // Transfer fee from sender to contract
-        uint fee = _gasLimit.mul(_gasPx);
-        require(engToken.allowance(msg.sender, address(this)) >= fee, "Allowance not enough");
-        require(engToken.transferFrom(msg.sender, address(this), fee), "Transfer not valid");
+        //uint fee = _gasLimit.mul(_gasPx);
+        //require(engToken.allowance(msg.sender, address(this)) >= fee, "Allowance not enough");
+        //require(engToken.transferFrom(msg.sender, address(this), fee), "Transfer not valid");
 
         // Create taskId and TaskRecord
-        bytes32 taskId = keccak256(abi.encodePacked(msg.sender, userTaskDeployments[msg.sender]));
+        //MOCK
+        bytes32 taskId = 0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9;//_nonce;
         TaskRecord storage task = tasks[taskId];
         require(task.sender == address(0), "Task already exists");
         task.inputsHash = _inputsHash;
@@ -784,14 +788,14 @@ contract EnigmaMock {
     * @param _scAddr Secret contract address
     * @param _taskId Unique taskId
     * @param _gasUsed Gas used for task computation
-    * @param _ethCall Eth call
     * @param _sig Worker's signature
     */
     function commitTaskFailure(
         bytes32 _scAddr,
         bytes32 _taskId,
         uint _gasUsed,
-        bytes memory _ethCall,
+        //MOCK
+        //bytes memory _ethCall,
         bytes memory _sig
     )
     public
@@ -833,7 +837,7 @@ contract EnigmaMock {
 //            false));
 //        require(msgHash.recover(_sig) == workers[msg.sender].signer, "Invalid signature");
 
-        emit ReceiptFailed(_taskId, _ethCall, _sig);
+        emit ReceiptFailed(_taskId, _sig);
     }
 
     function returnFeesForTask(bytes32 _taskId) public taskWaiting(_taskId) {
@@ -1060,5 +1064,9 @@ contract EnigmaMock {
         bytes memory modulus = hex"A97A2DE0E66EA6147C9EE745AC0162686C7192099AFC4B3F040FAD6DE093511D74E802F510D716038157DCAF84F4104BD3FED7E6B8F99C8817FD1FF5B9B864296C3D81FA8F1B729E02D21D72FFEE4CED725EFE74BEA68FBC4D4244286FCDD4BF64406A439A15BCB4CF67754489C423972B4A80DF5C2E7C5BC2DBAF2D42BB7B244F7C95BF92C75D3B33FC5410678A89589D1083DA3ACC459F2704CD99598C275E7C1878E00757E5BDB4E840226C11C0A17FF79C80B15C1DDB5AF21CC2417061FBD2A2DA819ED3B72B7EFAA3BFEBE2805C9B8AC19AA346512D484CFC81941E15F55881CC127E8F7AA12300CD5AFB5742FA1D20CB467A5BEB1C666CF76A368978B5";
 
         return SolRsaVerify.pkcs1Sha256VerifyRaw(data, signature, exponent, modulus);
+    }
+
+    function getTaskRecord(bytes32 _taskId) public view returns (TaskRecord memory) {
+        return tasks[_taskId];
     }
 }
