@@ -84,7 +84,7 @@ describe('Verifier tests', function() {
       gasLimit: gasLimit};
   }
 
-  it('Verify new compute task verification action', async function() {
+  it('Verify new deploy task verification action', async function() {
     const tree = TEST_TREE.ethereum_integration;
     if (!tree['all'] || !tree['#1']) {
       this.skip();

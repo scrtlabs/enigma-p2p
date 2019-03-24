@@ -5,6 +5,7 @@ const envInitializer = require('./scripts/env_initializer');
 const EnigmaContractWriterAPI = require(path.join(__dirname, '../../src/ethereum/EnigmaContractWriterAPI'));
 const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));
 const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices'));
+const EthereumAPI = require(path.join(__dirname, '../../src/ethereum/EthereumAPI'));
 
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 
@@ -13,6 +14,7 @@ const truffleDir = path.join(__dirname, './scripts');
 const testParameters = require('./test_parameters.json');
 
 const testUtils = require('../testUtils/utils');
+const Logger = require('../../src/common/logger')
 
 describe('Ethereum tests', function() {
   let web3;
@@ -504,7 +506,7 @@ describe('Ethereum tests', function() {
     return new Promise(async function(resolve) {
       const config = {enigmaContractAddress: enigmaContractAddress, enigmaContractABI: enigmaContractABI};
       const builder = new EnigmaContractAPIBuilder();
-      res = await builder.useDeployed(config).build();
+      const res = await builder.useDeployed(config).build();
 
       const api2 = res.api;
       const web3_2 = api.w3();
@@ -596,6 +598,35 @@ describe('Ethereum tests', function() {
       api2.unsubscribeAll();
 
       await res.environment.destroy();
+
+      resolve();
+    });
+  });
+
+  it('Test health check ', async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree['all'] || !tree['#6']) {
+      await envInitializer.disconnect(web3); // due to: https://github.com/mochajs/mocha/issues/2546
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let ethereumApi = new EthereumAPI(new Logger({'cli': true}));
+      await ethereumApi.init(enigmaContractAddress);
+
+      // sunny day
+      let data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, true);
+      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
+      assert.strictEqual(data.enigmaContractAddress, enigmaContractAddress);
+
+      // rainy day
+      await ethereumApi.destroy();
+
+      data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, false);
+      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
+      assert.strictEqual(data.enigmaContractAddress, enigmaContractAddress);
 
       resolve();
     });

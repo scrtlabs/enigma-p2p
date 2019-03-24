@@ -35,19 +35,30 @@ class EnigmaContractAPIBuilder {
     return this;
   }
 
+  /**
+   * get the logger
+   * @return {Logger} logger
+   * */
+  logger() {
+    return this._logger;
+  }
+
+  /**
+   * create a EnigmaContractReaderAPI object
+   * */
   onlyReader() {
     this.apiWriterFlag = false;
     return this;
   }
   /**
-     * deploy a smart contract
-     * @param {JSON} config - optional
-     * {
-     *  url - the transport url
-     *  truffleDirectory - the root of truffle workspace
-     * }
+   * deploy a smart contract
+   * @param {JSON} config - optional
+   * {
+   *  url - the transport url
+   *  truffleDirectory - the root of truffle workspace
+   * }
    * @return {EnigmaContractAPIBuilder} this
-     * */
+   * */
   deploy(config) {
     this.deployFlag = true;
     if (config !== undefined && config !== null) {
@@ -111,7 +122,12 @@ class EnigmaContractAPIBuilder {
       this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
 
-    return {api: this.api, environment: this};
+    return {
+      api: this.api,
+      environment: this,
+      enigmaContractAddress: this.enigmaContractAddress,
+      url: this.config.url
+    };
   }
 
   /**
@@ -135,6 +151,17 @@ class EnigmaContractAPIBuilder {
     return res;
   }
 
+  /**
+   * destroy the environment created in the initialization
+   * */
+  async destroy() {
+    if (this.createNetworkFlag) {
+      await this._stop();
+    }
+    await this._disconnect();
+  }
+
+  /**** INTERNAL ****/
   _resetEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
       const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
@@ -219,15 +246,11 @@ class EnigmaContractAPIBuilder {
     const websocketProvider = this.config.url;
     const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
-    // from htinitps://github.com/ethereum/web3.js/issues/1354
+    // from https://github.com/ethereum/web3.js/issues/1354
     provider.on('error', (e) => this.logger().error('WS Error: ', e));
     provider.on('end', (e) => this.logger().info('WS End'));
 
     this.web3 = new Web3(provider);
-  }
-
-  logger() {
-    return this._logger;
   }
 
   async _startNetwork() {
@@ -241,13 +264,6 @@ class EnigmaContractAPIBuilder {
     this.environment.subprocess.unref();
 
     await sleep(3000);
-  }
-
-  async destroy() {
-    if (this.createNetworkFlag) {
-      await this._stop();
-    }
-    await this._disconnect();
   }
 
   async _stop() {
