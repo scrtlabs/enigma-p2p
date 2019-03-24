@@ -6,6 +6,9 @@ class EthereumAPI {
 
   constructor(logger) {
     this._logger = logger;
+    this._environment = null;
+    this._url = null;
+    this._enigmaContractAddress = null;
     this._api = null;
     this._verifier = null;
     this._services = null;
@@ -17,6 +20,8 @@ class EthereumAPI {
 
     this._api = res.api;
     this._environment = res.environment;
+    this._url = res.url;
+    this._enigmaContractAddress = res.enigmaContractAddress;
 
     this._services = new EthereumServices(this._api);
     this._services.initServices();
@@ -27,6 +32,40 @@ class EthereumAPI {
 
   async destroy() {
     await this._environment.destroy();
+  }
+
+  getHealthCheckResult() {
+    return this._environment.healthCheck();
+  }
+
+  /**
+   * check the connectivity to the Ethereum node
+   * @return {JSON}
+   *  {isConnected - a flag describing the connectivity state,
+   *   blockNumber - Ethereum block number
+   *   url - the network url
+   *   enigmaContractAddress - the contract address
+   *  }
+   * */
+  async healthCheck() {
+    let connected = null;
+    let blockNumber = null;
+
+    try {
+      blockNumber = await this._api.getEthereumBlockNumber();
+      connected = true;
+    }
+    catch (e) {
+      this._logger.debug('Error received while trying to read Ethereum block number: ' + e);
+      connected = false;
+    }
+
+    return {
+      isConnected: connected,
+      blockNumber: blockNumber,
+      url: this._url,
+      enigmaContractAddress: this._enigmaContractAddress
+    };
   }
 
   api() {

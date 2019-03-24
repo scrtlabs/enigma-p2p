@@ -238,7 +238,7 @@ class EnigmaContractReaderAPI {
    * */
   getEthereumBlockNumber() {
     return new Promise((resolve, reject) => {
-      this._web3.eth((error, data)=> {
+      this._web3.eth.getBlockNumber((error, data)=> {
         if (error) {
           reject(error);
         }
