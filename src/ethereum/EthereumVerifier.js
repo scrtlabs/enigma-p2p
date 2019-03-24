@@ -335,8 +335,8 @@ class EthereumVerifier {
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
     let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
-    if (selectedWorker !== workerAddress) {
+    // selectedWorker = nodeUtils.remove0x(selectedWorker.signer.toLowerCase());  // To enable in update to the contract
+    if (selectedWorker.signer !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
       result.isVerified = false;
