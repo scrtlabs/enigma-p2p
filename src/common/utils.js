@@ -288,3 +288,17 @@ module.exports.remove0x = function(hexString) {
   }
 }
 
+/**
+ * Adds '0x' to a hex string, if not present
+ *
+ * @param {string} hexString
+ * @return {string}
+ */
+module.exports.add0x = function(hexString) {
+  if (hexString.substring(0, 2) == '0x') {
+    return hexString;
+  } else {
+    return '0x' + hexString;
+  }
+}
+
