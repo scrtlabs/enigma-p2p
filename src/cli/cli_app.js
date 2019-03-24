@@ -420,7 +420,7 @@ class CLI {
             out.signature = result.result.signature;
             out.singingKey = result.result.signingKey;
             console.log(out);
-            this._node.ethereum().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
+            this._node.ethereum().api().register(result.result.signingKey, EncoderUtil.hexToAscii(result.result.report), '0x'+result.result.signature, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
           }
         });
     }
