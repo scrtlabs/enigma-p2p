@@ -60,55 +60,8 @@ class SubscribeSelfSignKeyTopicPipelineAction {
                 }
               },
             });
-      },
-    ], (err, regParams)=>{
-      if (err) {
-        this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {' + err +'} ');
-        if (params.onResponse) {
-          return params.onResponse(err);
-        }
-      }
-      // subscribe to topic
-      this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB, {
-        topic: regParams.result.signingKey,
-        // onPublish will be called everytime something is published to the topic param
-        onPublish: (msg) =>{
-          const data = JSON.parse(msg.data);
-          const type = data.type;
-          this._controller.logger().info("[WORK_TOPIC_PUBLISH] " + type);
-          const request = data.request;
-          let targetTopic = null;
-          switch(type){
-            case msgs.NewTaskEncryptionKey:
-              targetTopic = data.targetTopic;
-              this._executeNewTaskEncryptionKey(request,targetTopic);
-              break;
-            case msgs.DeploySecretContract:
-            case msgs.ComputeTask:
-              this._executeTask(data);
-              break;
-            case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
-              targetTopic = data.targetTopic;
-              this._getTaskStatus(request,targetTopic);
-              break;
-          };
-        },
-        onSubscribed: ()=>{
-          this._controller.logger().debug('subscribed to [' + regParams.result.signingKey + '] self signKey');
-          fs.writeFile('signKey.txt', regParams.result.signingKey, 'utf8', function(err) {
-            if(err) {
-                this._controller.logger().error('Error writing to file: '+err);
-            }
-          });
-          if (params.onResponse) {
-            if(err){
-              return params.onResponse(err);
-            }
-            return params.onResponse(err,regParams.result.signingKey);
-          }
-        },
+          },
       });
-    });
   }
 
   _executeTask(msg) {
