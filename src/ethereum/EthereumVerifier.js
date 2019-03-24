@@ -126,7 +126,7 @@ class EthereumVerifier {
   verifySelectedWorker(task, blockNumber, workerAddress) {
     return new Promise((resolve) => {
       const params = this._findWorkerParamForTask(blockNumber);
-      if (typeof params === 'undefined' || params === null) {
+      if (!params) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
         return resolve({error: err, isVerified: false});
       }
