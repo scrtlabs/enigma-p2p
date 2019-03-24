@@ -23,6 +23,7 @@ it('#1 perform healthcheck', async function() {
     // assert connections report
     let peersNum = 8;
     let {peers,bNode} = await testBuilder.createN(peersNum,noLoggerOpts);
+    await testUtils.sleep(4*1000);
     let bNodeController = bNode.mainController;
     let bNodeCoreServer = bNode.coreServer;
     let pPaths = peers.map(p=>{
@@ -40,20 +41,18 @@ it('#1 perform healthcheck', async function() {
       await testUtils.rm_Minus_Rf(bPath);
       resolve();
     };
-    // for(let i = 0; i < pPaths.length; ++i) {
-    //   let outCount = await peers[i].mainController.getNode().getAllOutboundHandshakes().length;
-    //   assert(outCount === 1);
-    // }
-    await testUtils.sleep(8*1000);
+
+
+    let testedNode = peers[0];
+    // discover
+    await testedNode.mainController.getNode().asyncTryConsistentDiscovery();
+    // perform the health check
+    let hc = await testedNode.mainController.healthCheck();
+    assert.strictEqual(hc.status, true);
+    // an address is 20 bytes + '0x' in hex: is 42
+    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
+    // close all peers and resolve test
     await stopTest();
-    // await testUtils.sleep(1000);
-  //   peers.forEach((peer) => {
-  //     let node = peer.mainController.getNode();
-  //     node.tryConsistentDiscovery();
-  //     let outCount = node.getAllOutboundHandshakes().length;
-  //     assert(outCount, constants.DHT_STATUS.OPTIMAL_DHT_SIZE);
-  //   });
-  // resolve();
   })
 });
 

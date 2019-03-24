@@ -34,29 +34,45 @@ class FacadeController extends MainController{
     if(this.getJsonRpcServer()){
       this.getJsonRpcServer().close();
     }
-    console.log("1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
     this.getIpcClient().disconnect();
-    console.log("222222222222222 1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
     await this.getNode().stop();
-    console.log("33333333333333333333 1111111111111111 ----------->>>>>>>> shutting down!!!!!!!!!!!!!!!!!!!!1")
   }
   /**
    * connectivity:
    * checks if > criticlal DHT and if < max outbound
    * @returns {Json} result {status : bool, connection : {status : bool, outbound : number, inbound : number}}
    * */
-  healthcheck(){
-    // user constants.js
-    // getNode() : NodeController
-    //
-    // return {
-    //   status : true,
-    //   connection : {
-    //     status : true,
-    //     inbound : 13,
-    //     outbound : 8,
-    //   }
-    // }
+  async healthCheck(){
+    let healthCheckResult = {
+      status : false,
+      connection : {
+        status : false,
+        inbound : -1,
+        outbound : -1,
+      },
+      core : {
+        status : false,
+        uri : null,
+        registrationParams: {
+          signKey : null,
+        }
+      }
+    };
+    // connectivity
+    healthCheckResult.connection.inbound = this.getNode().getAllInboundHandshakes().length;
+    healthCheckResult.connection.outbound = this.getNode().getAllOutboundHandshakes().length;
+    healthCheckResult.connection.status = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE < healthCheckResult.connection.outbound &&
+      healthCheckResult.connection.outbound <= constants.DHT_STATUS.CRITICAL_HIGH_DHT_SIZE &&
+      healthCheckResult.connection.inbound < constants.DHT_STATUS.MAX_OUTBOUND;
+
+    // core
+    healthCheckResult.core.uri = this.getIpcClient().getUri();
+    let regParams = await this.getNode().asyncGetRegistrationParams();
+    healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
+    healthCheckResult.core.status = healthCheckResult.core.uri != null && healthCheckResult.core.registrationParams.signKey != null;
+    // overall_status
+    healthCheckResult.status = healthCheckResult.connection.status && healthCheckResult.core.status;
+    return healthCheckResult;
   }
 }
 

@@ -464,6 +464,7 @@ class NodeController {
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
   }
+  // temp function for testing
   // TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
@@ -472,6 +473,14 @@ class NodeController {
       'timeout': 100000,
       'callback': callback,
     });
+  }
+  async asyncTryConsistentDiscovery(){
+    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
+      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
+      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
+      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
+    });
+    return result;
   }
   /**
    * unsubscribe form a topic
