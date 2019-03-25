@@ -1,262 +1,445 @@
-const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
-const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
+const errors = require('../common/errors');
 const Logger = require('../common/logger');
-const path = require('path');
-const {exec, spawn} = require('child_process');
-const Web3 = require('web3');
-const defaultsDeep = require('@nodeutils/defaults-deep');
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
-
-const defaultConfig = {
-  url: 'ws://127.0.0.1:9545',
-  truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
-};
-
-class EnigmaContractAPIBuilder {
-  constructor(logger) {
-    this.apiWriterFlag = true;
-    this.createNetworkFlag = false;
-    this.deployFlag = true;
-    this.useDeployedFlag = false;
-    this.web3 = null;
-    this.api = null;
-    this.environment ={};
-    this.config = defaultConfig;
+class EnigmaContractReaderAPI {
+  /**
+     * {string} enigmaContractAddress
+     * {Json} enigmaContractABI
+     * {Web3} web3
+     * */
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
+    this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
+    this._web3 = web3;
+    this._activeEventSubscriptions = {};
+    this._initEventParsers();
 
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({'cli': false});
+      this._logger = new Logger();
     }
-
-    return this;
   }
-
-  onlyReader() {
-    this.apiWriterFlag = false;
-    return this;
+  w3() {
+    return this._web3;
   }
-  /**
-     * deploy a smart contract
-     * @param {JSON} config - optional
-     * {
-     *  url - the transport url
-     *  truffleDirectory - the root of truffle workspace
-     * }
-   * @return {EnigmaContractAPIBuilder} this
-     * */
-  deploy(config) {
-    this.deployFlag = true;
-    if (config !== undefined && config !== null) {
-      this.config = defaultsDeep(config, this.config);
-    }
-    return this;
-  }
-  /**
-   * deploy a smart contract
-   * @param {JSON} config - optional
-   * {
-   *  url - the transport url
-   *  truffleDirectory - the root of truffle workspace
-   * }
-   * */
-  useDeployed(config) {
-    this.useDeployedFlag = true;
-    if (config !== undefined && config !== null) {
-      this.config = defaultsDeep(config, this.config);
-    }
-    if (this.config.enigmaContractABI === undefined) {
-      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/EnigmaMock.json'));
-      this.config.enigmaContractABI = EnigmaContractJson.abi;
-    }
-    return this;
-  }
-  /**
-   * initialize a network instance
-   * @param {JSON} config
-   * {
-   *  url - the transport url
-   *  truffleDirectory - the root of truffle workspace
-   * }
-   * */
-  createNetwork(config) {
-    this.createNetworkFlag = true;
-    if (config !== undefined && config !== null) {
-      this.config = defaultsDeep(config, this.config);
-    }
-    return this;
-  }
-
-  /**
-   * build the api instance
-   * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
-   * */
-  async build() {
-    if (this.createNetworkFlag) {
-      await this._startNetwork();
-    }
-
-    if (this.useDeployedFlag) {
-      await this._connectToContract();
-    } else if (this.deployFlag) {
-      await this._initEnv();
-    }
-
-    if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
-    } else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
-    }
-
-    return {api: this.api, environment: this};
-  }
-
-  /**
-   * configuraing and building the api instance
-   * @param {String} enigmaContractAddress - the deployed Enigm contract to connect to
-   * @param {String} url - the transport url
-   * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
-   * */
-  async setConfigAndBuild(enigmaContractAddress, url) {
-    let res;
-
-    if (enigmaContractAddress) {
-      let config = {enigmaContractAddress: enigmaContractAddress};
-      if (url) {
-        config.url = url;
-      }
-      res = await this.useDeployed(config).build();
-    } else {
-      res = await this.createNetwork().deploy().build();
-    }
-    return res;
-  }
-
-  _resetEnv(truffleDirectory) {
-    return new Promise((resolve, reject) => {
-      const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
-      exec(command, (err, stdout, stderr) => {
-        if (err) {
-          reject('ApiBuilder.resetEnv ' + err);
-        }
-        resolve(stderr, stdout);
-      });
-    });
-  }
-
-  _buildEnv(truffleDirectory) {
-    return new Promise((resolve, reject) => {
-      const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
-      exec(command, (err, stdout, stderr) => {
-        if (err) {
-          reject('ApiBuilder.buildEnv ' + err);
-        }
-        resolve(stderr, stdout);
-      });
-    });
-  }
-
-  async _initEnv() {
-    const truffleDirectory = this.config.truffleDirectory;
-
-    await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
-    await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
-
-    const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaMock.json'));
-    const EnigmaTokenContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaToken.json'));
-
-    this._initWeb3();
-
-    const accounts = await this.web3.eth.getAccounts();
-
-    const sender1 = accounts[0];
-    const sender2 = accounts[1];
-    const principal = accounts[2];
-
-    const enigmaTokenContract = new this.web3.eth.Contract(EnigmaTokenContractJson.abi);
-
-    const enigmaTokenContractInstance = await enigmaTokenContract.deploy(
-        {data: EnigmaTokenContractJson.bytecode, arguments: []})
-        .send({
-          from: sender1,
-          gas: 1500000,
-          // gasPrice: '100000000000'
-        });
-
-    const enigmaContract = new this.web3.eth.Contract(EnigmaContractJson.abi);
-    const enigmaContractInstance = await enigmaContract.deploy({
-      data: EnigmaContractJson.bytecode,
-      arguments: [enigmaTokenContractInstance.options.address, principal],
-    }).send({
-      from: sender2,
-      gas: 6500000, // 4500000,
-      // gasPrice: '100000000000'
-    });
-
-    this.enigmaContractAddress = enigmaContractInstance.options.address;
-    this.enigmaContractABI = EnigmaContractJson.abi;
-    this.logger().info('Deployed the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
-  }
-
-  _connectToContract() {
-    this._initWeb3();
-
-    // TODO: should a contract instance be created?!
-    this.enigmaContractAddress = this.config.enigmaContractAddress;
-    this.enigmaContractABI = this.config.enigmaContractABI;
-
-    this.logger().info('Connecting to the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
-  }
-
-  _initWeb3() {
-    if (!this.config.url.startsWith('ws:')) {
-      throw new Error("wrong transport config. Only websocket is currently supported");
-    }
-
-    const websocketProvider = this.config.url;
-    const provider = new Web3.providers.WebsocketProvider(websocketProvider);
-
-    // from htinitps://github.com/ethereum/web3.js/issues/1354
-    provider.on('error', (e) => this.logger().error('WS Error: ', e));
-    provider.on('end', (e) => this.logger().info('WS End'));
-
-    this.web3 = new Web3(provider);
-  }
-
   logger() {
     return this._logger;
   }
-
-  async _startNetwork() {
-    const truffleDirectory = this.config.truffleDirectory;
-    const command = 'cd ' + truffleDirectory + ' && truffle develop';
-    this.environment.subprocess = spawn(command, {
-      shell: true,
-      detached: true,
+  /**
+     * check if a secret contract is deployed
+     * @param {string} secrectContractAddress
+     * @return {Promise} bool
+     * */
+  isDeployed(secrectContractAddress) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.isDeployed(secrectContractAddress).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
     });
-
-    this.environment.subprocess.unref();
-
-    await sleep(3000);
   }
+  /**
+     * get a secret contract hash
+     * @param {string} secrectContractAddress
+     * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status
+     * */
+  getContractParams(secrectContractAddress) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.contracts(secrectContractAddress).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        const params = {
+          owner: data.owner,
+          preCodeHash: data.preCodeHash,
+          codeHash: data.codeHash,
+          outputHash: data.outputHash,
+          status: parseInt(data.status),
+        };
+        resolve(params);
+      });
+    });
+  }
+  /**
+     * count the number of deployed secret contracts
+     * @return {Promise} number
+     * */
+  countSecretContracts() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.countSecretContracts().call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(parseInt(data));
+      });
+    });
+  }
+  /**
+     * return a list of addresses given a range
+     * @param {Integer} from , including
+     * @param {Integer} to , up to not including
+     * @return {Promise} Array<string>
+     * */
+  getSecretContractAddresses(from, to) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getSecretContractAddresses(from, to).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+     * get the number of state deltas in a secret contract
+     * @param {string} secrectContractAddress
+     * @return {Promise} number
+     * */
+  countStateDeltas(secrectContractAddress) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.countStateDeltas(secrectContractAddress).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(parseInt(data));
+      });
+    });
+  }
+  /**
+     * get a hash of some delta
+     * @param {string} secrectContractAddress
+     * @param {Integer} index
+     * @return {Promise} string
+     * */
+  getStateDeltaHash(secrectContractAddress, index) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getStateDeltaHash(secrectContractAddress, index).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+    * get a hashes list of some delta's range
+    * @param {string} secrectContractAddress
+    * @param {Integer} index
+    * @return {Promise} Array<String>
+    * */
+  getStateDeltaHashes(secrectContractAddress, from, to) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getStateDeltaHashes(secrectContractAddress, from, to).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+     * Validate a hash on-chain
+     * @param {string} secrectContractAddress
+     * @param {string} deltaHash
+     * @return {Promise} boolean
+     * */
+  isValidDeltaHash(secrectContractAddress, delatHash) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.isValidDeltaHash(secrectContractAddress, delatHash).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+     * Get the Worker parameters
+     * @param {Integer} blockNumber //TODO:: check which time solidity expects, maybe BN ?
+     * @return {Promise} //TODO:: what are the exact patameters that are returned?
+     * */
+  getWorkerParams(blockNumber) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getWorkerParams(blockNumber).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+     * TODO:: what does it do?
+     * */
+  getWorkerGroup(blockNumber, secrectContractAddress) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getWorkerParams(blockNumber, secrectContractAddress).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+     * * Get the Worker report
+     * @param {string} workerAddress
+     * @return {Promise} returning {JSON} : {string} signer, {string} report
+     * */
+  getReport(workerAddress) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getReport(workerAddress).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        if (Object.keys(data).length != 2) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
+          reject(err);
+        }
+        const params = {
+          signer: data[0],
+          report: this._web3.utils.hexToAscii(data[1]),
+        };
+        resolve(params);
+      });
+    });
+  }
+  /**
+   * * Get task parameters
+   * @param {string} taskId
+   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof, {string} senderAddress,
+   *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
+   * */
+  getTaskParams(taskId) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.tasks(taskId).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        const params = {
+          inputsHash: data.inputsHash,
+          gasLimit: parseInt(data.gasLimit),
+          gasPrice: parseInt(data.gasPx),
+          proof: data.proof,
+          senderAddress: data.sender,
+          blockNumber: parseInt(data.blockNumber),
+          status: parseInt(data.status),
+        };
+        resolve(params);
+      });
+    });
+  }
+  /**
+   * * Get Ethereum block number
+   * @return {Promise} returning {Integer} : blockNumber
+   * */
+  getEthereumBlockNumber() {
+    return new Promise((resolve, reject) => {
+      this._web3.eth.getBlockNumber((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+   * * Get Epoch size
+   * @return {Promise} returning {Integer} : epochSize
+   * */
+  getEpochSize() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.epochSize().call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+   * * TODO:: lena :: implement this once moving to the updated contract
+   *
+   * */
+  getAllWorkerParams() {
+    return new Promise((resolve, reject) => {
+      resolve([]);
+    });
+  }
+  /**
+     * Listen to events emmited by the Enigma.sol contract and trigger a callback
+     * @param {string} eventName
+     * @param {Json} filter, in case a filter is required on top of the event itself.
+     *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
+     * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
+     * */
+  subscribe(eventName, filter, callback) {
+    const eventWatcher = this._enigmaContract.events[eventName]({filter: filter});
 
-  async destroy() {
-    if (this.createNetworkFlag) {
-      await this._stop();
+    eventWatcher
+        .on('data', (event)=>{
+          const result = this._eventParsers[eventName](event, this._web3);
+          callback(null, result);
+        })
+        .on('changed', (event)=> {
+          this.logger().info('received a change of the event ' + event + '. Deleting its listener');
+          if (eventName in this._activeEventSubscriptions) {
+            delete(this._activeEventSubscriptions[eventName]);
+          }
+        })
+        .on('error', (err)=>{
+          callback(err);
+        });
+
+    this._activeEventSubscriptions[eventName] = eventWatcher;
+  }
+  /**
+     * Unsubscribe from all the subscribed events
+     * @return {Boolean} success
+     * */
+  unsubscribeAll() {
+    for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
+      eventWatcher.unsubscribe();
     }
-    await this._disconnect();
+    return true;
   }
 
-  async _stop() {
-    await this.environment.subprocess.kill();
-  }
-
-  async _disconnect() {
-    await this.web3.currentProvider.disconnect();
+  _initEventParsers() {
+    this._eventParsers = {
+      /**
+             * @return {JSON}: {string} workerAddress , {string} signer
+             * */
+      'Registered': (event) => {
+        return {
+          workerAddress: event.returnValues.custodian,
+          signer: event.returnValues.signer,
+        };
+      },
+      /**
+             * @return {JSON}: {string} signature , {string} hash, {string} workerAddress
+             * */
+      'ValidatedSig': (event) => {
+        return {
+          signature: event.returnValues.sig,
+          hash: event.returnValues.hash,
+          workerAddress: event.returnValues.workerAddr,
+        };
+      },
+      /**
+             * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Array<string>} workers, {Array<Integer>} balances, {Integer} nonce
+             * */
+      'WorkersParameterized': (event) => {
+        return {
+          seed: event.returnValues.seed,
+          blockNumber: event.returnValues.blockNumber,
+          workers: event.returnValues.workers,
+          balances: event.returnValues.balances,
+          nonce: parseInt(event.returnValues.nonce),
+        };
+      },
+      /**
+             * @return {JSON}: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+             * */
+      'TaskRecordCreated': (event) => {
+        return {
+          taskId: event.returnValues.taskId,
+          gasLimit: parseInt(event.returnValues.gasLimit),
+          gasPrice: parseInt(event.returnValues.gasPx),
+          senderAddress: event.returnValues.sender,
+        };
+      },
+      /**
+       * @return {JSON}: {string} senderAddress,
+       *                 {JSON} tasks, indexed by the taskId, each element has: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+       * */
+      'TaskRecordsCreated': (event) => {
+        let res = {tasks: {}, senderAddress: event.returnValues.sender};
+        for (let i = 0; i < event.returnValues.taskIds.length, i++;) {
+          const taskId = event.returnValues.taskIds[i];
+          res.tasks[taskId] = {
+            taskId: taskId,
+            gasLimit: parseInt(event.returnValues.gasLimits[i]),
+            gasPrice: parseInt(event.returnValues.gasPrices[i]),
+          }
+        }
+        return res;
+      },
+      /**
+             * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
+             *                 {string} ethCall, {string} signature
+             * */
+      'ReceiptVerified': (event) => {
+        return {
+          taskId: event.returnValues.taskId,
+          stateDeltaHash: event.returnValues.stateDeltaHash,
+          outputHash: event.returnValues.outputHash,
+          ethCall: event.returnValues.ethCall,
+          signature: event.returnValues.sig,
+        };
+      },
+      /**
+             * @return {JSON}: {Array<string>} taskIds , {Array<string>} stateDeltaHashes, {string} outputHash,
+             *                 {string} ethCall, {string} signature
+             * */
+      'ReceiptsVerified': (event) => {
+        return {
+          taskIds: event.returnValues.taskIds,
+          stateDeltaHashes: event.returnValues.stateDeltaHashes,
+          outputHash: event.returnValues.outputHash,
+          ethCall: event.returnValues.ethCall,
+          signature: event.returnValues.sig,
+        };
+      },
+      /**
+       * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
+       * */
+      'ReceiptFailed': (event) => {
+        return {
+          taskId: event.returnValues.taskId,
+          signature: event.returnValues.sig,
+        };
+      },
+      /**
+       * @return {JSON}: {string>} taskId
+       * */
+      'TaskFeeReturned': (event) => {
+        return {
+          taskId: event.returnValues.taskId,
+        };
+      },
+      /**
+             * @return {JSON}: {string} from , {Integer} value
+             * */
+      'DepositSuccessful': (event) => {
+        return {
+          from: event.returnValues.from,
+          value: parseInt(event.returnValues.value),
+        };
+      },
+      /**
+       * @return {JSON}: {string} to , {Integer} value
+       * */
+      'WithdrawSuccessful': (event) => {
+        return {
+          to: event.returnValues.to,
+          value: parseInt(event.returnValues.value),
+        };
+      },
+      /**
+             * @return {JSON}: {string} secretContractAddress , {string} codeHash
+             * */
+      'SecretContractDeployed': (event) => {
+        return {
+          secretContractAddress: event.returnValues.scAddr,
+          codeHash: event.returnValues.codeHash,
+        };
+      },
+    };
   }
 }
 
-module.exports = EnigmaContractAPIBuilder;
+
+module.exports = EnigmaContractReaderAPI;
