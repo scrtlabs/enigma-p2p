@@ -347,6 +347,7 @@ function syncTest(scenario) {
     peerMockCore.setReceiverTips(tips);
     await testUtils.sleep(1500);
     const ethereumInfo = await initEthereumStuff();
+    await testUtils.sleep(1500);
     const api = ethereumInfo.enigmaContractApi;
     const web3 = ethereumInfo.web3;
     const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
