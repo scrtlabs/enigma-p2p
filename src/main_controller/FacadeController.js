@@ -78,7 +78,7 @@ class FacadeController extends MainController{
     healthCheckResult.core.status = healthCheckResult.core.uri != null && healthCheckResult.core.registrationParams.signKey != null;
     let eth = await this.getNode().hasEthereum();
     // ethereum
-    console.log(`11111111111111ethereum api: ${JSON.stringify(eth.)}`);
+    console.log(`11111111111111ethereum api: ${JSON.stringify(eth)}`);
     // overall_status
     healthCheckResult.status = healthCheckResult.connection.status && healthCheckResult.core.status;
     return healthCheckResult;
