@@ -636,6 +636,17 @@ class NodeController {
       },
     });
   }
+  async asyncIdentifyMissingStates(){
+    return new Promise((resolve,reject)=>{
+      this.identifyMissingStates((err ,missingStatesMsgsMap)=>{
+        if(err){
+          return reject(err);
+        }else{
+          resolve(missingStatesMsgsMap);
+        }
+      });
+    });
+  }
   // TODO make it usable to execute this pipeline
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({

@@ -337,8 +337,9 @@ function syncTest(scenario) {
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
 
-    // start the dns mock server (core)
+    // define as provider to start with provider_db
     dnsMockCore.setProvider(true);
+    // start the dns mock server (core)
     dnsMockCore.runServer(dnsMockUri);
 
     // start the peer mock server (core)
@@ -368,6 +369,7 @@ function syncTest(scenario) {
         .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
 
+    // write all states to ethereum
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([
