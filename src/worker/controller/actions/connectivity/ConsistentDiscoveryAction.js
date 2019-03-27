@@ -85,5 +85,14 @@ class ConsistentDiscoveryAction {
 
     stopabbleTask.start();
   }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      params.callback = function(status, result) {
+        resolve({status:status,result : result});
+      };
+      action.execute(params);
+    });
+  }
 }
 module.exports = ConsistentDiscoveryAction;

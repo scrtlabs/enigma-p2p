@@ -34,10 +34,6 @@ class EthereumAPI {
     await this._environment.destroy();
   }
 
-  getHealthCheckResult() {
-    return this._environment.healthCheck();
-  }
-
   /**
    * check the connectivity to the Ethereum node
    * @return {JSON}

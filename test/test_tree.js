@@ -133,6 +133,11 @@ module.exports.TEST_TREE = {
     '#1' : true,
     '#2' : true,
     '#3' : true,
-  }
+  },
+  'healthcheck' : {
+    'all' : true,
+    '#1' : true,
+  },
 };
+
 
