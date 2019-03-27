@@ -133,8 +133,7 @@ node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db
 
 4. user wanting to call `getWorkerEncryptionKey` with `curl` see [example](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md#getworkerencryptionkey) and use the key from step 3 as the `workerAddress` parameter.
 
-```
-```
+
 <img src="docs/jsonrpc.png"
      alt="streams flow " />
 
