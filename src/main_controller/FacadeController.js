@@ -43,6 +43,7 @@ class FacadeController extends MainController{
    * @returns {Json} result {status : bool, connection : {status : bool, outbound : number, inbound : number}}
    * */
   async healthCheck(){
+
     let healthCheckResult = {
       status : false,
       connection : {
@@ -67,6 +68,7 @@ class FacadeController extends MainController{
         missing: null,
       }
     };
+
     // connectivity
     healthCheckResult.connection.inbound = this.getNode().getAllInboundHandshakes().length;
     healthCheckResult.connection.outbound = this.getNode().getAllOutboundHandshakes().length;
@@ -75,26 +77,39 @@ class FacadeController extends MainController{
       healthCheckResult.connection.inbound < constants.DHT_STATUS.MAX_OUTBOUND;
 
     // core
-    healthCheckResult.core.uri = this.getIpcClient().getUri();
-    let regParams = await this.getNode().asyncGetRegistrationParams();
-    healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
-    healthCheckResult.core.status = healthCheckResult.core.uri != null && healthCheckResult.core.registrationParams.signKey != null;
+    try {
+      healthCheckResult.core.uri = this.getIpcClient().getUri();
+      let regParams = await this.getNode().asyncGetRegistrationParams();
+      healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
+      healthCheckResult.core.status = healthCheckResult.core.uri != null && healthCheckResult.core.registrationParams.signKey != null;
+    } catch(e) {
+      healthCheckResult.core.status = false;
+    }
 
     // ethereum
-    let eth = await this.getNode().ethereum().healthCheck();
-    healthCheckResult.ethereum.uri = eth.url;
-    healthCheckResult.ethereum.contract_addr = eth.enigmaContractAddress;
-    healthCheckResult.ethereum.status = eth.isConnected;
+    if (this.getNode().hasEthereum()) {
+      try {
+        let eth = await this.getNode().ethereum().healthCheck();
+        healthCheckResult.ethereum.uri = eth.url;
+        healthCheckResult.ethereum.contract_addr = eth.enigmaContractAddress;
+        healthCheckResult.ethereum.status = eth.isConnected;
+      } catch (e) {
+        healthCheckResult.ethereum.status = false;
+      }
+    }
 
     // sync
-    let missingStates = await this.getNode().asyncIdentifyMissingStates();
-    healthCheckResult.state.missing = missingStates["missingStatesMap"];
-    if(healthCheckResult &&
-      healthCheckResult.state &&
-      healthCheckResult.state.missing &&
-      Object.keys(healthCheckResult.state.missing).length === 0) {
+    try{
+      let missingStates = await this.getNode().asyncIdentifyMissingStates();
+      healthCheckResult.state.missing = missingStates["missingStatesMap"];
+      if(healthCheckResult.state.missing &&
+        Object.keys(healthCheckResult.state.missing).length === 0) {
         healthCheckResult.state.status = true;
+      }
+    }catch(e){
+      healthCheckResult.state.status = false;
     }
+
     // overall_status
     healthCheckResult.status = healthCheckResult.connection.status &&
       healthCheckResult.core.status &&

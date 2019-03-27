@@ -24,7 +24,7 @@ const stopTest = async (peers,bNodeController,bNodeCoreServer,resolve)=>{
   resolve();
 };
 
-it('#1 perform healthcheck', async function() {
+it('#1 perform healthCheck', async function() {
   if (!tree['all'] || !tree['#1']) {
     this.skip();
   }
@@ -36,10 +36,11 @@ it('#1 perform healthcheck', async function() {
     let bNodeController = bNode.mainController;
     let bNodeCoreServer = bNode.coreServer;
     // start the tested node
-    const testBundle = await testBuilder.createNode({withEth : true});
+    const testPeer = await testBuilder.createNode({withEth : true});
     await testUtils.sleep(1000);
-    await testBundle.mainController.getNode().asyncTryConsistentDiscovery();
-    let hc = await testBundle.mainController.healthCheck();
+
+    await testPeer.mainController.getNode().asyncTryConsistentDiscovery();
+    let hc = await testPeer.mainController.healthCheck();
     // assertion checks
     assert.strictEqual(hc.status, true);
 
@@ -54,7 +55,7 @@ it('#1 perform healthcheck', async function() {
     assert.strictEqual(hc.state.status, true);
 
     // STOP EVERYTHING
-    peers.push(testBundle);
+    peers.push(testPeer);
     await stopTest(peers,bNodeController,bNodeCoreServer,resolve);
   })
 });
