@@ -12,7 +12,19 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 
 # Table of Contents
 
+- [enigma-p2p](#enigma-p2p)
+- [Table of Contents](#table-of-contents)
 - [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installing](#installing)
+    - [If running with Docker](#if-running-with-docker)
+- [Running the Node](#running-the-node)
+- [Running the tests](#running-the-tests)
+- [JSON RPC API](#json-rpc-api)
+- [Built With](#built-with)
+- [Developers](#developers)
+- [Authors](#authors)
+- [License](#license)
 
 # Getting Started
 
