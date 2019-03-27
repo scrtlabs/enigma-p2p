@@ -65,5 +65,11 @@
     "eslint-plugin-babel": "^5.2.1",
     "tempdir": "^2.0.0",
     "ws": "^6.1.3"
-  }
+  },
+  "contributors": [
+    "Isan Rivkin <isanrivkin@gmail.com>",
+    "lena kleyner <lenak25@gmail.com>", 
+    "Elichai Turkel <elichai@enigma.co>",
+    "Avishai Weingarten <avishw89@gmail.com>",
+  ]
 }
