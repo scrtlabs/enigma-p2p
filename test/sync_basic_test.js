@@ -337,8 +337,9 @@ function syncTest(scenario) {
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
 
-    // start the dns mock server (core)
+    // define as provider to start with provider_db
     dnsMockCore.setProvider(true);
+    // start the dns mock server (core)
     dnsMockCore.runServer(dnsMockUri);
 
     // start the peer mock server (core)
@@ -368,6 +369,7 @@ function syncTest(scenario) {
         .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
 
+    // write all states to ethereum
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([
@@ -589,7 +591,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
   });
 });
 
-it('Perform a full sync scenario - from scratch', async function() {
+it('#2 Perform a full sync scenario - from scratch', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#2']) {
     this.skip();
@@ -598,7 +600,7 @@ it('Perform a full sync scenario - from scratch', async function() {
   return syncTest(SYNC_SCENARIOS.EMPTY_DB);
 });
 
-it('Perform a full sync scenario - from mid-with-some-addresses', async function() {
+it('#3 Perform a full sync scenario - from mid-with-some-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -606,7 +608,7 @@ it('Perform a full sync scenario - from mid-with-some-addresses', async function
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES);
 });
 
-it('Perform a full sync scenario - from mid-with-all-addresses', async function() {
+it('#4 Perform a full sync scenario - from mid-with-all-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#4']) {
     this.skip();
@@ -614,7 +616,7 @@ it('Perform a full sync scenario - from mid-with-all-addresses', async function(
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
 });
 
-it('Test verifier', async function() {
+it('#5 Test verifier', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();

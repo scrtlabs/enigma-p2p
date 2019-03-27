@@ -55,7 +55,7 @@ module.exports.createN = async (n, optionsOverride)=>{
   }
   finalBstrapOpts.isBootstrap = true;
   finalBstrapOpts = nodeUtils.applyDelta(getDefault(), optionsOverrideBStrap);
-  optionsOverridePeer = nodeUtils.applyDelta(getDefault(), optionsOverridePeer); ;
+  optionsOverridePeer = nodeUtils.applyDelta(getDefault(), optionsOverridePeer);
   const bNode = await _createNode(finalBstrapOpts);
   const peers = [];
   for (let i =0; i<n; ++i) {

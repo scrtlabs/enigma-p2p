@@ -211,7 +211,7 @@ class NodeController {
   }
   /**
    * TODO:: currently it will generate db only if extraConfig provided
-   * TODO:: beucase of tests and multiple instances and path collision.
+   * TODO:: because of tests and multiple instances and path collision.
    * */
   _initTaskManager() {
     if (this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath) {
@@ -467,6 +467,7 @@ class NodeController {
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
   }
+  // temp function for testing
   // TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
@@ -475,6 +476,14 @@ class NodeController {
       'timeout': 100000,
       'callback': callback,
     });
+  }
+  async asyncTryConsistentDiscovery(){
+    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
+      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
+      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
+      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
+    });
+    return result;
   }
   /**
    * unsubscribe form a topic
@@ -628,6 +637,17 @@ class NodeController {
           }
         }
       },
+    });
+  }
+  async asyncIdentifyMissingStates(){
+    return new Promise((resolve,reject)=>{
+      this.identifyMissingStates((err ,missingStatesMsgsMap)=>{
+        if(err){
+          return reject(err);
+        }else{
+          resolve(missingStatesMsgsMap);
+        }
+      });
     });
   }
   // TODO make it usable to execute this pipeline
