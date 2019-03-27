@@ -61,7 +61,10 @@ class FacadeController extends MainController{
         status: false,
         uri: null,
         contract_addr: null,
-        erc20_addr: null,
+      },
+      state: {
+        status: false,
+        missing: null,
       }
     };
     // connectivity
@@ -76,11 +79,26 @@ class FacadeController extends MainController{
     let regParams = await this.getNode().asyncGetRegistrationParams();
     healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
     healthCheckResult.core.status = healthCheckResult.core.uri != null && healthCheckResult.core.registrationParams.signKey != null;
-    let eth = await this.getNode().hasEthereum();
+
     // ethereum
-    console.log(`11111111111111ethereum api: ${JSON.stringify(eth)}`);
+    let eth = await this.getNode().ethereum().healthCheck();
+    healthCheckResult.ethereum.uri = eth.url;
+    healthCheckResult.ethereum.contract_addr = eth.enigmaContractAddress;
+    healthCheckResult.ethereum.status = eth.isConnected;
+
+    // sync
+    let missingStates = await this.getNode().asyncIdentifyMissingStates();
+    healthCheckResult.state.missing = missingStates["missingStatesMap"];
+    if(healthCheckResult &&
+      healthCheckResult.state &&
+      healthCheckResult.state.missing &&
+      Object.keys(healthCheckResult.state.missing).length === 0) {
+        healthCheckResult.state.status = true;
+    }
     // overall_status
-    healthCheckResult.status = healthCheckResult.connection.status && healthCheckResult.core.status;
+    healthCheckResult.status = healthCheckResult.connection.status &&
+      healthCheckResult.core.status &&
+      healthCheckResult.ethereum.status && healthCheckResult.state.status;
     return healthCheckResult;
   }
 }

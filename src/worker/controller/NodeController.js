@@ -211,7 +211,7 @@ class NodeController {
   }
   /**
    * TODO:: currently it will generate db only if extraConfig provided
-   * TODO:: beucase of tests and multiple instances and path collision.
+   * TODO:: because of tests and multiple instances and path collision.
    * */
   _initTaskManager() {
     if (this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath) {
