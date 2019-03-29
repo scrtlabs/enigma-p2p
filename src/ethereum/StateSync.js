@@ -12,7 +12,7 @@ const DbUtils = require('../common/DbUtils');
  * TODO: as async function returns a Promise, apply both options: return the data using the callback
  * and return the data using the promise
  * */
-async function getRemoteMissingStates(api, localTips, callback) {
+async function getRemoteMissingStates(api, localTips, logger, callback) {
   // create a hashmap from the localTips array
   const tipsHashMaps = localTips.reduce((obj, item) => {
     let address = item.address;
@@ -31,20 +31,25 @@ async function getRemoteMissingStates(api, localTips, callback) {
   try {
     const remoteSecretContractNumber = await api.countSecretContracts();
     const remoteSecretContractsAddresses = await api.getSecretContractAddresses(0, remoteSecretContractNumber);
-
+    // console.log("remoteSecretContractNumber=", remoteSecretContractNumber);
+    // console.log("remoteSecretContractsAddresses=", remoteSecretContractsAddresses);
     // initiate jobs
     const jobs = [];
     remoteSecretContractsAddresses.forEach((secretContractAddress)=>{
       jobs.push((cb)=>{
-        api.countStateDeltas(secretContractAddress)
-            .then(async (deltasNumber)=>{
+        api.getContractParams(secretContractAddress)
+        //api.countStateDeltas(secretContractAddress)
+            .then(async (contractData)=>{
+              //console.log("secretContractAddress=", secretContractAddress);
+              //console.log("contractData=", contractData);
               let missingAddress = false;
               let firstMissingIndex;
               let missingCodeHash;
               // get the local tip index, if exists; otherwise 0
               if (secretContractAddress in tipsHashMaps) {
                 firstMissingIndex = tipsHashMaps[secretContractAddress] + 1;
-                if (deltasNumber === firstMissingIndex) {
+                if (contractData.deltaHashes.length === firstMissingIndex) {
+                  console.log("1");
                   return cb(null);
                 }
               }
@@ -52,27 +57,23 @@ async function getRemoteMissingStates(api, localTips, callback) {
               else {
                 firstMissingIndex = 0;
                 missingAddress = true;
-                const contractParams = await api.getContractParams(secretContractAddress);
-                missingCodeHash = contractParams.codeHash;
+                missingCodeHash = contractData.codeHash;
               }
-              api.getStateDeltaHashes(secretContractAddress, firstMissingIndex, deltasNumber)
-                  .then((deltasArray)=>{
-                    const parsedDeltasArray = [];
-                    deltasArray.forEach((deltaHash, index)=>{
-                      parsedDeltasArray.push({deltaHash: deltaHash, index: index + firstMissingIndex});
-                    });
-                    if (missingAddress === true) {
-                      return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray,
-                        bytecodeHash: missingCodeHash});
-                    }
-                    return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray});
-                  })
-                  .catch((err)=>{
-                    return cb(err);
-                  });
-              // }
+              const parsedDeltasArray = [];
+              for (let i = firstMissingIndex; i < contractData.deltaHashes.length; i++) {
+                parsedDeltasArray.push({deltaHash: contractData.deltaHashes[i], index: i});
+              }
+              if (missingAddress === true) {
+                console.log("2");
+                return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray,
+                  bytecodeHash: missingCodeHash});
+              }
+              console.log("3");
+              return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray});
             })
             .catch((err)=>{
+              logger.error('error received while trying to read data from Ethereum: ', err);
+              console.log("4");
               return cb(err);
             });
       });
@@ -80,6 +81,8 @@ async function getRemoteMissingStates(api, localTips, callback) {
 
     parallel(jobs, (err, results)=>{
       if (err) {
+        logger.error('error received while trying to read data from Ethereum: ', err);
+        console.log("ended - 1")
         return callback(err);
       }
       // 1. Filter out undefined - due to synced addresses
@@ -91,9 +94,12 @@ async function getRemoteMissingStates(api, localTips, callback) {
           filtered.push(result);
         }
       });
+      console.log("ended - 2");
       return callback(null, filtered);
     });
   } catch (err) {
+    logger.error('error received while trying to read data from Ethereum: ', err);
+    console.log("ended - 3");
     return callback(err);
   }
 }

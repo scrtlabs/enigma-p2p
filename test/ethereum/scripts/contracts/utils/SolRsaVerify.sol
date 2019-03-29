@@ -15,11 +15,11 @@ pragma solidity ^0.5.0;
 
     You should have received a copy of the GNU General Public License
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
+    
     Checked results with FIPS test vectors
     https://csrc.nist.gov/CSRC/media/Projects/Cryptographic-Algorithm-Validation-Program/documents/dss/186-2rsatestvectors.zip
     file SigVer15_186-3.rsp
-
+    
  */
 
 library SolRsaVerify {
@@ -43,12 +43,12 @@ library SolRsaVerify {
         }
     }
 
-
+    
     function join(
 	bytes memory _s, bytes memory _e, bytes memory _m
     ) pure internal returns (bytes memory) {
         uint inputLen = 0x60+_s.length+_e.length+_m.length;
-
+        
         uint slen = _s.length;
         uint elen = _e.length;
         uint mlen = _m.length;
@@ -56,7 +56,7 @@ library SolRsaVerify {
         uint eptr;
         uint mptr;
         uint inputPtr;
-
+        
         bytes memory input = new bytes(inputLen);
         assembly {
             sptr := add(_s,0x20)
@@ -67,29 +67,29 @@ library SolRsaVerify {
             mstore(add(input,0x60),mlen)
             inputPtr := add(input,0x20)
         }
-        memcpy(inputPtr+0x60,sptr,_s.length);
-        memcpy(inputPtr+0x60+_s.length,eptr,_e.length);
+        memcpy(inputPtr+0x60,sptr,_s.length);        
+        memcpy(inputPtr+0x60+_s.length,eptr,_e.length);        
         memcpy(inputPtr+0x60+_s.length+_e.length,mptr,_m.length);
 
         return input;
     }
-
+    
     /** @dev Verifies a PKCSv1.5 SHA256 signature
       * @param _sha256 is the sha256 of the data
       * @param _s is the signature
       * @param _e is the exponent
       * @param _m is the modulus
       * @return 0 if success, >0 otherwise
-    */
+    */    
     function pkcs1Sha256Verify(
         bytes32 _sha256,
         bytes memory _s, bytes memory _e, bytes memory _m
     ) internal view returns (uint) {
-
+        
         uint8[19] memory sha256Prefix = [
             0x30, 0x31, 0x30, 0x0d, 0x06, 0x09, 0x60, 0x86, 0x48, 0x01, 0x65, 0x03, 0x04, 0x02, 0x01, 0x05, 0x00, 0x04, 0x20
         ];
-
+        
       	require(_m.length >= sha256Prefix.length+_sha256.length+11);
 
         uint i;
@@ -103,16 +103,16 @@ library SolRsaVerify {
         assembly {
             pop(staticcall(sub(gas, 2000), 5, add(input,0x20), inputlen, add(decipher,0x20), decipherlen))
 	}
-
+        
         /// 0x00 || 0x01 || PS || 0x00 || DigestInfo
         /// PS is padding filled with 0xff
         //  DigestInfo ::= SEQUENCE {
         //     digestAlgorithm AlgorithmIdentifier,
         //     digest OCTET STRING
         //  }
-
+        
         uint paddingLen = decipherlen - 3 - sha256Prefix.length - 32;
-
+        
         if (decipher[0] != 0 || uint8(decipher[1]) != 1) {
             return 1;
         }
@@ -144,9 +144,9 @@ library SolRsaVerify {
       * @param _e is the exponent
       * @param _m is the modulus
       * @return 0 if success, >0 otherwise
-    */
+    */    
     function pkcs1Sha256VerifyRaw(
-        bytes memory _data,
+        bytes memory _data, 
         bytes memory _s, bytes memory _e, bytes memory _m
     ) internal view returns (uint) {
         return pkcs1Sha256Verify(sha256(_data),_s,_e,_m);

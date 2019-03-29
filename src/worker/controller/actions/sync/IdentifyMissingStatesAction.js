@@ -56,7 +56,7 @@ class IdentifyMissingStatesAction {
   }
 
   static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
-    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
+    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, this._controller.logger, (err, missingList) => {
       const res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
 
       if (err) {

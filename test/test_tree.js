@@ -26,9 +26,9 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true,
-    '#3' : true,
-    '#4' : true,
-    '#5' : true,
+    '#3' : false,
+    '#4' : false,
+    '#5' : false,
   },
   'task_manager' :{
     'all' : true,
@@ -44,7 +44,7 @@ module.exports.TEST_TREE = {
     '#1' : true,
   },
   'sync_basic':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -81,7 +81,7 @@ module.exports.TEST_TREE = {
     '#2' : true,
   },
   'verifier':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -117,7 +117,7 @@ module.exports.TEST_TREE = {
     '#33' : true,
   },
   'ethereum_integration':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,

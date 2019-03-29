@@ -26,29 +26,14 @@ class EnigmaContractReaderAPI {
     return this._logger;
   }
   /**
-     * check if a secret contract is deployed
-     * @param {string} secrectContractAddress
-     * @return {Promise} bool
-     * */
-  isDeployed(secrectContractAddress) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.isDeployed(secrectContractAddress).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-  }
-  /**
      * get a secret contract hash
      * @param {string} secrectContractAddress
      * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
-     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes, {Array<string>} outputHashes
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.contracts(secrectContractAddress).call((error, data)=> {
+      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -58,6 +43,8 @@ class EnigmaContractReaderAPI {
           codeHash: data.codeHash,
           outputHash: data.outputHash,
           status: parseInt(data.status),
+          deltaHashes: data.stateDeltaHashes,
+          outputHashes: data.outputHashes
         };
         resolve(params);
       });
@@ -94,76 +81,27 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * get the number of state deltas in a secret contract
-     * @param {string} secrectContractAddress
-     * @return {Promise} number
-     * */
-  countStateDeltas(secrectContractAddress) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.countStateDeltas(secrectContractAddress).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(parseInt(data));
-      });
-    });
-  }
-  /**
-     * get a hash of some delta
-     * @param {string} secrectContractAddress
-     * @param {Integer} index
-     * @return {Promise} string
-     * */
-  getStateDeltaHash(secrectContractAddress, index) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getStateDeltaHash(secrectContractAddress, index).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-  }
-  /**
-    * get a hashes list of some delta's range
-    * @param {string} secrectContractAddress
-    * @param {Integer} index
-    * @return {Promise} Array<String>
-    * */
-  getStateDeltaHashes(secrectContractAddress, from, to) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getStateDeltaHashes(secrectContractAddress, from, to).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-  }
-  /**
-     * Validate a hash on-chain
-     * @param {string} secrectContractAddress
-     * @param {string} deltaHash
-     * @return {Promise} boolean
-     * */
-  isValidDeltaHash(secrectContractAddress, delatHash) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.isValidDeltaHash(secrectContractAddress, delatHash).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-  }
-  /**
      * Get the Worker parameters
      * @param {Integer} blockNumber //TODO:: check which time solidity expects, maybe BN ?
-     * @return {Promise} //TODO:: what are the exact patameters that are returned?
+     * @return {Promise} //TODO:: what are the exact parameters that are returned?
      * */
   getWorkerParams(blockNumber) {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.getWorkerParams(blockNumber).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
+  }
+  /**
+   * Get all the Workers parameters
+   * @return {Promise} //TODO:: what are the exact parameters that are returned?
+   * */
+  getWorkersParams() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getWorkersParams().call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -215,7 +153,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskParams(taskId) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.tasks(taskId).call((error, data)=> {
+      this._enigmaContract.methods.getTaskRecord(taskId).call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -252,7 +190,7 @@ class EnigmaContractReaderAPI {
    * */
   getEpochSize() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.epochSize().call((error, data)=> {
+      this._enigmaContract.methods.getEpochSize().call((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -310,8 +248,8 @@ class EnigmaContractReaderAPI {
   _initEventParsers() {
     this._eventParsers = {
       /**
-             * @return {JSON}: {string} workerAddress , {string} signer
-             * */
+       * @return {JSON}: {string} workerAddress , {string} signer
+       * */
       'Registered': (event) => {
         return {
           workerAddress: event.returnValues.custodian,
@@ -319,8 +257,8 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {string} signature , {string} hash, {string} workerAddress
-             * */
+       * @return {JSON}: {string} signature , {string} hash, {string} workerAddress
+       * */
       'ValidatedSig': (event) => {
         return {
           signature: event.returnValues.sig,
@@ -329,38 +267,43 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Array<string>} workers, {Array<Integer>} balances, {Integer} nonce
-             * */
+       * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Integer} inclusionBlockNumber, {Array<string>} workers,
+       *    {Array<Integer>} balances, {Integer} nonce
+       * */
       'WorkersParameterized': (event) => {
         return {
           seed: event.returnValues.seed,
-          blockNumber: event.returnValues.blockNumber,
+          firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
+          inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,
-          balances: event.returnValues.balances,
+          balances: event.returnValues.stakes,
           nonce: parseInt(event.returnValues.nonce),
         };
       },
       /**
-             * @return {JSON}: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
-             * */
+       * @return {JSON}: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+       * */
       'TaskRecordCreated': (event) => {
         return {
           taskId: event.returnValues.taskId,
+          inputsHash: event.returnValues.inputsHash,
           gasLimit: parseInt(event.returnValues.gasLimit),
           gasPrice: parseInt(event.returnValues.gasPx),
           senderAddress: event.returnValues.sender,
+          blockNumber: parseInt(event.returnValues.blockNumber)
         };
       },
       /**
-       * @return {JSON}: {string} senderAddress,
-       *                 {JSON} tasks, indexed by the taskId, each element has: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
+       * @return {JSON}: {string} senderAddress, {}
+       *     {JSON} tasks, indexed by the taskId, each element has: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} inputsHash
        * */
       'TaskRecordsCreated': (event) => {
-        let res = {tasks: {}, senderAddress: event.returnValues.sender};
+        let res = {tasks: {}, senderAddress: event.returnValues.sender, blockNumber: parseInt(event.returnValues.blockNumber)};
         for (let i = 0; i < event.returnValues.taskIds.length, i++;) {
           const taskId = event.returnValues.taskIds[i];
           res.tasks[taskId] = {
             taskId: taskId,
+            inputsHash: event.returnValues.inputsHashes[i],
             gasLimit: parseInt(event.returnValues.gasLimits[i]),
             gasPrice: parseInt(event.returnValues.gasPrices[i]),
           }
@@ -368,28 +311,30 @@ class EnigmaContractReaderAPI {
         return res;
       },
       /**
-             * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
-             *                 {string} ethCall, {string} signature
-             * */
+       * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
+       *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
+       * */
       'ReceiptVerified': (event) => {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
           outputHash: event.returnValues.outputHash,
-          ethCall: event.returnValues.ethCall,
+          optionalEthereumData: event.returnValues.optionalEthereumData,
+          optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,
           signature: event.returnValues.sig,
         };
       },
       /**
-             * @return {JSON}: {Array<string>} taskIds , {Array<string>} stateDeltaHashes, {string} outputHash,
-             *                 {string} ethCall, {string} signature
-             * */
+       * @return {JSON}: {Array<string>} taskIds , {Array<string>} stateDeltaHashes, {Array<string>} outputHashes,
+       *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
+       * */
       'ReceiptsVerified': (event) => {
         return {
           taskIds: event.returnValues.taskIds,
           stateDeltaHashes: event.returnValues.stateDeltaHashes,
-          outputHash: event.returnValues.outputHash,
-          ethCall: event.returnValues.ethCall,
+          outputHashes: event.returnValues.outputHashes,
+          optionalEthereumData: event.returnValues.optionalEthereumData,
+          optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,
           signature: event.returnValues.sig,
         };
       },
@@ -411,8 +356,8 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {string} from , {Integer} value
-             * */
+       * @return {JSON}: {string} from , {Integer} value
+       * */
       'DepositSuccessful': (event) => {
         return {
           from: event.returnValues.from,
@@ -429,12 +374,13 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-             * @return {JSON}: {string} secretContractAddress , {string} codeHash
-             * */
+       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} initDeltaHash
+       * */
       'SecretContractDeployed': (event) => {
         return {
           secretContractAddress: event.returnValues.scAddr,
           codeHash: event.returnValues.codeHash,
+          initDeltaHash: event.returnValues.initDeltaHash,
         };
       },
     };
