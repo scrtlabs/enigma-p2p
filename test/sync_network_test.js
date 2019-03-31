@@ -43,11 +43,11 @@ describe('sync_network_tests',()=> {
         for(let i=0;i<pPaths.length;++i){
           await peers[i].mainController.shutdownSystem();
           peers[i].coreServer.disconnect();
-          await testUtils.rm_Minus_Rf(pPaths[i]);
+          // await testUtils.rm_Minus_Rf(pPaths[i]);
         }
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       // create deploy task

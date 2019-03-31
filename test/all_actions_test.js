@@ -29,8 +29,8 @@ describe('actions_tests',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       let b58Id = bNodeController.getNode().engNode().getSelfIdB58Str();
@@ -60,8 +60,8 @@ describe('actions_tests',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       let b58Id = bNodeController.getNode().engNode().getSelfIdB58Str();
@@ -91,8 +91,8 @@ describe('actions_tests',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       // run the actual test

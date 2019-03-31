@@ -8,6 +8,7 @@ const _B2Path = path.join(__dirname, './id-d');
 const _B2Port = '10301';
 const _B1Addr = '/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
 const _B2Addr = '/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP';
+const tempdir = require('tempdir');
 /**
  * public
  * */
@@ -174,7 +175,7 @@ const _createNode = async (options)=>{
     if (options.taskDbPath) {
       dbPath = options.taskDbPath;
     } else {
-      dbPath = path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb');
+      dbPath = tempdir.sync()
     }
     nodeConfigObject.extraConfig.tm = {
       dbPath: dbPath,
