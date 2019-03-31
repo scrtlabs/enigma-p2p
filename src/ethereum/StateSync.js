@@ -36,7 +36,6 @@ async function getRemoteMissingStates(api, localTips, logger, callback) {
     remoteSecretContractsAddresses.forEach((secretContractAddress)=>{
       jobs.push((cb)=>{
         api.getContractParams(secretContractAddress)
-        //api.countStateDeltas(secretContractAddress)
             .then(async (contractData)=>{
               let missingAddress = false;
               let firstMissingIndex;
@@ -65,7 +64,7 @@ async function getRemoteMissingStates(api, localTips, logger, callback) {
               return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray});
             })
             .catch((err)=>{
-              logger.error('error received while trying to read data from Ethereum: ', err);;
+              logger.error('error received while trying to read data from Ethereum: ' + err);;
               return cb(err);
             });
       });
@@ -88,7 +87,7 @@ async function getRemoteMissingStates(api, localTips, logger, callback) {
       return callback(null, filtered);
     });
   } catch (err) {
-    logger.error('error received while trying to read data from Ethereum: ', err);
+    logger.error('error received while trying to read data from Ethereum: ' + err);
     return callback(err);
   }
 }

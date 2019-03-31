@@ -10,16 +10,6 @@ const testParameters = require('./test_parameters.json');
 const Logger = require('../../src/common/logger');
 
 describe('Ethereum tests', function() {
-  let web3;
-  let api;
-
-  before(async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all']) {
-      this.skip();
-    }
-  });
-
   function eventSubscribe(api, eventName, filter, callback) {
     api.subscribe(eventName, filter, callback);
   }
@@ -143,31 +133,31 @@ describe('Ethereum tests', function() {
       const builder2 = new EnigmaContractAPIBuilder();
       let res2 = await builder2.useDeployed(config).build();
 
-      const api2 = res2.api;
-      const web3_2 = api2.w3();
+      const api = res2.api;
+      const web3 = api.w3();
 
-      const accounts = await web3_2.eth.getAccounts();
+      const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = web3_2.utils.randomHex(32);// accounts[5];
-      const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
-      const signature = api2.w3().utils.randomHex(32);
-      const initStateDeltaHash = api2.w3().utils.randomHex(32);
+      const secretContractAddress = web3.utils.randomHex(32);// accounts[5];
+      const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+      const signature = web3.utils.randomHex(32);
+      const initStateDeltaHash = web3.utils.randomHex(32);
       const gasUsed = 10;
       const depositValue = 1000;
       const optionalEthereumData = '0x00';
       const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
 
-      await api2.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-      await api2.deposit(workerAddress, depositValue, {from: workerAddress});
-      await api2.login({from: workerAddress});
+      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
+      await api.deposit(workerAddress, depositValue, {from: workerAddress});
+      await api.login({from: workerAddress});
 
-      await api2.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
+      await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
         optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
 
-      let contractParams = await api2.getContractParams(secretContractAddress);
+      let contractParams = await api.getContractParams(secretContractAddress);
       //assert.strictEqual(contractParams.owner, workerAddress);
       assert.strictEqual(contractParams.preCodeHash, codeHash);
       assert.strictEqual(contractParams.codeHash, codeHash);
@@ -175,11 +165,10 @@ describe('Ethereum tests', function() {
       assert.strictEqual(contractParams.deltaHashes[0], initStateDeltaHash);
       assert.strictEqual(contractParams.status, 1);
 
-      const taskId1 = web3_2.utils.randomHex(32);
-      const taskId2 = web3_2.utils.randomHex(32);
-      const taskId3 = web3_2.utils.randomHex(32);
-      const taskId4 = web3_2.utils.randomHex(32);
-
+      const taskId1 = web3.utils.randomHex(32);
+      const taskId2 = web3.utils.randomHex(32);
+      const taskId3 = web3.utils.randomHex(32);
+      const taskId4 = web3.utils.randomHex(32);
 
       //
       // eventSubscribe(api2, 'TaskRecordsCreated', {}, getEventRecievedFunc('TaskRecordsCreated',
@@ -200,7 +189,7 @@ describe('Ethereum tests', function() {
       // await api2.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
 
 
-      const inputsHash = web3_2.utils.randomHex(32);
+      const inputsHash = web3.utils.randomHex(32);
       const gasLimit = 7;
       const gasPrice = 10;
       const firstBlockNumber = 17;
@@ -208,7 +197,7 @@ describe('Ethereum tests', function() {
 
       const mock_taskId ="0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
 
-      eventSubscribe(api2, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
+      eventSubscribe(api, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
         (result)=> {
           assert.strictEqual(result.taskId, mock_taskId);
           assert.strictEqual(result.gasLimit, gasLimit);
@@ -216,9 +205,9 @@ describe('Ethereum tests', function() {
           assert.strictEqual(result.senderAddress, workerAddress);
         }));
 
-      await api2.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, {from: workerAddress});
+      await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, {from: workerAddress});
 
-      const taskParams = await api2.getTaskParams(mock_taskId);
+      const taskParams = await api.getTaskParams(mock_taskId);
       assert.strictEqual(inputsHash, taskParams.inputsHash);
       assert.strictEqual(gasLimit, taskParams.gasLimit);
       assert.strictEqual(gasPrice, taskParams.gasPrice);
@@ -226,15 +215,14 @@ describe('Ethereum tests', function() {
       //assert.strictEqual(8, taskParams.blockNumber);
       assert.strictEqual(1, taskParams.status);
 
-      const stateDeltaHash1 = web3_2.utils.randomHex(32);
-      const stateDeltaHash2 = web3_2.utils.randomHex(32);
-      const stateDeltaHash3 = web3_2.utils.randomHex(32);
-      const outputHash1 = web3_2.utils.randomHex(32);
-      const outputHash2 = web3_2.utils.randomHex(32);
-      const outputHash3 = web3_2.utils.randomHex(32);
+      const stateDeltaHash1 = web3.utils.randomHex(32);
+      const stateDeltaHash2 = web3.utils.randomHex(32);
+      const stateDeltaHash3 = web3.utils.randomHex(32);
+      const outputHash1 = web3.utils.randomHex(32);
+      const outputHash2 = web3.utils.randomHex(32);
+      const outputHash3 = web3.utils.randomHex(32);
 
-
-      eventSubscribe(api2, 'ReceiptVerified', {}, getEventRecievedFunc('ReceiptVerified',
+      eventSubscribe(api, 'ReceiptVerified', {}, getEventRecievedFunc('ReceiptVerified',
           (result)=> {
             assert.strictEqual(result.taskId, taskId1);
             assert.strictEqual(result.stateDeltaHash, stateDeltaHash1);
@@ -244,8 +232,7 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.signature, signature);
           }));
 
-
-      eventSubscribe(api2, 'ReceiptsVerified', {}, getEventRecievedFunc('ReceiptsVerified',
+      eventSubscribe(api, 'ReceiptsVerified', {}, getEventRecievedFunc('ReceiptsVerified',
           (result)=> {
             assert.strictEqual(result.taskIds[0], taskId2);
             assert.strictEqual(result.taskIds[1], taskId3);
@@ -260,7 +247,7 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.signature, signature);
           }));
 
-      eventSubscribe(api2, 'ReceiptFailed', {}, getEventRecievedFunc('ReceiptFailed',
+      eventSubscribe(api, 'ReceiptFailed', {}, getEventRecievedFunc('ReceiptFailed',
           (result)=> {
             assert.strictEqual(result.taskId, taskId4);
             assert.strictEqual(result.signature, signature);
@@ -268,17 +255,17 @@ describe('Ethereum tests', function() {
 
 
       // Login the worker before commmitting receipts
-      await api2.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
+      await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
         optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, {from: workerAddress});
 
 
-      await api2.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3],
+      await api.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3],
         [outputHash2, outputHash3], optionalEthereumData, optionalEthereumContractAddress, [gasUsed, gasUsed], signature, {from: workerAddress});
 
-      await api2.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature, {from: workerAddress});
+      await api.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature, {from: workerAddress});
 
-      api2.unsubscribeAll();
-      await api2.logout({from: workerAddress});
+      api.unsubscribeAll();
+      await api.logout({from: workerAddress});
       await res2.environment.destroy();
       await res1.environment.destroy();
       resolve();
@@ -431,10 +418,13 @@ describe('Ethereum tests', function() {
     if (!tree['all'] || !tree['#4']) {
       this.skip();
     }
-
     const logger = new Logger();
 
     return new Promise(async function(resolve) {
+      const builder = new EnigmaContractAPIBuilder();
+      let res = await builder.createNetwork().deploy().build();
+      const api = res.api;
+      await res.environment.destroy();
 
       StateSync.getRemoteMissingStates(api, [], logger, (err, results)=>{
         assert.notStrictEqual(err, null);
@@ -452,38 +442,37 @@ describe('Ethereum tests', function() {
     return new Promise(async function(resolve) {
       const builder = new EnigmaContractAPIBuilder();
       let res = await builder.createNetwork().deploy().build();
-      const api2 = res.api;
-      const web3_2 = api2.w3();
+      const api = res.api;
+      const web3 = api.w3();
 
-      const services = new EthereumServices(api2);
-      const accounts = await web3_2.eth.getAccounts();
+      const services = new EthereumServices(api);
+      const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
       const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = web3_2.utils.randomHex(32); // accounts[5];
-      const codeHash = web3_2.utils.sha3(JSON.stringify(testParameters.bytecode));
-      const signature = api2.w3().utils.randomHex(32);
-      const initStateDeltaHash = api2.w3().utils.randomHex(32);
+      const secretContractAddress = web3.utils.randomHex(32); // accounts[5];
+      const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
+      const signature = web3.utils.randomHex(32);
+      const initStateDeltaHash = web3.utils.randomHex(32);
       const gasUsed = 10;
-      const outputHash1 = api2.w3().utils.randomHex(32);
-      const outputHash2 = api2.w3().utils.randomHex(32);
-      const outputHash3 = api2.w3().utils.randomHex(32);
+      const outputHash1 = web3.utils.randomHex(32);
+      const outputHash2 = web3.utils.randomHex(32);
+      const outputHash3 = web3.utils.randomHex(32);
       const depositValue = 1000;
       const optionalEthereumData = '0x00';
       const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
 
+      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
+      await api.deposit(workerAddress, depositValue, {from: workerAddress});
+      await api.login({from: workerAddress});
 
-      await api2.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-      await api2.deposit(workerAddress, depositValue, {from: workerAddress});
-      await api2.login({from: workerAddress});
-
-      await api2.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
+      await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
         optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
-      const taskId1 = web3_2.utils.randomHex(32);
+      const taskId1 = web3.utils.randomHex(32);
 
-      const taskId2 = web3_2.utils.randomHex(32);
-      const taskId3 = web3_2.utils.randomHex(32);
+      const taskId2 = web3.utils.randomHex(32);
+      const taskId3 = web3.utils.randomHex(32);
 
       let taskIndex = 0;
 
@@ -512,9 +501,9 @@ describe('Ethereum tests', function() {
       // await api2.createTaskRecord(taskId1, taskFee1, {from: taskSenderAddress1});
       // await api2.createTaskRecords([taskId2, taskId3], [taskFee2, taskFee3], {from: workerAddress});
 
-      const stateDeltaHash1 = web3_2.utils.randomHex(32);
-      const stateDeltaHash2 = web3_2.utils.randomHex(32);
-      const stateDeltaHash3 = web3_2.utils.randomHex(32);
+      const stateDeltaHash1 = web3.utils.randomHex(32);
+      const stateDeltaHash2 = web3.utils.randomHex(32);
+      const stateDeltaHash3 = web3.utils.randomHex(32);
 
       const recieptIndex = 0;
 
@@ -543,13 +532,13 @@ describe('Ethereum tests', function() {
         }
       });
 
-      await api2.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1, optionalEthereumData,
+      await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1, optionalEthereumData,
         optionalEthereumContractAddress, gasUsed, signature, {from: workerAddress});
 
-      await api2.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], [outputHash2, outputHash3],
+      await api.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3], [outputHash2, outputHash3],
         optionalEthereumData, optionalEthereumContractAddress,[gasUsed, gasUsed], signature, {from: workerAddress});
 
-      api2.unsubscribeAll();
+      api.unsubscribeAll();
 
       await res.environment.destroy();
 

@@ -44,7 +44,7 @@ module.exports.TEST_TREE = {
     '#1' : true,
   },
   'sync_basic':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -81,7 +81,7 @@ module.exports.TEST_TREE = {
     '#2' : true,
   },
   'verifier':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -117,7 +117,7 @@ module.exports.TEST_TREE = {
     '#33' : true,
   },
   'ethereum_integration':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,

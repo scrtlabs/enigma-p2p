@@ -284,7 +284,7 @@ class EthereumVerifier {
             let deltaHash;
             let outputHash;
             const deltaKey = task.getDelta().key;
-            let contractParams = await this._contractApi.getContractParams(task.getTaskId());
+            let contractParams = await this._contractApi.getContractParams(contractAddress);
             if (task instanceof DeployResult) {
               outputHash = contractParams.codeHash;
               deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);

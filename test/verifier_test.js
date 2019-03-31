@@ -13,6 +13,7 @@ const errors = require('../src/common/errors');
 const testUtils = require('./ethereum/utils');
 const Web3 = require('web3');
 const defaultsDeep = require('@nodeutils/defaults-deep');
+const Logger = require('../src/common/logger');
 
 describe('Verifier tests', function() {
   let web3 = new Web3();
@@ -102,7 +103,8 @@ describe('Verifier tests', function() {
 
   async function initStuffForTaskSubmission() {
     let taskData = testUtils.createDataForTaskSubmission();
-    const ethereumAPI = new EthereumAPIMock();
+    const logger = new Logger();
+    const ethereumAPI = new EthereumAPIMock(logger);
     await ethereumAPI.init();
 
     return defaultsDeep({apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier()}, taskData);
@@ -111,8 +113,8 @@ describe('Verifier tests', function() {
   async function initStuffForWorkerSelection () {
     let {params, expectedAddress, expectedParams, secretContractAddress, epochSize} = testUtils.createDataForSelectionAlgorithm();
 
-    const ethereumAPI = new EthereumAPIMock();
-
+    const logger = new Logger();
+    const ethereumAPI = new EthereumAPIMock(logger);
     ethereumAPI.api().setEpochSize(epochSize);
     ethereumAPI.api().setWorkerParams(Array.from(params));
     await ethereumAPI.init();
