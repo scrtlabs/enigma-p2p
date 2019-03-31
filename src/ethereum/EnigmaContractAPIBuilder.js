@@ -72,7 +72,7 @@ class EnigmaContractAPIBuilder {
       this.config = defaultsDeep(config, this.config);
     }
     if (this.config.enigmaContractABI === undefined) {
-      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/EnigmaMock.json'));
+      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json'));
       this.config.enigmaContractABI = EnigmaContractJson.abi;
     }
     return this;
@@ -119,7 +119,7 @@ class EnigmaContractAPIBuilder {
 
   /**
    * configuraing and building the api instance
-   * @param {String} enigmaContractAddress - the deployed Enigm contract to connect to
+   * @param {String} enigmaContractAddress - the deployed Enigma contract to connect to
    * @param {String} url - the transport url
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
