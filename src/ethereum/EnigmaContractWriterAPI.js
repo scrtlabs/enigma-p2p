@@ -3,6 +3,7 @@ const defaultsDeep = require('@nodeutils/defaults-deep');
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
+const nodeUtils = require('../common/utils');
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
@@ -314,10 +315,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
       if(typeof ethCall === 'string' && ethCall === "") {
-        ethCall = '0x00';
+        ethCall = '0x';
       }
-      this._enigmaContract.methods.deploySecretContract('0x'+taskId, '0x'+preCodeHash, codeHash, stateDeltaHash,
-         ethCall, '0x'+ethAddr, gasUsed, '0x'+signature)
+      this._enigmaContract.methods.deploySecretContract(nodeUtils.add0x(taskId), nodeUtils.add0x(preCodeHash), nodeUtils.add0x(codeHash), nodeUtils.add0x(stateDeltaHash),
+         nodeUtils.add0x(ethCall), nodeUtils.add0x(ethAddr), gasUsed, nodeUtils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
