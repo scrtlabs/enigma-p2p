@@ -504,7 +504,7 @@ class EthereumVerifier {
   }
 
   async _updateWorkerParamNow() {
-    let workerParamArray = await this._contractApi.getAllWorkerParams();
+    let workerParamArray = await this._contractApi.getWorkersParams();
     this._workerParamArray = this._sortWorkerParams(workerParamArray);
     this._epochSize = await this._contractApi.getEpochSize();
     // Note that if in any case, the array wasn't empty, due to an event received just before this call,

@@ -7,7 +7,6 @@ const EthereumAPI = require(path.join(__dirname, '../../src/ethereum/EthereumAPI
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 const testParameters = require('./test_parameters.json');
 const Logger = require('../../src/common/logger');
-const testUtils = require('../testUtils/utils');
 
 describe('Ethereum tests', function() {
   function eventSubscribe(api, eventName, filter, callback) {
@@ -38,6 +37,7 @@ describe('Ethereum tests', function() {
       const depositValue = 1000;
       const secretContractAddress = api.w3().utils.randomHex(32); // accounts[5];
       const secretContractAddress2 = api.w3().utils.randomHex(32); // accounts[6];
+      const taskId1 = api.w3().utils.randomHex(32); // accounts[6];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = api.w3().utils.randomHex(32);
       const initStateDeltaHash = api.w3().utils.randomHex(32);
@@ -98,7 +98,7 @@ describe('Ethereum tests', function() {
       await api.deploySecretContract(secretContractAddress2, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of secret-accounts after deploying another one
-      const observedCount = await api.countSecretContracts();
+      let observedCount = await api.countSecretContracts();
       assert.strictEqual(observedCount, 2);
 
       const observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
@@ -110,6 +110,12 @@ describe('Ethereum tests', function() {
       const observedAddressesArray = await api.getSecretContractAddresses(0, 2);
       assert.strictEqual(observedAddressesArray[0], secretContractAddress);
       assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
+
+      //await api.deploySecretContract(secretContractAddress3, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+      await api.deploySecretContractFailure(taskId1, gasUsed, signature, {from: workerAddress});
+
+      observedCount = await api.countSecretContracts();
+      assert.strictEqual(observedCount, 2);
 
       await api.logout({from: workerAddress});
       await api.withdraw(workerAddress, depositValue/10, {from: workerAddress});

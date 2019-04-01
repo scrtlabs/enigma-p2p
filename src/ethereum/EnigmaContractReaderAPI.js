@@ -112,16 +112,16 @@ class EnigmaContractReaderAPI {
   /**
      * TODO:: what does it do?
      * */
-  getWorkerGroup(blockNumber, secrectContractAddress) {
-    return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getWorkerParams(blockNumber, secrectContractAddress).call((error, data)=> {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
-    });
-  }
+  // getWorkerGroup(blockNumber, secrectContractAddress) {
+  //   return new Promise((resolve, reject) => {
+  //     this._enigmaContract.methods.getWorkerParams(blockNumber, secrectContractAddress).call((error, data)=> {
+  //       if (error) {
+  //         reject(error);
+  //       }
+  //       resolve(data);
+  //     });
+  //   });
+  // }
   /**
      * * Get the Worker report
      * @param {string} workerAddress
@@ -196,15 +196,6 @@ class EnigmaContractReaderAPI {
         }
         resolve(data);
       });
-    });
-  }
-  /**
-   * * TODO:: lena :: implement this once moving to the updated contract
-   *
-   * */
-  getAllWorkerParams() {
-    return new Promise((resolve, reject) => {
-      resolve([]);
     });
   }
   /**

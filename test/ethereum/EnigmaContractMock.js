@@ -39,7 +39,7 @@ class EnigmaContractMock {
     return this._epochSize;
   }
 
-  getAllWorkerParams() {
+  getWorkersParams() {
     return this._workersParams;
   }
 
