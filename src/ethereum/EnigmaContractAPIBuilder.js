@@ -6,13 +6,16 @@ const {exec, spawn} = require('child_process');
 const Web3 = require('web3');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
+TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
+const truffleConfig = require(path.join(TRUFFLE_DIR, 'truffle'));
+
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 const defaultConfig = {
   url: 'ws://127.0.0.1:9545',
-  truffleDirectory: path.join(__dirname, '../../test/ethereum/scripts'),
+  truffleDirectory: TRUFFLE_DIR,
 };
 
 class EnigmaContractAPIBuilder {
@@ -80,7 +83,7 @@ class EnigmaContractAPIBuilder {
       this.config = defaultsDeep(config, this.config);
     }
     if (this.config.enigmaContractABI === undefined) {
-      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/EnigmaMock.json'));
+      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json'));
       this.config.enigmaContractABI = EnigmaContractJson.abi;
     }
     return this;
@@ -132,7 +135,7 @@ class EnigmaContractAPIBuilder {
 
   /**
    * configuraing and building the api instance
-   * @param {String} enigmaContractAddress - the deployed Enigm contract to connect to
+   * @param {String} enigmaContractAddress - the deployed Enigma contract to connect to
    * @param {String} url - the transport url
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
@@ -192,12 +195,14 @@ class EnigmaContractAPIBuilder {
     await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
-    const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaMock.json'));
-    const EnigmaTokenContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaToken.json'));
+    const networkId = truffleConfig.networks.development.network_id;
+    const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
+    // const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaMock.json'));
+    // const EnigmaTokenContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaToken.json'));
 
     this._initWeb3();
 
-    const accounts = await this.web3.eth.getAccounts();
+/*    const accounts = await this.web3.eth.getAccounts();
 
     const sender1 = accounts[0];
     const sender2 = accounts[1];
@@ -221,9 +226,9 @@ class EnigmaContractAPIBuilder {
       from: sender2,
       gas: 6500000, // 4500000,
       // gasPrice: '100000000000'
-    });
+    });*/
 
-    this.enigmaContractAddress = enigmaContractInstance.options.address;
+    this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;
     this.logger().info('Deployed the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
   }

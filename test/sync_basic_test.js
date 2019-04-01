@@ -43,9 +43,10 @@ async function initEthereumStuff() {
   const workerAddress = accounts[1];
   const workerReport = '0x123456';
   const signature = web3.utils.randomHex(32);
+  const depositValue = 1000;
 
   await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-
+  await enigmaContractApi.deposit(workerAddress, depositValue, {from: workerAddress});
   await enigmaContractApi.login({from: workerAddress});
 
   return {enigmaContractAddress: enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
@@ -115,16 +116,18 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
     const firstDeltaHash = web3.utils.keccak256(secretContractData[0]);
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
-    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+    const optionalEthereumData = '0x00';
+    const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
+    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
+      optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
     let i = 1;
 
     while (i in secretContractData) {
       const taskId = web3.utils.randomHex(32);
-      const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
       const stateDeltaHash = web3.utils.keccak256(delta);
-      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, gasUsed, ethCall,
+      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
           workerEnclaveSigningAddress, {from: workerAddress});
       i++;
     }
