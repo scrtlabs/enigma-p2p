@@ -20,7 +20,6 @@
     "async": "^2.6.1",
     "commander": "^2.18.0",
     "config": "^2.0.1",
-    "dotenv": "^7.0.0",
     "expect": "^24.1.0",
     "fs": "0.0.1-security",
     "jayson": "^2.1.0",

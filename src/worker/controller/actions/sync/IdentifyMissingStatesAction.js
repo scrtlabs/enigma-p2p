@@ -44,7 +44,7 @@ class IdentifyMissingStatesAction {
             return finalCallback(error);
           }
           return IdentifyMissingStatesAction.
-              _buildMissingStatesResult(this._controller.ethereum().api(), localTips, this._controller.logger, (err, res)=> {
+              _buildMissingStatesResult(this._controller.ethereum().api(), localTips, (err, res)=> {
                 if (err) {
                   return finalCallback(err);
                 }
@@ -55,8 +55,8 @@ class IdentifyMissingStatesAction {
     }
   }
 
-  static _buildMissingStatesResult(enigmaContractApi, localTips, logger, cb) {
-    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, logger, (err, missingList) => {
+  static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
+    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
       const res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
 
       if (err) {

@@ -333,9 +333,7 @@ describe('Ethereum tests', function() {
       const outputHash2 = web3.utils.randomHex(32);
       const outputHash3 = web3.utils.randomHex(32);
       const outputHash4 = web3.utils.randomHex(32);
-
-      const logger = new Logger();
-
+      
       await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash1, outputHash1, optionalEthereumData, optionalEthereumContractAddress,
         gasUsed, signature, {from: workerAddress});
 
@@ -346,7 +344,7 @@ describe('Ethereum tests', function() {
       await api.commitReceipt(secretContractAddress2, taskId4, stateDeltaHash4, outputHash4, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
         signature, {from: workerAddress});
 
-      StateSync.getRemoteMissingStates(api, [], logger, (err, results)=>{
+      StateSync.getRemoteMissingStates(api, [], (err, results)=>{
         // DONE results == [{address, deltas : [deltaHash, index]}]
         assert.strictEqual(results.length, 2);
 
@@ -370,7 +368,7 @@ describe('Ethereum tests', function() {
         assert.strictEqual(results[1].deltas.length, 2);
         assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-        StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}], logger, (err, results)=>{
+        StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 0}], (err, results)=>{
           // DONE results == [{address, deltas : [deltaHash, index]}]
           assert.strictEqual(results.length, 2);
 
@@ -392,7 +390,7 @@ describe('Ethereum tests', function() {
           assert.strictEqual(results[1].deltas.length, 2);
           assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-          StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 1}, {address: secretContractAddress2, key: 1}], logger, (err, results)=>{
+          StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 1}, {address: secretContractAddress2, key: 1}], (err, results)=>{
             // DONE results == [{address, deltas : [deltaHash, index]}]
             assert.strictEqual(results.length, 1);
 
@@ -404,7 +402,7 @@ describe('Ethereum tests', function() {
             assert.strictEqual(results[0].deltas.length, 2);
             assert.strictEqual('bytecodeHash' in results[0], false);
 
-            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 3}, {address: secretContractAddress2, key: 1}], logger,
+            StateSync.getRemoteMissingStates(api, [{address: secretContractAddress1, key: 3}, {address: secretContractAddress2, key: 1}],
               async (err, results)=>{
               // DONE results == [{address, deltas : [deltaHash, index]}]
               assert.strictEqual(results.length, 0);
@@ -432,7 +430,7 @@ describe('Ethereum tests', function() {
       const api = res.api;
       await res.environment.destroy();
 
-      StateSync.getRemoteMissingStates(api, [], logger, (err, results)=>{
+      StateSync.getRemoteMissingStates(api, [], (err, results)=>{
         assert.notStrictEqual(err, null);
         resolve();
       });

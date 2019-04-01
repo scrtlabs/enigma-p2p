@@ -12,7 +12,7 @@ const DbUtils = require('../common/DbUtils');
  * TODO: as async function returns a Promise, apply both options: return the data using the callback
  * and return the data using the promise
  * */
-async function getRemoteMissingStates(api, localTips, logger, callback) {
+async function getRemoteMissingStates(api, localTips, callback) {
   // create a hashmap from the localTips array
   const tipsHashMaps = localTips.reduce((obj, item) => {
     let address = item.address;
@@ -64,7 +64,6 @@ async function getRemoteMissingStates(api, localTips, logger, callback) {
               return cb(null, {address: secretContractAddress, deltas: parsedDeltasArray});
             })
             .catch((err)=>{
-              logger.error('error received while trying to read data from Ethereum: ' + err);;
               return cb(err);
             });
       });
@@ -87,7 +86,6 @@ async function getRemoteMissingStates(api, localTips, logger, callback) {
       return callback(null, filtered);
     });
   } catch (err) {
-    logger.error('error received while trying to read data from Ethereum: ' + err);
     return callback(err);
   }
 }
