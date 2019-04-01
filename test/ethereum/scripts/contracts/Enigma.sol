@@ -532,7 +532,4 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         return WorkersImpl.verifyReportImpl(_data, _signature);
     }
 
-    function getTaskRecord(bytes32 _taskId) public view returns (TaskRecord memory) {
-        return tasks[_taskId];
-    }
 }
