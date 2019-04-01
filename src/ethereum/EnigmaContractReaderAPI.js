@@ -154,11 +154,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskParams(taskId) {
     return new Promise((resolve, reject) => {
-<<<<<<< HEAD
       this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call((error, data)=> {
-=======
-      this._enigmaContract.methods.getTaskRecord(taskId).call((error, data)=> {
->>>>>>> develop
         if (error) {
           reject(error);
         }
