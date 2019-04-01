@@ -15,8 +15,10 @@ const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
 
 class CoreRuntime{
   constructor(config, logger){
-    if(config.uri)
+    if(config.uri){
       this._ipcClient = new IpcClient(config.uri, logger);
+      this._config = config;
+    }
     else
       throw new Error("Must pass uri to CoreRuntime");
 
@@ -88,6 +90,9 @@ class CoreRuntime{
     if(action) {
       action.execute(params);
     }
+  }
+  getUri(){
+    return this._config.uri;
   }
 }
 

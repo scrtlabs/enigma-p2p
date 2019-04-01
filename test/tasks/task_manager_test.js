@@ -8,6 +8,7 @@ const Result = require('../../src/worker/tasks/Result');
 const assert = require('assert');
 const constants = require('../../src/common/constants');
 const TaskManager = require('../../src/worker/tasks/TaskManager');
+const tempdir = require('tempdir');
 const TEST_TREE = require('../test_tree').TEST_TREE;
 const testUtils = require('../testUtils/utils');
 let tree = TEST_TREE.task_manager;
@@ -50,9 +51,10 @@ const user2 = {
 };
 
 function destroyDb(dbPath,resolve){
-  testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
-    resolve();
-  });
+  resolve()
+  // testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
+  //   resolve();
+  // });
 }
 
 function generateComputeTasks(num){
@@ -141,15 +143,16 @@ describe('TaskManager isolated tests', ()=>{
       'cli': false,
       'file' : false,
     });
-    dbPath = path.join(__dirname, '/tasks_temp_db');
+    dbPath = tempdir.sync()
   });
   after((done)=>{
     if(!tree['all']){
       return done();
     }
-    testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
-      done();
-    });
+    done()
+    // testUtils.deleteFolderFromOSRecursive(dbPath,()=>{
+    //   done();
+    // });
   });
 
 
@@ -159,6 +162,7 @@ describe('TaskManager isolated tests', ()=>{
     }
     return new Promise(resolve => {
       // initialize the taskManager
+      dbPath = tempdir.sync()
       let taskManager = new TaskManager(dbPath, logger);
       taskManager.on('notify',async (obj)=>{
         assert.strictEqual(constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, obj.notification, "wrong notification");
@@ -180,6 +184,7 @@ describe('TaskManager isolated tests', ()=>{
       this.skip();
     }
     return new Promise(async resolve => {
+      dbPath = tempdir.sync()
       // init task manager
       let taskManager = new TaskManager(dbPath, logger);
       // add tasks
@@ -208,6 +213,7 @@ describe('TaskManager isolated tests', ()=>{
       this.skip();
     }
     return new Promise(async resolve =>{
+      dbPath = tempdir.sync()
       let tasksNum = 30;
       let taskManager = new TaskManager(dbPath,logger);
       let tasks = generateDeployTasks(tasksNum);
@@ -245,6 +251,7 @@ describe('TaskManager isolated tests', ()=>{
       this.skip();
     }
     return new Promise(async resolve=>{
+      dbPath = tempdir.sync()
       let taskManager = new TaskManager(dbPath,logger);
       // create task
       let t1 = DeployTask.buildTask(user1);
@@ -278,6 +285,7 @@ describe('TaskManager isolated tests', ()=>{
     }
     this.timeout(10000);
     return new Promise(async resolve => {
+      dbPath = tempdir.sync()
       let unFinishedDeployNum = 250, unFinishedComputeNum = 250, finishedSuccess = 400, finishedFail = 100;
       let allTasksLen = unFinishedDeployNum + unFinishedComputeNum + finishedSuccess + finishedFail;
       // generate 250 unfinished deploy tasks
@@ -374,6 +382,7 @@ describe('TaskManager isolated tests', ()=>{
       this.skip();
     }
     return new Promise(async resolve => {
+      dbPath = tempdir.sync()
       // initialize the taskManager
       let taskManager = new TaskManager(dbPath, logger);
       // add task
