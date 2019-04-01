@@ -196,6 +196,7 @@ it('should remove0x where present', function() {
   assert.strictEqual(str, nodeUtils.remove0x(str));
   const str0x = '0x' + str;
   assert.strictEqual(str, nodeUtils.remove0x(str0x));
+  assert.strictEqual(null, nodeUtils.remove0x(123));
 });
 
 it('should add0x if not present', function() {
@@ -203,4 +204,5 @@ it('should add0x if not present', function() {
   assert.strictEqual('0x' + str, nodeUtils.add0x(str));
   const str0x = '0x' + str;
   assert.strictEqual(str0x, nodeUtils.add0x(str0x));
+  assert.strictEqual(null, nodeUtils.add0x(123));
 });
