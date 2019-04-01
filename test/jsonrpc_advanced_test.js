@@ -31,8 +31,8 @@ describe('jsonrpc_advanced',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       const client = jayson.client.http('http://localhost:3346');
@@ -76,8 +76,8 @@ describe('jsonrpc_advanced',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        await testUtils.rm_Minus_Rf(pPath);
-        await testUtils.rm_Minus_Rf(bPath);
+        // await testUtils.rm_Minus_Rf(pPath);
+        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       const client = jayson.client.http('http://localhost:3346');

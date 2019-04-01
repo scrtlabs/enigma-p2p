@@ -3,11 +3,11 @@ const assert = require('assert');
 const TEST_TREE = require(path.join(__dirname, '../test_tree')).TEST_TREE;
 const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));
 const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices'));
-
+const EthereumAPI = require(path.join(__dirname, '../../src/ethereum/EthereumAPI'));
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
-
 const testParameters = require('./test_parameters.json');
 const Logger = require('../../src/common/logger');
+const testUtils = require('../testUtils/utils');
 
 describe('Ethereum tests', function() {
   function eventSubscribe(api, eventName, filter, callback) {
@@ -45,28 +45,28 @@ describe('Ethereum tests', function() {
       const zeroAddress = '0x0000000000000000000000000000000000000000';
 
       eventSubscribe(api, 'Registered', {}, getEventRecievedFunc('Registered',
-          (result)=> {
-            assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-            assert.strictEqual(result.workerAddress, workerAddress);
-          }));
+        (result)=> {
+          assert.strictEqual(result.signer, workerEnclaveSigningAddress);
+          assert.strictEqual(result.workerAddress, workerAddress);
+        }));
 
       eventSubscribe(api, 'DepositSuccessful', {}, getEventRecievedFunc('DepositSuccessful',
-          (result)=> {
-            assert.strictEqual(result.from, workerAddress);
-            assert.strictEqual(result.value, depositValue);
-          }));
+        (result)=> {
+          assert.strictEqual(result.from, workerAddress);
+          assert.strictEqual(result.value, depositValue);
+        }));
 
       eventSubscribe(api, 'SecretContractDeployed', {}, getEventRecievedFunc('SecretContractDeployed',
-          (result)=> {
-            assert.strictEqual(result.secretContractAddress, secretContractAddress);
-            assert.strictEqual(result.codeHash, codeHash);
-          }));
+        (result)=> {
+          assert.strictEqual(result.secretContractAddress, secretContractAddress);
+          assert.strictEqual(result.codeHash, codeHash);
+        }));
 
       eventSubscribe(api, 'WithdrawSuccessful', {}, getEventRecievedFunc('WithdrawSuccessful',
-          (result)=> {
-            assert.strictEqual(result.to, workerAddress);
-            assert.strictEqual(result.value, depositValue);
-          }));
+        (result)=> {
+          assert.strictEqual(result.to, workerAddress);
+          assert.strictEqual(result.value, depositValue);
+        }));
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
       await api.deposit(workerAddress, depositValue, {from: workerAddress});
@@ -542,6 +542,38 @@ describe('Ethereum tests', function() {
 
       await res.environment.destroy();
 
+      resolve();
+    });
+  });
+
+  it('Test health check ', async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree['all'] || !tree['#6']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      const builder = new EnigmaContractAPIBuilder();
+      let res = await builder.createNetwork().deploy().build();
+
+      let ethereumApi = new EthereumAPI(new Logger({'cli': true}));
+      await ethereumApi.init(builder.enigmaContractAddress);
+
+      // sunny day
+      let data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, true);
+      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
+      assert.strictEqual(data.enigmaContractAddress, builder.enigmaContractAddress);
+
+      // rainy day
+      await ethereumApi.destroy();
+
+      data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, false);
+      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
+      assert.strictEqual(data.enigmaContractAddress, builder.enigmaContractAddress);
+
+      await res.environment.destroy();
       resolve();
     });
   });

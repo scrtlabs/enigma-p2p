@@ -3,10 +3,10 @@ const Logger = require('../common/logger');
 
 class EnigmaContractReaderAPI {
   /**
-     * {string} enigmaContractAddress
-     * {Json} enigmaContractABI
-     * {Web3} web3
-     * */
+   * {string} enigmaContractAddress
+   * {Json} enigmaContractABI
+   * {Web3} web3
+   * */
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
@@ -51,9 +51,9 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * count the number of deployed secret contracts
-     * @return {Promise} number
-     * */
+   * count the number of deployed secret contracts
+   * @return {Promise} number
+   * */
   countSecretContracts() {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.countSecretContracts().call((error, data)=> {
@@ -65,11 +65,11 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * return a list of addresses given a range
-     * @param {Integer} from , including
-     * @param {Integer} to , up to not including
-     * @return {Promise} Array<string>
-     * */
+   * return a list of addresses given a range
+   * @param {Integer} from , including
+   * @param {Integer} to , up to not including
+   * @return {Promise} Array<string>
+   * */
   getSecretContractAddresses(from, to) {
     return new Promise((resolve, reject) => {
       this._enigmaContract.methods.getSecretContractAddresses(from, to).call((error, data)=> {
@@ -176,7 +176,7 @@ class EnigmaContractReaderAPI {
    * */
   getEthereumBlockNumber() {
     return new Promise((resolve, reject) => {
-      this._web3.eth((error, data)=> {
+      this._web3.eth.getBlockNumber((error, data)=> {
         if (error) {
           reject(error);
         }
@@ -208,36 +208,36 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
-     * Listen to events emmited by the Enigma.sol contract and trigger a callback
-     * @param {string} eventName
-     * @param {Json} filter, in case a filter is required on top of the event itself.
-     *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
-     * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
-     * */
+   * Listen to events emmited by the Enigma.sol contract and trigger a callback
+   * @param {string} eventName
+   * @param {Json} filter, in case a filter is required on top of the event itself.
+   *               For example, filter all events in which myNumber is 12 or 13: {myNumber: [12,13]}
+   * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
+   * */
   subscribe(eventName, filter, callback) {
     const eventWatcher = this._enigmaContract.events[eventName]({filter: filter});
 
     eventWatcher
-        .on('data', (event)=>{
-          const result = this._eventParsers[eventName](event, this._web3);
-          callback(null, result);
-        })
-        .on('changed', (event)=> {
-          this.logger().info('received a change of the event ' + event + '. Deleting its listener');
-          if (eventName in this._activeEventSubscriptions) {
-            delete(this._activeEventSubscriptions[eventName]);
-          }
-        })
-        .on('error', (err)=>{
-          callback(err);
-        });
+      .on('data', (event)=>{
+        const result = this._eventParsers[eventName](event, this._web3);
+        callback(null, result);
+      })
+      .on('changed', (event)=> {
+        this.logger().info('received a change of the event ' + event + '. Deleting its listener');
+        if (eventName in this._activeEventSubscriptions) {
+          delete(this._activeEventSubscriptions[eventName]);
+        }
+      })
+      .on('error', (err)=>{
+        callback(err);
+      });
 
     this._activeEventSubscriptions[eventName] = eventWatcher;
   }
   /**
-     * Unsubscribe from all the subscribed events
-     * @return {Boolean} success
-     * */
+   * Unsubscribe from all the subscribed events
+   * @return {Boolean} success
+   * */
   unsubscribeAll() {
     for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
       eventWatcher.unsubscribe();

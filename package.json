@@ -3,6 +3,9 @@
   "version": "0.1.0",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
+  "nyc": {
+    "temp-dir": "/tmp/enigma-p2p"
+  },
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 500000",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
@@ -61,6 +64,13 @@
     "eslint": "^5.7.0",
     "eslint-config-google": "^0.11.0",
     "eslint-plugin-babel": "^5.2.1",
+    "tempdir": "^2.0.0",
     "ws": "^6.1.3"
-  }
+  },
+  "contributors": [
+    "Isan Rivkin <isanrivkin@gmail.com>",
+    "lena kleyner <lenak25@gmail.com>",
+    "Elichai Turkel <elichai@enigma.co>",
+    "Avishai Weingarten <avishw89@gmail.com>"
+  ]
 }
