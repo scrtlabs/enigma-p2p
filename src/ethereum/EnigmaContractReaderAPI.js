@@ -263,8 +263,6 @@ class EnigmaContractReaderAPI {
        *    {Array<Integer>} balances, {Integer} nonce
        * */
       'WorkersParameterized': (event) => {
-        console.log('################################## WorkersParameterized #############################');
-        console.log(event);
         return {
           seed: event.returnValues.seed,
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),

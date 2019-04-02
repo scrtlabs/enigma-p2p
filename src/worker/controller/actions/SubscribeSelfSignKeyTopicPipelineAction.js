@@ -6,8 +6,6 @@
  * */
 const constants = require('../../../common/constants');
 const msgs = constants.CORE_REQUESTS;
-const waterfall = require('async/waterfall');
-var fs = require('fs');
 
 
 class SubscribeSelfSignKeyTopicPipelineAction {
@@ -61,7 +59,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
               },
             });
           },
-      });
+        });
   }
 
   _executeTask(msg) {
