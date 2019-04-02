@@ -7,8 +7,6 @@ class PreParseAction{
     this._coreRuntime = coreRuntime;
   }
   execute(envelop){
-    console.log('------ PREPARSEACTION -----------');
-    console.log(envelop);
     let request = envelop.content();
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
       envelop : envelop,

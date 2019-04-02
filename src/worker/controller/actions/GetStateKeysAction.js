@@ -35,6 +35,7 @@ class GetStateKeysAction {
         this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return onResponse(err, null);
       }
+
       const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {
@@ -54,7 +55,6 @@ class GetStateKeysAction {
           this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);
           return onResponse(err, null);
         }
-        console.log(response);
         return onResponse(null, null);
       });
     };
