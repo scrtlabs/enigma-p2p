@@ -2,7 +2,7 @@ const {exec, spawn} = require('child_process');
 const Web3 = require('web3');
 
 const testUtils = require('../../testUtils/utils');
-
+const path = require('path');
 
 let subprocess; // Global `trufffle develop` "child process" object
 
@@ -14,7 +14,7 @@ function buildEnv(truffleDirectory) {
       if (err) {
         reject('env_initializer.buildEnv ' + err);
       }
-      // console.log(stdout);
+      //console.log(stdout);
       resolve(stderr, stdout);
     });
   });
@@ -27,6 +27,7 @@ function resetEnv(truffleDirectory) {
       if (err) {
         reject('env_initalizer.resetEnv ' + err);
       }
+      //console.log(stdout);
       resolve(stderr, stdout);
     });
   });
@@ -37,8 +38,11 @@ async function init(truffleDirectory) {
   await buildEnv(truffleDirectory);
   await resetEnv(truffleDirectory);
 
-  const EnigmaContractJson = require('./build/contracts/EnigmaMock.json');
-  const EnigmaTokenContractJson = require('./build/contracts/EnigmaToken.json');
+  //await testUtils.sleep(3000);
+
+  const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
+  const EnigmaContractJson = require('./build/contracts/Enigma.json');//require('./build/contracts/EnigmaMock.json');
+  //const EnigmaTokenContractJson = require('./build/contracts/EnigmaToken.json');
 
   const websocketProvider = 'ws://127.0.0.1:9545';
   const provider = new Web3.providers.WebsocketProvider(websocketProvider);
@@ -49,36 +53,38 @@ async function init(truffleDirectory) {
 
   const web3 = new Web3(provider);
 
-  const accounts = await web3.eth.getAccounts();
+  // const accounts = await web3.eth.getAccounts();
+  //
+  // const sender1 = accounts[0];
+  // const sender2 = accounts[1];
+  // const principal = accounts[2];// '0x627306090abab3a6e1400e9345bc60c78a8bef57';
+  //
+  // const enigmaTokenContract = new web3.eth.Contract(EnigmaTokenContractJson.abi);
+  //
+  // const enigmaTokenContractInstance = await enigmaTokenContract.deploy({data: EnigmaTokenContractJson.bytecode, arguments: []})
+  //     .send({
+  //       from: sender1,
+  //       gas: 1500000,
+  //       // gasPrice: '100000000000'
+  //     });
+  //
+  // // console.log('using account', principal, 'as principal signer');
+  //
+  // const enigmaContract = new web3.eth.Contract(EnigmaContractJson.abi);
+  // const enigmaContractInstance = await enigmaContract.deploy({
+  //   data: EnigmaContractJson.bytecode,
+  //   arguments: [enigmaTokenContractInstance.options.address, principal],
+  // }).send({
+  //   from: sender2,
+  //   gas: 6500000, // 4500000,
+  //   // gasPrice: '100000000000'
+  // });
+  //
+  // await testUtils.sleep(1000);
 
-  const sender1 = accounts[0];
-  const sender2 = accounts[1];
-  const principal = accounts[2];// '0x627306090abab3a6e1400e9345bc60c78a8bef57';
+  const networkId = truffleConfig.networks.development.network_id;
 
-  const enigmaTokenContract = new web3.eth.Contract(EnigmaTokenContractJson.abi);
-
-  const enigmaTokenContractInstance = await enigmaTokenContract.deploy({data: EnigmaTokenContractJson.bytecode, arguments: []})
-      .send({
-        from: sender1,
-        gas: 1500000,
-        // gasPrice: '100000000000'
-      });
-
-  // console.log('using account', principal, 'as principal signer');
-
-  const enigmaContract = new web3.eth.Contract(EnigmaContractJson.abi);
-  const enigmaContractInstance = await enigmaContract.deploy({
-    data: EnigmaContractJson.bytecode,
-    arguments: [enigmaTokenContractInstance.options.address, principal],
-  }).send({
-    from: sender2,
-    gas: 6500000, // 4500000,
-    // gasPrice: '100000000000'
-  });
-
-  await testUtils.sleep(1000);
-
-  return {contractAddress: enigmaContractInstance.options.address, contractABI: EnigmaContractJson.abi, web3: web3};
+  return {contractAddress: EnigmaContractJson.networks[networkId].address, contractABI: EnigmaContractJson.abi, web3: web3};
 }
 
 

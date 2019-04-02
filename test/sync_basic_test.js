@@ -43,9 +43,10 @@ async function initEthereumStuff() {
   const workerAddress = accounts[1];
   const workerReport = '0x123456';
   const signature = web3.utils.randomHex(32);
+  const depositValue = 1000;
 
   await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-
+  await enigmaContractApi.deposit(workerAddress, depositValue, {from: workerAddress});
   await enigmaContractApi.login({from: workerAddress});
 
   return {enigmaContractAddress: enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
@@ -115,16 +116,18 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
     const firstDeltaHash = web3.utils.keccak256(secretContractData[0]);
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
-    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+    const optionalEthereumData = '0x00';
+    const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
+    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
+      optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
     let i = 1;
 
     while (i in secretContractData) {
       const taskId = web3.utils.randomHex(32);
-      const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
       const stateDeltaHash = web3.utils.keccak256(delta);
-      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, gasUsed, ethCall,
+      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
           workerEnclaveSigningAddress, {from: workerAddress});
       i++;
     }
@@ -337,8 +340,9 @@ function syncTest(scenario) {
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
 
-    // start the dns mock server (core)
+    // define as provider to start with provider_db
     dnsMockCore.setProvider(true);
+    // start the dns mock server (core)
     dnsMockCore.runServer(dnsMockUri);
 
     // start the peer mock server (core)
@@ -368,6 +372,7 @@ function syncTest(scenario) {
         .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
 
+    // write all states to ethereum
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([
@@ -589,7 +594,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
   });
 });
 
-it('Perform a full sync scenario - from scratch', async function() {
+it('#2 Perform a full sync scenario - from scratch', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#2']) {
     this.skip();
@@ -598,7 +603,7 @@ it('Perform a full sync scenario - from scratch', async function() {
   return syncTest(SYNC_SCENARIOS.EMPTY_DB);
 });
 
-it('Perform a full sync scenario - from mid-with-some-addresses', async function() {
+it('#3 Perform a full sync scenario - from mid-with-some-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -606,7 +611,7 @@ it('Perform a full sync scenario - from mid-with-some-addresses', async function
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES);
 });
 
-it('Perform a full sync scenario - from mid-with-all-addresses', async function() {
+it('#4 Perform a full sync scenario - from mid-with-all-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#4']) {
     this.skip();
@@ -614,7 +619,7 @@ it('Perform a full sync scenario - from mid-with-all-addresses', async function(
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
 });
 
-it('Test verifier', async function() {
+it('#5 Test verifier', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();

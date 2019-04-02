@@ -1,6 +1,6 @@
-module.exports.Builder = require('../src/main_controller/EnvironmentBuilder');
-module.exports.cryptography  = require('../src/common/cryptography');
+module.exports.Builder = require('./main_controller/EnvironmentBuilder');
+module.exports.cryptography  = require('./common/cryptography');
 module.exports.Utils = {
-  nodeUtils : require('../src/common/utils'),
-  dbUtils : require('../common/DbUtils')
+  nodeUtils : require('./common/utils'),
+  dbUtils : require('./common/DbUtils')
 };

@@ -98,12 +98,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {string} preCodeHash
      * @param {string} codeHash
      * @param {string} initStateDeltaHash
+     * @param {string} optionalEthereumData
+     * @param {string} optionalEthereumContractAddress
      * @param {Integer} gasUsed
      * @param {string} signature //TODO:: since it expects bytes maybe here it will be bytes as well (Json-san)
      * @param {JSON} txParams
      * @return {Promise} receipt //TODO:: we want to turn all the Json's into real classes.
      * */
-  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, gasUsed, signature, txParams) {
+  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -115,7 +117,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, gasUsed, signature).send(transactionOptions, (error, receipt)=> {
+      this._enigmaContract.methods.deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash,
+        optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature).send(transactionOptions, (error, receipt)=> {
         if (error) {
           reject(error);
         }
@@ -174,7 +177,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   /**
      * Irrelevant for workers -> users create deployment tasks with it
      * */
-  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce, txParams) {
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -186,7 +189,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, secretContractAddress, nonce)
+      this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -247,13 +250,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {string} taskId
      * @param {string} stateDeltaHash
      * @param {string} outputHash
+     * @param {string} optionalEthereumData
+     * @param {string} optionalEthereumContractAddress
      * @param {Integer} gasUsed
-     * @param {string} ethCall
      * @param {string} signature
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams) {
+  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -265,12 +269,13 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      if(typeof ethCall === 'string' && ethCall === "") {
-        ethCall = '0x00';
+      if(typeof optionalEthereumData === 'string' && optionalEthereumData === "") {
+        ethCall = '0x';
       }
-      console.log('Secret Contract Address: '+'0x'+secretContractAddress);
+      console.log('Secret Contract Address: '+secretContractAddress);
       console.log(secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, signature, txParams);
-      this._enigmaContract.methods.commitReceipt('0x'+secretContractAddress, taskId, stateDeltaHash, outputHash, ethCall, ethAddr, gasUsed, '0x'+signature)
+      this._enigmaContract.methods.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData,
+        optionalEthereumContractAddress, gasUsed, signature)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -280,7 +285,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   /** same as above but for a batch */
-  commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHash, gasUsed, ethCall, signature, txParams) {
+  commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
+                 optionalEthereumContractAddress, gasUsed, signature, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -292,7 +298,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHash, gasUsed, ethCall, signature)
+      this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
+        optionalEthereumContractAddress, gasUsed, signature)
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -350,6 +357,35 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
       this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, signature)
+        .send(transactionOptions, (error, receipt)=> {
+          if (error) {
+            reject(error);
+          }
+          resolve(receipt);
+        });
+    });
+  }
+  /**
+   * Worker commits the failed deploy task result on-chain
+   * @param {string} taskId == secretContractAddress
+   * @param {Integer} gasUsed
+   * @param {string} signature
+   * @param {JSON} txParams
+   * @return {Promise} receipt
+   * */
+  deploySecretContractFailure(taskId, gasUsed, signature, txParams) {
+    return new Promise((resolve, reject) => {
+      const defaultOptions = config.default;
+      let transactionOptions = defaultOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, defaultOptions);
+      }
+      this._enigmaContract.methods.deploySecretContractFailure(taskId, gasUsed, signature)
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);

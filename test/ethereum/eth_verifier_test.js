@@ -97,7 +97,7 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -122,7 +122,7 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -147,7 +147,7 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -174,7 +174,7 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -201,7 +201,7 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -233,7 +233,7 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -265,7 +265,7 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -299,7 +299,7 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        await testUtils.rm_Minus_Rf(dbPath);
+        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 

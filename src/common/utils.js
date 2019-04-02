@@ -281,10 +281,14 @@ module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)
  * @return {string}
  */
 module.exports.remove0x = function(hexString) {
-  if (hexString.substring(0, 2) == '0x') {
-    return hexString.substring(2);
+  if (module.exports.isString(hexString)) {
+    if (hexString.substring(0, 2) == '0x') {
+      return hexString.substring(2);
+    } else {
+      return hexString;
+    }
   } else {
-    return hexString;
+    return null;
   }
 }
 
@@ -295,10 +299,14 @@ module.exports.remove0x = function(hexString) {
  * @return {string}
  */
 module.exports.add0x = function(hexString) {
-  if (hexString.substring(0, 2) == '0x') {
-    return hexString;
+  if (module.exports.isString(hexString)) {
+    if (hexString.substring(0, 2) == '0x') {
+      return hexString;
+    } else {
+      return '0x' + hexString;
+    }
   } else {
-    return '0x' + hexString;
+    return null;
   }
 }
 

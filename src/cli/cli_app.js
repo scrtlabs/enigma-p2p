@@ -1,13 +1,16 @@
+const main = require('../index');
 const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
-const nodeUtils = require('../common/utils');
 const EncoderUtil = require('../common/EncoderUtil');
-const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
+const nodeUtils = main.Utils.nodeUtils;
+const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
-const cryptography = require('../common/cryptography');
-const DbUtils = require('../common/DbUtils');
+const cryptography = main.cryptography
+const DbUtils = main.Utils.dbUtils;
+const tempdir = require('tempdir');
+
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
@@ -302,48 +305,48 @@ class CLI {
   }
   _initInitialFlags() {
     program
-        .version('0.1.0')
-        .usage('[options] <file ...>')
-        .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
-          Parsers.list(listVal, this._globalWrapper);
-        })
-        .option('-n, --nickname [value]', 'nickname', (nick)=>{
-          Parsers.nickname(nick, this._globalWrapper);
-        })
-        .option('-p, --port [value]', 'listening port', (strPort)=>{
-          Parsers.port(strPort, this._globalWrapper);
-        })
-        .option('-i, --path [value]', 'id path', (theIdPath)=>{
-          Parsers.idPath(theIdPath, this._globalWrapper);
-        })
-        .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
-          this._coreAddressPort = addrPortStr;
-        })
-        .option('--random-db', 'random tasks db', (randomPath)=>{
-          if (randomPath) {
-            this._randomTasksDbPath = randomPath;
-          } else {
-            this._randomTasksDbPath = true;
-          }
-        })
-        .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
-          this._rpcPort = portStr;
-        })
-        .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
-          this._initEthereum = true;
-          this._ethereumWebsocketProvider = provider;
-        })
-        .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
-          this._initEthereum = true;
-          this._enigmaContractAddress = address;
-        })
-        .option('-E, --init-ethereum', 'init Ethereum', ()=>{
-          this._initEthereum = true;
-        })
-        .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
-          this._principalNode = addrPortstr;
-        })
-        .parse(process.argv);
+    .version('0.1.0')
+    .usage('[options] <file ...>')
+    .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
+      Parsers.list(listVal, this._globalWrapper);
+    })
+    .option('-n, --nickname [value]', 'nickname', (nick)=>{
+      Parsers.nickname(nick, this._globalWrapper);
+    })
+    .option('-p, --port [value]', 'listening port', (strPort)=>{
+      Parsers.port(strPort, this._globalWrapper);
+    })
+    .option('-i, --path [value]', 'id path', (theIdPath)=>{
+      Parsers.idPath(theIdPath, this._globalWrapper);
+    })
+    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+      this._coreAddressPort = addrPortStr;
+    })
+    .option('--random-db', 'random tasks db', (randomPath)=>{
+      if (randomPath) {
+        this._randomTasksDbPath = randomPath;
+      } else {
+        this._randomTasksDbPath = true;
+      }
+    })
+    .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
+      this._rpcPort = portStr;
+    })
+    .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
+      this._initEthereum = true;
+      this._ethereumWebsocketProvider = provider;
+    })
+    .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
+      this._initEthereum = true;
+      this._enigmaContractAddress = address;
+    })
+    .option('-E, --init-ethereum', 'init Ethereum', ()=>{
+      this._initEthereum = true;
+    })
+    .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
+      this._principalNode = addrPortstr;
+    })
+    .parse(process.argv);
   }
   _getFinalConfig() {
     const finalConfig = {};
@@ -387,7 +390,7 @@ class CLI {
         nodeConfig.extraConfig = {};
       }
       nodeConfig.extraConfig.tm = {
-        dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
+        dbPath: tempdir.sync()
       };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();

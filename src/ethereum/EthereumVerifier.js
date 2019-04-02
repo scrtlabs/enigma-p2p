@@ -126,7 +126,7 @@ class EthereumVerifier {
   verifySelectedWorker(task, blockNumber, workerAddress) {
     return new Promise((resolve) => {
       const params = this._findWorkerParamForTask(blockNumber);
-      if (typeof params === 'undefined' || params === null) {
+      if (!params) {
         const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
         return resolve({error: err, isVerified: false});
       }
@@ -285,13 +285,13 @@ class EthereumVerifier {
             let deltaHash;
             let outputHash;
             const deltaKey = task.getDelta().key;
+            let contractParams = await this._contractApi.getContractParams(contractAddress);
             if (task instanceof DeployResult) {
-              let contractParams = await this._contractApi.getContractParams(task.getTaskId());
               outputHash = contractParams.codeHash;
-              deltaHash = await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
+              deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
             } else {
-              outputHash = await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
-              deltaHash = await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+              outputHash = contractParams.outputHashes[deltaKey-1]; //await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
+              deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
             }
             const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
             res.isVerified = result.isVerified;
@@ -335,8 +335,8 @@ class EthereumVerifier {
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
     let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
-    if (selectedWorker !== workerAddress) {
+    selectedWorker = nodeUtils.remove0x(selectedWorker.signer.toLowerCase());  // To enable in update to the contract
+    if (selectedWorker.signer !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
       result.isVerified = false;
@@ -506,7 +506,7 @@ class EthereumVerifier {
   }
 
   async _updateWorkerParamNow() {
-    let workerParamArray = await this._contractApi.getAllWorkerParams();
+    let workerParamArray = await this._contractApi.getWorkersParams();
     this._workerParamArray = this._sortWorkerParams(workerParamArray);
     this._epochSize = await this._contractApi.getEpochSize();
     // Note that if in any case, the array wasn't empty, due to an event received just before this call,
