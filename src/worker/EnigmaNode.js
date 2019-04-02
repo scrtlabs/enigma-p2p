@@ -12,6 +12,7 @@ const Policy = require('../policy/policy');
 const Messages = require('../policy/p2p_messages/messages');
 const nodeUtils = require('../common/utils');
 const Logger = require('../common/logger');
+const errors = require('../common/errors');
 // const EngCID = require('../common/EngCID');
 // const CIDUtil = require('../common/CIDUtil');
 // const CID = require('cids');
@@ -20,7 +21,8 @@ const Logger = require('../common/logger');
 class EnigmaNode extends EventEmitter {
   constructor(config, protocolHandler, logger) {
     super();
-
+    // to handle unsubscribe
+    this._topicHandlersMap = {};
     // initialize logger
     if (logger) {
       this._logger = logger;
@@ -141,8 +143,7 @@ class EnigmaNode extends EventEmitter {
   addHandlers() {
     const protocols = this._handler.getProtocolsList();
 
-    // TODO:: currently ignore for testing.
-    if ((!this.policy.validateProtocols(protocols) || !this.started ) && false) {
+    if ((!this.started )) {
       throw Error('not all protocols are satisfied, check constants.js for more info.');
     }
     this.node.on(PROTOCOLS['PEER_DISCOVERY'], (peer) => {
@@ -161,7 +162,6 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
-
   /** isConnected to a peer
    * This function uses try/catch because of the DHT implementation
    * @param {String} strId, some peer ID;
@@ -191,15 +191,42 @@ class EnigmaNode extends EventEmitter {
    */
   subscribe(subscriptions) {
     if (!this.started) {
-      throw Error('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
     subscriptions.forEach((sub)=>{
+      this._topicHandlersMap[sub.topic] = sub.topic_handler;
       this.node.pubsub.subscribe(sub.topic, sub.topic_handler, sub.final_handler);
+    });
+  }
+  /*
+  * Unsubscribe from topic
+  * **/
+  unsubscribe(topic, handler) {
+    if (!this.started) {
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
+    }
+    this.node.pubsub.unsubscribe(topic, handler, (err) => {
+      if (err) {
+        return this._logger.error(`failed to unsubscribe from ${topic}` + err);
+      }
+      this._logger.debug(`unsubscribed from ${topic}`);
+    });
+  }
+  /**
+   * get list of topics subscribed to
+   * @param {Promise<Array<string>>} Calls back with an error or a list of topicIDs that this peer is subscribed to.
+   * */
+  async getTopics() {
+    return new Promise((res, rej)=>{
+      this.node.pubsub.ls((err, topics)=>{
+        if (err) return rej(err);
+        res(topics);
+      });
     });
   }
   defaultSubscribe() {
     if (!this.started) {
-      throw Error('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
     }
 
     const subscriptions = this._handler.getSubscriptionsList();
@@ -393,7 +420,7 @@ class EnigmaNode extends EventEmitter {
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
    * @param {String} protocolName , the protocl name /echo/1.0.1
-   * @param {Function} onConnection recieves (protocol,connection) =>{}
+   * @param {Function} onConnection recieves (err,connection) =>{}
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
@@ -402,6 +429,63 @@ class EnigmaNode extends EventEmitter {
     } else {
       this.node.dialProtocol(peerInfo, protocolName, onConnection);
     }
+  }
+  /**
+   * Dial once send a request, receive a response
+   * @param {PeerInfo} peerInfo
+   * @param {string} protocolName,
+   * @param {JSON} reqMsg - request
+   * @return {Promise<Json>} response
+   * */
+  oneShotDial(peerInfo, protocolName,reqMsg) {
+    return new Promise((resolve,reject)=>{
+      if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
+        reject(new errors.P2PErr(MSG_STATUS.ERR_SELF_DIAL));
+      } else {
+        this.node.dialProtocol(peerInfo, protocolName, (err,connection)=>{
+          if(err){
+            return reject(err);
+          }
+          pull(
+              pull.values([reqMsg]),
+              connection,
+              pull.collect((err,responseMsg)=>{
+                console.log(responseMsg);
+                if(err){
+                  return reject(err);
+                }
+                return resolve(responseMsg);
+              })
+          );
+        });
+      }
+    });
+  }
+  /**
+   * Dial once send a request, receive a response and hang up - disconnect.
+   * @param {PeerInfo} peerInfo
+   * @param {string} protocolName,
+   * @param {JSON} reqMsg - request
+   * @return {Promise<Json>} response
+   * */
+  async oneShotDialAndClose(peerInfo, protocolName,reqMsg){
+    let response = null;
+    return new Promise(async (resolve,reject)=>{
+      try{
+        response = await this.oneShotDial(peerInfo,protocolName,reqMsg);
+      }catch(e){
+        this._logger.error(`[oneShotDialClose] on protocol ${protocolName}`);
+        reject(e);
+      }finally{
+        // drop connection
+        this.node.hangUp(peerInfo,(err)=>{
+          if(err){
+            reject(err);
+          }
+          resolve(response);
+        });
+      }
+    });
   }
   /** Ping 0x1 message in the handshake process.
    * @param {PeerInfo} peerInfo , the peer info to handshake with
@@ -450,13 +534,11 @@ class EnigmaNode extends EventEmitter {
             const data = response;
             const pongMsg = nodeUtils.toPongMsg(data);
             if (!pongMsg.isValidMsg()) {
-              // TODO:: handle invalid msg(?)
               err = '[-] Err bad pong msg recieved.';
             }
-
             // TODO:: REPLACE THAT with normal notify,
             // TODO:: The question is - where do I notify forall inbound/outbound handshakes
-            //        see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
+            // see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
             this.emit('notify', pongMsg);
             onHandshake(err, peerInfo, ping, pongMsg);
             return pongMsg.toNetworkStream();
@@ -516,14 +598,14 @@ class EnigmaNode extends EventEmitter {
 
       // create findpeers msg
       const findPeersReq = new Messages.FindPeersReqMsg({
-        'from': this.getSelfIdB58Str(),
-        'to': peerInfo.id.toB58String(),
-        'maxpeers': maxPeers,
+        from: this.getSelfIdB58Str(),
+        to: peerInfo.id.toB58String(),
+        maxpeers: maxPeers,
       });
 
       if (!findPeersReq.isValidMsg()) {
         this._logger.error('[-] err creating findpeer request msg.');
-        return onResult(new Error('err creating findpeer request msg.'), null);
+        return onResult(new errors.P2PErr('err creating findpeer request msg.'), null);
       }
       // post msg
       pull(
@@ -538,7 +620,7 @@ class EnigmaNode extends EventEmitter {
             // validate the msg (same id as request, structure etc)
             if (!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)) {
               this._logger.error('[-] err parsing findpeers response msg.');
-              return onResult(new Error('Invalid find peers response msg'), null);
+              return onResult(new errors.P2PErr('Invalid find peers response msg'), null);
             }
             onResult(null, findPeersReq, findPeersResponseMsg);
           })
@@ -551,12 +633,10 @@ class EnigmaNode extends EventEmitter {
    */
   provideContent(engCid, callback) {
     if (!this.started) {
-      throw Error('Please start the Worker before providing content');
+      throw new errors.InitPipelinesErr('Please start the Worker before providing content');
     }
-
     if (engCid) {
       const cid = engCid.getCID();
-
       this.node.contentRouting.provide(cid, (err)=>{
         callback(err, engCid);
       });
@@ -575,6 +655,51 @@ class EnigmaNode extends EventEmitter {
         if (err) rej(err);
         res(peerBook);
       });
+    });
+  }
+  /**
+   * given id lookup a peer in the network
+   * does not attempt to connect
+   * @param {string} b58Id
+   * @return {Promise<PeerInfo>} peerInfo
+   * */
+  async lookUpPeer(b58Id){
+    return new Promise((resolve,reject)=>{
+      let peerId = nodeUtils.b58ToPeerId(b58Id);
+      if(!peerId){
+        reject(new errors.TypeErr(`cant generate PeerId from ${b58Id}`));
+      }
+      this.node.peerRouting.findPeer(peerId,(err,peer)=>{
+        if(err) reject(err);
+        else{
+          resolve(peer);
+        }
+      });
+    });
+  }
+  /**
+   * get the local state of a remote peer
+   * if not connected already -> hang-up after message exchange
+   * */
+  getLocalStateOfRemote(peerInfo){
+    return new Promise(async (resolve,reject)=>{
+      if(!peerInfo instanceof PeerInfo){
+        reject(new errors.TypeErr(`peerInfo is not PeerInfo`));
+      }
+      let protocol = constants.PROTOCOLS.LOCAL_STATE_EXCHAGNE;
+      let isConnected = this.isConnected(peerInfo.id.toB58String());
+      let response = null;
+      try{
+        if(isConnected){
+          response = await this.oneShotDial(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
+        }else{
+          response = await this.oneShotDialAndClose(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
+        }
+        response = JSON.parse(response.toString('utf8').replace('\n', ''));
+        resolve(response);
+      }catch(e){
+        reject(e);
+      }
     });
   }
   /**
@@ -644,7 +769,6 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
-
 }
 
 

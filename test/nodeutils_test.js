@@ -39,7 +39,7 @@ it('should parsePeerInfo', function() {
 
 it('should generate randId', function() {
   assert.strictEqual(nodeUtils.randId().length, 12);
-  assert.notEqual(nodeUtils.randId(), nodeUtils.randId());
+  assert.notStrictEqual(nodeUtils.randId(), nodeUtils.randId());
 });
 
 it('should toPingMsg', function() {
@@ -189,4 +189,20 @@ it('should connectionStrToPeerInfo', function() {
     assert.strictEqual(p.multiaddrs.size, 1);
     assert(p.multiaddrs.has(multiaddr(peerUrl)));
   });
+});
+
+it('should remove0x where present', function() {
+  const str = '0123456789';
+  assert.strictEqual(str, nodeUtils.remove0x(str));
+  const str0x = '0x' + str;
+  assert.strictEqual(str, nodeUtils.remove0x(str0x));
+  assert.strictEqual(null, nodeUtils.remove0x(123));
+});
+
+it('should add0x if not present', function() {
+  const str = '0123456789';
+  assert.strictEqual('0x' + str, nodeUtils.add0x(str));
+  const str0x = '0x' + str;
+  assert.strictEqual(str0x, nodeUtils.add0x(str0x));
+  assert.strictEqual(null, nodeUtils.add0x(123));
 });

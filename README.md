@@ -1,16 +1,71 @@
 # enigma-p2p
+
+The Enigma Worker P2P package written in Node.js based on libp2p-js
+
+The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
+
+
 | Branch | Build | Code Coverage | 
 |--------|-------|---------------|
 | Master |[![Build Status](https://travis-ci.com/enigmampc/enigma-p2p.svg?token=cNBBjbVVEGszuAJUokFT&branch=master)](https://travis-ci.com/enigmampc/enigma-p2p) | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/master/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p) |
 | Develop |[![Build Status](https://travis-ci.com/enigmampc/enigma-p2p.svg?token=cNBBjbVVEGszuAJUokFT&branch=develop)](https://travis-ci.com/enigmampc/enigma-p2p) | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/develop/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p) |
 
-[WIP] The Enigma Worker P2P package written in Node.js based on libp2p-js [WIP]
+# Table of Contents
 
-The P2P implementation of the Enigma Worker. This implementation is part of the Node stack running as a process on the OS communicating both with `Core` and the outside world.
+- [enigma-p2p](#enigma-p2p)
+- [Table of Contents](#table-of-contents)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installing](#installing)
+    - [If running with Docker](#if-running-with-docker)
+- [Running the Node](#running-the-node)
+- [Running the tests](#running-the-tests)
+- [JSON RPC API](#json-rpc-api)
+- [Built With](#built-with)
+- [Developers](#developers)
+- [Authors](#authors)
+- [License](#license)
 
 # Getting Started
 
-## Quick CLI
+## Prerequisites
+
+- [NodeJS](https://nodejs.org/en/)
+- [Optional - Network Configuration]()
+- [Optional - Docker](https://www.docker.com/)
+- [During development for running tests - Global Truffle](https://truffleframework.com/)
+
+## Installing
+
+Until this module is not in npmjs.com: 
+
+`git clone` this repository 
+
+### If running with Docker
+
+cd into the project directory and type:
+
+`docker build .` 
+
+To run later, save the final build hash or give it a name.
+
+To run the node inside a container from the project directory type:
+
+```
+ docker run -v "$PWD":/usr/src/app -ti --net="host" <image-build-id> /bin/bash
+```
+
+
+# Running the Node
+
+Currently the node is started based on a command line interface. 
+The node can be start from a single configuration file:
+
+ `some/path/enigma-p2p/configs/template1.js` 
+
+ For usage example of single-config see [unit-test](https://github.com/enigmampc/enigma-p2p/blob/7825e490e789d4e52b441f390997f9b262b9cfbc/test/singleConfig/single_config_test.js#L39).
+
+ Or with default configuration and CLI flags.
 
 First:
 
@@ -18,110 +73,99 @@ First:
 
 For help and list of flags:
 
-`node cli.js -h`
-
-For launching the CLI with 1 bootstrap node type:
-
-`node cli.js -n dns -i B1 -b B1 -p B1`
+`$node cli_app.js -h`
 
 For the run-time commands the node can do:
 
-**While already running type**  `help`
+**While already running type**  `help` to see a list of all the available commands. 
 
-To launch a worker(s) in a different terminal type:
+Example: 
 
-(The nickname is for debugging, pick any string i.e peer1)
+1. launch a Bootstrap node: 
 
-`node cli.js -b B1 -n <nickname>`
+```
+node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db 
+```
 
-# Architechture
+2. launch a regular worker node that will connect to the bootstrap: 
 
-## Core, Enigma-P2P and the outside world
+```
+node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db
+```
 
-<img src="docs/overview1.jpg"
-     alt="Implementation 1" />
+3. launch ANOTHER regular worker node that will connect to the bootstrap:
 
-## Enigma-P2P High level design
+```
+node cli_app.js -b B1 --core 127.0.0.1:6001 --random-db
+```
 
-<img src="docs/overview2.jpg"
-     alt="Implementation 2" />
+In this example: 
 
-* The components are essentially autonomous "runtimes".
-* The the MainController relays the communication with different Actions.
-* The communication is done via Channel's which are bi-directional message sending implementation.
+`--core <ip>:<port>` enigma-core uri
 
-<img src="docs/overview3.jpg"
-     alt="Implementation 3" />
+`--proxy <port>` will start up the JSONrpc server as well.
 
-## Prerequisites
-* TBD
-## Installing
-* TBD
-# Running the Node
-* TBD
+`--random-db` is a must to generate a temporary database for the task management during testing.
+
+`-b` flag for the bootstrap node, `B1` is hard-coded for testing.
+
+`-i` load specific node id from a hardcoded path.
+
+`-p` run on a specific port since the bootstrap node is the first node everyone will connect to.
+
+
 # Running the tests
-* TBD
-# How it works
-* TBD
-## Peer Discovery
-* TBD
-## Syncing a Worker
 
-### Consensus
+Tests are based on `Mocha` and can invoked by typing:
 
-*WIP*
+`$npm test` 
 
-The Enigma Contract on Ethereum is used as the consensus layer. Contianing a Mapping between:
+# JSON RPC API
 
-`Secret-Contract-Address` => `hash(WASM)`,`[hash(delta 0), ...hash(delta n)]`
+The [api](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md) for interacting with a proxy node.
 
-Synchronizing the State means:
+Usage example: 
 
-    1) Having all the secret-contracts WASM code.
-    2) Having all the state deltas for each secret-contract.
-### Content Routing
+1. Start a bootstrap node which is also a **Proxy**
 
-*WIP*
+```
+node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db 
+```
+2. start a regular worker that is **NOT** a proxy 
 
-The content routing is based on the libp2p implementation of IPFS using [CID](https://github.com/ipld/js-cid) to identify content and Kad-DHT for finding peers.
+```
+node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db
+```
 
-### Database
+3. IMPORTANT: assuming the worker from #2 is the selected one type `selfSubscribe` in the CLI so that the worker will subscribe to its own sign key. The key will be printed to std, copy it: 
+   
+```
+   [Wed Mar 27 2019 17:41:06 GMT+0200 (Israel Standard Time)] DEBUG subscribed to [0xd71c1bccb4b238cea332201bab1cd0fa70bec080] self signKey
+```
 
-*WIP*
-
-All the information is stored encrypted inside a level-db instance on the disk. For each contract delta the key is a byte array of  `ethereum-hash + index`.
-
-### Provide Content
-
-*WIP*
-
-Providing Content is the process of announcing to the network a list of CID's.
-A node announces the content it provides after it's being synchronized with the Enigma Contract on Ethereum.
-
-### Find Content
-
-*WIP*
-
-Finding content is the look up of certains CID's in the networking.
-
-### Synchronize Content
-
-*WIP*
-
-Once a provider is found starts the synchronization process.
-
-## JSON RPC API
-* TBD
+4. user wanting to call `getWorkerEncryptionKey` with `curl` see [example](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md#getworkerencryptionkey) and use the key from step 3 as the `workerAddress` parameter.
 
 
-## Built With
+<img src="docs/jsonrpc.png"
+     alt="streams flow " />
+
+# Built With
 
 * [NodeJS](https://nodejs.org/en/)
 * [Libp2p](https://libp2p.io/) - Networking library
 
-## Authors
-* TBD
-## License
+# Developers
+
+If you wish to learn more about the project and contribute make sure to checkout: 
+
+1. [On boarding guide](docs/ON_BOARDING.md)
+2. [In depth design](docs/ARCHITECTURE.md)
+
+# Authors
+
+* [Enigma](https://enigma.co/)
+
+# License
 
 The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
@@ -129,6 +173,3 @@ the Free Software Foundation, either version 3 of the License, or (at your optio
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
 
 You should have received a [copy](LICENSE) of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
-
-
-

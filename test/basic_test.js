@@ -7,7 +7,7 @@ const assert = require('assert');
 const waterfall = require('async/waterfall');
 const pull = require('pull-stream');
 const Policy = require('../src/policy/policy');
-const ProtocolHandler = require('../src/worker/handlers/ProtcolHandler');
+const ProtocolHandler = require('../src/worker/handlers/ProtocolHandler');
 const ConnectionManager = require('../src/worker/handlers/ConnectionManager');
 const consts = require('../src/common/constants');
 const PROTOCOLS = consts.PROTOCOLS;
@@ -60,6 +60,7 @@ it('#2 Should test handshake with 1 node', async function(){
         let dnsController = NodeController.initDefaultTemplate({"port":B1Port, "idPath":B1Path, "nickname":"dns", "bootstrapNodes":bootstrapNodes});
         let peerController = NodeController.initDefaultTemplate({"nickname":"peer" , "bootstrapNodes":bootstrapNodes});
 
+
         await dnsController.engNode().syncRun();
 
         await testUtils.sleep(2000);
@@ -83,7 +84,7 @@ it('#2 Should test handshake with 1 node', async function(){
 
         assert.strictEqual(1,handshakedPeers.length);
         assert.strictEqual(peerController.engNode().getSelfIdB58Str(), handshakedPeers[0]);
-
+        
         await dnsController.engNode().syncStop();
         await peerController.engNode().syncStop();
         resolve();
@@ -158,9 +159,6 @@ it('#3 Should test persistent discovery', async function() {
     });
 
   });
-
-
-
 });
 
 

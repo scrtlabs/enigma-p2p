@@ -8,29 +8,42 @@ const IpcClient = require('./ipc');
 const constants = require('../common/constants');
 
 //actions
-const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
-const GetAllTipsAction = require('./actions/GetAllTipsAction');
+const PreParseAction = require('./actions/PreParseAction');
+const GetDbAction = require('./actions/DbRead/GetDbAction');
+const SendToCoreAction = require('./actions/SendToCoreAction');
+const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
 
 class CoreRuntime{
-  constructor(config){
-    if(config.uri)
-      this._ipcClient = new IpcClient(config.uri);
+  constructor(config, logger){
+    if(config.uri){
+      this._ipcClient = new IpcClient(config.uri, logger);
+      this._config = config;
+    }
     else
       throw new Error("Must pass uri to CoreRuntime");
 
     this._initIpcClient();
     this._communicator = null;
-
+    this._logger = logger;
+    let sendToCoreAction = new SendToCoreAction(this);
+    let preParseAction = new PreParseAction(this);
+    let getDbAction = new GetDbAction(this);
     this._actions = {
-      [constants.CORE_REQUESTS.GetRegistrationParams] : new GetRegistrationParamsAction(this),
-      [constants.CORE_REQUESTS.IdentityChallenge] : null,
-      [constants.CORE_REQUESTS.GetTip] : null,
-      [constants.CORE_REQUESTS.GetAllTips] : new GetAllTipsAction(this),
-      [constants.CORE_REQUESTS.GetAllAddrs] : null,
+      [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
+      [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
+      [constants.CORE_REQUESTS.ComputeTask] : preParseAction,
+      [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,
+      [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
+      [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,
+      [constants.CORE_REQUESTS.GetDeltas] : getDbAction,
+      [constants.CORE_REQUESTS.GetContract] :getDbAction,
+      [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
       [constants.CORE_REQUESTS.GetDelta] : null,
-      [constants.CORE_REQUESTS.GetContract] : null,
+      [constants.CORE_REQUESTS.GetTip] : null,
+      [constants.CORE_REQUESTS.GetPTTRequest]: getDbAction,
+      [constants.CORE_REQUESTS.PTTResponse]: getDbAction,
     };
-
   }
   /**
    * Connects to core
@@ -71,6 +84,15 @@ class CoreRuntime{
         action.execute(envelop);
       }
     });
+  }
+  execCmd(cmd,params){
+    let action = this._actions[cmd];
+    if(action) {
+      action.execute(params);
+    }
+  }
+  getUri(){
+    return this._config.uri;
   }
 }
 

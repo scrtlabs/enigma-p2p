@@ -54,6 +54,12 @@ module.exports.idPath = function(val,params) {
   return parsedVal;
 };
 
+// module.exports.enigmaContractAddress = function(val,params) {
+//     params.configObject.enigmaContractAddress = val;
+//     params.changedKeys.push('enigmaContractAddress');
+//     return val;
+//   };
+
 module.exports.opener= "  ______       _                         _____ ___  _____  \n" +
     " |  ____|     (_)                       |  __ \\__ \\|  __ \\ \n" +
     " | |__   _ __  _  __ _ _ __ ___   __ _  | |__) | ) | |__) |\n" +
@@ -62,7 +68,6 @@ module.exports.opener= "  ______       _                         _____ ___  ____
     " |______|_| |_|_|\\__, |_| |_| |_|\\__,_| |_|   |____|_|     \n" +
     "                  __/ |                                    \n" +
     "                 |___/                                     ";
-
 
 
 

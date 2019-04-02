@@ -16,38 +16,36 @@
  * -    Ethereum
  * -    JsonRpcAPI
  * The CLI Runtime:
- * -   Asynchroneus commands from a user client
+ * -   Asynchronous commands from a user client
  * -   A User will start the control flow
- * -   Set of definitions iis required
+ * -   Set of definitions is required
  * The Core Runtime:
- * -   Asynchroneus Inter-Process Communication
- * -   Relays messages between Core & The enigma-p2p software
+ * -   Asynchronous Inter-Process Communication
+ * -   Relays messages between Core & the enigma-p2p software
  * -   Based on ZeroMQ Response-Request model, Core is the Responder and enigma-p2p is the Requester
- * -   Takes requests from the p2p, sends them to Core and
+ * -   Takes requests from the p2p, sends them to Core
  * -   Has a known format of defined Req/Res messages
  * The Node Runtime:
- * -   Asynchroneus Controller that manages the P2P networking stuff
+ * -   Asynchronous Controller that manages the P2P networking stuff
  * -   Highly coupled to the protocol specifics
  * -   Has a set of components that are responsible for different things such as:
  * -    -   Managing Connections
- * -    -   Sending/Recieveg States
+ * -    -   Sending/Receiving States
  * The Ethereum Runtime:
- * -    Asynchroneus Controller that writes and reads data from Ethereum.
+ * -    Asynchronous Controller that writes and reads data from Ethereum.
  * -    The interface to the Enigma.sol contract.
- * -    Manages Worker registration, states validatition, task commitments and more.
+ * -    Manages Worker registration, state validation, task commitments and more.
  * The JsonRpcApi:
- * -    Asynchroneus Server that responds to users requests (dApp)
+ * -    Asynchronous Server that responds to user requests (dApp)
  * -    Based on JsonRpc server and a remote Client
- * -    secret contract users will query the Workers via this Api
+ * -    secret contract users will query the workers via this API
  */
 
 const Channel = require('./channels/Channel');
 const constants = require('../common/constants');
-
-// dummy
-// const DummyRuntime = require('./DummyRuntime');
 const DummyAction = require('./actions/DummyAction');
 const DbAction = require('./actions/DbAction');
+const ProxyAction = require('./actions/ProxyAction');
 class MainController {
   constructor(runtimes) {
     let notifications = constants.MAIN_CONTROLLER_NOTIFICATIONS;
@@ -55,6 +53,7 @@ class MainController {
     // actions
     this._actions = {
       'dummy': new DummyAction(this),
+      [notifications.Proxy] : new ProxyAction(this),
       [notifications.DbRequest] : new DbAction(this),
     };
     // runtime communicators
@@ -62,6 +61,23 @@ class MainController {
   }
   getCommunicator(type) {
     return this._communicators[type];
+  }
+  /**
+   * Stop the PROGRAM completely.
+   * */
+  async stopAll(){
+    // //TODO:: add stop all Runtimes
+    // let jobs = [];
+    // this._runtimes.forEach(rt=>{
+    //   let communicator = this._communicators[rt.type()].thisCommunicator;
+    //   jobs.push((cb)=>{
+    //     communicator.sendAndReceive(new Envelop())
+    //         .then(resEnv=>{
+    //           cb(null,resEnv);
+    //     });
+    //   });
+    // });
+    //
   }
   start() {
     // start each runtime in order

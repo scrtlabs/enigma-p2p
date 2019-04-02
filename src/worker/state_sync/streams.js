@@ -1,4 +1,43 @@
 const Verifier = require('./receiver/StateSyncReqVerifier');
+const EncoderUtil = require('../../common/EncoderUtil');
+const constants = require('../../common/constants');
+const SyncMsgMgmgt = require('../../policy/p2p_messages/sync_messages');
+const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
+/**
+ * global methods
+ * */
+/**
+ * @param {JSON} globalState - a global state the is accessible to all of the stream methods.
+ * @param {Receiver/Provider} context - access other methods i.e db requests
+ * @param {Logger} logger
+ * */
+const globalState = {
+  providerContext: null,
+  receiverContext: null,
+  logger: null,
+};
+
+/**
+ * Set the global state, this function will be executed only once
+ * regardless of the amount of times it is being called.
+ * */
+
+// TODO: remove this all together and move to a local state
+//  (due to binding between tests, the following lines had to be commented out)
+module.exports.setGlobalState = (state)=>{
+  if (state.providerContext) {// && globalState.providerContext === null){
+    globalState.providerContext = state.providerContext;
+  }
+  if (state.receiverContext) {// && globalState.receiverContext === null){
+    globalState.receiverContext = state.receiverContext;
+  }
+  if (state.logger && globalState.logger === null) {
+    globalState.logger = state.logger;
+  }
+};
+/**
+ * Actuall streams implementation
+ * */
 
 /**
  * from providerStream => verify (consensus)
@@ -14,9 +53,9 @@ module.exports.verificationStream = (read)=>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.toDbStream = (read)=>{
-  return _toDbStream(read);
-};
+// module.exports.toDbStream = (read)=>{
+//   return _toDbStream(read);
+// };
 
 module.exports.fromDbStream = (read) =>{
   return _fromDbStream(read);
@@ -24,6 +63,7 @@ module.exports.fromDbStream = (read) =>{
 /**
  * parses the data from the requester into a format that core can read
  * this is preperation before loading the deltas from the db.
+ * the data here gets one by one from remote. (i.e for list of request, this is activated for each request)
  * @param {stream} read
  * @return {function()}
  * */
@@ -46,20 +86,54 @@ module.exports.toNetworkParser = (read) =>{
 module.exports.toNetworkSyncReqParser = (read)=>{
   return _toNetworkSyncReqParser(read);
 };
-
-function _toNetworkSyncReqParser(read) {
+/**
+ * used by the receiver to store the deltas into db
+ * After verificationStream => into db
+ * @param {stream} read
+ * @return {function()}
+ * */
+module.exports.throughDbStream = (read)=>{
+  return _throughDbStream(read);
+};
+function _throughDbStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data != null) {
-        // TODO:: parse the msg to msgpack serialization
-        cb(end, data);
+        fakeSaveToDb(data, (err, status)=>{
+          if (!status || err ) {
+            globalState.logger.error('some fake error saving to db ');
+            throw end;
+          } else {
+            cb(end, {status: status, data: data});
+          }
+        });
       } else {
         cb(end, null);
       }
     });
   };
 }
-function _fakeParseFromDbToNetwork(dbResult, callback) {
+
+function _toNetworkSyncReqParser(read) {
+  return function readble(end, cb) {
+    read(end, (end, data) => {
+      if (data != null) {
+        cb(end, data.toNetwork());
+      } else {
+        cb(end, null);
+      }
+    });
+  };
+}
+function _parseFromDbToNetwork(dbResult, callback) {
+  // TODO:: add toNetwork() method to all the dbResults.
+  // parse all to network
+  if (dbResult.type === constants.CORE_REQUESTS.GetDeltas) {
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_STATE_RES;
+  } else if (dbResult.type === constants.CORE_REQUESTS.GetContract) {
+    dbResult.msgType = constants.P2P_MESSAGES.SYNC_BCODE_RES;
+  }
+  dbResult = EncoderUtil.encode(JSON.stringify(dbResult));
   const parsed = dbResult;
   const isError = null;
   callback(isError, parsed);
@@ -70,7 +144,7 @@ function _toNetworkParse(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data!=null) {
-        _fakeParseFromDbToNetwork(data, (err, parsedResult)=>{
+        _parseFromDbToNetwork(data, (err, parsedResult)=>{
           if (err) {
             cb(err, null);
           } else {
@@ -83,10 +157,25 @@ function _toNetworkParse(read) {
     });
   };
 }
-function _fakeFromDbStream(data, callback) {
-  const dbResult = data;
-  const isError = null;
-  callback(isError, dbResult);
+function _fakeFromDbStream(syncReqMsg, callback) {
+  // TODO:: create a db call ...
+  // TODO:: validate that the range < limit here or somewhere else.
+  let queryType = null;
+  if (syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ) {
+    queryType = constants.CORE_REQUESTS.GetContract;
+  } else if (syncReqMsg.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ) {
+    queryType = constants.CORE_REQUESTS.GetDeltas;
+  } else {
+    // TODO:: handle error
+    globalState.logger.error('error in _fakeFromDbStream');
+  }
+  globalState.providerContext.dbRequest({
+    dbQueryType: queryType,
+    requestMsg: syncReqMsg,
+    onResponse: (ctxErr, dbResult) =>{
+      callback(ctxErr, dbResult);
+    },
+  });
 }
 
 // fake load from the database, this will return the deltas for the requester
@@ -96,10 +185,10 @@ function _fromDbStream(read) {
       if (data != null) {
         _fakeFromDbStream(data, (err, dbResult)=>{
           if (err) {
-            console.log('error in fakeFromDbStream');
+            console.log('error in fakeFromDbStream {%s}', err);
             cb(err, null);
           } else {
-            cb(end, data);
+            cb(end, dbResult);
           }
         });
       } else {
@@ -111,17 +200,22 @@ function _fromDbStream(read) {
 
 // used by _requestParserStream() this should parse the msgs from network
 // into something that core can read and load from db
-function _fakeRequestParser(data, callback) {
-  const parsedData = data;
-  const err = null;
-  callback(err, parsedData);
+function _requestParser(data, callback) {
+  let err = null;
+  // TODO:: validate network input validity
+  data = EncoderUtil.decode(data);
+  let parsedData = JSON.parse(data);
+  parsedData = SyncMsgBuilder.msgReqFromObjNoValidation(parsedData);
+  if (parsedData === null) {
+    err = 'error building request message';
+  }
+  return callback(err, parsedData);
 }
-
 function _requestParserStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data != null) {
-        _fakeRequestParser(data, (err, parsed)=>{
+        _requestParser(data, (err, parsed)=>{
           if (err) {
             cb(true, null);
           } else {
@@ -133,47 +227,46 @@ function _requestParserStream(read) {
       }
     });
   };
-};
+}
 
 // used by _toDbStream()
-// TODO:: replace with some real access to core/ipc
-function fakeSaveToDb(data, callback) {
-  const status = true;
-  console.log('[saveToDb] : ' + data);
-  callback(status);
-}
-function _toDbStream(read) {
-  read(null, function next(end, data) {
-    if (end === true) return;
-
-    if (end) throw end;
-
-    // TODO:: placeholder - save states into db with core.
-    fakeSaveToDb(data, (status)=>{
-      if (!status) {
-        console.log('some fake error saving to db ');
-        throw end;
-      } else {
-        read(null, next);
-      }
-    });
+// save response (after validation) to db
+// the objects are either SYNC_STATE_RES or SYNC_BCODE_RES
+function fakeSaveToDb(msgObj, callback) {
+  if (msgObj === null || msgObj === undefined) {
+    const err = 'error saving to db';
+    globalState.logger.error(err);
+    return callback(err);
+  }
+  globalState.receiverContext.dbWrite({
+    data: msgObj,
+    callback: (err, status)=>{
+      callback(err, status);
+    },
   });
 }
+
 function _verificationStream(read) {
   return function readble(end, cb) {
     read(end, (end, data)=>{
       if (data !=null) {
+        data = EncoderUtil.decode(data);
+        data = JSON.parse(data);
+        data = SyncMsgBuilder.msgResFromObjNoValidation(data);
+        if (data == null) {
+          return cb(true, null);
+        }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
-        new Verifier().verify(data, (isOk)=>{
+        Verifier.verify(globalState.receiverContext.getRemoteMissingStatesMap(), data, (err, isOk)=>{
           if (isOk) {
-            cb(end, data);
+            return cb(end, data);
           } else {
-            cb(true, null);
+            return cb('Error in verification with Ethereum: ' + err, null);
           }
         });
       } else {
-        cb(end, null);
+        return cb(end, null);
       }
     });
   };

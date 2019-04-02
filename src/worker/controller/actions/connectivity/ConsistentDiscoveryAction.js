@@ -37,6 +37,7 @@ class ConsistentDiscoveryAction {
     const options = this._getStoppableTaskOptions(params);
 
     const task = (stopper) =>{
+      // flag process start
       this._controller.connectionManager().onStartPersistentDiscovery();
 
       this._controller.connectionManager().tryConnect((err, results)=>{
@@ -73,16 +74,25 @@ class ConsistentDiscoveryAction {
       console.log('result => ', JSON.stringify(result, null, 2));
       console.log('------------------- FINISHED STOPPABLE TASK ------------------');
 
-            if(options.callback){
-                options.callback(status,result);
-            }
+      if (options.callback) {
+        options.callback(status, result);
+      }
 
-            this._controller.connectionManager().onDonePersistentDiscovery(status,result);
-        };
+      this._controller.connectionManager().onDonePersistentDiscovery(status, result);
+    };
 
-        let stopabbleTask = new StoppableTask(options,task,onFinish);
+    const stopabbleTask = new StoppableTask(options, task, onFinish);
 
-        stopabbleTask.start();
-    }
+    stopabbleTask.start();
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      params.callback = function(status, result) {
+        resolve({status:status,result : result});
+      };
+      action.execute(params);
+    });
+  }
 }
 module.exports = ConsistentDiscoveryAction;

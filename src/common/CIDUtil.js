@@ -3,6 +3,14 @@ const multihash = require('multihashes');
 const Web3 = require('web3');
 
 class CIDUtil {
+  /**
+   * The hashing function that is used currently is hashKeccack256 but there is not reason it cannot change.
+   * @param {Array<Byte>} delta
+   * @return {string} hash
+   * */
+  static hashByteArray(delta) {
+    return CIDUtil.hashKeccack256(delta);
+  }
   static hashKeccack256(value) {
     return new Web3().utils.sha3(value);
   }
@@ -18,6 +26,7 @@ class CIDUtil {
       const mh = multihash.encode(buffHash, 'keccak-256');
       return new CID(1, 'eth-block', mh);
     } catch (err) {
+      // console.log('[-] err creating cid {%s}', err);
       return null;
     }
   }
@@ -36,7 +45,7 @@ class CIDUtil {
      * */
   static parseHashStr(h) {
     let final = null;
-    if (h.length == 64) {
+    if (h.length == 64 ) {
       final = h;
     } else if (h.length == 66) {
       final = h.substring(2, h.length);

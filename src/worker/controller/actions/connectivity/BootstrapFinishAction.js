@@ -7,9 +7,8 @@ class BootstrapFinishAction {
   constructor(controller) {
     this._controller = controller;
   }
-
   execute(params) {
-    console.log('[+] BOOTSTRAP WITH ALL DNS - DONE.');
+    this._controller.logger().info(`[+] Bootstrap finished : ${params.connectedNodes} nodes`);
   }
 }
 module.exports = BootstrapFinishAction;

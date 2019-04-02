@@ -21,7 +21,7 @@ class PeerBundle extends libp2p {
       },
       config: {
         dht: {
-          kBucketSize: 2,
+          kBucketSize: 5,
         },
         EXPERIMENTAL: {
           dht: true,
@@ -36,7 +36,7 @@ class PeerBundle extends libp2p {
         },
       },
     };
-    const finalConfigurations =defaultsDeep(_options, defaults);
+    const finalConfigurations = defaultsDeep(_options, defaults);
     super(finalConfigurations);
   }
 }

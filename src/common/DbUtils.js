@@ -58,7 +58,12 @@ class DbUtils {
     }
     return res;
   }
+  static isValidEthereumAddress(address)
+  {
+    let web3 = new Web3();
+    return web3.utils.isAddress(address);
+  };
+
 }
 
 module.exports = DbUtils;
-

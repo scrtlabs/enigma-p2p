@@ -1,8 +1,10 @@
-
+const LocalMissingStateResult = require('../../../state_sync/receiver/LocalMissingStatesResult');
+const StateSync = require('../../../../ethereum/StateSync');
 const constants = require('../../../../common/constants');
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
-const Envelop = require('../../../../main_controller/channels/Envelop');
+const errs = require('../../../../common/errors');
+const NODE_NOTIY = constants.NODE_NOTIFICATIONS;
+
+
 /**
  * This action is the first step to sync
  * this identifies the missing state the worker needs.
@@ -11,42 +13,87 @@ const Envelop = require('../../../../main_controller/channels/Envelop');
  * - get remote tips
  * - parse them into a format class "MissingStatesMap"
  * - and return the result to the caller.
+ * @return {JSON} res:
+ * { missingStatesMap - a map of the missing states, indexed by the address - address : {deltas: {index: deltaHash}, bytecodeHash},
+ *   missingStatesMsgsMap -  a map of the messages requesting the missing states, indexed by the address - address : [Array<SyncResMsg>]
+ * }
  * */
-class IdentifyMissingStatesAction{
-
-  constructor(controller){
+class IdentifyMissingStatesAction {
+  constructor(controller) {
     this._controller = controller;
   }
 
-  execute(params){
-    let useCache = params.cache;
-    let onResponse = params.onResponse;
-
-    if(useCache){
-      this._controller.cache().getAllTips((err,tipsList)=>{
-          //TODO:: implement cache logic
-          //TODO:: if cache empty still query core since maybe it was deleted or first time
+  execute(params) {
+    const useCache = params.cache;
+    const finalCallback = params.onResponse;
+    if (useCache) {
+      this._controller.cache().getAllTips((err, tipsList) => {
+        // TODO:: implement cache logic
+        // TODO:: if cache empty still query core since maybe it was deleted or first time
       });
-    }else{
-      let requestEnvelop = new Envelop(true
-          ,{type : constants.CORE_REQUESTS.GetAllTips}
-          ,constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
-      this._controller.communicator()
-        .sendAndReceive(requestEnvelop)
-          .then(responseEnvelop=>{
-            //TODO:: parse the envelop into some format
-            let parsedResponse = responseEnvelop.content();
-            // TODO:: fetch the state from remote
-            // TODO:: extract the delta between remote and local
-            onResponse(parsedResponse);
+    } else {
+      this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS, {
+        cache: useCache,
+        onResponse: (err, localTips) => {
+          // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
+          if (err || !this._controller.hasEthereum()) {
+            let error = err;
+            if (!this._controller.hasEthereum()) {
+              error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
+            }
+            return finalCallback(error);
+          }
+          return IdentifyMissingStatesAction.
+              _buildMissingStatesResult(this._controller.ethereum().api(), localTips, (err, res)=> {
+                if (err) {
+                  return finalCallback(err);
+                }
+                return finalCallback(null, res);
+              });
+        },
       });
     }
   }
+
+  static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
+    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
+      const res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
+
+      if (err) {
+        return cb(err);
+      }
+
+      const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
+      const finalOutput = {};
+      for (const addrKey in result) {
+        const obj = result[addrKey];
+        if (obj.bcodeReq) {
+          obj.deltasReq.push(obj.bcodeReq);
+        }
+        finalOutput[addrKey] = obj.deltasReq;
+      }
+      res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(missingList);
+      res.missingStatesMsgsMap = finalOutput;
+      return cb(null, res);
+    });
+  }
+  static _transformMissingStatesListToMap(missingStatesList) {
+    const missingStatesMap = {};
+    for (let i=0; i<missingStatesList.length; ++i) {
+      const deltasMap = {};
+      for (let j=0; j<missingStatesList[i].deltas.length; j++) {
+        const index = missingStatesList[i].deltas[j].index;
+        const deltaHash = missingStatesList[i].deltas[j].deltaHash;
+        deltasMap[index] = deltaHash;
+      }
+      if ('bytecodeHash' in missingStatesList[i]) {
+        missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap, bytecodeHash: missingStatesList[i].bytecodeHash};
+      } else {
+        missingStatesMap[missingStatesList[i].address] = {deltas: deltasMap};
+      }
+    }
+    return missingStatesMap;
+  }
 }
-
-
 module.exports = IdentifyMissingStatesAction;
-
-
-
 

@@ -7,15 +7,14 @@ const pickRandom = require('pick-random');
 const mafmt = require('mafmt');
 const multiaddr = require('multiaddr');
 const timestamp = require('unix-timestamp');
-
-
+const rimraf = require('rimraf');
 /**
  * Simply sleep
  * @param {Integer} ms - milliseconds
  * @example `await sleep(1000)` will sleep for a second and block.
  * */
 module.exports.sleep = function(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 /** turn peerbook into parsed obj
@@ -154,6 +153,12 @@ module.exports.applyDelta= function(main, patch) {
 module.exports.unixTimestamp = function() {
   return timestamp.now();
 };
+/**
+ * get 24 hours in unixtimes stamp
+ * */
+module.exports.unixDay = ()=>{
+  return timestamp.Day;
+};
 /** Turn a 1 level distionary to a list
  * @param {dictionary} dictionary
  * @return {Array}
@@ -250,3 +255,58 @@ function _connectionStrToPeerInfo(candidate, onResult) {
     }
   });
 };
+
+
+/**
+ * same as rm -rf <some folder>
+ *   @param {string} path
+ *   @param {function} callback ()=>{}
+ */
+module.exports.deleteFolderFromOSRecursive = function(path, callback) {
+  rimraf(path, callback);
+};
+
+/**
+ *  create PeerId from b58 string id
+ *  @param {string} b58Id base 58 id
+ *  @return {PeerId} peerId
+ * */
+
+module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)};
+
+/**
+ * Removes '0x' from a hex string, if present
+ *
+ * @param {string} hexString
+ * @return {string}
+ */
+module.exports.remove0x = function(hexString) {
+  if (module.exports.isString(hexString)) {
+    if (hexString.substring(0, 2) == '0x') {
+      return hexString.substring(2);
+    } else {
+      return hexString;
+    }
+  } else {
+    return null;
+  }
+}
+
+/**
+ * Adds '0x' to a hex string, if not present
+ *
+ * @param {string} hexString
+ * @return {string}
+ */
+module.exports.add0x = function(hexString) {
+  if (module.exports.isString(hexString)) {
+    if (hexString.substring(0, 2) == '0x') {
+      return hexString;
+    } else {
+      return '0x' + hexString;
+    }
+  } else {
+    return null;
+  }
+}
+

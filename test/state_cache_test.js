@@ -40,7 +40,9 @@ it('#1 test PersistentStateCache',function(done){
             cache.getAllTips((err,tips)=>{
               assert.strictEqual(null,err, 'err getAllTips');
               testUtils.deleteFolderFromOSRecursive(dbPath, ()=>{
-                done();
+                cache._dbApi.close((err)=>{
+                  done();
+                })
               });
             });
           });
@@ -49,8 +51,3 @@ it('#1 test PersistentStateCache',function(done){
     });
   });
 });
-
-
-
-
-

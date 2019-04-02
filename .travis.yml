@@ -1,13 +1,21 @@
 language: node_js
 
 node_js:
-  - "10.12"
+  - "10.14"
 
 install:
+  - npm install -g truffle@5.0.2
   - npm install
 
 script:
   - npm test
+  - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then
+      echo $TRAVIS_BRANCH ; npm run test-tree;
+    fi
 
 after_success:
   - npm run report-coverage
+
+notifications:
+  email:
+    on_success: never

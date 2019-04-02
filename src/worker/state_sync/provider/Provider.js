@@ -4,36 +4,35 @@ const EngCID = require('../../../common/EngCID');
 const parallel = require('async/parallel');
 const pull = require('pull-stream');
 const streams = require('../streams');
+const constants = require('../../../common/constants');
 
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
-
     this._enigmaNode = enigmaNode;
     this._logger = logger;
+    streams.setGlobalState({logger: this._logger, providerContext: this});
   }
   /** provide content in a batch of CID's
      * @param {Array<String>} descriptorsList - each element is a byte representation of some content
      * currently it's secret contract addresses
+     * //TODO:: remove withEngCid to default true, leave now for compatability
+     * @param {Boolean} withEngCid , if false: generate ecid
      * @param {Function} callback - (err,listOfFailedEngCIDs) = >{}
      * */
-  provideContentsBatch(descriptorsList, callback) {
-    const engCIDs = descriptorsList.map((desc)=>{
-      const h = CIDUtil.hashKeccack256(desc);
-      return EngCID.createFromKeccack256(h);
-    });
-
-
+  provideContentsBatch(descriptorsList, withEngCid, callback) {
+    let engCIDs = descriptorsList;
+    if (!withEngCid) {
+      engCIDs = descriptorsList.map((desc)=>{
+        const h = CIDUtil.hashKeccack256(desc);
+        return EngCID.createFromKeccack256(h);
+      });
+    }
     const jobs = [];
 
     engCIDs.forEach((ecid)=>{
       jobs.push((cb)=>{
         this._enigmaNode.provideContent(ecid, (err, ecid)=>{
-          if (err) {
-            this._logger.error(' error providing : ' + ecid.getKeccack256() + ' log = ' + err);
-          } else {
-            this._logger.info(' success providing : ' + ecid.getKeccack256());
-          }
           cb(null, {error: err, ecid: ecid});
         });
       });
@@ -49,17 +48,54 @@ class Provider extends EventEmitter {
           failedCids.push(r.ecid);
         }
       });
-
       callback(isError, failedCids);
     });
   }
-
+  /** async version of provideContentsBatch */
+  asyncProvideContentsBatch(engCids){
+    return new Promise((resolve,reject)=>{
+      this.provideContentsBatch(engCids,true,(err,failedCids)=>{
+        if(err){
+          return reject(err);
+        }
+        resolve(failedCids);
+      });
+    });
+  }
+  /** stream related methods
+   * MUST CONTAIN a "notification" field
+   * specifying the concrete Action
+   * */
+  notify(params) {
+    this.emit('notify', params);
+  }
+  /**
+   * Calls the worker/DbRequestAction
+   * @param {JSON} request ,must contain the fields:
+   * - onResponse(err,response)=>{}
+   * - queryType, describe the query type needed
+   * */
+  dbRequest(request) {
+    if (request.hasOwnProperty('onResponse') && request.hasOwnProperty('dbQueryType')) {
+      if (request.dbQueryType === constants.CORE_REQUESTS.GetDeltas) {
+        request.notification = constants.NODE_NOTIFICATIONS.GET_DELTAS;
+      } else if (request.dbQueryType === constants.CORE_REQUESTS.GetContract) {
+        request.notification = constants.NODE_NOTIFICATIONS.GET_CONTRACT_BCODE;
+      }
+      this.notify(request);
+    }
+  }
   startStateSyncResponse(connectionStream) {
     pull(
+        // read msg requests one-by-one
         connectionStream,
+        // parse the message
         streams.requestParserStream,
+        // get the requested data from db (i.e array of deltas)
         streams.fromDbStream,
+        // serialize the database result into a network stream
         streams.toNetworkParser,
+        // send the result to the msg request back to the receiver
         connectionStream
     );
   }

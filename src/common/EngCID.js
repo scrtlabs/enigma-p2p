@@ -1,12 +1,29 @@
 const CIDUtil = require('./CIDUtil');
 const EncoderUtil = require('./EncoderUtil');
 
+/**
+ * Abstraction - wrapper to libp2p-cid
+ * */
 class EngCID {
   constructor(encoder = EncoderUtil) {
     this._encoder = encoder;
     this._cid = null;
+    this._address = null;
   }
-
+  static createFromByteArray(bytes){
+    const h = CIDUtil.hashByteArray(bytes);
+    return this.createFromKeccack256(h);
+  }
+  static createFromSCAddress(scAddr) {
+    const cid = CIDUtil.createCID(scAddr);
+    if (cid) {
+      const engCid = new EngCID();
+      engCid._setCID(cid);
+      engCid._setScAddress(scAddr);
+      return engCid;
+    }
+    return null;
+  }
   static createFromKeccack256(keccack256Hash) {
     const cid = CIDUtil.createCID(keccack256Hash);
     if (cid) {
@@ -16,7 +33,6 @@ class EngCID {
     }
     return null;
   }
-
   static createFromNetwork(encodedB58byteArray) {
     const b58 = EncoderUtil.decodeFromNetwork(encodedB58byteArray);
     const cid = CIDUtil.createCIDFromB58(b58);
@@ -88,6 +104,12 @@ class EngCID {
 
   _setCID(cid) {
     this._cid = cid;
+  }
+  _setScAddress(scAddr) {
+    this._address = scAddr;
+  }
+  getScAddress() {
+    return this._address;
   }
 }
 
