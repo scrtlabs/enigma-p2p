@@ -531,4 +531,5 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     {
         return WorkersImpl.verifyReportImpl(_data, _signature);
     }
+
 }

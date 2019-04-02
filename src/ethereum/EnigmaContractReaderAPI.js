@@ -1,5 +1,6 @@
 const errors = require('../common/errors');
 const Logger = require('../common/logger');
+const nodeUtils = require('../common/utils');
 
 class EnigmaContractReaderAPI {
   /**
@@ -153,7 +154,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskParams(taskId) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getTaskRecord(taskId).call((error, data)=> {
+      this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call((error, data)=> {
         if (error) {
           reject(error);
         }
