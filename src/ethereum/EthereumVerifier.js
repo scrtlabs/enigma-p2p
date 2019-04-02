@@ -431,11 +431,11 @@ class EthereumVerifier {
     if ((this._workerParamArray.length === 0) || (!blockNumber)) {
       return null;
     }
-    let index = this._workerParamArray.length;
+    let index = this._workerParamArray.length - 1;
     while (index >= 0) {
       if (this._workerParamArray[index] && 'firstBlockNumber' in this._workerParamArray[index]) {
         if (blockNumber > this._workerParamArray[index].firstBlockNumber) {
-          return index;
+          return this._workerParamArray[index];
         }
         index--;
       } else {
