@@ -431,12 +431,18 @@ class EthereumVerifier {
     if ((this._workerParamArray.length === 0) || (!blockNumber)) {
       return null;
     }
-
-    const index = Math.floor((blockNumber - this._workerParamArray[0].firstBlockNumber) / this._epochSize);
-    if ((index >= this._workerParamArray.length) || (index < 0)) {
-      return null;
+    let index = this._workerParamArray.length;
+    while (index >= 0) {
+      if (this._workerParamArray[index] && 'firstBlockNumber' in this._workerParamArray[index]) {
+        if (blockNumber > this._workerParamArray[index].firstBlockNumber) {
+          return index;
+        }
+        index--;
+      } else {
+        return null;
+      }
     }
-    return this._workerParamArray[index];
+    return null;
   }
 
   _newEpochEventCallback(err, event) {
