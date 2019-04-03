@@ -14,9 +14,10 @@ class StartTaskExecutionAction {
   execute(params) {
     const type = params.type;
     const request = params.request;
+    const onResponse = params.onResponse;
     let task = null;
-    // TODO:: lena: refer to the diagrams, fake gasLimit
-    request.gasLimit = 1544;
+
+    request.gasLimit = 0; // it is being overwritten in the VerifyNewTaskAction
     switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;
@@ -29,6 +30,19 @@ class StartTaskExecutionAction {
     if (task) {
       this._controller.taskManager().addTaskUnverified(task);
     }
+    if(onResponse){
+      onResponse(null);
+    }
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      params.onResponse = function(err, verificationResult) {
+        if (err) rej(err);
+        else res(verificationResult);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = StartTaskExecutionAction;

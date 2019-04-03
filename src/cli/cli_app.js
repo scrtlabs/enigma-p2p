@@ -1,12 +1,15 @@
+const main = require('../index');
 const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
-const nodeUtils = require('../common/utils');
-const EnviornmentBuilder = require('../main_controller/EnvironmentBuilder');
+const nodeUtils = main.Utils.nodeUtils;
+const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
-const cryptography = require('../common/cryptography');
-const DbUtils = require('../common/DbUtils');
+const cryptography = main.cryptography
+const DbUtils = main.Utils.dbUtils;
+const tempdir = require('tempdir');
+
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
@@ -15,13 +18,14 @@ const DbUtils = require('../common/DbUtils');
 class CLI {
   constructor() {
     // mock server
-    this._corePort = null;
+    this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
     // Ethereum stuff
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -233,6 +237,30 @@ class CLI {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
+      'getResult' : async (args)=>{
+        const taskId = args[1];
+        let result = await this._node.getTaskResult(taskId);
+        console.log(`-------------> Result for ${taskId} <-------------`);
+        console.log(result);
+        console.log(`>----------------------------------------------<`);
+      },
+      'register' : async ()=>{
+        await this._node.register();
+      },
+      'login' : async ()=>{
+        await this._node.login();
+      },
+      'logout' : async ()=>{
+        await this._node.logout();
+      },
+      'deposit' : async (args)=>{
+        const amount = args[1];
+        await this._node.deposit(amount);
+      },
+      'withdraw' : async (args)=>{
+        const amount = args[1];
+        await this._node.withdraw(amount);
+      },
       'help': (args)=>{
         console.log('---> Commands List <---');
         console.log('$init : init all the required steps for the worker');
@@ -253,9 +281,15 @@ class CLI {
         console.log('$announce : announce the network worker synchronized on states');
         console.log('$sync : sync the worker from the network and get all the missing states');
         console.log('$isConnected <PeerId>: check if some peer is connected');
+        console.log('$getResult <taskId>: check locally if task result exists');
         console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
         console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
         console.log('$topics : list of subscribed topics');
+        console.log('$register : register to Enigma contract');
+        console.log('$login : login to Enigma contract');
+        console.log('$logout : logout from Enigma contract');
+        console.log('$deposit <amount>: deposit to Enigma contract');
+        console.log('$withdraw <amount>: withdraw from Enigma contract');
         console.log('$help : help');
         console.log('>------------------------<');
       },
@@ -265,45 +299,48 @@ class CLI {
   }
   _initInitialFlags() {
     program
-        .version('0.1.0')
-        .usage('[options] <file ...>')
-        .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
-          Parsers.list(listVal, this._globalWrapper);
-        })
-        .option('-n, --nickname [value]', 'nickname', (nick)=>{
-          Parsers.nickname(nick, this._globalWrapper);
-        })
-        .option('-p, --port [value]', 'listening port', (strPort)=>{
-          Parsers.port(strPort, this._globalWrapper);
-        })
-        .option('-i, --path [value]', 'id path', (theIdPath)=>{
-          Parsers.idPath(theIdPath, this._globalWrapper);
-        })
-        .option('-c, --core [value]', '[TEST] specify port and start with core mock server', (portStr)=>{
-          this._corePort = portStr;
-        })
-        .option('--random-db', 'random tasks db', (randomPath)=>{
-          if (randomPath) {
-            this._randomTasksDbPath = randomPath;
-          } else {
-            this._randomTasksDbPath = true;
-          }
-        })
-        .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
-          this._rpcPort = portStr;
-        })
-        .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
-          this._initEthereum = true;
-          this._ethereumWebsocketProvider = provider;
-        })
-        .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
-          this._initEthereum = true;
-          this._enigmaContractAddress = address;
-        })
-        .option('-E, --init-ethereum', 'init Ethereum', ()=>{
-          this._initEthereum = true;
-        })
-        .parse(process.argv);
+    .version('0.1.0')
+    .usage('[options] <file ...>')
+    .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
+      Parsers.list(listVal, this._globalWrapper);
+    })
+    .option('-n, --nickname [value]', 'nickname', (nick)=>{
+      Parsers.nickname(nick, this._globalWrapper);
+    })
+    .option('-p, --port [value]', 'listening port', (strPort)=>{
+      Parsers.port(strPort, this._globalWrapper);
+    })
+    .option('-i, --path [value]', 'id path', (theIdPath)=>{
+      Parsers.idPath(theIdPath, this._globalWrapper);
+    })
+    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+      this._coreAddressPort = addrPortStr;
+    })
+    .option('--random-db', 'random tasks db', (randomPath)=>{
+      if (randomPath) {
+        this._randomTasksDbPath = randomPath;
+      } else {
+        this._randomTasksDbPath = true;
+      }
+    })
+    .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
+      this._rpcPort = portStr;
+    })
+    .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
+      this._initEthereum = true;
+      this._ethereumWebsocketProvider = provider;
+    })
+    .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
+      this._initEthereum = true;
+      this._enigmaContractAddress = address;
+    })
+    .option('-E, --init-ethereum', 'init Ethereum', ()=>{
+      this._initEthereum = true;
+    })
+    .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
+      this._principalNode = addrPortstr;
+    })
+    .parse(process.argv);
   }
   _getFinalConfig() {
     const finalConfig = {};
@@ -314,8 +351,8 @@ class CLI {
   }
   async _initEnvironment() {
     const builder = new EnviornmentBuilder();
-    if (this._corePort) {
-      const uri ='tcp://127.0.0.1:' + this._corePort;
+    if (this._coreAddressPort) {
+      const uri ='tcp://' + this._coreAddressPort;
       // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
       const coreServer = new CoreServer();
       coreServer.setProvider(true);
@@ -337,10 +374,15 @@ class CLI {
       });
     }
     const nodeConfig = this._getFinalConfig();
-    if (this._randomTasksDbPath) {
-      nodeConfig.extraConfig = {};
+    if (this._randomTasksDbPath || this._principalNode) {
+      if(this._principalNode) {
+        console.log('Connecting to Principal Node at ' + this._principalNode);
+        nodeConfig.extraConfig = {principal: {uri: this._principalNode}}
+      } else {
+        nodeConfig.extraConfig = {};
+      }
       nodeConfig.extraConfig.tm = {
-        dbPath: path.join(__dirname, '/'+nodeUtils.randId()+'.deletedb'),
+        dbPath: tempdir.sync()
       };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();

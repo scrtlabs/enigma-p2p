@@ -2,17 +2,22 @@ class EnigmaContractMock {
 
   constructor() {
     this._taskRecords = {};
+    this._contracts = {};
     this._epochSize = null;
     this._eventListeners = {};
     this._workersParams = [];
+    this._except = false;
   }
 
-  setTaskParams(taskId, deltaHash, outputHash, blockNumber, status) {
+  setTaskParams(taskId, blockNumber, status, gasLimit) {
     this._taskRecords[taskId] = {taskId: taskId,
-                                 deltaHash: deltaHash,
-                                 outputHash: outputHash,
                                  blockNumber: blockNumber,
-                                 status: status};
+                                 status: status,
+                                 gasLimit: gasLimit};
+  }
+
+  setContractParams(contractAddress, codeHash, deltas, outputs) {
+    this._contracts[contractAddress] = {codeHash: codeHash, deltaHashes: deltas, outputHashes: outputs};
   }
 
   setEpochSize(size) {
@@ -24,6 +29,9 @@ class EnigmaContractMock {
   }
 
   getTaskParams(taskId) {
+    if (this._except) {
+      throw Error("Ethereum Mock exception");
+    }
     return this._taskRecords[taskId];
   }
 
@@ -31,8 +39,20 @@ class EnigmaContractMock {
     return this._epochSize;
   }
 
-  getAllWorkerParams() {
+  getWorkersParams() {
     return this._workersParams;
+  }
+
+  getContractParams(contractAddress) {
+    return this._contracts[contractAddress];
+  }
+
+  getStateDeltaHash(contractAddress, key) {
+    return this._contracts[contractAddress].deltaHashes[key];
+  }
+
+  getOutputHash(contractAddress, key) {
+    return this._contracts[contractAddress].outputHashes[key];
   }
 
   subscribe(eventName, filter, callback) {
@@ -41,6 +61,10 @@ class EnigmaContractMock {
 
   triggerEvent(eventName, event) {
     this._eventListeners[eventName](null, event);
+  }
+
+  triggerException() {
+    this._except = true;
   }
 }
 

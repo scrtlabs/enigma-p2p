@@ -15,7 +15,7 @@ class UpdateDbAction {
     const msgRes = params.data;
     const onFinish = params.callback;
     this._controller.execCmd(
-        constants.NODE_NOTIFICATIONS.DB_REQUEST,
+          constants.NODE_NOTIFICATIONS.DB_REQUEST,
         {
           input: msgRes,
           dbQueryType: constants.CORE_REQUESTS.UpdateDb,

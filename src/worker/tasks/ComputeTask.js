@@ -34,6 +34,9 @@ class ComputeTask extends Task {
     this._gasLimit = gasLimit;
     this._contractAddr = contractAddr;
   }
+  setGasLimit(gasLimit) {
+    this._gasLimit = gasLimit;
+  }
   getEncyptedArgs() {
     return this._encryptedArgs;
   }
@@ -65,14 +68,13 @@ class ComputeTask extends Task {
     return JSON.stringify(output);
   }
   toCoreJson() {
-    const output = {
+    return {
       encryptedArgs: this.getEncyptedArgs(),
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
     };
-    return JSON.stringify(output);
   }
   static fromDbJson(taskObj) {
     if (taskObj.status) {

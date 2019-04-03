@@ -5,6 +5,7 @@ const TEST_TREE = require('./test_tree').TEST_TREE;
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const testUtils = require('./testUtils/utils');
+const crypto = require('../src/common/cryptography');
 
 const B2Path = path.join(__dirname, './testUtils/id-l');
 const B2Port = '10301';
@@ -25,7 +26,6 @@ const truffleDir = path.join(__dirname, './ethereum/scripts');
 const Verifier = require('../src/worker/state_sync/receiver/StateSyncReqVerifier');
 const Web3 = require('web3');
 
-const EnigmaContractAPIBuilder = require('../src/ethereum/EnigmaContractAPIBuilder');
 const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncMsgBuilder;
 
 const parallel = require('async/parallel');
@@ -44,9 +44,10 @@ async function initEthereumStuff() {
   const workerAddress = accounts[1];
   const workerReport = '0x123456';
   const signature = web3.utils.randomHex(32);
+  const depositValue = 1000;
 
   await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-
+  await enigmaContractApi.deposit(workerAddress, depositValue, {from: workerAddress});
   await enigmaContractApi.login({from: workerAddress});
 
   return {enigmaContractAddress: enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
@@ -112,25 +113,22 @@ async function setEthereumState(api, web3, workerAddress, workerEnclaveSigningAd
     });
 
     const hexString = '0x' + DbUtils.toHexString(addressInByteArray);
-    const codeHash = web3.utils.keccak256(secretContractData[-1]);
-    //const firstDelta = secretContractData[0];
-    const firstDeltaHash = web3.utils.keccak256(secretContractData[0]);
+    const codeHash = crypto.hash(secretContractData[-1]);
+    const firstDeltaHash = crypto.hash(secretContractData[0]);
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
-    //await api.deploySecretContract(hexString, codeHash, workerAddress, workerEnclaveSigningAddress, {from: workerAddress});
-    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+    const optionalEthereumData = '0x00';
+    const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
+    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
+      optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
     let i = 1;
-    //let prevDeltaHash = initDeltaHash;
 
     while (i in secretContractData) {
       const taskId = web3.utils.randomHex(32);
-      //const fee = 5;
-      const ethCall = web3.utils.randomHex(32);
       const delta = secretContractData[i];
-      //await api.createTaskRecord(taskId, fee, {from: workerAddress});
-      const stateDeltaHash = web3.utils.keccak256(delta);
-      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, gasUsed, ethCall,
+      const stateDeltaHash = crypto.hash(delta);
+      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
           workerEnclaveSigningAddress, {from: workerAddress});
       i++;
     }
@@ -343,8 +341,9 @@ function syncTest(scenario) {
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
 
-    // start the dns mock server (core)
+    // define as provider to start with provider_db
     dnsMockCore.setProvider(true);
+    // start the dns mock server (core)
     dnsMockCore.runServer(dnsMockUri);
 
     // start the peer mock server (core)
@@ -353,8 +352,6 @@ function syncTest(scenario) {
     peerMockCore.setReceiverTips(tips);
     await testUtils.sleep(1500);
     const ethereumInfo = await initEthereumStuff();
-    // {enigmaContractApi: enigmaContractApi, web3: web3, workerEnclaveSigningAddress: workerEnclaveSigningAddress,
-    //  workerAddress: workerAddress};
     const api = ethereumInfo.enigmaContractApi;
     const web3 = ethereumInfo.web3;
     const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
@@ -373,11 +370,10 @@ function syncTest(scenario) {
     const peerController = await peerBuilder
         .setNodeConfig(peerConfig)
         .setIpcConfig({uri: peerMockUri})
+        .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
         .build();
-    const enigmaContractAPIbuilder = new EnigmaContractAPIBuilder();
-    const config = {enigmaContractAddress: enigmaContractAddress};
-    const enigmaContractHandler = await enigmaContractAPIbuilder.useDeployed(config).build();
-    await peerController.getNode().setEthereumApi(enigmaContractHandler);
+
+    // write all states to ethereum
     await setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([
@@ -457,7 +453,7 @@ function prepareDataForVerifierTest() {
   let address1 = web3.utils.randomHex(32);
   address1 = address1.slice(2, address1.length);
 
-  const bytecode = [11, 255, 84, 134, 4, 62, 190, 60, 15, 43, 249, 32, 21, 188, 170, 27, 22, 23, 8, 248, 158, 176, 219, 85, 175, 190, 54, 199, 198, 228, 198, 87, 124, 33, 158, 115, 60, 173, 162, 16,
+  const bytecode = Buffer.from([11, 255, 84, 134, 4, 62, 190, 60, 15, 43, 249, 32, 21, 188, 170, 27, 22, 23, 8, 248, 158, 176, 219, 85, 175, 190, 54, 199, 198, 228, 198, 87, 124, 33, 158, 115, 60, 173, 162, 16,
     150, 13, 149, 77, 159, 158, 13, 213, 171, 154, 224, 241, 4, 42, 38, 120, 66, 253, 127, 201, 113, 252, 246, 177, 218, 155, 249, 166, 68, 65, 231, 208, 210, 116, 89, 100,
     207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
     56, 90, 104, 16, 241, 108, 14, 126, 116, 91, 106, 10, 141, 122, 78, 214, 148, 194, 14, 31, 96, 142, 178, 96, 150, 52, 142, 138, 37, 209, 110,
@@ -466,16 +462,17 @@ function prepareDataForVerifierTest() {
     28, 195, 236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
     231, 223, 153, 119, 15, 98, 26, 77, 139, 89, 64, 24, 108, 137, 118, 38, 142, 19, 131, 220, 252, 248, 212, 120, 231, 26, 21, 228, 246, 179, 104, 207, 76, 218, 88, 150, 13, 149, 77, 159, 158, 13, 213, 171, 154, 224, 241, 4, 42, 38, 120, 66, 253, 127, 201, 113, 252, 246, 177, 218, 155, 249, 166, 68, 65, 231, 208, 210, 116, 89, 100,
     207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
-    82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213];
+    82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190,
+    227, 136, 133, 252, 128, 213]).toString('hex');
 
-  const delta0_0 = [135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
+  const delta0_0 = Buffer.from([135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
     150, 13, 149, 77, 159, 158, 13, 213, 171, 154, 224, 241,
     207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
     82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
     88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
-    82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211];
+    82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211]).toString('hex');;
 
-  const delta0_1 = [236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
+  const delta0_1 = Buffer.from([236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
     88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 73, 175, 207, 222, 86, 42, 236, 92, 194, 214,
     28, 195, 236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
     207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
@@ -483,20 +480,21 @@ function prepareDataForVerifierTest() {
     88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 73, 175, 207, 222, 86, 42, 236, 92, 194, 214,
     28, 195, 236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
     231, 223, 153, 119, 15, 98, 26, 77, 139, 89, 64, 24, 108, 137, 118, 38, 142, 19, 131, 220, 252, 248, 212, 120,
-    88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 73, 175, 207, 222, 86, 42];
+    88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 
+    73, 175, 207, 222, 86, 42]).toString('hex');
 
-  const delta1_0 = [92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
+  const delta1_0 = Buffer.from([92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
     82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
     88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 73, 175, 207, 222, 86, 42, 236, 92, 194, 214,
     28, 195, 236, 122, 122, 12, 134, 55, 41, 209, 106, 172, 10, 130, 139, 149, 39, 196, 181, 187, 55, 166, 237, 215, 135, 98, 90, 12, 6, 72, 240, 138, 112, 99, 76, 55, 22,
     231, 223, 153, 119, 15, 98, 26, 77, 139, 89, 64, 24, 108, 137, 118, 38, 142, 19, 131, 220, 252, 248, 212, 120, 231, 26, 21, 228, 246, 179, 104, 207, 76, 218, 88, 150, 13, 149, 77, 159, 158, 13, 213, 171, 154, 224, 241, 4, 42, 38, 120, 66, 253, 127, 201, 113, 252, 246, 177, 218, 155, 249, 166, 68, 65, 231, 208, 210, 116, 89, 100,
     207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
     82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
-    88, 135, 204];
+    88, 135, 204]).toString('hex');
 
   const missing = {};
-  missing[address0] = {deltas: {0: DbUtils.kecckak256Hash(delta0_0), 1: DbUtils.kecckak256Hash(delta0_1)}, bytecodeHash: DbUtils.kecckak256Hash(bytecode)};
-  missing[address1] = {deltas: {0: DbUtils.kecckak256Hash(delta1_0)}};
+  missing[address0] = {deltas: {0: crypto.hash(delta0_0), 1: crypto.hash(delta0_1)}, bytecodeHash: crypto.hash(bytecode)};
+  missing[address1] = {deltas: {0: crypto.hash(delta1_0)}};
 
   const wrongMsg1 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{address: address1, key: '1', data: delta1_0}]);
   const expectedErr1 = 'received an unknown index ' + '1' + ' for address ' + address1;
@@ -599,7 +597,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
   });
 });
 
-it('Perform a full sync scenario - from scratch', async function() {
+it('#2 Perform a full sync scenario - from scratch', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#2']) {
     this.skip();
@@ -608,7 +606,7 @@ it('Perform a full sync scenario - from scratch', async function() {
   return syncTest(SYNC_SCENARIOS.EMPTY_DB);
 });
 
-it('Perform a full sync scenario - from mid-with-some-addresses', async function() {
+it('#3 Perform a full sync scenario - from mid-with-some-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -616,7 +614,7 @@ it('Perform a full sync scenario - from mid-with-some-addresses', async function
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES);
 });
 
-it('Perform a full sync scenario - from mid-with-all-addresses', async function() {
+it('#4 Perform a full sync scenario - from mid-with-all-addresses', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#4']) {
     this.skip();
@@ -624,7 +622,7 @@ it('Perform a full sync scenario - from mid-with-all-addresses', async function(
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
 });
 
-it('Test verifier', async function() {
+it('#5 Test verifier', async function() {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();

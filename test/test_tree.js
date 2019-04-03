@@ -29,6 +29,7 @@ module.exports.TEST_TREE = {
     '#3' : true,
     '#4' : true,
     '#5' : true,
+    '#6' : true,
   },
   'task_manager' :{
     'all' : true,
@@ -37,6 +38,7 @@ module.exports.TEST_TREE = {
     '#3' : true,
     '#4' : true,
     '#5' : true,
+    '#6' : true,
   },
   'task_flow' : {
     'all' :true,
@@ -50,6 +52,10 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
   },
+  'sync_network':{
+    'all' : true,
+    '#1' : true,
+  },
   'jsonrpc_basic':{
     'all' : true,
     '#1' : true,
@@ -58,6 +64,11 @@ module.exports.TEST_TREE = {
     '#4' : true,
     '#5' : true,
     '#6' : true,
+  },
+  'jsonrpc_advanced' :{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
   },
   'actions_tests':{
     'all' : true,
@@ -100,7 +111,33 @@ module.exports.TEST_TREE = {
     '#26' : true,
     '#27' : true,
     '#28' : true,
-  }
+    '#29' : true,
+    '#30' : true,
+    '#31' : true,
+    '#32' : true,
+    '#33' : true,
+  },
+  'ethereum_integration':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
+    '#4' : true,
+    '#5' : true,
+    '#6' : true,
+    '#7' : true,
+    '#8' : true,
+  },
+  'single_config':{
+    'all' : true,
+    '#1' : true,
+    '#2' : true,
+    '#3' : true,
+  },
+  'healthcheck' : {
+    'all' : true,
+    '#1' : true,
+  },
 };
 
 

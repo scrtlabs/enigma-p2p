@@ -38,6 +38,7 @@ const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 //tasks
+const GetResultAction = require('./actions/tasks/GetResultAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
 const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
@@ -63,8 +64,15 @@ const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
 const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
 const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
 const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
-// ethereum related
+const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
+// ethereum
+const RegisterAction = require('./actions/ethereum/RegisterAction');
+const LoginAction = require('./actions/ethereum/LoginAction');
+const LogoutAction = require('./actions/ethereum/LogoutAction');
+const DepositAction = require('./actions/ethereum/DepositAction');
+const WithdrawAction = require('./actions/ethereum/WithdrawAction');
 const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
+
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
     this._policy = new Policy();
@@ -92,13 +100,12 @@ class NodeController {
     this._taskManager = null;
 
     // // init ethereum api
-    this._enigmaContractHandler = null;
+    this._ethereumApi = null;
 
     // init logic
     this._initController();
     // actions
     this._actions = {
-      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.INIT_WORKER]: new InitWorkerAction(this), // https://github.com/enigmampc/enigma-p2p#overview-on-start
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
@@ -113,11 +120,13 @@ class NodeController {
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       // tasks
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
       [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
+      [NOTIFICATION.GET_TASK_RESULT] : new GetResultAction(this), // get the task result given a taskId
       // db
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
@@ -138,7 +147,13 @@ class NodeController {
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
+      [NOTIFICATION.DISPATCH_STATUS_REQ_RPC] : new GetStatusProxyAction(this), // dispatch get status request
       // ethereum
+      [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
+      [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
+      [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
+      [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
+      [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
@@ -198,7 +213,7 @@ class NodeController {
   }
   /**
    * TODO:: currently it will generate db only if extraConfig provided
-   * TODO:: beucase of tests and multiple instances and path collision.
+   * TODO:: because of tests and multiple instances and path collision.
    * */
   _initTaskManager() {
     if (this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath) {
@@ -261,8 +276,8 @@ class NodeController {
   /** stop Ethereum, if needed
    * */
   async _stopEthereum() {
-    if (this._enigmaContractHandler) {
-      await this._enigmaContractHandler.destroy();
+    if (this._ethereumApi) {
+      await this._ethereumApi.destroy();
     }
   }
   /** *********************
@@ -291,17 +306,20 @@ class NodeController {
     });
   }
   /** set Ethereum API
-   * @param {EnigmaContractHandler} handler
+   * @param {EthereumAPI} api
    * */
-  setEthereumApi(handler) {
-    this._enigmaContractHandler = handler;
+  setEthereumApi(api) {
+    this._ethereumApi = api;
   }
   /** * stop the node */
   async stop() {
     await this.engNode().syncStop();
     await this._stopEthereum();
-    if (this._taskManager && this._extraConfig.tm.dbPath) {
+    // using some random path for testing (pre tmp feature)
+    if (this._taskManager && this._extraConfig.tm.dbPath && this._extraConfig.tm.dbPath.indexOf('/tmp/') === -1) {
       await this._taskManager.asyncStopAndDropDb();
+    }else if(this._taskManager && this._extraConfig.tm.dbPath ){
+      await this._taskManager.asyncStop();
     }
   }
   /**
@@ -348,7 +366,7 @@ class NodeController {
     return this._taskManager;
   }
   ethereum() {
-    return this._enigmaContractHandler.api();
+    return this._ethereumApi;
   }
   logger() {
     return this._logger;
@@ -451,6 +469,7 @@ class NodeController {
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
   }
+  // temp function for testing
   // TODO:: read params from constants
   tryConsistentDiscovery(callback) {
     this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
@@ -459,6 +478,14 @@ class NodeController {
       'timeout': 100000,
       'callback': callback,
     });
+  }
+  async asyncTryConsistentDiscovery(){
+    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
+      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
+      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
+      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
+    });
+    return result;
   }
   /**
    * unsubscribe form a topic
@@ -488,7 +515,7 @@ class NodeController {
     });
   }
   hasEthereum() {
-    return this._enigmaContractHandler;
+    return this._ethereumApi;
   }
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);
@@ -536,6 +563,14 @@ class NodeController {
    */
   getAllHandshakedPeers() {
     return this.engNode().getAllPeersInfo();
+  }
+  /**
+   * from TaskManager
+   * @param {string} taskId
+   * @return {Result} result
+   * */
+  async getTaskResult(taskId){
+    return await this.asyncExecCmd(NOTIFICATION.GET_TASK_RESULT,{taskId : taskId});
   }
   /** temp - findPeersRequest
    *  @param {PeerInfo} peerInfo,
@@ -606,6 +641,17 @@ class NodeController {
       },
     });
   }
+  async asyncIdentifyMissingStates(){
+    return new Promise((resolve,reject)=>{
+      this.identifyMissingStates((err ,missingStatesMsgsMap)=>{
+        if(err){
+          return reject(err);
+        }else{
+          resolve(missingStatesMsgsMap);
+        }
+      });
+    });
+  }
   // TODO make it usable to execute this pipeline
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
@@ -660,6 +706,38 @@ class NodeController {
         resolve(findProvidersResult);
       });
     });
+  }
+  /** Login to Enigma contract
+   * @return {Promise} returning boolean indicating a successful login
+   * */
+  login() {
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute({});
+  }
+  /** Logout to Enigma contract
+   * @return {Promise} returning boolean indicating a successful logout
+   * */
+  logout() {
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute({});
+  }
+  /** Register to Enigma contract
+   * @return {Promise} returning boolean indicating a successful registration
+   * */
+  register() {
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute({});
+  }
+  /** Deposit to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful deposit
+   * */
+  deposit(amount) {
+    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({amount: amount});
+  }
+  /** Withdraw to Enigma contract
+   * @param {Integer} amount
+   * @return {Promise} returning boolean indicating a successful withdrawal
+   * */
+  withdraw(amount) {
+    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({amount: amount});
   }
 }
 module.exports = NodeController;

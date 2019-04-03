@@ -26,10 +26,10 @@ module.exports.NODE_NOTIFICATIONS = {
   'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
   'IDENTIFY_MISSING_STATES_FROM_REMOTE': 'identify', // identify the missing states, compare local with remote
   'TRY_RECEIVE_ALL': 'trcva', // try recieve all of the CID's
-  ANNOUNCE_ENG_CIDS : 'aengcids' , // announce some general cids
+  'ANNOUNCE_ENG_CIDS': 'aengcids', // announce some general cids
   'ANNOUNCE_LOCAL_STATE': 'alc', // announce local state (after being synced)
   'DB_REQUEST': 'dbreq', // some db request to core
-  GET_REMOTE_TIPS : 'gremotetipslocal', // get the local tips of some remote peer
+  'GET_REMOTE_TIPS': 'gremotetipslocal', // get the local tips of some remote peer
   'GET_ALL_TIPS': 'getat', // get all tips from cache/core
   'GET_ALL_ADDRS': 'getaa', // get all addrs from cache/core
   'GET_DELTAS': 'getds', // get deltas request from core
@@ -43,7 +43,9 @@ module.exports.NODE_NOTIFICATIONS = {
   'START_TASK_EXEC': 'stexec', // start task execution process, worker side
   'ROUTE_BLOCKING_RPC': 'rbrpc', // blocking rpc call for getStatus and getRegistrationParams
   'ROUTE_NON_BLOCK_RPC': 'rnbrpc', // non blocking rpc i.e deploy and compute
+  'DISPATCH_STATUS_REQ_RPC': 'dissrrpc', // get task status rpc
   // task computation related
+  'GET_TASK_RESULT': 'gltresult', // get local task result given a task id
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
@@ -53,6 +55,11 @@ module.exports.NODE_NOTIFICATIONS = {
   'GET_STATE_KEYS': 'getstatekeys', // PTT process
   // ethereum related
   'COMMIT_RECEIPT': 'creceipt', // commit computation result on chain
+  'REGISTER': 'register', // withdraw stacking to Enigma contract
+  'LOGIN': 'login', // login to Enigma contract
+  'LOGOUT': 'logout', // logout from Enigma contract
+  'DEPOSIT': 'deposit', // deposit stacking to Enigma contract
+  'WITHDRAW': 'withdraw', // withdraw stacking to Enigma contract
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -66,7 +73,7 @@ module.exports.PROTOCOLS = {
   'GROUP_DIAL': '/groupdial',
   'HEARTBEAT': '/heartbeat/0.1',
   'STATE_SYNC': '/sync/0.1',
-  LOCAL_STATE_EXCHAGNE : '/localstateexchange/0.1',
+  'LOCAL_STATE_EXCHAGNE': '/localstateexchange/0.1',
 };
 
 /** DO NOT CHANGE THE VALUES SINCE ITS PART OF THE PROTOCOL MESSAGE FIELDS */
@@ -85,6 +92,7 @@ module.exports.PUBSUB_TOPICS = {
 module.exports.DHT_STATUS = {
   CRITICAL_HIGH_DHT_SIZE: 20,
   OPTIMAL_DHT_SIZE: 8,
+  MAX_OUTBOUND : 120,
   CRITICAL_LOW_DHT_SIZE: 3,
 };
 module.exports.MSG_STATUS = {
@@ -198,18 +206,18 @@ module.exports.ETHEREUM_EVENTS = {
  * Enigma Contract task status
  * */
 module.exports.ETHEREUM_TASK_STATUS = {
-  RECORD_UNDEFINED : 0,
-  RECORD_CREATED : 1,
-  RECEIPT_VERIFIED : 2,
-  RECEIPT_FAILED : 3,
+  RECORD_UNDEFINED: 0,
+  RECORD_CREATED: 1,
+  RECEIPT_VERIFIED: 2,
+  RECEIPT_FAILED: 3,
 };
 
 /**
 * Enigma Contract secret contract status
 * */
 module.exports.ETHEREUM_SECRET_CONTRACT_STATUS = {
-  UNDEFINED : 0,
-  DEPLOYED : 1,
+  UNDEFINED: 0,
+  DEPLOYED: 1,
 };
 
 
