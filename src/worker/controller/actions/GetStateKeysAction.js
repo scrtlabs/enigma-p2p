@@ -18,7 +18,12 @@ class GetStateKeysAction {
   }
 
   execute(params) {
-    let onResponse = params.onResponse;
+    let onResponse;
+    try {   // We account for the fact that params may be undefined
+      onResponse = params.onResponse;
+    } catch (e) {
+      onResponse = () => {};
+    }
     if (!onResponse) {
       onResponse = () => {};
     }
@@ -37,7 +42,7 @@ class GetStateKeysAction {
         principalResponse = await this._controller.principal().getStateKeys(msg);
       } catch (err) {
         // TODO: Errors.
-        this._controller.logger().error(`Failed Principal node connection: ${err}`);
+        this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
         return onResponse(err, null);
       }
       this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {

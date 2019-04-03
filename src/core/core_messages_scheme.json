@@ -130,13 +130,7 @@
           "userDHKey": {"type": "string"},
           "gasLimit": {"type": "number"},
           "contractAddress": {"type": "string"},
-          "preCode": {
-            "type": "array",
-            "items": {
-              "type": "number",
-              "minItems": 1
-            }
-          }
+          "preCode": {"type": "string"}
         },
         "required": ["preCode", "encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
         "additionalProperties": false
@@ -163,7 +157,16 @@
     "required": ["input"],
     "additionalProperties": false
   },
-  "GetPTTRequest": {},
+  "GetPTTRequest": {
+    "properties":{
+      "input": {
+        "type": "array",
+        "items": {"type": "string"}
+      }
+    },
+    "required": ["input"],
+    "additionalProperties": false
+  },
   "PTTResponse": {
     "properties": {
       "input": {
