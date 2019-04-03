@@ -35,9 +35,9 @@ class CommitReceiptAction {
   }
   _commitTask(task, txParams) {
     if (task.getResult().isSuccess() && task.getResult().getDelta().data && task.getResult().getOutput()) {
-      return this._commitSuccessTask(task, txParams);
+      return this._commitSuccessTask(task, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
     } else if (task.getResult().isFailed()) {
-      return this._commitFailedTask(task, txParams);
+      return this._commitFailedTask(task, {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'});
     }
     throw errors.TypeErr(`wrong type or missing fields in Result`);
   }
