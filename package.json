@@ -1,6 +1,6 @@
 {
   "name": "enigma-p2p",
-  "version": "0.1.0",
+  "version": "0.2.1",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
   "nyc": {
@@ -69,7 +69,9 @@
   "contributors": [
     "Isan Rivkin <isanrivkin@gmail.com>",
     "lena kleyner <lenak25@gmail.com>",
-    "Elichai Turkel <elichai@enigma.co>",
-    "Avishai Weingarten <avishw89@gmail.com>"
+    "Elichai Turkel <elichai.turkel@gmail.com>",
+    "Avishai Weingarten <avishw89@gmail.com>",
+    "lacabra <victor@enigma.co>",
+    "apalepu23 <adi@enigma.co"
   ]
 }
