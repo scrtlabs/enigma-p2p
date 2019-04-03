@@ -1,4 +1,5 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
+const utils = require('../common/utils');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
@@ -117,8 +118,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash,
-        optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature).send(transactionOptions, (error, receipt)=> {
+
+      if(!optionalEthereumData) {
+        optionalEthereumData = '0x';   // This is the right value to pass an empty value to the contract, otherwise we get an error
+      }
+
+      this._enigmaContract.methods.deploySecretContract(
+        utils.add0x(taskId),
+        utils.add0x(preCodeHash),
+        utils.add0x(codeHash),
+        utils.add0x(initStateDeltaHash),
+        utils.add0x(optionalEthereumData),
+        utils.add0x(optionalEthereumContractAddress),
+        gasUsed,
+        utils.add0x(signature))
+        .send(transactionOptions, (error, receipt)=> {
         if (error) {
           reject(error);
         }
@@ -324,45 +338,6 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       }
       this._enigmaContract.methods.deploySecretContract(nodeUtils.add0x(taskId), nodeUtils.add0x(preCodeHash), nodeUtils.add0x(codeHash), nodeUtils.add0x(stateDeltaHash),
          nodeUtils.add0x(ethCall), nodeUtils.add0x(ethAddr), gasUsed, nodeUtils.add0x(signature))
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
-    });
-  }
-
-  /**
-     * Worker commits the results of a deploy on-chain
-     * @param {string} taskId
-     * @param {string} preCodeHash
-     * @param {string} codeHash
-     * @param {string} stateDeltaHash
-     * @param {string} optionalEthereumData
-     * @param {string} optionalEthereumContractAddress
-     * @param {Integer} gasUsed
-     * @param {string} signature
-     * @param {JSON} txParams
-     * @return {Promise} receipt
-     * */
-  commitDeploySecretContract(taskId, preCodeHash, codeHash, stateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams) {
-    return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
-      if (txParams !== undefined && txParams !== null) {
-        const error = this._validateTxParams(txParams);
-        if (error !== null) {
-          reject(error);
-          return;
-        }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
-      }
-      if(!optionalEthereumData) {
-        ethCall = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
-      }
-      this._enigmaContract.methods.deploySecretContract(nodeUtils.add0x(taskId), nodeUtils.add0x(preCodeHash), nodeUtils.add0x(codeHash), 
-         nodeUtils.add0x(stateDeltaHash), nodeUtils.add0x(optionalEthereumData), nodeUtils.add0x(optionalEthereumContractAddress), gasUsed, nodeUtils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
