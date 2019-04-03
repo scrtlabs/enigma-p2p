@@ -19,13 +19,10 @@ class GetStateKeysAction {
 
   execute(params) {
     let onResponse;
-    try {   // We account for the fact that params may be undefined
-      onResponse = params.onResponse;
-    } catch (e) {
-      onResponse = () => {};
-    }
-    if (!onResponse) {
-      onResponse = () => {};
+    if (params && params.onResponse) {
+      onResponse = params.onResponse 
+    } else {
+        onResponse = () => {};
     }
     const onPTTRequestResponse = async (err, coreResponse) => {
       if (err || coreResponse.type === 'Error') {
