@@ -409,8 +409,8 @@ class EthereumVerifier {
    */
   _verifyTaskResultsParams(deltaHash, outputHash, task) {
     let res = {};
-    if (DbUtils.kecckak256Hash(task.getOutput()) === outputHash) {
-      if (DbUtils.kecckak256Hash(task.getDelta().data) === deltaHash) {
+    if (cryptography.hash(task.getOutput()) === outputHash) {
+      if (cryptography.hash(task.getDelta().data) === deltaHash) {
         res.isVerified = true;
         res.error = null;
       }
