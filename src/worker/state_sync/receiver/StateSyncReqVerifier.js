@@ -1,4 +1,4 @@
-const DbUtils = require('../../../common/DbUtils');
+const crypto = require('../../../common/cryptography');
 const constants = require('../../../common/constants');
 const MSG_TYPES = constants.P2P_MESSAGES;
 
@@ -32,7 +32,7 @@ class StateSyncReqVerifier {
           res = false;
           break;
         }
-        if (remoteMissingStates[address].deltas[index] != DbUtils.kecckak256Hash(data)) {
+        if (remoteMissingStates[address].deltas[index] != crypto.hash(data)) {
           err = 'delta received for address ' + address + ' in index ' + index + ' does not match remote hash';
           res = false;
           break;
@@ -41,7 +41,7 @@ class StateSyncReqVerifier {
     } else {
       if (msgType === MSG_TYPES.SYNC_BCODE_RES) {
         const address = syncMessage.address();
-        const bytecodeHash = DbUtils.kecckak256Hash(syncMessage.bytecode());
+        const bytecodeHash = crypto.hash(syncMessage.bytecode());
         if (!(address in remoteMissingStates)) {
           err = 'received an unknown address ' + address + ' in SyncBcodeRes';
           res = false;

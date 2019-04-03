@@ -1,5 +1,5 @@
 const Web3 = require('web3');
-const DbUtils = require('../../src/common/DbUtils');
+const crypto = require('../../src/common/cryptography');
 
 let web3 = new Web3();
 
@@ -44,8 +44,8 @@ module.exports.createDataForTaskSubmission = function() {
   const taskId = web3.utils.randomHex(32);
   const delta = [20, 30, 66];
   const output = [59, 230, 1];
-  const deltaHash = DbUtils.kecckak256Hash(delta);
-  const outputHash = DbUtils.kecckak256Hash(output);
+  const deltaHash = crypto.hash(delta);
+  const outputHash = crypto.hash(output);
   const blockNumber = 0;
   const usedGas = 90;
   const ethereumPayload = "";

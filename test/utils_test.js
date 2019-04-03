@@ -3,6 +3,7 @@ const CIDUtil = require('../src/common/CIDUtil');
 const EncoderUtil = require('../src/common/EncoderUtil');
 const EngCID = require('../src/common/EngCID');
 const StateUtils = require('../src/common/DbUtils');
+const crypto = require('../src/common/cryptography');
 
 const address = '0123456789ABcdeF0123456789AbcDEF00000000';
 const hash = '0x5f8387c70ddbc27ab6cb2918ce879d8399b28300bf14fe604fe2e04f1ec9c640';
@@ -158,7 +159,7 @@ it('should fail to create EngCID', async function() {
 });
 
 it('should hash', async function() {
-  const h = StateUtils.kecckak256Hash('Hello World');
+  const h = crypto.hash('48656c6c6f20576f726c64');
   assert.strictEqual(h, '0x592fa743889fc7f92ac2a37bb1f5ba1daf2a5c84741ca0e0061d243a2e6707ba');
 });
 
