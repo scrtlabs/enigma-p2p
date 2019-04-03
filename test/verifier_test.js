@@ -537,14 +537,9 @@ describe('Verifier tests', function() {
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
 
-      // verify unexpected future block number
-      blockNumber = 550;
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-
       // now add another param and expect the task to be verified
-      const event = {seed: a.expectedParams.seed, blockNumber: 500, workers: a.expectedParams.workers, balances: a.expectedParams.balances, nonce: a.expectedParams.nonce};
+      blockNumber = 550;
+      let event = {seed: a.expectedParams.seed, firstBlockNumber: 500, workers: a.expectedParams.workers, balances: a.expectedParams.balances, nonce: a.expectedParams.nonce};
       a.apiMock.triggerEvent('WorkersParameterized', event);
 
       res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
@@ -552,10 +547,19 @@ describe('Verifier tests', function() {
       assert.strictEqual(res.error, null);
 
       // verify unexpected past block number
-      blockNumber = 0;
+      blockNumber = 50;
       res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+
+      // trigger a problematic event and expect that the workers params array won'y be updated
+      blockNumber = 150;
+      event = {seed: a.expectedParams.seed, blockNumber:600, workers: a.expectedParams.workers, balances: a.expectedParams.balances, nonce: a.expectedParams.nonce};
+      a.apiMock.triggerEvent('WorkersParameterized', event);
+
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
+      assert.strictEqual(res.isVerified, false);
+      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true); // and not instanceof errors.TaskValidityErr
 
       resolve();
     });
