@@ -1,3 +1,4 @@
+const constants = require('../../../../common/constants');
 const cryptography = require('../../../../common/cryptography');
 const errors = require('../../../../common/errors');
 const constants = require('../../../../common/constants');
