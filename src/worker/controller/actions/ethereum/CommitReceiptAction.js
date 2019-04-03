@@ -1,3 +1,4 @@
+const constants = require('../../../../common/constants');
 const cryptography = require('../../../../common/cryptography');
 const errors = require('../../../../common/errors');
 
@@ -44,16 +45,31 @@ class CommitReceiptAction {
     );
   }
   _commitSuccessTask(task, txParams) {
-    return this._controller.ethereum().api().commitReceipt(
-        task.getContractAddr(),
-        task.getTaskId(),
-        cryptography.hash(task.getResult().getDelta().data),
-        cryptography.hash(task.getResult().getOutput()),
-        task.getResult().getUsedGas(),
-        task.getResult().getEthPayload(),
-        task.getResult().getSignature(),
-        txParams
-    );
+    if(task.getTaskType() === 'DeploySecretContract') {
+      return this._controller.ethereum().api().commitDeploySecretContract(
+          task.getTaskId(),
+          task.getResult().getPreCodeHash(),
+          cryptography.hash(task.getResult().getOutput()),
+          cryptography.hash(task.getResult().getDelta().data),
+          task.getResult().getEthPayload(),
+          task.getResult().getEthAddr(),
+          task.getResult().getUsedGas(),
+          task.getResult().getSignature(),
+          {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'}
+      );
+    }else{
+      return this._controller.ethereum().api().commitReceipt(
+          task.getContractAddr(),
+          task.getTaskId(),
+          cryptography.hash(task.getResult().getDelta().data),
+          cryptography.hash(task.getResult().getOutput()),
+          task.getResult().getEthPayload(),
+          task.getResult().getEthAddr(),
+          task.getResult().getUsedGas(),
+          task.getResult().getSignature(),
+          {from: '0x90f8bf6a479f320ead074411a4b0e7944ea8c9c1'}
+      );
+    }
   }
 }
 module.exports = CommitReceiptAction;
