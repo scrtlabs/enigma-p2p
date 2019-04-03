@@ -23,7 +23,6 @@ class EthereumVerifier {
     this._ethereumServices = ethereumServices;
     this._workerParamArray = [];
     this._workerParamArrayMaxSize = 5;
-    this._epochSize = null;
     this._unverifiedCreateTasks = {};
     this._unverifiedSubmitTasks = {};
   }
@@ -432,11 +431,15 @@ class EthereumVerifier {
       return null;
     }
 
-    const index = Math.floor((blockNumber - this._workerParamArray[0].firstBlockNumber) / this._epochSize);
-    if ((index >= this._workerParamArray.length) || (index < 0)) {
-      return null;
+    let index = this._workerParamArray.length - 1;
+
+    while (index >= 0) {
+      if (blockNumber > this._workerParamArray[index].firstBlockNumber) {
+        return this._workerParamArray[index];
+      }
+      index--;
     }
-    return this._workerParamArray[index];
+    return null;
   }
 
   _newEpochEventCallback(err, event) {
@@ -444,9 +447,14 @@ class EthereumVerifier {
       this._logger.error('an error occurred while listening to new epoch event. Error=' + err);
     }
     else {
-      this._workerParamArray.push(event);
-      if (this._workerParamArray.length > this._workerParamArrayMaxSize) {
-        this._workerParamArray.shift();
+      if (!this._validateWorkerParams(event)) {
+        this._logger.error('Worker params received are not valid, ignoring them.. params=' + JSON.stringify(event));
+      }
+      else {
+        this._workerParamArray.push(event);
+        if (this._workerParamArray.length > this._workerParamArrayMaxSize) {
+          this._workerParamArray.shift();
+        }
       }
     }
   }
@@ -507,8 +515,14 @@ class EthereumVerifier {
 
   async _updateWorkerParamNow() {
     let workerParamArray = await this._contractApi.getWorkersParams();
+    // validate workers params
+    for (let i = 1; i < workerParamArray.length; i++) {
+      if (!this._validateWorkerParams(workerParamArray[i])) {
+        this._logger.error('Worker params are not valid, ignoring them.. index=' + index + ' params=' + JSON.stringify(workerParamArray[i]));
+        return;
+      }
+    }
     this._workerParamArray = this._sortWorkerParams(workerParamArray);
-    this._epochSize = await this._contractApi.getEpochSize();
     // Note that if in any case, the array wasn't empty, due to an event received just before this call,
     // if we retrieve the info from Ethereum afterwards, it's ok to override the array, as the data will be there already
   }
@@ -533,6 +547,10 @@ class EthereumVerifier {
       workerParamArray.push(element);
     }
     return workerParamArray;
+  }
+
+  _validateWorkerParams(params) {
+    return ('firstBlockNumber' in params);
   }
 }
 
