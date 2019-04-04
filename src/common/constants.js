@@ -104,7 +104,9 @@ module.exports.MSG_STATUS = {
 
 module.exports.CONSISTENT_DISCOVERY_PARAMS = {
   MAX_RETRY: 10, // stop if more than 10 tries
-  TIMEOUT: 100000, // stop if timeout millis
+  TIMEOUT: 100 * 1000, // stop if timeout millis
+  //TODO:: avishai add exponential backoff interval instead of StoppableTask
+  //TODO:: use 'retry' npm module with randomize flag (http://dthain.blogspot.com/2009/02/exponential-backoff-in-distributed.html)
   DELAY: 500, // delay between each try millis
 };
 module.exports.CONTENT_ROUTING = {

@@ -22,9 +22,10 @@
  * should be done manually, no point automating this. get the info with $getRegistration cli cmd.
  * */
 
-
+const errors = require('../../../common/errors');
 const constants = require('../../../common/constants');
 const waterfall = require('async/waterfall');
+
 class InitWorkerAction {
   constructor(controller) {
     this._controller = controller;
@@ -36,6 +37,7 @@ class InitWorkerAction {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
     const P = constants.CONSISTENT_DISCOVERY_PARAMS;
+    const depositAmount = params.amount;
     // methods
     const discovery = (cb)=>{
       this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
@@ -56,11 +58,12 @@ class InitWorkerAction {
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
         onEnd: (err, statusResult)=>{
-          if (err) {
-            this._controller.logger().error('error receiving pipeline! ' + err);
-          } else {
+          if(!err || err instanceof errors.SyncReceiverNoMissingDataErr){
             this._controller.logger().debug(JSON.stringify(statusResult));
             this._controller.logger().info('success syncing pipeline');
+            err = null;
+          } else{
+            this._controller.logger().error('error receiving pipeline! ' + err);
           }
           cb(err);
         },
@@ -105,7 +108,32 @@ class InitWorkerAction {
     const registerAndLoginWorker = (cb)=>{
       console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
       if(this._controller.hasEthereum()){
+        // todo: get worker params to check registration, deposit and login status
+        let registered = false;
+        let isDeposit = false;
+        let isLogged = false;
+        if (!registered) {
+          this._controller.execCmd(C.REGISTER, {onResponse: (err, registered) => {
+            if (err || !registered) {
+              this._controller.logger().error('error InitWorkerAction- Register to ethereum failed' + err);
+            }
+          }});
+        }
+        if (!isDeposit) {
+          this._controller.execCmd(C.DEPOSIT, {amount: depositAmount, onResponse: (err, deposit) => {
+              if (err || !deposit) {
+                this._controller.logger().error('error InitWorkerAction- Deposit stake failed' + err);
+              }
+          }});
+        }
 
+        if (!isLogged) {
+          this._controller.execCmd(C.LOGIN, {onResponse: (err, logged) => {
+              if (err || !logged) {
+                this._controller.logger().error('error InitWorkerAction- login to ethereum failed' + err);
+              }
+          }});
+        }
       }
       cb(null);
     };
@@ -129,6 +157,16 @@ class InitWorkerAction {
       if (callback) {
         callback(err);
       }
+    });
+  }
+
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      params.callback = function(status, result) {
+        resolve({status:status,result : result});
+      };
+      action.execute(params);
     });
   }
 }
