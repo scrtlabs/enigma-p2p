@@ -41,7 +41,7 @@
     "mocha": "^5.2.0",
     "msgpack-lite": "^0.1.26",
     "multispinner": "^0.2.1",
-    "openzeppelin-solidity": "^2.1.2",
+    "openzeppelin-solidity": "2.1",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
     "pick-random": "^2.0.0",
