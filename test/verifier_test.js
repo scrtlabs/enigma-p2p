@@ -744,7 +744,7 @@ describe('Verifier tests', function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, blockNumber, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3Utils.randomHex(20))).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3Utils.toChecksumAddress(web3Utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -858,7 +858,7 @@ describe('Verifier tests', function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status);
-      a.verifier.verifyTaskCreation(task, web3.utils.toChecksumAddress(web3Utils.randomHex(20))).then( (res)=> {
+      a.verifier.verifyTaskCreation(task, web3Utils.toChecksumAddress(web3Utils.randomHex(20))).then( (res)=> {
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
