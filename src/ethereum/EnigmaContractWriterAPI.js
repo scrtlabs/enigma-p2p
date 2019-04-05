@@ -286,14 +286,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         optionalEthereumData = '0x';   // This is the right value to pass an empty value to the contract, otherwise we get an error
       }
       this._enigmaContract.methods.commitReceipt(
-        nodeUtils.add0x(secretContractAddress),
-        nodeUtils.add0x(taskId),
-        nodeUtils.add0x(stateDeltaHash),
-        nodeUtils.add0x(outputHash),
-        nodeUtils.add0x(optionalEthereumData),
-        nodeUtils.add0x(optionalEthereumContractAddress),
+        utils.add0x(secretContractAddress),
+        utils.add0x(taskId),
+        utils.add0x(stateDeltaHash),
+        utils.add0x(outputHash),
+        utils.add0x(optionalEthereumData),
+        utils.add0x(optionalEthereumContractAddress),
         gasUsed,
-        nodeUtils.add0x(signature))
+        utils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
