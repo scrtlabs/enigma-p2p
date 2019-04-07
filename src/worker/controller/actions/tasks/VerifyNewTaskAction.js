@@ -19,16 +19,16 @@ class VerifyNewTaskAction {
           try {
             let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
             if (res.error) {
-              this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.taskId}: ${res.error}`);
+              this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${res.error}`);
             }
             else if (res.isVerified) {
               unverifiedTask.setGasLimit(res.gasLimit);
-              this._controller.logger().debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.taskId}`);
+              this._controller.logger().debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`);
               isVerified = true;
             }
           }
           catch (err) {
-            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.taskId}`);
+            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.getTaskId()}`);
           }
         }
         await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);

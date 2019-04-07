@@ -1,11 +1,6 @@
 const Web3 = require('web3');
 
 class DbUtils {
-  static kecckak256Hash(value) {
-    const w = new Web3();
-    return w.utils.keccak256(value);
-  }
-
   static toHexString(byteArray) {
     return Array.from(byteArray, function(byte) {
       return ('0' + (byte & 0xFF).toString(16)).slice(-2);

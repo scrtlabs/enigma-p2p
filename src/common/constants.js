@@ -222,6 +222,14 @@ module.exports.ETHEREUM_SECRET_CONTRACT_STATUS = {
   DEPLOYED: 1,
 };
 
+/**
+ * Enigma Contract worker status
+ * */
+module.exports.ETHEREUM_WORKER_STATUS = {
+  UNREGISTERED: 0,
+  LOGGEDIN: 1,
+  LOGGEDOUT: 2
+};
 
 module.exports.PRINCIPAL_NODE = {
   uri: 'http://127.0.0.1:10101',

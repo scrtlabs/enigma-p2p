@@ -16,7 +16,7 @@ module.exports.hash = (value, with0x = true)=>{
 };
 
 /**
- * Hash parameters in order, mimicing the way solidity is doing that
+ * Hash parameters in order, mimicking the way solidity is doing that
  * The function receives any number of parameters
  * @return {string} hash
  * */
@@ -37,5 +37,5 @@ module.exports.toBN = (value) => {
  * internal
  * */
 const _keccack256Hash = (value)=>{
-  return web3.utils.keccak256(Buffer.from(value));
+  return web3.utils.keccak256(Buffer.from(value, 'hex'));
 };

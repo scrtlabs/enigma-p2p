@@ -7,6 +7,7 @@ const EthereumAPI = require(path.join(__dirname, '../../src/ethereum/EthereumAPI
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 const testParameters = require('./test_parameters.json');
 const Logger = require('../../src/common/logger');
+const constants = require('../../src/common/constants');
 
 describe('Ethereum tests', function() {
   function eventSubscribe(api, eventName, filter, callback) {
@@ -71,6 +72,14 @@ describe('Ethereum tests', function() {
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
       await api.deposit(workerAddress, depositValue, {from: workerAddress});
       await api.login({from: workerAddress});
+
+
+      const workerState = await api.getWorker(workerAddress);
+      
+      assert.strictEqual(workerState.report, workerReport);
+      assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
+      assert.strictEqual(workerState.balance, depositValue);
+      assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       // Verify worker's report
       const result = await api.getReport(workerAddress);
@@ -333,7 +342,7 @@ describe('Ethereum tests', function() {
       const outputHash2 = web3.utils.randomHex(32);
       const outputHash3 = web3.utils.randomHex(32);
       const outputHash4 = web3.utils.randomHex(32);
-      
+
       await api.commitReceipt(secretContractAddress1, taskId1, stateDeltaHash1, outputHash1, optionalEthereumData, optionalEthereumContractAddress,
         gasUsed, signature, {from: workerAddress});
 
