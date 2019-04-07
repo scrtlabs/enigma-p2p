@@ -30,7 +30,6 @@ class TryReceiveAllAction {
 
     const jobs = [];
     const firstJob = allMissingDataList[0];
-
     // pass the missingStateList to the receiver
     receiver.setRemoteMissingStatesMap(remoteMissingStatesMap);
     // init the first job
