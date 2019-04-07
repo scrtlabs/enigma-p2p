@@ -97,7 +97,7 @@ function prepareSyncTestData() {
 
 // todo: create a DB for the coreServer which is stored in memory and
 //  use a test flag 'stateful` to decide if to store data to it or not.
-it('#1 run init', async function() {
+it('#1 run init and healthCheck', async function() {
   if (!tree['all'] || !tree['#1']) {
     this.skip();
   }
