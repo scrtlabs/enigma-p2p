@@ -71,6 +71,7 @@ const LoginAction = require('./actions/ethereum/LoginAction');
 const LogoutAction = require('./actions/ethereum/LogoutAction');
 const DepositAction = require('./actions/ethereum/DepositAction');
 const WithdrawAction = require('./actions/ethereum/WithdrawAction');
+const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
@@ -153,6 +154,7 @@ class NodeController {
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
       [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
+      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
   /**
