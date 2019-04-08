@@ -56,13 +56,24 @@ class GetStateKeysAction {
       });
     };
 
-    this._controller.execCmd(
-        constants.NODE_NOTIFICATIONS.DB_REQUEST,
-        {
-          dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
-          onResponse: onPTTRequestResponse,
-        },
-    );
+    if (params && params.addresses) {
+      this._controller.execCmd(
+          constants.NODE_NOTIFICATIONS.DB_REQUEST,
+          {
+            dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
+            input: params.addresses,
+            onResponse: onPTTRequestResponse,
+          },
+      );
+    } else {
+      this._controller.execCmd(
+          constants.NODE_NOTIFICATIONS.DB_REQUEST,
+          {
+            dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
+            onResponse: onPTTRequestResponse,
+          },
+      );
+    }
   }
 
   _pttResponse(params, cb) {
