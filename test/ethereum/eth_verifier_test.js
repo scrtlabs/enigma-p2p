@@ -9,13 +9,12 @@ const ComputeResult  = require('../../src/worker/tasks/Result').ComputeResult;
 const DeployResult  = require('../../src/worker/tasks/Result').DeployResult;
 const constants = require('../../src/common/constants');
 const errors = require('../../src/common/errors');
-const Web3 = require('web3');
+const web3Utils = require('web3-utils');
 const testUtils = require('../testUtils/utils');
 
 // TODO: lena: THIS TESTS SUITE SHOULD USE REAL ETHEREUM, ONCE CONTRACT UPDATED
 
 describe('Verifier tests', function() {
-  let web3 = new Web3();
 
   async function init(isDeploy, taskCreation) {
     const builder = await ControllerBuilder.createNode();
@@ -151,7 +150,7 @@ describe('Verifier tests', function() {
         resolve();
       };
 
-      coreServer.setSigningKey(web3.utils.randomHex(20));
+      coreServer.setSigningKey(web3Utils.randomHex(20));
 
       const task = ComputeTask.buildTask(taskData);
       const res = await controller.getNode().asyncExecCmd(
@@ -274,7 +273,7 @@ describe('Verifier tests', function() {
         await stopTest();
       };
 
-      taskData.delta.data = web3.utils.randomHex(20);
+      taskData.delta.data = web3Utils.randomHex(20);
 
       const task = DeployResult.buildDeployResult(taskData);
       const rawMessage = Buffer.from(JSON.stringify({result: task.toDbJson(),

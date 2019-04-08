@@ -123,6 +123,34 @@ class EnigmaContractReaderAPI {
   //     });
   //   });
   // }
+
+  /**
+   * Get worker information
+   * @param {String} address
+   * @return {Promise} returning {JSON}: address, status, report, balance
+   * */
+  getWorker (address) {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getWorker(address).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        if (Object.keys(data).length < 4) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
+          reject(err);
+        }
+        const report = this._web3.utils.hexToAscii(data.report);
+        const params = {
+          address: data.signer,
+          status: parseInt(data.status),
+          report: report,
+          balance: parseInt(data.balance)
+        };
+
+        resolve(params);
+      });
+    });
+  }
   /**
      * * Get the Worker report
      * @param {string} workerAddress
@@ -134,7 +162,7 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
-        if (Object.keys(data).length != 2) {
+        if (Object.keys(data).length !== 2) {
           const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
           reject(err);
         }
