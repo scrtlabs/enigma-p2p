@@ -22,7 +22,10 @@ class MsgPrincipal {
   }
 
   toJson() {
-    return [this.getRequest(),this.getSig()];
+    return {
+      'data': this.getRequest(),
+      'sig': this.getSig(),
+    };
   }
 }
 
