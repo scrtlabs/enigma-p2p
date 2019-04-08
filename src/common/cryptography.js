@@ -1,5 +1,4 @@
-const Web3 = require('web3');
-const web3 = new Web3();
+const web3Utils = require('web3-utils');
 const errors = require('./errors');
 /**
  * hash parameters in order
@@ -21,7 +20,7 @@ module.exports.hash = (value, with0x = true)=>{
  * @return {string} hash
  * */
 module.exports.soliditySha3 = function () {
-  return web3.utils.soliditySha3.apply(null, arguments);
+  return web3Utils.soliditySha3.apply(null, arguments);
 }
 
 /**
@@ -30,12 +29,12 @@ module.exports.soliditySha3 = function () {
  * @return {BN} converted value
  * */
 module.exports.toBN = (value) => {
-  return web3.utils.toBN(value);
+  return web3Utils.toBN(value);
 }
 
 /**
  * internal
  * */
 const _keccack256Hash = (value)=>{
-  return web3.utils.keccak256(Buffer.from(value, 'hex'));
+  return web3Utils.keccak256(Buffer.from(value, 'hex'));
 };
