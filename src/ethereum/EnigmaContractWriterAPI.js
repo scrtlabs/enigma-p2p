@@ -285,6 +285,9 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       if(!optionalEthereumData) {
         optionalEthereumData = '0x';   // This is the right value to pass an empty value to the contract, otherwise we get an error
       }
+      if(!stateDeltaHash) {
+        stateDeltaHash = '0x';
+      }
       this._enigmaContract.methods.commitReceipt(
         utils.add0x(secretContractAddress),
         utils.add0x(taskId),
