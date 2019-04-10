@@ -5,6 +5,8 @@ const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
 
+const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
+
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger);
@@ -119,7 +121,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       }
 
       if(!optionalEthereumData) {
-        optionalEthereumData = '0x';   // This is the right value to pass an empty value to the contract, otherwise we get an error
+        optionalEthereumData = EMPTY_HEX_STRING;
       }
 
       this._enigmaContract.methods.deploySecretContract(
@@ -283,10 +285,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
       if(!optionalEthereumData) {
-        optionalEthereumData = '0x';   // This is the right value to pass an empty value to the contract, otherwise we get an error
+        optionalEthereumData = EMPTY_HEX_STRING;
       }
       if(!stateDeltaHash) {
-        stateDeltaHash = '0x';
+        stateDeltaHash = EMPTY_HEX_STRING;
       }
       this._enigmaContract.methods.commitReceipt(
         utils.add0x(secretContractAddress),
