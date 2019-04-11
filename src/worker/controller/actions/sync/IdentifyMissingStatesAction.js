@@ -56,6 +56,7 @@ class IdentifyMissingStatesAction {
   }
 
   static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
+    // TODO:: method not static and get StateSync from this._controller.ethereum()....
     StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
       const res = {missingStatesMap: {}, missingStatesMsgsMap: {}};
 

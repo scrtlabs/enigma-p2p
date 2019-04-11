@@ -41,7 +41,7 @@
     "mocha": "^5.2.0",
     "msgpack-lite": "^0.1.26",
     "multispinner": "^0.2.1",
-    "openzeppelin-solidity": "^2.1.2",
+    "openzeppelin-solidity": "2.1",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
     "pick-random": "^2.0.0",
@@ -50,7 +50,8 @@
     "rimraf": "^2.6.2",
     "truffle-contract": "^3.0.6",
     "unix-timestamp": "^0.2.0",
-    "web3": "^1.0.0-beta.37",
+    "web3": "1.0.0-beta.37",
+    "web3-utils": "1.0.0-beta.37",
     "zeromq": "^5.1.0"
   },
   "devDependencies": {
