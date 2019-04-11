@@ -15,6 +15,7 @@ class MockCoreServer {
   constructor(name) {
     this._socket = null;
     this._uri = null;
+    this._tmpDB = null;
     this._isProvider = false;
     this._signKey = null; //"0x5e9c469c2cb6cab4f15b64a39311297c48812a89";
     this._receiverTips = DEFAULT_TIPS;
@@ -139,6 +140,27 @@ class MockCoreServer {
     };
   }
 
+  _writeTmpDB(msg) {
+    if (MockCoreServer._validate(msg, SCHEMES.UpdateDeltas)) {
+      const deltas = msg.deltas;
+      for (let delta of deltas) {
+        let address = delta.address;
+        if (!this._tmpDB[address]) {
+          this._tmpDB[address] = [];
+        }
+        this._tmpDB[address].push(delta);
+      }
+    } else if (MockCoreServer._validate(msg, SCHEMES.UpdateNewContract)) {
+      let contract_addr = msg.address;
+      if (!this._tmpDB[contract_addr]) {
+        this._tmpDB[contract_addr] = [];
+      }
+      this._tmpDB[contract_addr].push({address: contract_addr, key: -1, data: msg.bytecode});
+    } else {
+      return MockCoreServer._Error(msg);
+    }
+  }
+
   // response deltas : [{address,key,data},...]
   static _getDeltas(msg) {
     if (!MockCoreServer._validate(msg, SCHEMES.GetDeltas)) {
@@ -192,8 +214,11 @@ class MockCoreServer {
     this._socket.disconnect(this._uri);
   };
 
-  runServer(uri) {
+  runServer(uri, stateful) {
     this._uri = uri;
+    if(stateful) {
+      this._tmpDB = {};
+    }
     this._socket = zmq.socket('rep');
     this._socket.bindSync(uri);
     this._socket.on('message', (msg) => {
@@ -226,6 +251,9 @@ class MockCoreServer {
           break;
         case MsgTypes.UpdateNewContract:
         case MsgTypes.UpdateDeltas:
+          if (this._tmpDB instanceof Object) {
+            this._writeTmpDB(msg);
+          }
           MockCoreServer._send(this._socket, {
             type: msg.type,
             id: msg.id,
@@ -305,8 +333,31 @@ class MockCoreServer {
     };
   }
 
+  _retrieveTipsTmpDB() {
+    let res = [];
+    if (Object.keys(this._tmpDB).length > 0) {
+      for (let address of Object.keys(this._tmpDB)) {
+        // maxKey gets the highest delta key value available in the db (per address).
+        let keys = this._tmpDB[address].map((delta) => { return delta.key; });
+        let maxKey = Math.max.apply(Math, keys);
+        // once the highest key was found, add the delta of the corresponding key to the results.
+        let tipObj = this._tmpDB[address].find((delta) => {return delta.key === maxKey});
+        res.push(tipObj);
+      }
+    }
+    return res;
+  }
+
   _getAllTips(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetAllTips)) {
+      if (this._tmpDB) {
+        let tips = this._retrieveTipsTmpDB();
+        return {
+          type: msg.type,
+          id: msg.id,
+          tips: tips,
+        };
+      }
       return {
         type: msg.type,
         id: msg.id,
