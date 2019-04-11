@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const main = require('../index');
 const path = require('path');
 const readline = require('readline');
