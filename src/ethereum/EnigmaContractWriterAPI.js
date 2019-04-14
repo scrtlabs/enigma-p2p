@@ -1,8 +1,11 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
+const utils = require('../common/utils');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
+
+const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
@@ -116,8 +119,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash,
-        optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature).send(transactionOptions, (error, receipt)=> {
+
+      if(!optionalEthereumData) {
+        optionalEthereumData = EMPTY_HEX_STRING;
+      }
+
+      this._enigmaContract.methods.deploySecretContract(
+        utils.add0x(taskId),
+        utils.add0x(preCodeHash),
+        utils.add0x(codeHash),
+        utils.add0x(initStateDeltaHash),
+        utils.add0x(optionalEthereumData),
+        utils.add0x(optionalEthereumContractAddress),
+        gasUsed,
+        utils.add0x(signature))
+        .send(transactionOptions, (error, receipt)=> {
         if (error) {
           reject(error);
         }
@@ -268,8 +284,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData,
-        optionalEthereumContractAddress, gasUsed, signature)
+      if(!optionalEthereumData) {
+        optionalEthereumData = EMPTY_HEX_STRING;
+      }
+      if(!stateDeltaHash) {
+        stateDeltaHash = EMPTY_HEX_STRING;
+      }
+      this._enigmaContract.methods.commitReceipt(
+        utils.add0x(secretContractAddress),
+        utils.add0x(taskId),
+        utils.add0x(stateDeltaHash),
+        utils.add0x(outputHash),
+        utils.add0x(optionalEthereumData),
+        utils.add0x(optionalEthereumContractAddress),
+        gasUsed,
+        utils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);

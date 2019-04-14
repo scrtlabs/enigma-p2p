@@ -71,6 +71,7 @@ const LoginAction = require('./actions/ethereum/LoginAction');
 const LogoutAction = require('./actions/ethereum/LogoutAction');
 const DepositAction = require('./actions/ethereum/DepositAction');
 const WithdrawAction = require('./actions/ethereum/WithdrawAction');
+const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
@@ -153,6 +154,7 @@ class NodeController {
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
       [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
+      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
     };
   }
   /**
@@ -296,12 +298,19 @@ class NodeController {
    * once this done the worker can start receiving task
    * i.e already registred and sync
    * should be called after start() method was called
-   * @param {Function} callback - optinal , (err)=>{} once done
+   * @param {Number} amount- mandatory, amount to deposit as stake.
+   * @param {Function} callback - optional , (err)=>{} once done
    * */
-  initializeWorkerProcess(callback) {
+  initializeWorkerProcess(amount, callback) {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
       callback: callback,
+      amount: amount,
     });
+  }
+
+  async asyncInitializeWorkerProcess(params) {
+    let result = await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
+    return result;
   }
   /** set Ethereum API
    * @param {EthereumAPI} api
@@ -682,6 +691,18 @@ class NodeController {
           });
         }
       },
+    });
+  }
+
+  async asynctryAnnounce(){
+    return new Promise((resolve,reject)=>{
+      this.tryAnnounce((err ,ecids)=>{
+        if(err){
+          return reject(err);
+        }else{
+          resolve(ecids);
+        }
+      });
     });
   }
   /** Find a list of providers for each ecid
