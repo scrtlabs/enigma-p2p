@@ -28,6 +28,7 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 
 # Getting Started
 
+
 ## Prerequisites
 
 - [NodeJS](https://nodejs.org/en/)
