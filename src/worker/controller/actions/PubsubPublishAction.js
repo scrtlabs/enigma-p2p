@@ -13,7 +13,9 @@ class PubsubPublishAction {
         topic,
         msgBuffer,
         ()=>{
-          this._controller.logger().debug(`published [${topic}]`);
+          if (topic !== constants.PUBSUB_TOPICS.GLOBAL_LOGGER) {
+            this._controller.logger().debug(`published [${topic}]`);
+          }
         }
     );
   }

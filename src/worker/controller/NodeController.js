@@ -22,6 +22,7 @@ const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
 const TaskManager = require('../tasks/TaskManager');
 const PrincipalNode = require('../handlers/PrincipalNode');
+const ProtocolHandler = require('../handlers/ProtocolHandler');
 // actions
 const InitWorkerAction = require('./actions/InitWorkerAction');
 const PubsubPublishAction = require('./actions/PubsubPublishAction');
@@ -72,6 +73,8 @@ const LogoutAction = require('./actions/ethereum/LogoutAction');
 const DepositAction = require('./actions/ethereum/DepositAction');
 const WithdrawAction = require('./actions/ethereum/WithdrawAction');
 const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
+// action removal
+const DeleteAction = require('./actions/DeleteAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
@@ -101,6 +104,9 @@ class NodeController {
 
     // // init ethereum api
     this._ethereumApi = null;
+
+    // mongo client for logger node
+    this._mongoClient = null;
 
     // init logic
     this._initController();
@@ -294,6 +300,14 @@ class NodeController {
   overrideAction(name, action) {
     this._actions[name] = action;
   }
+
+  deleteActions(actions) {
+    let irrelevantActions = Object.values(NOTIFICATION).filter(action => !actions.includes(action));
+    for (let i=0; i<irrelevantActions.length; ++i) {
+      this.overrideAction(irrelevantActions[i], new DeleteAction(this.engNode()))
+    }
+  }
+
   /** init worker processes
    * once this done the worker can start receiving task
    * i.e already registred and sync
@@ -327,6 +341,10 @@ class NodeController {
       await this._taskManager.asyncStopAndDropDb();
     }else if(this._taskManager && this._extraConfig.tm.dbPath ){
       await this._taskManager.asyncStop();
+    }
+    // if this is the loggerNode, close the client connection to mongoDB
+    if(this._mongoClient) {
+      this._mongoClient.close();
     }
   }
   /**
@@ -503,6 +521,7 @@ class NodeController {
   unsubscribeTopic(topic, handler) {
     this.engNode().unsubscribe(topic, handler);
   }
+
   /**
    * monitor some topic, simply prints to std whenever some peer publishes to that topic
    * @param {string} topic
@@ -514,7 +533,11 @@ class NodeController {
         const from = msg.from;
         const data = JSON.parse(msg.data);
         const out = '->MONITOR published on:' + topic + '\n->from: ' + from + '\n->payload: ' + JSON.stringify(data);
-        this._logger.info(out);
+        if(topic === constants.PUBSUB_TOPICS.GLOBAL_LOGGER) {
+          console.log(out);
+        } else {
+          this._logger.info(out);
+        }
       },
       onSubscribed: ()=>{
         this._logger.info('Monitor subscribed to [' + topic +']');
@@ -757,6 +780,18 @@ class NodeController {
    * */
   withdraw(amount) {
     return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({amount: amount});
+  }
+  //set the mongo client for the logger node
+  setMongoClient(client) {
+    this._mongoClient = client;
+  }
+  // if exists, get the client which connects to mongoDB
+  getMongoClient() {
+    if(this._mongoClient) {
+      return this._mongoClient;
+    } else {
+      return null;
+    }
   }
 }
 module.exports = NodeController;

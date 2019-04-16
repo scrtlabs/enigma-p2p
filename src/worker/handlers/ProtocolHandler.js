@@ -55,10 +55,12 @@ class ProtocolHandler extends EventEmitter {
     this._subscriptions = [
       PUBSUB_TOPICS.BROADCAST,
       PUBSUB_TOPICS.TASK_RESULTS,
+      PUBSUB_TOPICS.GLOBAL_LOGGER
     ];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
     this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish;
+    this.handlers[PUBSUB_TOPICS.GLOBAL_LOGGER] = this.onGlobalLoggingPublish;
   }
   getProtocolsList() {
     return this._protocols;
@@ -138,7 +140,7 @@ class ProtocolHandler extends EventEmitter {
     );
   }
 
-  /** /getpeekbook protocol
+  /** /getpeerbook protocol
    * !!! DEPRECATED !!
    * response with workers peer book
    * @param {PeerBundle} nodeBundle libp2p bundle
@@ -347,6 +349,13 @@ class ProtocolHandler extends EventEmitter {
     }
     const self = params.worker.getProtocolHandler();
     self.notify({notification: NOTIFICATION.RECEIVED_NEW_RESULT, params: message});
+  }
+  onGlobalLoggingPublish(params, message) {
+    let self = params.worker.getProtocolHandler();
+    let isLoggerNode = !self._logger.isGlobal();
+    if(isLoggerNode){
+      self.notify({notification: NOTIFICATION.GLOBAL_LOG_HANDLE, params: message});
+    }
   }
 }
 

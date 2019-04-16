@@ -9,6 +9,7 @@ const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = main.cryptography
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
+const constants = require('../common/constants');
 
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
@@ -26,6 +27,7 @@ class CLI {
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
     this._principalNode = null;
+    this._logger_node = false;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
     this._B1Port = '10300';
@@ -296,7 +298,11 @@ class CLI {
       },
     };
     this._initInitialFlags();
-    this._initEnvironment();
+    if(this._logger_node) {
+      this._initLoggerEnvironment()
+    } else {
+      this._initEnvironment();
+    }
   }
   _initInitialFlags() {
     program
@@ -340,6 +346,9 @@ class CLI {
     })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
+    })
+    .option('-l, --logger', 'initialize this node as the global logger', ()=>{
+      this._logger_node = true;
     })
     .parse(process.argv);
   }
@@ -387,6 +396,19 @@ class CLI {
       };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
+    this._node = this._mainController.getNode();
+    const n = this._node;
+    process.on('SIGINT', async function() {
+      console.log('----> closing gracefully <------');
+      await n.stop();
+      process.exit();
+    });
+  }
+  async _initLoggerEnvironment() {
+    const builder = new EnviornmentBuilder();
+    const nodeConfig = this._getFinalConfig();
+
+    this._mainController = await builder.setNodeConfig(nodeConfig).buildAsLogger();
     this._node = this._mainController.getNode();
     const n = this._node;
     process.on('SIGINT', async function() {

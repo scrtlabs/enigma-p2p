@@ -4,6 +4,9 @@ const CoreRuntime = require('../core/CoreRuntime');
 const JsonRpcServer = require('../client_api/JsonRpcServer');
 const Logger = require('../common/logger');
 const EthereumAPI = require('../ethereum/EthereumAPI');
+const constants = require('../common/constants');
+const NOTIFICATION = constants.NODE_NOTIFICATIONS;
+const upstartMongo = require('../db/upstartMongo');
 /**
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
@@ -110,6 +113,11 @@ class EnvironmentBuilder{
           this._ethereumConfig.ethereumWebsocketProvider);
       }
       let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
+      // add node to logger for publishing globalLogging
+
+      if(logger.isGlobal() && logger.isGlobal() === true) {
+        logger.setGlobalOutput(node)
+      }
       await node.start();
       if(ethereumApi){
         node.setEthereumApi(ethereumApi);
@@ -133,6 +141,54 @@ class EnvironmentBuilder{
     // init main controller
     let mainController = new MainController(runtimes);
     mainController.start();
+    return mainController;
+  }
+  async buildAsLogger(loggerConfig){
+    let defaultLoggerConfig = {
+      output : [{type:"stdout"}, {type:"mongodb" , uri : ""}],
+      notificationFilters : [],
+    };
+    // mimic the build function
+    // 1. overrideAction RECEIVED_NEW_RESULT
+    // 2. cancel out all irelevant actions
+    let runtimes = [];
+    // init logger
+    let finalLoggerConf = {};
+    if(this._loggerConfig){
+      finalLoggerConf = this._loggerConfig;
+    }
+    finalLoggerConf.global = false;
+    let logger = new Logger(finalLoggerConf);
+    // init node
+    let nodePeerId = null;
+    if(this._nodeConfig){
+      let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
+      // add node to logger for publishing globalLogging
+      await node.start();
+      runtimes.push(node);
+    }
+    let mainController = new MainController(runtimes);
+    mainController.start();
+
+    let node = mainController.getNode();
+    // remove all irrelevant actions for the logger node
+    // todo: move this list to constants
+    let relevantActions = [
+      NOTIFICATION.PUBSUB_SUB, NOTIFICATION.REGISTRATION_PARAMS,
+      NOTIFICATION.GET_STATE_KEYS, NOTIFICATION.FIND_PEERS_REQ,
+      NOTIFICATION.PERSISTENT_DISCOVERY_DONE, NOTIFICATION.HANDSHAKE_UPDATE,
+      NOTIFICATION.DISCOVERED, NOTIFICATION.BOOTSTRAP_FINISH,
+      NOTIFICATION.CONSISTENT_DISCOVERY];
+    node.deleteActions(relevantActions);
+    // start the mongo client and add to the node controller
+    let client = await upstartMongo();
+    node.setMongoClient(client);
+
+    // add the log handling action to the logger node controller
+    let HandleNewLogAction = require('../worker/controller/actions/global_logger/HandleNewLogAction');
+    let handler = new HandleNewLogAction(node);
+    node.overrideAction(constants.NODE_NOTIFICATIONS.GLOBAL_LOG_HANDLE, handler);
+    // todo: override RECEIVED_NEW_RESULT to store results in the mongoDB DataBase
     return mainController;
   }
 }

@@ -6,6 +6,7 @@ module.exports.LOG_CONFIG = {
   'level': 'debug',
   'file': 'peer.log',
   'cli': true,
+  'global': true,
 };
 module.exports.NODE_NOTIFICATIONS = {
   'INIT_WORKER': 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
@@ -50,7 +51,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
-  'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
+  'RECEIVED_NEW_RESULT': 'rnresult', // result updates recovered from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status
   'GET_STATE_KEYS': 'getstatekeys', // PTT process
   // ethereum related
@@ -60,6 +61,8 @@ module.exports.NODE_NOTIFICATIONS = {
   'LOGOUT': 'logout', // logout from Enigma contract
   'DEPOSIT': 'deposit', // deposit stacking to Enigma contract
   'WITHDRAW': 'withdraw', // withdraw stacking to Enigma contract
+  // global logger related
+  'GLOBAL_LOG_HANDLE': 'globalhnl', // handle new global log
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -87,6 +90,7 @@ module.exports.P2P_MESSAGES = {
 module.exports.PUBSUB_TOPICS = {
   'BROADCAST': '/broadcast/0.1',
   'TASK_RESULTS': '/taskresults/0.1',
+  'GLOBAL_LOGGER' : '/global_logger/0.1'
 };
 
 module.exports.DHT_STATUS = {

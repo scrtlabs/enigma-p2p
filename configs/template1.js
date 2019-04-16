@@ -2,7 +2,8 @@ module.exports = {
   "logger" : {
     "level" : "debug", // log level
     "cli" : true, // output to std
-    "file" : false // output to file, if set path then will save to file else none.
+    "file" : false, // output to file, if set path then will save to file else none.
+    "global": false,
   },
   "node" : {
     "network" : {
