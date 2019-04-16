@@ -18,8 +18,10 @@ class GetStateKeysAction {
   }
 
   execute(params) {
-    let onResponse = params.onResponse;
-    if (!onResponse) {
+    let onResponse;
+    if (params && params.onResponse) {
+      onResponse = params.onResponse
+    } else {
       onResponse = () => {};
     }
     const onPTTRequestResponse = async (err, coreResponse) => {
@@ -37,7 +39,7 @@ class GetStateKeysAction {
         principalResponse = await this._controller.principal().getStateKeys(msg);
       } catch (err) {
         // TODO: Errors.
-        this._controller.logger().error(`Failed Principal node connection: ${err}`);
+        this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
         return onResponse(err, null);
       }
       this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
@@ -54,23 +56,26 @@ class GetStateKeysAction {
       });
     };
 
-    this._controller.execCmd(
-        constants.NODE_NOTIFICATIONS.DB_REQUEST,
-        {
-          dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
-          onResponse: onPTTRequestResponse,
-        },
-    );
+    let dbRequestParams =  {
+      dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
+      onResponse: onPTTRequestResponse,
+    };
+
+    if (params && params.addresses) {
+      dbRequestParams.input = params.addresses;
+    }
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, dbRequestParams);
+
   }
 
   _pttResponse(params, cb) {
     this._controller.execCmd(
-        constants.NODE_NOTIFICATIONS.DB_REQUEST,
-        {
-          dbQueryType: constants.CORE_REQUESTS.PTTResponse,
-          input: params,
-          onResponse: cb,
-        },
+      constants.NODE_NOTIFICATIONS.DB_REQUEST,
+      {
+        dbQueryType: constants.CORE_REQUESTS.PTTResponse,
+        input: params,
+        onResponse: cb,
+      },
     );
   }
 }
