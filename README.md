@@ -18,6 +18,7 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
   - [Prerequisites](#prerequisites)
   - [Installing](#installing)
     - [If running with Docker](#if-running-with-docker)
+  - [Installing globally with nvm](#installing-globally-with-nvm)
 - [Running the Node](#running-the-node)
 - [Running the tests](#running-the-tests)
 - [JSON RPC API](#json-rpc-api)
@@ -27,6 +28,7 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 - [License](#license)
 
 # Getting Started
+
 
 ## Prerequisites
 
@@ -55,6 +57,16 @@ To run the node inside a container from the project directory type:
  docker run -v "$PWD":/usr/src/app -ti --net="host" <image-build-id> /bin/bash
 ```
 
+## Installing globally with nvm 
+
+1. install `nvm` 
+2. install some node version : `$nvm install 10.14`
+3. type `npm install -g enigma-p2p`
+4. to run global type : `enigma-p2p-test <flags>`
+
+Incase of missing modules such as `connect` and `tempdir` install them in the same way.
+
+ `npm install -g <missing module name>`
 
 # Running the Node
 

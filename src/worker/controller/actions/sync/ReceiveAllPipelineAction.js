@@ -100,4 +100,3 @@ class ReceiveAllPipelineAction {
   }
 }
 module.exports = ReceiveAllPipelineAction;
-

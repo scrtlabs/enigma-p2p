@@ -25,12 +25,11 @@ class TryReceiveAllAction {
     const receiver = this._controller.receiver();
 
     if (allMissingDataList.length === 0) {
-      return onFinish(new errors.SyncReceiverErr('No missing data'));
+      return onFinish(new errors.SyncReceiverNoMissingDataErr('No missing data'));
     }
 
     const jobs = [];
     const firstJob = allMissingDataList[0];
-
     // pass the missingStateList to the receiver
     receiver.setRemoteMissingStatesMap(remoteMissingStatesMap);
     // init the first job
