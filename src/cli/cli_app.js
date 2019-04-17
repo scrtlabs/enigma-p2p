@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const main = require('../index');
 const path = require('path');
 const readline = require('readline');
@@ -58,7 +59,8 @@ class CLI {
     this._mainController = null;
     this._commands = {
       'init': (args)=>{
-        this._node.initializeWorkerProcess((err)=>{
+        const amount = args[1];
+        this._node.initializeWorkerProcess(amount, (err)=>{
           if (err) {
             console.log('[-] ERROR $init ', err);
           }

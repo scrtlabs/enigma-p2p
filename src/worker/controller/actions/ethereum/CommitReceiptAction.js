@@ -34,12 +34,12 @@ class CommitReceiptAction {
     });
   }
   _commitTask(task, txParams) {
-    if (task.getResult().isSuccess() && task.getResult().getDelta().data && task.getResult().getOutput()) {
+    if (task.getResult().isSuccess() && task.getResult().getOutput()) {
       return this._commitSuccessTask(task, txParams);
     } else if (task.getResult().isFailed()) {
       return this._commitFailedTask(task, txParams);
     }
-    throw errors.TypeErr(`wrong type or missing fields in Result`);
+    throw new errors.TypeErr(`wrong type or missing fields in Result`);
   }
   _commitFailedTask(task, txParams) {
     if(task instanceof DeployTask) {
