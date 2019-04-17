@@ -59,7 +59,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
     const uri = 'tcp://127.0.0.1:5556';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(100);
+    await nodeUtils.sleep(1000);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
@@ -80,7 +80,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
           resolve();
         });
   });
-}, 20000);
+}).timeout(10000);;
 
 it('#3 GetAllTips - mock server', async function() {
   const tree = TEST_TREE['ipc'];
@@ -119,7 +119,7 @@ it('#3 GetAllTips - mock server', async function() {
       resolve();
     });
   });
-}, 30000);
+}).timeout(10000);
 
 it('#4 getNewTaskEncryptionKey - mock server', async function() {
   const tree = TEST_TREE['ipc'];
@@ -154,4 +154,4 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
           resolve();
         });
   });
-});
+}).timeout(10000);
