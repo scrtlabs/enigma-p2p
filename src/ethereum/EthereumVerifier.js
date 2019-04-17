@@ -1,6 +1,5 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
-const nodeUtils = require('../common/utils');
 const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
@@ -10,6 +9,7 @@ const result = require('../worker/tasks/Result');
 const Result = result.Result;
 const DeployResult  = result.DeployResult;
 const FailedResult  = result.FailedResult;
+
 
 class EthereumVerifier {
   /**
@@ -396,6 +396,10 @@ class EthereumVerifier {
    */
   _verifyTaskCreateParams(inputsHash, task) {
     //TODO: implement this!!!! + add UT
+    let expectedHash = null;
+    //if (task instanceof )
+    //inputsHash = utils.hash([encryptedFn, encryptedAbiEncodedArgs,
+    //  isContractDeploymentTask ? preCodeHash : scAddr, userPubKey]);
     return {isVerified: true, error: null};
   }
 
