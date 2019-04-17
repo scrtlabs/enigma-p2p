@@ -66,7 +66,7 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
 function getMockPrincipalNode() {
   const server = jayson.server({
     getStateKeys: function(args, callback) {
-      if (args.requestMessage && args.workerSig) {
+      if (args.data && args.sig) {
         recivedRequest = true;
         const result = {data: fakeResponse, sig: fakeSig};
         callback(null, result);
