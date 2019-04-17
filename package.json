@@ -1,8 +1,11 @@
 {
   "name": "enigma-p2p",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
+  "bin": {
+    "enigma-p2p-test": "./src/cli/cli_app.js"
+  },
   "nyc": {
     "temp-dir": "/tmp/enigma-p2p"
   },

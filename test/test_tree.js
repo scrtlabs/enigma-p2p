@@ -138,6 +138,10 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
   },
+  'init_worker' : {
+    'all' : true,
+    '#1' : true,
+  },
 };
 
 

@@ -298,12 +298,19 @@ class NodeController {
    * once this done the worker can start receiving task
    * i.e already registred and sync
    * should be called after start() method was called
-   * @param {Function} callback - optinal , (err)=>{} once done
+   * @param {Number} amount- mandatory, amount to deposit as stake.
+   * @param {Function} callback - optional , (err)=>{} once done
    * */
-  initializeWorkerProcess(callback) {
+  initializeWorkerProcess(amount, callback) {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
       callback: callback,
+      amount: amount,
     });
+  }
+
+  async asyncInitializeWorkerProcess(params) {
+    let result = await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
+    return result;
   }
   /** set Ethereum API
    * @param {EthereumAPI} api
@@ -684,6 +691,18 @@ class NodeController {
           });
         }
       },
+    });
+  }
+
+  async asynctryAnnounce(){
+    return new Promise((resolve,reject)=>{
+      this.tryAnnounce((err ,ecids)=>{
+        if(err){
+          return reject(err);
+        }else{
+          resolve(ecids);
+        }
+      });
     });
   }
   /** Find a list of providers for each ecid
