@@ -207,7 +207,7 @@ describe('JsonRPC tests', () => {
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
         userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
-        preCode : [22,33,100,202,111,223,211,22]
+        preCode : '162164ca6fdfd316'
       };
       JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
         assert.strictEqual(true,res.sendTaskResult, "sendTaskResult not true");
@@ -226,7 +226,7 @@ describe('JsonRPC tests', () => {
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
         userDHKey: '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
-        preCode : [22,33,100,202,111,223,211,22]
+        preCode : '162164ca6fdfd316'
       };
       JsonRpcClient.request('deploySecretContract',deployInput,(err,res)=>{
         assert.strictEqual(-32602, err.code, "code dont match");
@@ -243,7 +243,7 @@ describe('JsonRPC tests', () => {
       await testUtils.sleep(1500);
       const deployInput = {
         contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
-        preCode : [22,33,100,202,111,223,211,22],
+        preCode : '162164ca6fdfd316',
         workerAddress: signKey,
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
