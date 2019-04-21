@@ -1,6 +1,5 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
-const nodeUtils = require('../common/utils');
 const Task = require('../worker/tasks/Task');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
