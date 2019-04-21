@@ -66,7 +66,7 @@ module.exports.TEST_TREE = {
     '#6' : false,
   },
   'jsonrpc_advanced' :{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
   },

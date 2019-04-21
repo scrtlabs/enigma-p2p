@@ -2,12 +2,23 @@ const testBuilder = require('./testUtils/quickBuilderUtil');
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const tree = TEST_TREE.jsonrpc_advanced;
 const testUtils = require('./testUtils/utils');
+const principalMock = require('./testUtils/principal_mock');
 const assert = require('assert');
-const EngCid = require('../src/common/EngCID');
-const EncoderUtil = require('../src/common/EncoderUtil');
-const CidUtil = require('../src/common/CIDUtil');
 const constants = require('../src/common/constants');
 const jayson = require('jayson');
+
+const fakeResponse = '0061d93b5412c0c9';
+const fakeSig = 'deadbeaf';
+
+function getStateKeysCallback(args, callback) {
+  if (args.requestMessage && args.workerSig) {
+    const result = {data: fakeResponse, sig: fakeSig};
+    callback(null, result);
+  } else {
+    assert(false);
+    callback('Missing requestMessage', null);
+  }
+}
 
 describe('jsonrpc_advanced',()=>{
 
@@ -17,7 +28,15 @@ describe('jsonrpc_advanced',()=>{
     }
     return new Promise(async resolve => {
       // create all the boring stuff
-      let {bNode,peer} = await testBuilder.createTwo({bOpts:{withProxy : true,proxyPort : 3346,withLogger : false},pOpts :{withLogger : false}});
+      const principalServer = principalMock.create(getStateKeysCallback);
+      await testUtils.sleep(150);
+      const principalPort = principalMock.getPort(principalServer);
+      const uri = 'http://127.0.0.1:';
+
+      let {bNode,peer} = await testBuilder.createTwo({
+        bOpts : { withProxy :true ,proxyPort :3346, withLogger: false},
+        pOpts : { withLogger :false, principalUri :uri + principalPort}});
+
       await testUtils.sleep(3000);
       let bNodeController = bNode.mainController;
       let bNodeCoreServer = bNode.coreServer;
@@ -31,6 +50,7 @@ describe('jsonrpc_advanced',()=>{
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
+        principalMock.destroy(principalServer);
         // await testUtils.rm_Minus_Rf(pPath);
         // await testUtils.rm_Minus_Rf(bPath);
         resolve();
@@ -62,7 +82,15 @@ describe('jsonrpc_advanced',()=>{
     }
     return new Promise(async resolve => {
       // create all the boring stuff
-      let {bNode,peer} = await testBuilder.createTwo({bOpts:{withProxy : true,proxyPort : 3346,withLogger : false},pOpts :{withLogger : false}});
+      const principalServer = principalMock.create(getStateKeysCallback);
+      await testUtils.sleep(150);
+      const principalPort = principalMock.getPort(principalServer);
+      const uri = 'http://127.0.0.1:';
+
+      let {bNode,peer} = await testBuilder.createTwo({
+        bOpts:{withProxy : true,proxyPort : 3346,withLogger : false},
+        pOpts :{withLogger : false, principalUri :uri + principalPort}});
+
       await testUtils.sleep(3000);
       let bNodeController = bNode.mainController;
       let bNodeCoreServer = bNode.coreServer;
@@ -78,6 +106,7 @@ describe('jsonrpc_advanced',()=>{
         bNodeCoreServer.disconnect();
         // await testUtils.rm_Minus_Rf(pPath);
         // await testUtils.rm_Minus_Rf(bPath);
+        principalMock.destroy(principalServer);
         resolve();
       };
       const client = jayson.client.http('http://localhost:3346');
