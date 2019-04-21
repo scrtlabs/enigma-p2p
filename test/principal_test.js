@@ -1,6 +1,7 @@
 const testUtils = require('./testUtils/utils');
+const principalMock = require('./testUtils/principal_mock');
 const ControllerBuilder = require('./testUtils/quickBuilderUtil');
-const jayson = require('jayson');
+
 const assert = require('assert');
 const PrincipalNode = require('../src/worker/handlers/PrincipalNode');
 const MsgPrincipal = require('../src/policy/p2p_messages/principal_messages');
@@ -12,7 +13,9 @@ const fakeSig = 'deadbeaf';
 const uri = 'http://127.0.0.1:';
 const addresses = ['0xdeadbeaf'];
 const TEST_TREE = require('./test_tree').TEST_TREE;
-let recivedRequest = false;
+
+
+let receivedRequest = false;
 
 it('#1 Should Recieve Encrypted response message from mock principal', async function() {
   const tree = TEST_TREE.principal;
@@ -20,9 +23,9 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
     this.skip();
   }
   return new Promise(async (resolve) => {
-    const server = getMockPrincipalNode();
+    const server = principalMock.create(getStateKeysCallback);
     await testUtils.sleep(500);
-    const port = server.address().port;
+    const port = principalMock.getPort(server);
 
     const principalClient = new PrincipalNode({uri: uri + port});
     const msg = MsgPrincipal.build({request: fakeRequest, sig: fakeSig});
@@ -35,16 +38,16 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
 
 
 it('#2 Should Simulate the principal node and run GetStateKeysAction', async function() {
-  recivedRequest = false;
+  receivedRequest = false;
   const tree = TEST_TREE.principal;
   if (!tree['all'] || !tree['#2']) {
     this.skip();
   }
 
   return new Promise(async (resolve) => {
-    const server = getMockPrincipalNode();
+    const server = principalMock.create(getStateKeysCallback);
     await testUtils.sleep(150);
-    const port = server.address().port;
+    const port = principalMock.getPort(server);
 
     const nodeConfig = {principalUri: uri + port, withTasksDb: false, bootstrapNodes: []};
     const controllers = await ControllerBuilder.createNode(nodeConfig);
@@ -57,25 +60,19 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     await testUtils.sleep(1500);
     await mainController.shutdownSystem();
     controllers.coreServer.disconnect();
-    server.close();
-    assert(recivedRequest, 'The principal mock never recived a message');
+    principalMock.destroy(server);
+    assert(receivedRequest, 'The principal mock never recived a message');
     resolve();
   });
 });
 
-function getMockPrincipalNode() {
-  const server = jayson.server({
-    getStateKeys: function(args, callback) {
-      if (args.requestMessage && args.workerSig) {
-        recivedRequest = true;
-        const result = {data: fakeResponse, sig: fakeSig};
-        callback(null, result);
-      } else {
-        assert(false);
-        callback('Missing requestMessage', null);
-      }
-    },
-  }).http().setTimeout(500000);
-  server.listen(0, '127.0.0.1');
-  return server;
+function getStateKeysCallback(args, callback) {
+  if (args.requestMessage && args.workerSig) {
+    receivedRequest = true;
+    const result = {data: fakeResponse, sig: fakeSig};
+    callback(null, result);
+  } else {
+    assert(false);
+    callback('Missing requestMessage', null);
+  }
 }
