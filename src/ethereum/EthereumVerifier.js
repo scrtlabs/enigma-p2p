@@ -1,6 +1,7 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
 const Task = require('../worker/tasks/Task');
+const DeployTask = require('../worker/tasks/DeployTask');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
 const errors = require('../common/errors');
@@ -395,12 +396,23 @@ class EthereumVerifier {
    *                isVerified - true/false
    */
   _verifyTaskCreateParams(inputsHash, task) {
-    //TODO: implement this!!!! + add UT
-    let expectedHash = null;
-    //if (task instanceof )
-    //inputsHash = utils.hash([encryptedFn, encryptedAbiEncodedArgs,
-    //  isContractDeploymentTask ? preCodeHash : scAddr, userPubKey]);
-    return {isVerified: true, error: null};
+    let res = {};
+    let paramsArray = [];
+    if (task instanceof DeployTask) {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
+    }
+    else {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), task.getContractAddr(), task.getUserDHKey()];
+    }
+    if (cryptography.hashArray(paramsArray) === inputsHash) {
+      res.isVerified = true;
+      res.error = null;
+    }
+    else {
+      res.isVerified = false;
+      res.error = new errors.TaskVerificationErr("Mismatch in inputs hash in task record " + task.getTaskId());
+    }
+    return res;
   }
 
   /**

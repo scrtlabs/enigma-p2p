@@ -1,6 +1,8 @@
 const web3Utils = require('web3-utils');
 const errors = require('./errors');
 const utils = require('../common/utils');
+const BN = require('bn.js');
+
 /**
  * hash parameters in order
  * @param {Array<Integer>} value of byte arrrays
@@ -41,7 +43,7 @@ module.exports.toBN = (value) => {
  * @param {array} inputsArray
  * @return {string} hash of inputs
  */
-module.exports.hashParamsArray = (inputsArray) => {
+module.exports.hashArray = (inputsArray) => {
   let hexStr = '';
   for (let e of inputsArray) {
     e = utils.remove0x(e);
