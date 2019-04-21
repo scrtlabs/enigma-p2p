@@ -352,7 +352,11 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, signature)
+      this._enigmaContract.methods.commitTaskFailure(
+        utils.add0x(secretContractAddress),
+        utils.add0x(taskId),
+        gasUsed,
+        utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);
@@ -381,7 +385,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, defaultOptions);
       }
-      this._enigmaContract.methods.deploySecretContractFailure(taskId, gasUsed, signature)
+      this._enigmaContract.methods.deploySecretContractFailure(
+        utils.add0x(taskId),
+        gasUsed,
+        utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);
