@@ -26,6 +26,7 @@ class EnigmaContractAPIBuilder {
     this.useDeployedFlag = false;
     this.web3 = null;
     this.api = null;
+    this.ethereumAddress = null;
     this.environment ={};
     this.config = defaultConfig;
 
@@ -37,7 +38,6 @@ class EnigmaContractAPIBuilder {
 
     return this;
   }
-
   /**
    * get the logger
    * @return {Logger} logger
@@ -45,7 +45,6 @@ class EnigmaContractAPIBuilder {
   logger() {
     return this._logger;
   }
-
   /**
    * create a EnigmaContractReaderAPI object
    * */
@@ -54,8 +53,17 @@ class EnigmaContractAPIBuilder {
     return this;
   }
   /**
+   * set the Ethereum address to be used in all transactions
+   * @param {string} address
+   * @return {EnigmaContractAPIBuilder} this
+   * */
+  setEthereumAddress(address) {
+    this.ethereumAddress = address;
+    return this;
+  }
+  /**
    * deploy a smart contract
-   * @param {JSON} config - optional
+   *
    * {
    *  url - the transport url
    *  truffleDirectory - the root of truffle workspace
@@ -120,7 +128,7 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
+      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
     } else {
       this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
@@ -134,22 +142,29 @@ class EnigmaContractAPIBuilder {
   }
 
   /**
-   * configuraing and building the api instance
-   * @param {String} enigmaContractAddress - the deployed Enigma contract to connect to
-   * @param {String} url - the transport url
+   * configuring and building the api instance
+   * @param {JSON} options
+   *  {ethereumAddress - wallet address,
+   *   enigmaContractAddress - the deployed Enigma contract to connect to
+   *   ethereumUrlProvider - the transport url
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
-  async setConfigAndBuild(enigmaContractAddress, url) {
+  async setConfigAndBuild(options) {
     let res;
+    let ethereumAddress = null;
 
-    if (enigmaContractAddress) {
-      let config = {enigmaContractAddress: enigmaContractAddress};
-      if (url) {
-        config.url = url;
+    if (options.ethereumAddress) {
+      ethereumAddress = options.ethereumAddress;
+    }
+
+    if (options.enigmaContractAddress) {
+      let config = {enigmaContractAddress: options.enigmaContractAddress};
+      if (options.ethereumUrlProvider) {
+        config.url = options.ethereumUrlProvider;
       }
-      res = await this.useDeployed(config).build();
+      res = await this.useDeployed(config).setEthereumAddress(ethereumAddress).build();
     } else {
-      res = await this.createNetwork().deploy().build();
+      res = await this.createNetwork().deploy().setEthereumAddress(ethereumAddress).build();
     }
     return res;
   }
