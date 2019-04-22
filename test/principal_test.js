@@ -67,12 +67,12 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
 });
 
 function getStateKeysCallback(args, callback) {
-  if (args.requestMessage && args.workerSig) {
+  if (args.data && args.sig) {
     receivedRequest = true;
     const result = {data: fakeResponse, sig: fakeSig};
     callback(null, result);
   } else {
     assert(false);
-    callback('Missing requestMessage', null);
+    callback('Missing data', null);
   }
 }
