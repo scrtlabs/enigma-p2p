@@ -11,12 +11,12 @@ const fakeResponse = '0061d93b5412c0c9';
 const fakeSig = 'deadbeaf';
 
 function getStateKeysCallback(args, callback) {
-  if (args.requestMessage && args.workerSig) {
+  if (args.data && args.sig) {
     const result = {data: fakeResponse, sig: fakeSig};
     callback(null, result);
   } else {
     assert(false);
-    callback('Missing requestMessage', null);
+    callback('Missing data', null);
   }
 }
 
