@@ -23,8 +23,8 @@ class MsgPrincipal {
 
   toJson() {
     return {
-      'requestMessage': this.getRequest(),
-      'workerSig': this.getSig(),
+      'data': this.getRequest(),
+      'sig': this.getSig(),
     };
   }
 }
