@@ -315,8 +315,11 @@ class CLI {
     .option('-i, --path [value]', 'id path', (theIdPath)=>{
       Parsers.idPath(theIdPath, this._globalWrapper);
     })
-    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+    .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
       this._coreAddressPort = addrPortStr;
+    })
+    .option('--mock-core', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+        this._coreAddressPort = addrPortStr;
     })
     .option('--random-db', 'random tasks db', (randomPath)=>{
       if (randomPath) {
