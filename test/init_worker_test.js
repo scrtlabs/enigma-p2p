@@ -2,6 +2,8 @@ const tree = require('./test_tree').TEST_TREE.init_worker;
 const assert = require('assert');
 const testBuilder = require('./testUtils/quickBuilderUtil');
 const testUtils = require('./testUtils/utils');
+const ethTestUtils = require('./ethereum/utils');
+
 const noLoggerOpts = {
   bOpts : {
     withLogger : false,
@@ -36,7 +38,7 @@ async function prepareEthData(controller) {
   await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
   await api.deposit(workerAddress, depositValue, {from: workerAddress});
   await api.login({from: workerAddress});
-  await testUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
+  await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
   await testUtils.sleep(2000);
 }
 

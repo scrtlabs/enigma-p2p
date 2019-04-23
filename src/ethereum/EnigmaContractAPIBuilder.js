@@ -4,6 +4,7 @@ const Logger = require('../common/logger');
 const path = require('path');
 const {exec, spawn} = require('child_process');
 const Web3 = require('web3');
+const fs = require('fs');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
 TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
@@ -91,7 +92,8 @@ class EnigmaContractAPIBuilder {
       this.config = defaultsDeep(config, this.config);
     }
     if (this.config.enigmaContractABI === undefined) {
-      const EnigmaContractJson = require(path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json'));
+      const rawdata = fs.readFileSync((path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json')));//require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
+      const EnigmaContractJson = JSON.parse(rawdata);
       this.config.enigmaContractABI = EnigmaContractJson.abi;
     }
     return this;
@@ -211,37 +213,10 @@ class EnigmaContractAPIBuilder {
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
     const networkId = truffleConfig.networks.development.network_id;
-    const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
-    // const EnigmaContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaMock.json'));
-    // const EnigmaTokenContractJson = require(path.join(truffleDirectory, 'build/contracts/EnigmaToken.json'));
+    const rawdata = fs.readFileSync((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
+    let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
-
-/*    const accounts = await this.web3.eth.getAccounts();
-
-    const sender1 = accounts[0];
-    const sender2 = accounts[1];
-    const principal = accounts[2];
-
-    const enigmaTokenContract = new this.web3.eth.Contract(EnigmaTokenContractJson.abi);
-
-    const enigmaTokenContractInstance = await enigmaTokenContract.deploy(
-      {data: EnigmaTokenContractJson.bytecode, arguments: []})
-      .send({
-        from: sender1,
-        gas: 1500000,
-        // gasPrice: '100000000000'
-      });
-
-    const enigmaContract = new this.web3.eth.Contract(EnigmaContractJson.abi);
-    const enigmaContractInstance = await enigmaContract.deploy({
-      data: EnigmaContractJson.bytecode,
-      arguments: [enigmaTokenContractInstance.options.address, principal],
-    }).send({
-      from: sender2,
-      gas: 6500000, // 4500000,
-      // gasPrice: '100000000000'
-    });*/
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;
@@ -282,16 +257,18 @@ class EnigmaContractAPIBuilder {
     });
 
     this.environment.subprocess.unref();
-
+    this.logger().debug('Network started');
     await sleep(3000);
   }
 
   async _stop() {
-    await this.environment.subprocess.kill();
+    await process.kill(-this.environment.subprocess.pid);
+    this.logger().debug('Stopping environment');
   }
 
   async _disconnect() {
     await this.web3.currentProvider.disconnect();
+    this.logger().debug('Disconnecting from environment');
   }
 }
 

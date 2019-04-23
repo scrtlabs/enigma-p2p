@@ -31,8 +31,6 @@ describe('Ethereum tests', function() {
       const api = res.api;
       const web3 = api.w3();
 
-      //console.log("enigmaContractAddress", res.enigmaContractAddress);
-
       const accounts = await api.w3().eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
@@ -166,13 +164,9 @@ describe('Ethereum tests', function() {
       const api = res2.api;
       const web3 = api.w3();
 
-      //console.log("enigmaContractAddress", res2.enigmaContractAddress);
-
-      //const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
-      //const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = web3.utils.randomHex(32);// accounts[5];
+      const workerReport = JSON.stringify(testParameters.report);
+      const secretContractAddress = web3.utils.randomHex(32);
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = web3.utils.randomHex(32);
       const initStateDeltaHash = web3.utils.randomHex(32);
@@ -190,7 +184,6 @@ describe('Ethereum tests', function() {
 
 
       let contractParams = await api.getContractParams(secretContractAddress);
-      //assert.strictEqual(contractParams.owner, workerAddress);
       assert.strictEqual(contractParams.preCodeHash, codeHash);
       assert.strictEqual(contractParams.codeHash, codeHash);
       assert.strictEqual(contractParams.deltaHashes.length, 1);
@@ -316,11 +309,6 @@ describe('Ethereum tests', function() {
       let res = await builder.createNetwork().deploy().build();
       const api = res.api;
       const web3 = api.w3();
-
-      //console.log("enigmaContractAddress", res.enigmaContractAddress);
-      //let contractsCount = await api.countSecretContracts();
-      //console.log("count", contractsCount);
-
 
       const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
@@ -454,7 +442,6 @@ describe('Ethereum tests', function() {
     if (!tree['all'] || !tree['#4']) {
       this.skip();
     }
-    const logger = new Logger();
 
     return new Promise(async function(resolve) {
       const builder = new EnigmaContractAPIBuilder();

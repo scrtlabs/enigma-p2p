@@ -11,7 +11,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger, walletAddress) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger);
     this._defaultTrxOptions = config.default;
-    if (walletAddress !== undefined && walletAddress !== null) {
+    if (walletAddress) {
       this._defaultTrxOptions.from = walletAddress;
     }
   }
