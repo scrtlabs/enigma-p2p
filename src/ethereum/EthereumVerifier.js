@@ -364,13 +364,13 @@ class EthereumVerifier {
         {t: 'uint256', v: nonce});
 
       // Find random number between [0, tokenCpt)
-      let randVal = (cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt))).toNumber();
+      let randVal = cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt));
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
       // workers. If worker has already been selected, increase nonce by one, resulting in a new hash computed above.
       for (let i = 0; i < params.workers.length; i++) {
-        randVal -= params.balances[i];
+        randVal = randVal.minus(params.balances[i]);
         if (randVal <= 0) {
           selectedWorker = params.workers[i];
           break;
