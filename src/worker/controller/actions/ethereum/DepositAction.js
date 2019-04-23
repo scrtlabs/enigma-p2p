@@ -7,29 +7,21 @@ class DepositAction {
   async execute(params) {
     const amount = params.amount;
     const onResult = params.onResponse;
-    this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
-        let success = false;
-        if (err) {
-          this._controller.logger().error(`[DEPOSIT] error=  ${err}`);
-        }
-        else {
-          const workerAddress = regParams.result.signingKey;
-          const txParams = {from: workerAddress};
-          try {
-            const txReceipt = await this._controller.ethereum().api().deposit(workerAddress, amount, txParams);
-            this._controller.logger().info(`[DEPOSIT] successful deposit, receipt = ${txReceipt}`);
-            success = true;
-          } catch (e) {
-            this._controller.logger().error(`[DEPOSIT] error=  ${e}`);
-            err = e;
-          }
-        }
-        if (onResult) {
-          onResult(err, success);
-        }
-      },
-    });
+    let success = false;
+    let err = null;
+
+    try {
+      const txReceipt = await this._controller.ethereum().api().selfDeposit(amount);
+      this._controller.logger().info(`[DEPOSIT] successful deposit, receipt = ${txReceipt}`);
+      success = true;
+    } catch (e) {
+      this._controller.logger().error(`[DEPOSIT] error=  ${e}`);
+      err = e;
+    }
+    if (onResult) {
+      onResult(err, success);
+    }
+
   }
   async asyncExecute(params) {
     const action = this;

@@ -14,9 +14,17 @@ class EthereumAPI {
     this._services = null;
   }
 
-  async init(enigmaContractAddress, url) {
+  /**
+   * check the connectivity to the Ethereum node
+   * @param {JSON} config
+   *  {ethereumAddress - wallet address,
+   *   enigmaContractAddress - the contract address
+   *   ethereumUrlProvider - the network url
+   *  }
+   * */
+  async init(config) {
     let builder = new EnigmaContractAPIBuilder(this._logger);
-    let res = await builder.setConfigAndBuild(enigmaContractAddress, url);
+    let res = await builder.setConfigAndBuild(config);
 
     this._api = res.api;
     this._environment = res.environment;
