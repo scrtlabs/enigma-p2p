@@ -1,6 +1,7 @@
 const web3Utils = require('web3-utils');
 const errors = require('./errors');
-const BN = require('bignumber.js');
+const JSBI = require('jsbi');
+
 /**
  * hash parameters in order
  * @param {Array<Integer>} value of byte arrrays
@@ -25,12 +26,12 @@ module.exports.soliditySha3 = function () {
 }
 
 /**
- * Convert any given value to BN.js instance for handling big numbers
- * @param {String/Number/HEX} value to convert to BN
- * @return {BN} converted value
+ * Convert any given value to JSBI instance for handling big numbers
+ * @param {String/Number/HEX} value to convert to BigNumber
+ * @return {JSBI} converted value
  * */
 module.exports.toBN = (value) => {
-  return (new BN(value));
+  return JSBI.BigInt(value);
 }
 
 /**

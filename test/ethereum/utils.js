@@ -1,3 +1,5 @@
+const JSBI = require('jsbi');
+const abi = require('ethereumjs-abi');
 const web3Utils = require('web3-utils');
 const crypto = require('../../src/common/cryptography');
 const DB_PROVIDER = require('../../src/core/core_server_mock/data/provider_db');
@@ -5,16 +7,15 @@ const DbUtils = require('../../src/common/DbUtils');
 
 
 function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
-  const hash = web3Utils.soliditySha3(
-    {t: 'uint256', v: seed},
-    {t: 'bytes32', v: secretContractAddress},
-    {t: 'uint256', v: nonce},
-  );
+  const hash = crypto.hash(abi.rawEncode(
+          ['uint256', 'bytes32', 'uint256'],
+          [seed, secretContractAddress, nonce]
+        ));
   // Find random number between [0, tokenCpt)
-  let randVal = (web3Utils.toBN(hash).mod(web3Utils.toBN(balancesSum))).toNumber();
+  let randVal = JSBI.remainder(JSBI.BigInt(hash), JSBI.BigInt(balancesSum));
 
   for (let i = 0; i <= balances.length; i++) {
-    randVal -= balances[i];
+    randVal = JSBI.subtract(randVal, balances[i]);
     if (randVal <= 0) {
       return workers[i];
     }
@@ -82,8 +83,8 @@ module.exports.createDataForSelectionAlgorithm = function() {
     {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
     {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))}];
 
-  const balancesA = [1, 2, 3, 4, 5];
-  const balancesB = [5, 4, 3, 2, 1];
+  const balancesA = [crypto.toBN(1), crypto.toBN(2), crypto.toBN(3), crypto.toBN(4), crypto.toBN(5)];
+  const balancesB = [crypto.toBN(5), crypto.toBN(4), crypto.toBN(3), crypto.toBN(2), crypto.toBN(1)];
   const seed = 10;
   const nonce = 0;
   const epochSize = 100;
@@ -94,7 +95,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
     {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 100},
     {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 200}];
 
-  let balancesSum = balancesA.reduce((a, b) => a + b, 0);
+  let balancesSum = balancesA.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
 
   const secretContractAddress = web3Utils.randomHex(32);
 
