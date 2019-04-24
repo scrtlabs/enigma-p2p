@@ -17,15 +17,16 @@ it('#1 send acks to each other', async function() {
     this.skip();
   }
 
-  return new Promise(async (resolve)=>{
+  return new Promise(async (resolve) => {
     const uri = 'tcp://127.0.0.1:5555';
-    let serverOk = false; let clientOk = false;
+    let serverOk = false;
+    let clientOk = false;
     const fakeMessage = {id: 'deadbeaf', type: 'GetRegistrationParams'};
 
     const serverSocket = zmq.socket('rep');
     serverSocket.bindSync(uri);
 
-    serverSocket.on('message', (msg)=>{
+    serverSocket.on('message', (msg) => {
       if (JSON.parse(msg).type === 'GetRegistrationParams') {
         serverOk = true;
       }
@@ -33,7 +34,7 @@ it('#1 send acks to each other', async function() {
     });
 
     const ipcClient = new IpcClient(uri);
-    ipcClient.setResponseHandler( (msg) => {
+    ipcClient.setResponseHandler((msg) => {
       clientOk = msg.serverOk;
       ipcClient.disconnect();
       serverSocket.disconnect(uri);
@@ -148,6 +149,79 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
           expect(resEnv.content().id).toBe(reqEnv._id);
           expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
+          expect(resEnv.content().result.workerSig).toBeTruthy();
+          coreRuntime.disconnect();
+          coreServer.disconnect();
+          resolve();
+        });
+  });
+});
+
+it('#5 GetPTTRequest without addresses - mock server', async function() {
+  const tree = TEST_TREE['ipc'];
+  if (!tree['all'] || !tree['#5']) {
+    this.skip();
+  }
+
+  return new Promise(async (resolve) => {
+    // start the server
+    const uri = 'tcp://127.0.0.1:6785';
+    const coreServer = new CoreServer();
+    coreServer.runServer(uri);
+    await nodeUtils.sleep(1000);
+    // start the client
+    const channels = Channel.biDirectChannel();
+    const c1 = channels.channel1;
+    const c2 = channels.channel2;
+    const coreRuntime = new CoreRuntime({uri: uri});
+    coreRuntime.setChannel(c2);
+    await nodeUtils.sleep(1000);
+    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest},
+        constants.CORE_REQUESTS.GetPTTRequest);
+    c1.sendAndReceive(reqEnv)
+        .then((resEnv) => {
+          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
+          expect(resEnv.id()).toBe(reqEnv.id());
+          expect(resEnv.content().id).toBe(reqEnv.content().id);
+          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK);
+          expect(resEnv.content().result.workerSig).toBeTruthy();
+          coreRuntime.disconnect();
+          coreServer.disconnect();
+          resolve();
+        });
+  });
+});
+
+
+it('#6 GetPTTRequest *with* addresses - mock server', async function() {
+  const tree = TEST_TREE['ipc'];
+  if (!tree['all'] || !tree['#6']) {
+    this.skip();
+  }
+
+  return new Promise(async (resolve) => {
+    // start the server
+    const uri = 'tcp://127.0.0.1:7890';
+    const coreServer = new CoreServer();
+    coreServer.runServer(uri);
+    await nodeUtils.sleep(1000);
+    // start the client
+    const channels = Channel.biDirectChannel();
+    const c1 = channels.channel1;
+    const c2 = channels.channel2;
+    const coreRuntime = new CoreRuntime({uri: uri});
+    coreRuntime.setChannel(c2);
+    await nodeUtils.sleep(1000);
+    const input = {addresses: ['0x1203', '0xdeadbeaf']};
+    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest, input: input},
+        constants.CORE_REQUESTS.GetPTTRequest);
+    c1.sendAndReceive(reqEnv)
+        .then((resEnv) => {
+          console.log(`Response envelop:${JSON.stringify(resEnv)}`);
+          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
+          expect(resEnv.id()).toBe(reqEnv.id());
+          expect(resEnv.content().id).toBe(reqEnv.content().id);
+          expect(resEnv.content().result.request).toEqual(input.addresses);
           expect(resEnv.content().result.workerSig).toBeTruthy();
           coreRuntime.disconnect();
           coreServer.disconnect();

@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const SCHEMES = require('../core_messages_scheme');
 
 
+
 class MockCoreServer {
   constructor(name) {
     this._socket = null;
@@ -46,6 +47,10 @@ class MockCoreServer {
       type: 'Error',
       msg: 'Message Error, Type: ' + msg.type,
     };
+  }
+
+  static get GET_PTT_NO_ADDRESSES_REQUEST_MOCK() {
+    return 'no addresses';
   }
 
   static _getPTTRequest(msg) {
