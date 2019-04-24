@@ -48,7 +48,7 @@ module.exports.hashArray = (inputsArray) => {
   for (let e of inputsArray) {
     e = utils.remove0x(e);
     // since the inputs are in hex string, they are twice as long as their bytes
-    hexStr += (new BN(e.length/2).toBuffer('be', 8).toString('hex')) + e;
+    hexStr += JSBI.BigInt(e.length/2).toString(16).padStart(16, '0') + e;
   }
   return web3Utils.soliditySha3({t: 'bytes', v: hexStr});
 }
