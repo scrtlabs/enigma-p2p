@@ -143,8 +143,8 @@ class JsonRpcServer extends EventEmitter {
   listen() {
     this._logger.debug('JsonRpcServer listening on port ' + this._port);
     this._app.use(cors({methods: ['POST']}));
-    this._app.use(bodyParser.json({limit: '5mb'}));
-    this._app.use(bodyParser.urlencoded({limit: '5mb', extended: true}));
+    this._app.use(bodyParser.json({limit: '20mb'}));
+    this._app.use(bodyParser.urlencoded({limit: '20mb', extended: true}));
     this._app.use(this._server.middleware());
     this._serverInstance = this._app.listen(this._port);
   }
