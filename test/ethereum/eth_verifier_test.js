@@ -8,13 +8,14 @@ const DeployTask  = require('../../src/worker/tasks/DeployTask');
 const ComputeResult  = require('../../src/worker/tasks/Result').ComputeResult;
 const DeployResult  = require('../../src/worker/tasks/Result').DeployResult;
 const constants = require('../../src/common/constants');
+const cryptography = require('../../src/common/cryptography');
 const errors = require('../../src/common/errors');
 const web3Utils = require('web3-utils');
-const testUtils = require('../testUtils/utils');
+
 
 // TODO: lena: THIS TESTS SUITE SHOULD USE REAL ETHEREUM, ONCE CONTRACT UPDATED
 
-describe('Verifier tests', function() {
+describe('Eth verifier tests', function() {
 
   async function init(isDeploy, taskCreation) {
     const builder = await ControllerBuilder.createNode();
@@ -56,21 +57,29 @@ describe('Verifier tests', function() {
     taskData['contractAddress'] = secretContractAddress;
 
     let taskId;
+    let inputsHash;
+
     if (isDeploy) {
       taskId = secretContractAddress;
       taskData.taskId = taskId;
+      if (taskCreation) {
+        inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, cryptography.hash(taskData.preCode), taskData.userDHKey]);
+      }
     }
     else {
       taskId = taskData.taskId;
+      if (taskCreation) {
+        inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, taskData.contractAddress, taskData.userDHKey]);
+      }
     }
 
     const gasLimit = 989;
 
-
     ethereumAPI.api().setTaskParams(taskId,
       expectedParams.firstBlockNumber + 50,
       taskStatus,
-      gasLimit);
+      gasLimit,
+      inputsHash);
 
     const coreServer = builder.coreServer;
     coreServer.setSigningKey(expectedAddress);

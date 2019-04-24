@@ -1,6 +1,7 @@
 const web3Utils = require('web3-utils');
 const errors = require('./errors');
 const JSBI = require('jsbi');
+const utils = require('../common/utils');
 
 /**
  * hash parameters in order
@@ -32,6 +33,24 @@ module.exports.soliditySha3 = function () {
  * */
 module.exports.toBN = (value) => {
   return JSBI.BigInt(value);
+}
+
+
+/**
+ * Generate a hash of all inputs
+ * The Enigma contract uses the same logic to generate a matching taskId
+ *
+ * @param {array} inputsArray
+ * @return {string} hash of inputs
+ */
+module.exports.hashArray = (inputsArray) => {
+  let hexStr = '';
+  for (let e of inputsArray) {
+    e = utils.remove0x(e);
+    // since the inputs are in hex string, they are twice as long as their bytes
+    hexStr += (new BN(e.length/2).toBuffer('be', 8).toString('hex')) + e;
+  }
+  return web3Utils.soliditySha3({t: 'bytes', v: hexStr});
 }
 
 /**
