@@ -9,11 +9,12 @@ class EnigmaContractMock {
     this._except = false;
   }
 
-  setTaskParams(taskId, blockNumber, status, gasLimit) {
+  setTaskParams(taskId, blockNumber, status, gasLimit, inputsHash) {
     this._taskRecords[taskId] = {taskId: taskId,
                                  blockNumber: blockNumber,
                                  status: status,
-                                 gasLimit: gasLimit};
+                                 gasLimit: gasLimit,
+                                 inputsHash: inputsHash};
   }
 
   setContractParams(contractAddress, codeHash, deltas, outputs) {

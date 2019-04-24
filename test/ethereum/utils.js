@@ -25,7 +25,7 @@ function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balan
  * */
 module.exports.createDataForTaskCreation = function() {
   const taskId = web3Utils.randomHex(32);
-  const preCode = web3Utils.randomHex(32);
+  const preCode = [56, 86, 27];
   const encryptedArgs = web3Utils.randomHex(32);
   const encryptedFn = web3Utils.randomHex(32);
   const userDHKey = web3Utils.randomHex(32);
