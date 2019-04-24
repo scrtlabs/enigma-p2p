@@ -7,6 +7,7 @@ import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
 import { EnigmaCommon } from "./EnigmaCommon.sol";
 import { EnigmaState } from "./EnigmaState.sol";
 import { WorkersImpl } from "./WorkersImpl.sol";
+import { Bytes } from "../utils/Bytes.sol";
 
 /**
  * @author Enigma
@@ -16,6 +17,10 @@ import { WorkersImpl } from "./WorkersImpl.sol";
 library PrincipalImpl {
     using SafeMath for uint256;
     using ECDSA for bytes32;
+    using Bytes for bytes;
+    using Bytes for bytes32;
+    using Bytes for uint256;
+    using Bytes for address;
 
     event WorkersParameterized(uint seed, uint256 firstBlockNumber, uint256 inclusionBlockNumber, address[] workers,
         uint[] stakes, uint nonce);
@@ -50,10 +55,20 @@ library PrincipalImpl {
 
         (workerParams.workers, workerParams.stakes) = getActiveWorkersImpl(state, _blockNumber);
 
-        // Check worker's signature
-        bytes32 msgHash = keccak256(abi.encode(_seed, state.userTaskDeployments[msg.sender], workerParams.workers,
-            workerParams.stakes));
-//        require(msgHash.recover(_sig) == state.principal, "Invalid signature");
+        // Verify the principal's signature
+        bytes memory message;
+        message = EnigmaCommon.appendMessage(message, _seed.toBytes());
+        message = EnigmaCommon.appendMessage(message, state.userTaskDeployments[msg.sender].toBytes());
+        message = EnigmaCommon.appendMessageArrayLength(workerParams.workers.length, message);
+        for (uint i = 0; i < workerParams.workers.length; i++) {
+            message = EnigmaCommon.appendMessage(message, workerParams.workers[i].toBytes());
+        }
+        message = EnigmaCommon.appendMessageArrayLength(workerParams.stakes.length, message);
+        for (uint j = 0; j < workerParams.stakes.length; j++) {
+            message = EnigmaCommon.appendMessage(message, workerParams.stakes[j].toBytes());
+        }
+        bytes32 msgHash = keccak256(message);
+        require(msgHash.recover(_sig) == state.principal, "Invalid signature");
 
         for (uint wi = 0; wi < workerParams.workers.length; wi++) {
             EnigmaCommon.Worker storage worker = state.workers[workerParams.workers[wi]];
