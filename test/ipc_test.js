@@ -147,7 +147,8 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
     c1.sendAndReceive(reqEnv)
         .then((resEnv)=>{
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
-          expect(resEnv.content().id).toBe(reqEnv._id);
+          expect(resEnv.id()).toBe(reqEnv.id());
+          expect(resEnv.content().id).toBe(reqEnv.content().id);
           expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
           expect(resEnv.content().result.workerSig).toBeTruthy();
           coreRuntime.disconnect();
