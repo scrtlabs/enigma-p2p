@@ -11,43 +11,33 @@ class CommitReceiptAction {
     const task = params.task;
     const callback = params.callback;
     if (!task) return;
-    this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
-        if (err) {
-          this._controller.logger().error(`[COMMIT_RECEIPT] error error for task ${task.getTaskId()} error=  ${err}`);
-        }
-        else {
-          const txParams = {from: regParams.result.signingKey};
-          try {
-            const txReceipt = await this._commitTask(task, txParams);
-            this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${txReceipt}`);
-          } catch (e) {
-            this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
-            err = e;
-          }
+    let err = null;
 
-        }
-        if (callback) {
-          callback(err);
-        }
-      },
-    });
+    try {
+      const txReceipt = await this._commitTask(task);
+      this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${txReceipt}`);
+    } catch (e) {
+      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
+      err = e;
+    }
+    if (callback) {
+      callback(err);
+    }
   }
-  _commitTask(task, txParams) {
+  _commitTask(task) {
     if (task.getResult().isSuccess() && task.getResult().getOutput()) {
-      return this._commitSuccessTask(task, txParams);
+      return this._commitSuccessTask(task);
     } else if (task.getResult().isFailed()) {
-      return this._commitFailedTask(task, txParams);
+      return this._commitFailedTask(task);
     }
     throw new errors.TypeErr(`wrong type or missing fields in Result`);
   }
-  _commitFailedTask(task, txParams) {
+  _commitFailedTask(task) {
     if(task instanceof DeployTask) {
       return this._controller.ethereum().api().deploySecretContractFailure(
         task.getTaskId(),
         task.getResult().getUsedGas(),
         task.getResult().getSignature(),
-        txParams
       );
     }
     return this._controller.ethereum().api().commitTaskFailure(
@@ -55,10 +45,9 @@ class CommitReceiptAction {
       task.getTaskId(),
       task.getResult().getUsedGas(),
       task.getResult().getSignature(),
-      txParams
     );
   }
-  _commitSuccessTask(task, txParams) {
+  _commitSuccessTask(task) {
     if(task instanceof DeployTask) {
       return this._controller.ethereum().api().deploySecretContract(
           task.getTaskId(),
@@ -69,7 +58,6 @@ class CommitReceiptAction {
           task.getResult().getEthAddr(),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
-          txParams
       );
     }
     return this._controller.ethereum().api().commitReceipt(
@@ -81,7 +69,6 @@ class CommitReceiptAction {
       task.getResult().getEthAddr(),
       task.getResult().getUsedGas(),
       task.getResult().getSignature(),
-      txParams
     );
   }
 }

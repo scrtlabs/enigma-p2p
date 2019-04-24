@@ -26,6 +26,7 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._ethereumAddress = null;
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -342,6 +343,10 @@ class CLI {
     .option('-E, --init-ethereum', 'init Ethereum', ()=>{
       this._initEthereum = true;
     })
+    .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
+      this._initEthereum = true;
+      this._ethereumAddress = address;
+    })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
     })
@@ -374,8 +379,9 @@ class CLI {
      * */
     if (this._initEthereum) {
       builder.setEthereumConfig({
-        ethereumWebsocketProvider: this._ethereumWebsocketProvider,
+        ethereumUrlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
+        ethereumAddress: this._ethereumAddress
       });
     }
     const nodeConfig = this._getFinalConfig();

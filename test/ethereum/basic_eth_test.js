@@ -71,14 +71,15 @@ describe('Ethereum tests', function() {
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
       await api.deposit(workerAddress, depositValue, {from: workerAddress});
+      await api.selfDeposit(depositValue, {from: workerAddress});
       await api.login({from: workerAddress});
 
 
-      const workerState = await api.getWorker(workerAddress);
-      
+      let workerState = await api.getWorker(workerAddress);
+
       assert.strictEqual(workerState.report, workerReport);
       assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
-      assert.strictEqual(workerState.balance, depositValue);
+      assert.strictEqual(workerState.balance, 2*depositValue);
       assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       // Verify worker's report
@@ -127,7 +128,15 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedCount, 2);
 
       await api.logout({from: workerAddress});
-      await api.withdraw(workerAddress, depositValue/10, {from: workerAddress});
+      await api.withdraw(workerAddress, depositValue/2, {from: workerAddress});
+      await api.selfWithdraw(depositValue/2, {from: workerAddress});
+
+      workerState = await api.getWorker(workerAddress);
+
+      assert.strictEqual(workerState.report, workerReport);
+      assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+      assert.strictEqual(workerState.balance, depositValue);
+      assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       await res.environment.destroy();
       resolve();
@@ -144,18 +153,20 @@ describe('Ethereum tests', function() {
       const builder1 = new EnigmaContractAPIBuilder();
       let res1 = await builder1.createNetwork().deploy().build();
 
+      const web3_1 = res1.api.w3();
+      const accounts = await web3_1.eth.getAccounts();
+      const workerAddress = accounts[4];
+
       const config = {enigmaContractAddress: builder1.enigmaContractAddress, enigmaContractABI: builder1.enigmaContractABI};
       const builder2 = new EnigmaContractAPIBuilder();
-      let res2 = await builder2.useDeployed(config).build();
+      let res2 = await builder2.useDeployed(config).setEthereumAddress(workerAddress).build();
 
       const api = res2.api;
       const web3 = api.w3();
 
-      const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
-      const secretContractAddress = web3.utils.randomHex(32);// accounts[5];
+      const workerReport = JSON.stringify(testParameters.report);
+      const secretContractAddress = web3.utils.randomHex(32);
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = web3.utils.randomHex(32);
       const initStateDeltaHash = web3.utils.randomHex(32);
@@ -164,16 +175,15 @@ describe('Ethereum tests', function() {
       const optionalEthereumData = '0x00';
       const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
 
-      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-      await api.deposit(workerAddress, depositValue, {from: workerAddress});
-      await api.login({from: workerAddress});
+      await api.register(workerEnclaveSigningAddress, workerReport, signature);
+      await api.deposit(workerAddress, depositValue);
+      await api.login();
 
       await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
-        optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+        optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress);
 
 
       let contractParams = await api.getContractParams(secretContractAddress);
-      //assert.strictEqual(contractParams.owner, workerAddress);
       assert.strictEqual(contractParams.preCodeHash, codeHash);
       assert.strictEqual(contractParams.codeHash, codeHash);
       assert.strictEqual(contractParams.deltaHashes.length, 1);
@@ -220,7 +230,7 @@ describe('Ethereum tests', function() {
           assert.strictEqual(result.senderAddress, workerAddress);
         }));
 
-      await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, {from: workerAddress});
+      await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
 
       const taskParams = await api.getTaskParams(mock_taskId);
       assert.strictEqual(inputsHash, taskParams.inputsHash);
@@ -271,18 +281,19 @@ describe('Ethereum tests', function() {
 
       // Login the worker before commmitting receipts
       await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
-        optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, {from: workerAddress});
+        optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
 
 
       await api.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3],
-        [outputHash2, outputHash3], optionalEthereumData, optionalEthereumContractAddress, [gasUsed, gasUsed], signature, {from: workerAddress});
+        [outputHash2, outputHash3], optionalEthereumData, optionalEthereumContractAddress, [gasUsed, gasUsed], signature);
 
-      await api.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature, {from: workerAddress});
+      await api.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature);
 
       api.unsubscribeAll();
-      await api.logout({from: workerAddress});
+      await api.logout();
       await res2.environment.destroy();
       await res1.environment.destroy();
+
       resolve();
     });
   });
@@ -431,7 +442,6 @@ describe('Ethereum tests', function() {
     if (!tree['all'] || !tree['#4']) {
       this.skip();
     }
-    const logger = new Logger();
 
     return new Promise(async function(resolve) {
       const builder = new EnigmaContractAPIBuilder();
@@ -570,7 +580,7 @@ describe('Ethereum tests', function() {
       let res = await builder.createNetwork().deploy().build();
 
       let ethereumApi = new EthereumAPI(new Logger({'cli': true}));
-      await ethereumApi.init(builder.enigmaContractAddress);
+      await ethereumApi.init({enigmaContractAddress: builder.enigmaContractAddress});
 
       // sunny day
       let data = await ethereumApi.healthCheck();
