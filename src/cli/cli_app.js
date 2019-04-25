@@ -19,6 +19,7 @@ const tempdir = require('tempdir');
 class CLI {
   constructor() {
     // mock server
+    this._mockCore = false;
     this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
@@ -26,6 +27,8 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._ethereumAddress = null;
+
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -315,8 +318,11 @@ class CLI {
     .option('-i, --path [value]', 'id path', (theIdPath)=>{
       Parsers.idPath(theIdPath, this._globalWrapper);
     })
-    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+    .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
       this._coreAddressPort = addrPortStr;
+    })
+    .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', ()=>{
+        this._mockCore = true;
     })
     .option('--random-db', 'random tasks db', (randomPath)=>{
       if (randomPath) {
@@ -339,6 +345,10 @@ class CLI {
     .option('-E, --init-ethereum', 'init Ethereum', ()=>{
       this._initEthereum = true;
     })
+    .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
+      this._initEthereum = true;
+      this._ethereumAddress = address;
+    })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
     })
@@ -355,10 +365,11 @@ class CLI {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
       const uri ='tcp://' + this._coreAddressPort;
-      // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      const coreServer = new CoreServer();
-      coreServer.setProvider(true);
-      coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      if (this._mockCore) {
+        const coreServer = new CoreServer();
+        coreServer.setProvider(true);
+        coreServer.runServer(uri);
+      }
       builder.setIpcConfig({uri: uri});
     }
     if (this._rpcPort) {
@@ -371,8 +382,9 @@ class CLI {
      * */
     if (this._initEthereum) {
       builder.setEthereumConfig({
-        ethereumWebsocketProvider: this._ethereumWebsocketProvider,
+        ethereumUrlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
+        ethereumAddress: this._ethereumAddress
       });
     }
     const nodeConfig = this._getFinalConfig();
