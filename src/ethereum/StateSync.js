@@ -14,18 +14,23 @@ const DbUtils = require('../common/DbUtils');
  * */
 async function getRemoteMissingStates(api, localTips, callback) {
   // create a hashmap from the localTips array
-  const tipsHashMaps = localTips.reduce((obj, item) => {
-    let address = item.address;
-    if (typeof address !== 'string') {
-      address = DbUtils.toHexString(address);
-    }
-    // add '0x' to be able to compare the addresses with Ethereum
-    if (address.slice(0, 2) != '0x') {
-      address = '0x' + address;
-    }
-    obj[address] = item.key;
-    return obj;
-  }, {});
+  let tipsHashMaps;
+  if (localTips) {
+    tipsHashMaps = localTips.reduce((obj, item) => {
+      let address = item.address;
+      if (typeof address !== 'string') {
+        address = DbUtils.toHexString(address);
+      }
+      // add '0x' to be able to compare the addresses with Ethereum
+      if (address.slice(0, 2) != '0x') {
+        address = '0x' + address;
+      }
+      obj[address] = item.key;
+      return obj;
+    }, {});
+  } else {
+    tipsHashMaps = [];
+  }
 
 
   try {
