@@ -89,13 +89,13 @@ class InitWorkerAction {
       if(this._controller.hasEthereum()){
         this._controller.ethereum().services().on(constants.ETHEREUM_EVENTS.NewEpoch,
           function (error, event) {
-            if (err) {
+            if (error) {
               this._controller.logger().error('failed subscribing to NewEpoch events ' + error);
             }
             else {
               this._controller.execCmd(C.GET_STATE_KEYS);
             }
-          });
+          }.bind(this));
       }
       // TODO:: everything that runs in an infinite loop in the program should be started here.
       // TODO:: for example we could start here a process to always ping enigma-core and check if ok
@@ -110,8 +110,8 @@ class InitWorkerAction {
       if(this._controller.hasEthereum()){
         // todo: get worker params to check registration, deposit and login status
         let registered = false;
-        let isDeposit = false;
-        let isLogged = false;
+        let isDeposit = true;
+        let isLogged = true;
         if (!registered) {
           this._controller.execCmd(C.REGISTER, {onResponse: (err, registered) => {
             if (err || !registered) {

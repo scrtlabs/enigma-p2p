@@ -139,11 +139,10 @@ class EnigmaContractReaderAPI {
           const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
           reject(err);
         }
-        const report = this._web3.utils.hexToAscii(data.report);
         const params = {
           address: data.signer,
           status: parseInt(data.status),
-          report: report,
+          report: data.report,
           balance: parseInt(data.balance)
         };
 
@@ -168,7 +167,7 @@ class EnigmaContractReaderAPI {
         }
         const params = {
           signer: data[0],
-          report: this._web3.utils.hexToAscii(data[1]),
+          report: data[1],
         };
         resolve(params);
       });
