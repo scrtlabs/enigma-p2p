@@ -1,6 +1,7 @@
 const jayson = require('jayson');
 const MsgPrincipal = require('../../policy/p2p_messages/principal_messages');
 const PRINCIPAL_CONSTANTS = require('../../common/constants').PRINCIPAL_NODE;
+const retry = require('retry');
 
 class PrincipalNode {
   constructor(config, logger) {
@@ -21,14 +22,21 @@ class PrincipalNode {
         reject(new Error('getStateKeys accepts only object of type MsgPrincipal'));
       }
 
-      this._client.request('getStateKeys', msg.toJson(), (err, response) => {
-        if (this._logger) {
-          this._logger.debug('Connecting to principal node: ' + this._uri);
-        }
-        if (err) return reject(err);
-        if (response.error) return reject(response.error);
-        resolve(response.result);
-      });
+      // TODO: adjust config params and not use defaults
+      let operation = retry.operation();
+      operation.attempt((currentAttempt)=> {
+        this._client.request('getStateKeys', msg.toJson(), (err, response) => {
+          if (this._logger) {
+            this._logger.debug('Connecting to principal node: ' + this._uri);
+          }
+          if (err && operation.retry(err)) return;
+          // TODO:should this be retried as well?
+          if (response.error) return reject(response.error);
+          resolve(response.result);
+        });
+
+      })
+
     });
   }
 }
