@@ -21,11 +21,13 @@ class Envelop {
       this._id = sequenceOrId;
     } else if (sequenceOrId === true) { // initialize a request with id for response
       this._id = nodeUtils.randId();
+    } else {
+      console.log('[-] error initializing envelop sequenceOrId must be either a string ID or a `true` to generate one randomally!');
+      this._validEnvelop = false;
     }
-
     // attach id to msg if missing
-    if(!('id' in this._obj) && this._id !== false){
-      this._obj.id = this._id;
+    if (!('id' in this._obj) && this._id !== false) {
+      this._obj.id = nodeUtils.randId();
     }
   }
   isValidEnvelop(){
