@@ -43,8 +43,11 @@ class IdentifyMissingStatesAction {
             }
             return finalCallback(error);
           }
-          let localTips = tips;
-          if (!localTips) {
+          let localTips;
+          if (tips) {
+            localTips = tips;
+          }
+          else {
             localTips = [];
           }
           return IdentifyMissingStatesAction.
