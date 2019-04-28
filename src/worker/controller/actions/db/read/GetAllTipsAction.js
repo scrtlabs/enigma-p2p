@@ -23,7 +23,14 @@ class GetAllTipsAction {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
         dbQueryType: constants.CORE_REQUESTS.GetAllTips,
         onResponse: (err, result)=>{
-          return onResult(err, result.tips);
+          let tips;
+          if (result.tips) {
+            tips = result.tips;
+          }
+          else {
+            tips = []
+          }
+          return onResult(err, tips);
         },
       });
     }
