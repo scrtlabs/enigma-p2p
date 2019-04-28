@@ -162,7 +162,6 @@ describe('Verifier tests', function() {
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
         resolve();
@@ -188,7 +187,6 @@ describe('Verifier tests', function() {
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
         resolve();
@@ -213,7 +211,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
         resolve();
@@ -237,7 +234,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
         resolve();
@@ -261,7 +257,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -286,7 +281,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
         resolve();
@@ -311,7 +305,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, a.taskId).then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -329,21 +322,22 @@ describe('Verifier tests', function() {
     }
 
     return new Promise(async function(resolve) {
+      const key = 2;
+
       let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: 2},
+      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: key},
         5, "ethereumPayload", "ethereumAddress", "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
         resolve();
       });
 
-      const event = {stateDeltaHash: a.deltaHash, outputHash: a.outputHash, taskId: a.taskId};
+      const event = {stateDeltaHash: a.deltaHash, stateDeltaHashIndex: key, outputHash: a.outputHash, taskId: a.taskId};
       a.apiMock.triggerEvent('ReceiptVerified', event);
     });
   });
@@ -355,21 +349,21 @@ describe('Verifier tests', function() {
     }
 
     return new Promise(async function(resolve) {
+      const key = 2;
       let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: 2},
+      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: key},
         5, "ethereumPayload", "ethereumAddress", "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
         resolve();
       });
 
-      const event = {stateDeltaHash: web3Utils.randomHex(32), outputHash: a.outputHash, taskId: a.taskId};
+      const event = {stateDeltaHash: web3Utils.randomHex(32), outputHash: a.outputHash, stateDeltaHashIndex: key, taskId: a.taskId};
       a.apiMock.triggerEvent('ReceiptVerified', event);
     });
   });
@@ -381,20 +375,20 @@ describe('Verifier tests', function() {
     }
 
     return new Promise(async function(resolve) {
+      const key = 2;
       let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: 2},
+      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: key},
         5, "ethereumPayload", "ethereumAddress", "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
         resolve();
       });
 
-      const event = {stateDeltaHash: a.deltaHash, outputHash: web3Utils.randomHex(32), taskId: a.taskId};
+      const event = {stateDeltaHash: a.deltaHash, stateDeltaHashIndex: key, outputHash: web3Utils.randomHex(32), taskId: a.taskId};
       a.apiMock.triggerEvent('ReceiptVerified', event);
     });
   });
@@ -412,7 +406,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
         resolve();
@@ -437,7 +430,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
       a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
-        //console.log("promise resolved. res=" + JSON.stringify(res) + "err=" + res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
         resolve();
@@ -873,8 +865,6 @@ describe('Verifier tests', function() {
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status, a.gasLimit, inputsHash);
       a.verifier.verifyTaskCreation(task, web3Utils.toChecksumAddress(web3Utils.randomHex(20))).then( (res)=> {
-        console.log("res=", JSON.stringify(res));
-        console.log("error=", res.error.message);
         assert.strictEqual(res.isVerified, false);
         assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
         resolve();
@@ -1058,6 +1048,32 @@ describe('Verifier tests', function() {
         assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
         resolve();
       });
+    });
+  });
+  it('Wrong compute task submission pre-mined due to wrong key', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#36']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      const key = 4;
+
+      let a = await initStuffForTaskSubmission();
+      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: key},
+        5, "ethereumPayload", "ethereumAddress", "signature");
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+
+      // ok
+      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
+      a.verifier.verifyTaskSubmission(task, "40").then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
+
+      const event = {stateDeltaHash: a.deltaHash, stateDeltaHashIndex: 2, outputHash: a.outputHash, taskId: a.taskId};
+      a.apiMock.triggerEvent('ReceiptVerified', event);
     });
   });
 });

@@ -7,15 +7,15 @@ class GetDbAction{
     this._coreRuntime = coreRuntime;
   }
 
-  execute(envelop){
-    let request = {
-      id : nodeUtils.randId(),
-      type :envelop.content().type,
-      input : envelop.content().input
+  execute(envelop) {
+    const request = {
+      id: envelop.content().id,
+      type: envelop.content().type,
+      input: envelop.content().input,
     };
-    this._coreRuntime.execCmd(Msg.CORE_DB_ACTION,{
-      envelop : envelop,
-      sendMsg : request,
+    this._coreRuntime.execCmd(Msg.CORE_DB_ACTION, {
+      envelop: envelop,
+      sendMsg: request,
     });
     // let client = this._coreRuntime.getIpcClient();
     // client.sendJsonAndReceive(,(responseMsg)=>{

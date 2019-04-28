@@ -16,8 +16,8 @@ contract EnigmaEvents {
         uint blockNumber);
     event TaskRecordsCreated(bytes32[] taskIds, bytes32[] inputsHashes, uint[] gasLimits, uint[] gasPxs, address sender,
         uint blockNumber);
-    event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, bytes optionalEthereumData,
-        address optionalEthereumContractAddress, bytes sig);
+    event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, uint hashIndex,
+        bytes optionalEthereumData, address optionalEthereumContractAddress, bytes sig);
     event ReceiptsVerified(bytes32[] taskIds, bytes32[] stateDeltaHashes, bytes32[] outputHashes,
         bytes optionalEthereumData, address optionalEthereumContractAddress, bytes sig);
     event ReceiptFailed(bytes32 taskId, bytes sig);
