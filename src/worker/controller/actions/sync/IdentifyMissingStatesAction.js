@@ -34,7 +34,7 @@ class IdentifyMissingStatesAction {
     } else {
       this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS, {
         cache: useCache,
-        onResponse: (err, tips) => {
+        onResponse: (err, localTips) => {
           // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
           if (err || !this._controller.hasEthereum()) {
             let error = err;
@@ -42,13 +42,6 @@ class IdentifyMissingStatesAction {
               error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
             }
             return finalCallback(error);
-          }
-          let localTips;
-          if (tips) {
-            localTips = tips;
-          }
-          else {
-            localTips = [];
           }
           return IdentifyMissingStatesAction.
               _buildMissingStatesResult(this._controller.ethereum().api(), localTips, (err, res)=> {
