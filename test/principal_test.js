@@ -6,6 +6,7 @@ const assert = require('assert');
 const PrincipalNode = require('../src/worker/handlers/PrincipalNode');
 const MsgPrincipal = require('../src/policy/p2p_messages/principal_messages');
 const constants = require('../src/common/constants');
+const expect = require('expect');
 
 const fakeResponse = '0061d93b5412c0c9';
 const fakeRequest = '84a46461746181a';
@@ -29,6 +30,8 @@ it('#1 Should Recieve Encrypted response message from mock principal', async fun
 
     const principalClient = new PrincipalNode({uri: uri + port});
     const msg = MsgPrincipal.build({request: fakeRequest, sig: fakeSig});
+    response = fakeRequest;
+
     const result = await principalClient.getStateKeys(msg);
     assert.strictEqual(result.data, fakeResponse);
     assert.strictEqual(result.sig, fakeSig);
@@ -53,6 +56,8 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     const controllers = await ControllerBuilder.createNode(nodeConfig);
     const mainController = controllers.mainController;
 
+    response = addresses;
+
     await mainController.getNode().asyncExecCmd(
         constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
         {addresses: addresses},
@@ -69,6 +74,7 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
 function getStateKeysCallback(args, callback) {
   if (args.data && args.sig) {
     receivedRequest = true;
+    expect(args.data).toEqual(response);
     const result = {data: fakeResponse, sig: fakeSig};
     callback(null, result);
   } else {

@@ -9,6 +9,9 @@ class GetStateKeysAction {
   async asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
+      if (!params) {
+        params = {};
+      }
       params.onResponse = function(err, data) {
         if (err) reject(err);
         else resolve(data);
@@ -20,7 +23,7 @@ class GetStateKeysAction {
   execute(params) {
     let onResponse;
     if (params && params.onResponse) {
-      onResponse = params.onResponse
+      onResponse = params.onResponse;
     } else {
       onResponse = () => {};
     }
@@ -62,10 +65,9 @@ class GetStateKeysAction {
     };
 
     if (params && params.addresses) {
-      dbRequestParams.input = params.addresses;
+      dbRequestParams.input = {addresses: params.addresses};
     }
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, dbRequestParams);
-
   }
 
   _pttResponse(params, cb) {
