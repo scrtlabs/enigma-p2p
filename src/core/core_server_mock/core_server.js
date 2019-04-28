@@ -11,6 +11,7 @@ const validate = require('jsonschema').validate;
 const SCHEMES = require('../core_messages_scheme');
 
 
+
 class MockCoreServer {
   constructor(name) {
     this._socket = null;
@@ -48,13 +49,23 @@ class MockCoreServer {
     };
   }
 
+  static get GET_PTT_NO_ADDRESSES_REQUEST_MOCK() {
+    return 'no addresses';
+  }
+
   static _getPTTRequest(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetPTTRequest)) {
+      let request;
+      if (msg.input && msg.input.addresses) {
+        request = msg.input.addresses;
+      } else {
+        request = MockCoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK;
+      }
       return {
         id: msg.id,
         type: msg.type,
         result: {
-          request: 'the-message-packed-request',
+          request: request,
           workerSig: 'the-worker-sig',
         },
       };
