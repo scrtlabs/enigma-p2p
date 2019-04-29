@@ -11,6 +11,8 @@ module.exports.TEST_TREE = {
     '#2' : true,
     '#3' : true,
     '#4': true,
+    '#5': true,
+    '#6': true,
   },
   'coverage' :{
     'all' : true,
@@ -118,6 +120,7 @@ module.exports.TEST_TREE = {
     '#33' : true,
     '#34' : true,
     '#35' : true,
+    '#36' : true,
   },
   'ethereum_integration':{
     'all' : true,

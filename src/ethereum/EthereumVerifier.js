@@ -188,7 +188,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.codeHash, task);
+              const res = this._verifyTaskResultsParams(event.stateDeltaHash, 0, event.codeHash, task);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -198,7 +198,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.outputHash, task);
+              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.stateDeltaHashIndex, event.outputHash, task);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -295,7 +295,7 @@ class EthereumVerifier {
               outputHash = contractParams.outputHashes[deltaKey-1]; //await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
               deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
             }
-            const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
+            const result = this._verifyHashesParams(deltaHash, outputHash, task);
             res.isVerified = result.isVerified;
             res.error = result.error;
           }
@@ -420,25 +420,46 @@ class EthereumVerifier {
   /**
    * Verify task submission
    * @param {string} deltaHash - from remote
+   * @param {integer} deltaIndex - from remote
    * @param {string} outputHash - from remote
    * @param {Task} task to verify
    * @return {JSON} error
    *                isVerified - true/false
    */
-  _verifyTaskResultsParams(deltaHash, outputHash, task) {
+  _verifyTaskResultsParams(deltaHash, deltaIndex, outputHash, task) {
     let res = {};
+
+    if (deltaIndex === task.getDelta().key) {
+      return this._verifyHashesParams(deltaHash, outputHash, task);
+    }
+
+    res.isVerified = false;
+    res.error = new errors.TaskVerificationErr("Mismatch in deltaHash index in task result " + task.getTaskId());
+
+    return res;
+  }
+
+  /**
+   * Verify task result hashes
+   * @param {string} deltaHash - from remote
+   * @param {string} outputHash - from remote
+   * @param {Task} task to verify
+   * @return {JSON} error
+   *                isVerified - true/false
+   */
+  _verifyHashesParams(deltaHash, outputHash, task) {
+    let res = {isVerified: false};
+
     if (cryptography.hash(task.getOutput()) === outputHash) {
       if (cryptography.hash(task.getDelta().data) === deltaHash) {
         res.isVerified = true;
         res.error = null;
       }
       else {
-        res.isVerified = false;
         res.error = new errors.TaskVerificationErr("Mismatch in deltaHash in task result " + task.getTaskId());
       }
     }
     else {
-      res.isVerified = false;
       res.error = new errors.TaskVerificationErr("Mismatch in outputHash in task result " + task.getTaskId());
     }
     return res;

@@ -1,8 +1,5 @@
-
 const constants = require('../../../../../common/constants');
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
-const Envelop = require('../../../../../main_controller/channels/Envelop');
+
 /**
  This action returns all the tips
  either from cache or directly from core.
@@ -23,7 +20,14 @@ class GetAllTipsAction {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
         dbQueryType: constants.CORE_REQUESTS.GetAllTips,
         onResponse: (err, result)=>{
-          return onResult(err, result.tips);
+          let tips;
+          if (result.tips) {
+            tips = result.tips;
+          }
+          else {
+            tips = []
+          }
+          return onResult(err, tips);
         },
       });
     }
