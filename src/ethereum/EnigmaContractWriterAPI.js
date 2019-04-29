@@ -100,11 +100,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   }
   /**
    * Withdraw worker's stake (full or partial)
-   * @param {string} workerAddress
    * @param {Integer} amount
    * @param {JSON} txParams
    * */
-  withdraw(workerAddress, amount, txParams) {
+  withdraw(amount, txParams) {
     return new Promise((resolve, reject) => {
       const defaultOptions = config.default;
       let transactionOptions = defaultOptions;
@@ -116,35 +115,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(defaultOptions, txParams);
       }
-      this._enigmaContract.methods.withdraw(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
-        if (error) {
-          console.log(error);
-          reject(error);
-        }
-        resolve(receipt);
-      });
-    });
-  }
-  /**
-   * Withdraw the current worker's stake (full or partial)
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * */
-  selfWithdraw(amount, txParams=null) {
-    return new Promise((resolve, reject) => {
-      let transactionOptions = this._defaultTrxOptions;
-      if (txParams !== undefined && txParams !== null) {
-        const error = this._validateTxParams(txParams);
-        if (error !== null) {
-          reject(error);
-          return;
-        }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
-      }
-
-      let workerAddress = transactionOptions.from;
-
-      this._enigmaContract.methods.withdraw(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
+      this._enigmaContract.methods.withdraw(amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
           console.log(error);
           reject(error);

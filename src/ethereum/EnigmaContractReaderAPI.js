@@ -330,13 +330,14 @@ class EnigmaContractReaderAPI {
         return res;
       },
       /**
-       * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
+       * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash, {integer} stateDeltaHashIndex
        *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
        * */
       'ReceiptVerified': (event) => {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
+          stateDeltaHashIndex: parseInt(event.returnValues.hashIndex),
           outputHash: event.returnValues.outputHash,
           optionalEthereumData: event.returnValues.optionalEthereumData,
           optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,

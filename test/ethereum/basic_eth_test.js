@@ -128,8 +128,7 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedCount, 2);
 
       await api.logout({from: workerAddress});
-      await api.withdraw(workerAddress, depositValue/2, {from: workerAddress});
-      await api.selfWithdraw(depositValue/2, {from: workerAddress});
+      await api.withdraw(depositValue, {from: workerAddress});
 
       workerState = await api.getWorker(workerAddress);
 
