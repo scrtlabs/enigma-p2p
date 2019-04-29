@@ -231,7 +231,7 @@ class EthereumVerifier {
       const taskId = task.getTaskId();
 
       try {
-        res.taskParams = await this._contractApi.getTaskParams(nodeUtils.add0x(taskId));
+        res.taskParams = await this._contractApi.getTaskParams(taskId);
       }
       catch (e) {
         this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
@@ -274,7 +274,7 @@ class EthereumVerifier {
       let taskParams;
 
       try {
-        taskParams = await this._contractApi.getTaskParams(nodeUtils.add0x(taskId));
+        taskParams = await this._contractApi.getTaskParams(taskId);
 
         if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
           res.canBeVerified = true;
@@ -286,7 +286,7 @@ class EthereumVerifier {
             let deltaHash;
             let outputHash;
             const deltaKey = task.getDelta().key;
-            let contractParams = await this._contractApi.getContractParams(nodeUtils.add0x(contractAddress));
+            let contractParams = await this._contractApi.getContractParams(contractAddress);
             if (task instanceof DeployResult) {
               outputHash = contractParams.codeHash;
               deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
