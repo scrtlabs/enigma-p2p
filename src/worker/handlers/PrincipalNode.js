@@ -29,8 +29,13 @@ class PrincipalNode {
           if (this._logger) {
             this._logger.debug('Connecting to principal node: ' + this._uri);
           }
+          // Check if there was an error and the operation can be retried
           if (err && operation.retry(err)) return;
-          // TODO:should this be retried as well?
+
+          // Check if there was an error (after the retries have done) and reject
+          if (err) return reject(response.error);
+
+          // Check the response and reject/resolve accordingly
           if (response.error) return reject(response.error);
           resolve(response.result);
         });
