@@ -4,6 +4,7 @@ const web3Utils = require('web3-utils');
 const crypto = require('../../src/common/cryptography');
 const DB_PROVIDER = require('../../src/core/core_server_mock/data/provider_db');
 const DbUtils = require('../../src/common/DbUtils');
+const nodeUtils = require('../../src/common/utils');
 
 
 function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
@@ -72,16 +73,16 @@ module.exports.createDataForTaskSubmission = function() {
 }
 
 module.exports.createDataForSelectionAlgorithm = function() {
-  const workersA = [{signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))}];
-  const workersB = [{signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))},
-    {signer: web3Utils.toChecksumAddress(web3Utils.randomHex(20))}];
+  const workersA = [nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())];
+  const workersB = [nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())];
 
   const balancesA = [crypto.toBN(1), crypto.toBN(2), crypto.toBN(3), crypto.toBN(4), crypto.toBN(5)];
   const balancesB = [crypto.toBN(5), crypto.toBN(4), crypto.toBN(3), crypto.toBN(2), crypto.toBN(1)];
@@ -99,7 +100,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
 
   const secretContractAddress = web3Utils.randomHex(32);
 
-  const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA).signer;
+  const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA);
 
   return {params: params,
     expectedAddress: expected,

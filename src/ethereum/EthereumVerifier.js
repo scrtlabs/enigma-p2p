@@ -7,6 +7,7 @@ const cryptography = require('../common/cryptography');
 const JSBI = require('jsbi');
 const abi = require('ethereumjs-abi');
 const errors = require('../common/errors');
+const nodeUtils = require('../common/utils');
 
 const result = require('../worker/tasks/Result');
 const Result = result.Result;
@@ -337,8 +338,8 @@ class EthereumVerifier {
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
     let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    // selectedWorker = nodeUtils.remove0x(selectedWorker.signer.toLowerCase());  // To enable in update to the contract
-    if (selectedWorker.signer !== workerAddress) {
+    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
+    if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
       result.isVerified = false;
