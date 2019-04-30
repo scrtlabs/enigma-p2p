@@ -28,6 +28,8 @@ class CLI {
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
     this._ethereumAddress = null;
+    this._autoInit = false;
+    this._depositValue = null;
 
     this._principalNode = null;
 
@@ -67,7 +69,7 @@ class CLI {
           if (err) {
             console.log('[-] ERROR $init ', err);
           }
-          const uri ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
           console.log("----------------------- ATTENTION --------------------------");
           console.log('please visit %s for more info', uri);
         });
@@ -352,6 +354,10 @@ class CLI {
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
     })
+    .option('--auto-init [value]', 'perform automatic worker initialization, specify the amount to be ', (value)=>{
+      this._autoInit = true;
+      this._depositValue = value;
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -407,6 +413,14 @@ class CLI {
       await n.stop();
       process.exit();
     });
+
+    if (this._autoInit) {
+      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+        if (err) {
+          console.log('[-] ERROR with automatic worker initialization: ', err);
+        }
+      });
+    }
   }
   start() {
     console.log(Parsers.opener);
