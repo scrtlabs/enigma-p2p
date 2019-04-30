@@ -354,7 +354,10 @@ class CLI {
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
     })
-    .option('--auto-init [value]', 'perform automatic worker initialization, specify the amount to be ', (value)=>{
+    .option('--auto-init', 'perform automatic worker initialization ', ()=>{
+      this._autoInit = true;
+    })
+    .option('--deposit-amount [value]', 'specify the amount to be deposited, while running automatic initialization', (value)=>{
       this._autoInit = true;
       this._depositValue = value;
     })
