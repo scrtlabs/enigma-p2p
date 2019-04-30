@@ -60,6 +60,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'LOGOUT': 'logout', // logout from Enigma contract
   'DEPOSIT': 'deposit', // deposit stacking to Enigma contract
   'WITHDRAW': 'withdraw', // withdraw stacking to Enigma contract
+  'GET_ETH_WORKER_PARAM': 'getworkparams', // get worker params set in Enigma contract
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
