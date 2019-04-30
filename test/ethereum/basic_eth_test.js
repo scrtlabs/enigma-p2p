@@ -34,7 +34,7 @@ describe('Ethereum tests', function() {
       const accounts = await api.w3().eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
+      const workerReport = testParameters.report;// "0x123456";
       const depositValue = 1000;
       const secretContractAddress = api.w3().utils.randomHex(32); // accounts[5];
       const secretContractAddress2 = api.w3().utils.randomHex(32); // accounts[6];
@@ -164,7 +164,7 @@ describe('Ethereum tests', function() {
       const web3 = api.w3();
 
       const workerEnclaveSigningAddress = accounts[3];
-      const workerReport = JSON.stringify(testParameters.report);
+      const workerReport = testParameters.report;
       const secretContractAddress = web3.utils.randomHex(32);
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = web3.utils.randomHex(32);
@@ -312,7 +312,7 @@ describe('Ethereum tests', function() {
       const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
+      const workerReport = testParameters.report;// "0x123456";
       const secretContractAddress1 = web3.utils.randomHex(32); // accounts[5];
       const secretContractAddress2 = web3.utils.randomHex(32); // accounts[4];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
@@ -471,7 +471,7 @@ describe('Ethereum tests', function() {
       const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
       const workerAddress = accounts[4];
-      const workerReport = JSON.stringify(testParameters.report);// "0x123456";
+      const workerReport = testParameters.report;// "0x123456";
       const secretContractAddress = web3.utils.randomHex(32); // accounts[5];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = web3.utils.randomHex(32);

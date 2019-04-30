@@ -35,7 +35,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
       }
-      this._enigmaContract.methods.register(signerAddress, this._web3.utils.asciiToHex(report), signature)
+      this._enigmaContract.methods.register(
+        utils.add0x(signerAddress),
+        utils.add0x(report),
+        utils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
