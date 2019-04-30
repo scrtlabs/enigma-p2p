@@ -7,7 +7,6 @@ const cryptography = require('../common/cryptography');
 const JSBI = require('jsbi');
 const abi = require('ethereumjs-abi');
 const errors = require('../common/errors');
-const nodeUtils = require('../common/utils');
 
 const result = require('../worker/tasks/Result');
 const Result = result.Result;
