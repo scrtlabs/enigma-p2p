@@ -4,6 +4,8 @@ const Task = require('../worker/tasks/Task');
 const DeployTask = require('../worker/tasks/DeployTask');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
+const JSBI = require('jsbi');
+const abi = require('ethereumjs-abi');
 const errors = require('../common/errors');
 const nodeUtils = require('../common/utils');
 
@@ -356,24 +358,24 @@ class EthereumVerifier {
    */
   static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
     // Find total number of staked tokens for workers
-    const tokenCpt = params.balances.reduce((a, b) => a + b, 0);
+    const tokenCpt = params.balances.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
     let nonce = 0;
     const selectedWorkers = [];
     do {
       // Unique hash for epoch, secret contract address, and nonce
-      const hash = cryptography.soliditySha3(
-        {t: 'uint256', v: params.seed},
-        {t: 'bytes32', v: secretContractAddress},
-        {t: 'uint256', v: nonce});
+      const hash = cryptography.hash(abi.rawEncode(
+          ['uint256', 'bytes32', 'uint256'],
+          [params.seed, secretContractAddress, nonce]
+        ));
 
       // Find random number between [0, tokenCpt)
-      let randVal = (cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt))).toNumber();
+      let randVal = JSBI.remainder(cryptography.toBN(hash), cryptography.toBN(tokenCpt));
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
       // workers. If worker has already been selected, increase nonce by one, resulting in a new hash computed above.
       for (let i = 0; i < params.workers.length; i++) {
-        randVal -= params.balances[i];
+        randVal = JSBI.subtract(randVal, params.balances[i]);
         if (randVal <= 0) {
           selectedWorker = params.workers[i];
           break;

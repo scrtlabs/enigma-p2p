@@ -1,6 +1,7 @@
 const errors = require('../common/errors');
 const Logger = require('../common/logger');
 const nodeUtils = require('../common/utils');
+const cryptography = require('../common/cryptography');
 
 class EnigmaContractReaderAPI {
   /**
@@ -295,7 +296,7 @@ class EnigmaContractReaderAPI {
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,
-          balances: event.returnValues.stakes,
+          balances: event.returnValues.stakes.map((x) => cryptography.toBN(x)),
           nonce: parseInt(event.returnValues.nonce),
         };
       },

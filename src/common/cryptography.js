@@ -1,7 +1,7 @@
 const web3Utils = require('web3-utils');
 const errors = require('./errors');
+const JSBI = require('jsbi');
 const utils = require('../common/utils');
-const BN = require('bn.js');
 
 /**
  * hash parameters in order
@@ -27,12 +27,12 @@ module.exports.soliditySha3 = function () {
 }
 
 /**
- * Convert any given value to BN.js instance for handling big numbers
- * @param {String/Number/HEX} value to convert to BN
- * @return {BN} converted value
+ * Convert any given value to JSBI instance for handling big numbers
+ * @param {String/Number/HEX} value to convert to BigNumber
+ * @return {JSBI} converted value
  * */
 module.exports.toBN = (value) => {
-  return web3Utils.toBN(value);
+  return JSBI.BigInt(value);
 }
 
 
@@ -48,7 +48,7 @@ module.exports.hashArray = (inputsArray) => {
   for (let e of inputsArray) {
     e = utils.remove0x(e);
     // since the inputs are in hex string, they are twice as long as their bytes
-    hexStr += (new BN(e.length/2).toBuffer('be', 8).toString('hex')) + e;
+    hexStr += JSBI.BigInt(e.length/2).toString(16).padStart(16, '0') + e;
   }
   return web3Utils.soliditySha3({t: 'bytes', v: hexStr});
 }
