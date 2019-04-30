@@ -417,6 +417,9 @@ class CLI {
       process.exit();
     });
 
+    this._setup();
+  }
+  _setup() {
     if (this._autoInit) {
       this._node.initializeWorkerProcess(this._depositValue, (err)=>{
         if (err) {
