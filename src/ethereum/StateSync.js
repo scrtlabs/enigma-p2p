@@ -71,7 +71,6 @@ async function getRemoteMissingStates(api, localTips, callback) {
 
     parallel(jobs, (err, results)=>{
       if (err) {
-        logger.error('error received while trying to read data from Ethereum: ', err);
         return callback(err);
       }
       // 1. Filter out undefined - due to synced addresses
