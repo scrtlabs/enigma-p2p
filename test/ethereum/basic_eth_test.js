@@ -71,7 +71,6 @@ describe('Ethereum tests', function() {
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
       await api.deposit(workerAddress, depositValue, {from: workerAddress});
-      await api.selfDeposit(depositValue, {from: workerAddress});
       await api.login({from: workerAddress});
 
 
@@ -79,7 +78,7 @@ describe('Ethereum tests', function() {
 
       assert.strictEqual(workerState.report, workerReport);
       assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
-      assert.strictEqual(workerState.balance, 2*depositValue);
+      assert.strictEqual(workerState.balance, depositValue);
       assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       // Verify worker's report
@@ -128,13 +127,13 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedCount, 2);
 
       await api.logout({from: workerAddress});
-      await api.withdraw(depositValue, {from: workerAddress});
+      await api.withdraw(depositValue/2, {from: workerAddress});
 
       workerState = await api.getWorker(workerAddress);
 
       assert.strictEqual(workerState.report, workerReport);
       assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
-      assert.strictEqual(workerState.balance, depositValue);
+      assert.strictEqual(workerState.balance, depositValue/2);
       assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       await res.environment.destroy();
@@ -175,8 +174,15 @@ describe('Ethereum tests', function() {
       const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature);
-      await api.deposit(workerAddress, depositValue);
+      await api.selfDeposit(depositValue);
       await api.login();
+
+      let workerState = await api.getWorker(workerAddress);
+
+      assert.strictEqual(workerState.report, workerReport);
+      assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
+      assert.strictEqual(workerState.balance, depositValue);
+      assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
         optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress);

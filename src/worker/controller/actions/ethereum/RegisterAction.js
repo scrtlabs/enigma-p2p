@@ -34,6 +34,7 @@ class RegisterAction {
   async asyncExecute(params) {
     const action = this;
     return new Promise((res, rej)=>{
+      if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);
