@@ -23,7 +23,7 @@ class PrincipalNode {
       }
 
       // TODO: adjust config params and not use defaults
-      let operation = retry.operation();
+      let operation = retry.operation(PRINCIPAL_CONSTANTS.retryOptions);
       operation.attempt((currentAttempt)=> {
         this._client.request('getStateKeys', msg.toJson(), (err, response) => {
           if (this._logger) {
