@@ -218,7 +218,6 @@ it('#6 GetPTTRequest *with* addresses - mock server', async function() {
         constants.CORE_REQUESTS.GetPTTRequest);
     c1.sendAndReceive(reqEnv)
         .then((resEnv) => {
-          console.log(`Response envelop:${JSON.stringify(resEnv)}`);
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
           expect(resEnv.id()).toBe(reqEnv.id());
           expect(resEnv.content().id).toBe(reqEnv.content().id);
