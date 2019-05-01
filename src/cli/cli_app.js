@@ -357,7 +357,7 @@ class CLI {
     .option('--auto-init', 'perform automatic worker initialization ', ()=>{
       this._autoInit = true;
     })
-    .option('--deposit-amount [value]', 'specify the amount to be deposited, while running automatic initialization', (value)=>{
+    .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
       this._autoInit = true;
       this._depositValue = value;
     })

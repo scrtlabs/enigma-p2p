@@ -110,7 +110,7 @@ class InitWorkerAction {
         let workerParams = null;
         let registered = false;
         let isDeposit = false;
-        let isLoggedIn = false;
+        let isLogIn = false;
 
         try {
           workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
@@ -118,15 +118,25 @@ class InitWorkerAction {
         catch (err) {
           return this._controller.logger().error('error InitWorkerAction- Reading worker params from ethereum failed' + err);
         }
-        switch (workerParams.status) {
-          case constants.ETHEREUM_WORKER_STATUS.LOGGEDIN:
-            return this._controller.logger().info('InitWorkerAction- worker is already logged-in.');
-          case constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT:
-            registered = true;
-          case constants.ETHEREUM_WORKER_STATUS.UNREGISTERED:
-            isDeposit = (workerParams.balance > 0);
+        // If the worker is already logged-in, nothing to do
+        if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN) {
+          this._controller.logger().info('InitWorkerAction- worker is already logged-in');
+          return;
         }
-
+        if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
+          registered = true;
+        }
+        // Check if  the worker should deposit money and login after registration
+        if (depositAmount) {
+          if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
+            isDeposit = (workerParams.balance > 0);
+          }
+        }
+        // The worker should only register, if it is required
+        else {
+          isDeposit = true;
+          isLogIn = true;
+        }
         if (!registered) {
           try {
             registered = await this._controller.asyncExecCmd(C.REGISTER);
@@ -135,7 +145,7 @@ class InitWorkerAction {
             return this._controller.logger().error('error InitWorkerAction- Register to ethereum failed' + err);
           }
         }
-        if (registered && !isDeposit) {
+        if (!isDeposit && registered) {
           try {
             isDeposit = await this._controller.asyncExecCmd(C.DEPOSIT, {amount: depositAmount});
           }
@@ -143,9 +153,9 @@ class InitWorkerAction {
             return this._controller.logger().error('error InitWorkerAction- Deposit stake failed' + err);
           }
         }
-        if (isDeposit && !isLoggedIn) {
+        if (!isLogIn && isDeposit) {
           try {
-            isLoggedIn = await this._controller.asyncExecCmd(C.LOGIN);
+            isLogIn = await this._controller.asyncExecCmd(C.LOGIN);
           }
           catch (err) {
             return this._controller.logger().error('error InitWorkerAction- Login to ethereum failed' + err);
