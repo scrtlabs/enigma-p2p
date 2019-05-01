@@ -1,24 +1,20 @@
-const constants = require('../../../../common/constants');
-
-class LoginAction {
+class GetWorkerParamsAction {
   constructor(controller) {
     this._controller = controller;
   }
   async execute(params) {
     const onResult = params.onResponse;
-    let loginSuccess = false;
     let err = null;
+    let workerParams = null;
 
     try {
-      const txReceipt = await this._controller.ethereum().api().login();
-      this._controller.logger().info(`[LOGIN] successful login, receipt = ${txReceipt}`);
-      loginSuccess = true;
+      workerParams = await this._controller.ethereum().api().getSelfWorker();
     } catch (e) {
-      this._controller.logger().error(`[LOGIN] error in login error=  ${e}`);
+      this._controller.logger().error(`[GET_ETH_WORKER_PARAM] error =  ${e}`);
       err = e;
     }
     if (onResult) {
-      onResult(err, loginSuccess);
+      onResult(err, workerParams);
     }
   }
   async asyncExecute(params) {
@@ -33,4 +29,4 @@ class LoginAction {
     });
   }
 }
-module.exports = LoginAction;
+module.exports = GetWorkerParamsAction;

@@ -1,5 +1,7 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const utils = require('../common/utils');
+const errors = require('../common/errors');
+
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
@@ -8,11 +10,11 @@ const config = require('./config.json');
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, walletAddress) {
-    super(enigmaContractAddress, enigmaContractABI, web3, logger);
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
+    super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._defaultTrxOptions = config.default;
-    if (walletAddress) {
-      this._defaultTrxOptions.from = walletAddress;
+    if (workerAddress) {
+      this._defaultTrxOptions.from = workerAddress;
     }
   }
   /**
@@ -35,7 +37,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
       }
-      this._enigmaContract.methods.register(signerAddress, this._web3.utils.asciiToHex(report), signature)
+      this._enigmaContract.methods.register(
+        utils.add0x(signerAddress),
+        utils.add0x(report),
+        utils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -86,7 +91,10 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
       }
-      let workerAddress = transactionOptions.from;
+      let workerAddress = this.getWorkerAddress();
+      if (!workerAddress) {
+        reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
+      }
       this._enigmaContract.methods.deposit(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
           reject(error);

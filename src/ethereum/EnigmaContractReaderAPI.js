@@ -1,6 +1,7 @@
 const errors = require('../common/errors');
 const Logger = require('../common/logger');
 const nodeUtils = require('../common/utils');
+const cryptography = require('../common/cryptography');
 
 class EnigmaContractReaderAPI {
   /**
@@ -8,7 +9,7 @@ class EnigmaContractReaderAPI {
    * {Json} enigmaContractABI
    * {Web3} web3
    * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
     this._activeEventSubscriptions = {};
@@ -19,12 +20,22 @@ class EnigmaContractReaderAPI {
     } else {
       this._logger = new Logger();
     }
+
+    if (workerAddress) {
+      this._workerAddress = workerAddress;
+    }
+    else {
+      this._workerAddress = null;
+    }
   }
   w3() {
     return this._web3;
   }
   logger() {
     return this._logger;
+  }
+  getWorkerAddress() {
+    return this._workerAddress;
   }
   /**
      * get a secret contract hash
@@ -139,6 +150,35 @@ class EnigmaContractReaderAPI {
           const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
           reject(err);
         }
+        const params = {
+          address: data.signer,
+          status: parseInt(data.status),
+          report: data.report,
+          balance: parseInt(data.balance)
+        };
+
+        resolve(params);
+      });
+    });
+  }
+  /**
+   * Get self information
+   * @return {Promise} returning {JSON}: address, status, report, balance
+   * */
+  getSelfWorker() {
+    return new Promise((resolve, reject) => {
+      let address = this.getWorkerAddress();
+      if (!address) {
+        reject(new errors.InputErr("Missing worker-address when calling getSelfWorker"));
+      }
+      this._enigmaContract.methods.getWorker(address).call((error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        if (Object.keys(data).length < 4) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
+          reject(err);
+        }
         const report = this._web3.utils.hexToAscii(data.report);
         const params = {
           address: data.signer,
@@ -146,7 +186,6 @@ class EnigmaContractReaderAPI {
           report: report,
           balance: parseInt(data.balance)
         };
-
         resolve(params);
       });
     });
@@ -168,7 +207,7 @@ class EnigmaContractReaderAPI {
         }
         const params = {
           signer: data[0],
-          report: this._web3.utils.hexToAscii(data[1]),
+          report: data[1],
         };
         resolve(params);
       });
@@ -296,7 +335,7 @@ class EnigmaContractReaderAPI {
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,
-          balances: event.returnValues.stakes,
+          balances: event.returnValues.stakes.map((x) => cryptography.toBN(x)),
           nonce: parseInt(event.returnValues.nonce),
         };
       },
