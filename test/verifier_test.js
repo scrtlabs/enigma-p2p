@@ -501,7 +501,7 @@ describe('Verifier tests', function() {
 
       // 1.Verify only the algorithm
       const observed = EthereumVerifier.selectWorkerGroup(a.secretContractAddress, a.expectedParams, 1)[0];
-      assert.strictEqual(observed.signer, a.expectedAddress);
+      assert.strictEqual(observed, a.expectedAddress);
 
       // 2. Verify the entire flow of params update
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
