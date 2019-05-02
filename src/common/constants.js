@@ -233,6 +233,11 @@ module.exports.ETHEREUM_WORKER_STATUS = {
   LOGGEDOUT: 2
 };
 
+/**
+ * Enigma Contract worker status
+ * */
+module.exports.ETHEREUM_EMPTY_HASH = '0x00000000000000000000000000000000';
+
 module.exports.PRINCIPAL_NODE = {
   uri: 'http://127.0.0.1:10101',
   retryOptions: {
@@ -242,5 +247,4 @@ module.exports.PRINCIPAL_NODE = {
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
-
 };
