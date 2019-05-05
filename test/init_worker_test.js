@@ -64,9 +64,6 @@ it('#1 run init and healthCheck', async function() {
     const controller = testPeer.mainController;
     const coreServer = testPeer.coreServer;
 
-    //const accounts = await controller.getNode().ethereum().api().w3().eth.getAccounts();
-    //const workerAddress = accounts[0];
-    // coreServer.setSigningKey(workerAddress);
     let noTipsReceiver = [];
     bNodeCoreServer.setProvider(true);
     await bNodeController.getNode().asynctryAnnounce();
