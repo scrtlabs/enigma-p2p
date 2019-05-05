@@ -24,8 +24,10 @@ class EnigmaContractReaderAPI {
       this._logger = new Logger();
     }
 
-    this._defaultTrxOptions = config.default;
-    this._validTrxParams = config.valid;
+    const conf = JSON.parse(JSON.stringify(config)); // deep copy
+
+    this._defaultTrxOptions = conf.default;
+    this._validTrxParams = conf.valid;
 
     if (workerAddress) {
       this._workerAddress = workerAddress;

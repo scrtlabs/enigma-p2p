@@ -28,7 +28,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.register(
         utils.add0x(signerAddress),
@@ -57,7 +57,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.deposit(custodian, amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -81,7 +81,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       let workerAddress = this.getWorkerAddress();
       if (!workerAddress) {
@@ -109,7 +109,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.withdraw(amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
