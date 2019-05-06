@@ -26,6 +26,7 @@ const getDefault = ()=>{
     corePort: null, // optional else random
     withEth: false,
     ethExistingAddr: null, // optional, if null create else connect to existing
+    ethWorkerAddress: null, // optional
     ethWS: null, // optional, websocket provider
     withProxy: false,
     proxyPort: null, // optional, either set port or random
@@ -169,6 +170,7 @@ const _createNode = async (options)=>{
     builder.setEthereumConfig({
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
+      ethereumAddress: options.ethWorkerAddress
     });
   }
   let dbPath = null;

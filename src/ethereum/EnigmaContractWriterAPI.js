@@ -2,20 +2,13 @@ const defaultsDeep = require('@nodeutils/defaults-deep');
 const utils = require('../common/utils');
 const errors = require('../common/errors');
 
-
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
-// TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
-const config = require('./config.json');
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
-    this._defaultTrxOptions = config.default;
-    if (workerAddress) {
-      this._defaultTrxOptions.from = workerAddress;
-    }
   }
   /**
      * Step 1 in registration
@@ -35,7 +28,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.register(
         utils.add0x(signerAddress),
@@ -64,7 +57,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.deposit(custodian, amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -81,7 +74,6 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * */
   selfDeposit(amount, txParams=null) {
     return new Promise((resolve, reject) => {
-      //const defaultOptions = config.default;
       let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
@@ -89,7 +81,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(this._defaultTrxOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       let workerAddress = this.getWorkerAddress();
       if (!workerAddress) {
@@ -110,15 +102,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * */
   withdraw(amount, txParams) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(defaultOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.withdraw(amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -181,7 +172,6 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * */
   login(txParams=null) {
     return new Promise((resolve, reject) => {
-      //const defaultOptions = config.default;
       let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
@@ -448,18 +438,18 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   }
   _validateTxParams(txParams) {
     if ('gas' in txParams) {
-      if (txParams.gas < config.valid.gasMin || txParams.gas > config.valid.gasMax) {
-        return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + config.valid.gasMin + '-' + config.valid.gasMax;
+      if (txParams.gas < this._validTrxParams.gasMin || txParams.gas > this._validTrxParams.gasMax) {
+        return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + this._validTrxParams.gasMin + '-' + this._validTrxParams.gasMax;
       }
     }
     if ('gasPrice' in txParams) {
-      if (txParams.gasPrice < config.valid.gasPriceMin || txParams.gasPrice > config.valid.gasPriceMax) {
-        return 'gas price specified ' + txParams.gasPrice + ' is not in the allowed range: ' + config.valid.gasPriceMin + '-' + config.valid.gasPriceMax;
+      if (txParams.gasPrice < this._validTrxParams.gasPriceMin || txParams.gasPrice > this._validTrxParams.gasPriceMax) {
+        return 'gas price specified ' + txParams.gasPrice + ' is not in the allowed range: ' + this._validTrxParams.gasPriceMin + '-' + this._validTrxParams.gasPriceMax;
       }
     }
     if ('from' in txParams) {
       if (!this._web3.utils.isAddress(txParams.from)) {
-        return 'the from address specified ' + txParams.from + ' is not a valid Ethereum address'; + config.valid.gasPriceMin + '-' + config.valid.gasPriceMax;
+        return 'the from address specified ' + txParams.from + ' is not a valid Ethereum address' + this._validTrxParams.gasPriceMin + '-' + this._validTrxParams.gasPriceMax;
       }
     }
     return null;
