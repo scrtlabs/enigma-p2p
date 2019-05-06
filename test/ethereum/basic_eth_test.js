@@ -442,24 +442,24 @@ describe('Ethereum tests', function() {
     });
   });
 
-  it('State sync - failure', async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#4']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const builder = new EnigmaContractAPIBuilder();
-      let res = await builder.createNetwork().deploy().build();
-      const api = res.api;
-      await res.environment.destroy();
-
-      StateSync.getRemoteMissingStates(api, [], (err, results)=>{
-        assert.notStrictEqual(err, null);
-        resolve();
-      });
-    });
-  });
+  // it('State sync - failure', async function() {
+  //   const tree = TEST_TREE.ethereum;
+  //   if (!tree['all'] || !tree['#4']) {
+  //     this.skip();
+  //   }
+  //
+  //   return new Promise(async function(resolve) {
+  //     const builder = new EnigmaContractAPIBuilder();
+  //     let res = await builder.createNetwork().deploy().build();
+  //     const api = res.api;
+  //     await res.environment.destroy();
+  //
+  //     StateSync.getRemoteMissingStates(api, [], (err, results)=>{
+  //       assert.notStrictEqual(err, null);
+  //       resolve();
+  //     });
+  //   });
+  // });
 
   it('Test Ethereum services ', async function() {
     const tree = TEST_TREE.ethereum;
