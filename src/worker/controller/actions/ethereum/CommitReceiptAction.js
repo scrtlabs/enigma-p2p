@@ -25,12 +25,14 @@ class CommitReceiptAction {
       callback(err);
     }
   }
-  _commitTask(task) {
-    if (task.getResult().isSuccess()) { // && task.getResult().getOutput())
-      return this._commitSuccessTask(task);
-    } else { // if (task.getResult().isFailed())
-      return this._commitFailedTask(task);
+  async _commitTask(task) {
+    let res;
+    if (task.getResult().isSuccess()) {
+      res = await this._commitSuccessTask(task);
+    } else {
+      res = await this._commitFailedTask(task);
     }
+    return res;
   }
   async _commitFailedTask(task) {
     let txReceipt = null;
@@ -49,8 +51,8 @@ class CommitReceiptAction {
         err = e;
       }
     }
+    // Compute task
     else {
-      // Compute task
       try {
         txReceipt = this._controller.ethereum().api().commitTaskFailure(
           task.getContractAddr(),
@@ -76,7 +78,7 @@ class CommitReceiptAction {
       if (!output) {
         err = new errors.InputErr(`No output for deploy task ${task.getTaskId()}`);
       }
-      else if (!delta || (!`data` in delta) || !delta.data) {
+      else if (!delta || (!`data` in delta) || !(delta.data)) {
         err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       }
       else {

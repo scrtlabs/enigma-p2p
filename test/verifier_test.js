@@ -23,12 +23,15 @@ describe('Verifier tests', function() {
 
     let task = null;
     let res = null;
+    let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
 
     if (isComputeTask) {
       task = new ComputeResult(taskId, constants.TASK_STATUS.UNVERIFIED, output, {data: delta, key: 1},
         5, "ethereumPayload", "ethereumAddress", "signature");
 
-      apiMock.setContractParams(contractAddress, null, {1: deltaHash}, {0: outputHash});
+      apiMock.setContractParams(contractAddress, null, {1: deltaHash});
+      // ok
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     }
     else {
       task = new DeployResult(taskId, constants.TASK_STATUS.UNVERIFIED, output, {data: delta, key: 0},
@@ -36,12 +39,9 @@ describe('Verifier tests', function() {
 
       contractAddress = taskId;
       apiMock.setContractParams(contractAddress, outputHash, {0: deltaHash}, null);
+      // ok
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
     }
-
-    let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
-
-    // ok
-    apiMock.setTaskParams(taskId, blockNumber, status);
 
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, true);
@@ -49,10 +49,10 @@ describe('Verifier tests', function() {
 
     // wrong deltaHash
     if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, {1: web3Utils.randomHex(32)}, {0: outputHash});
+      apiMock.setContractParams(contractAddress, null, {1: web3Utils.randomHex(32)});
     }
     else {
-      apiMock.setContractParams(taskId, outputHash, {0: web3Utils.randomHex(32)}, null);
+      apiMock.setContractParams(taskId, outputHash, {0: web3Utils.randomHex(32)});
     }
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
@@ -60,29 +60,21 @@ describe('Verifier tests', function() {
 
     // wrong deltaHash key
     if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {0: outputHash});
+      apiMock.setContractParams(contractAddress, null, {2: deltaHash});
     }
     else {
-      apiMock.setContractParams(taskId, outputHash, {2: deltaHash}, null);
+      apiMock.setContractParams(taskId, outputHash, {2: deltaHash});
     }
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
-    // wrong outputHash key
-    if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, {2: deltaHash}, {3: outputHash});
-      res = await verifier.verifyTaskSubmission(task, contractAddress);
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
-    }
-
     // wrong outputHash
     if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, {1: deltaHash}, {0: web3Utils.randomHex(32)});
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, web3Utils.randomHex(32));
     }
     else {
-      apiMock.setContractParams(contractAddress, web3Utils.randomHex(32), {0: deltaHash}, null);
+      apiMock.setContractParams(contractAddress, web3Utils.randomHex(32), {0: deltaHash});
     }
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
@@ -90,7 +82,12 @@ describe('Verifier tests', function() {
 
     // status == RECEIPT_FAILED
     status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
-    apiMock.setTaskParams(taskId, blockNumber, status);
+    if (isComputeTask) {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
+    }
+    else {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
+    }
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
@@ -99,6 +96,18 @@ describe('Verifier tests', function() {
     res = await verifier.verifyTaskSubmission(task, contractAddress);
     assert.strictEqual(res.isVerified, true);
     assert.strictEqual(res.error, null);
+
+    // Wrong key in deploy
+    if (!isComputeTask) {
+      status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
+      task = new DeployResult(taskId, constants.TASK_STATUS.UNVERIFIED, output, {data: delta, key: 4},
+        5, "ethereumPayload", "ethereumAddress", "signature", "preCodeHash");
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
+      res = await verifier.verifyTaskSubmission(task, taskId);
+      assert.strictEqual(res.isVerified, false);
+      console.log("res.error=", JSON.stringify(res.error));
+      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+    }
   }
 
   async function initStuffForTaskSubmission() {

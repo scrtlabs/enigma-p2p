@@ -284,47 +284,88 @@ class EthereumVerifier {
           if (task instanceof FailedResult) {
             res.isVerified = false;
             res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
-          } else {
-            let deltaHash;
-            let outputHash;
-            const deltaKey = task.getDelta().key;
-            let contractParams = await this._contractApi.getContractParams(contractAddress);
+          }
+          else {
+            let result = {};
             if (task instanceof DeployResult) {
-              outputHash = contractParams.codeHash;
-              deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(task.getTaskId(), deltaKey);
-            } else {
-              outputHash = contractParams.outputHashes[deltaKey-1]; //await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
-              deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
+              result = await this._checkDeployResult(task, contractAddress);
             }
-            const result = this._verifyHashesParams(deltaHash, outputHash, task);
+            else {
+              result = await this._checkComputeResult(taskParams, task, contractAddress);
+            }
             res.isVerified = result.isVerified;
             res.error = result.error;
           }
-        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
+        }
+        else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
+          res.canBeVerified = true;
+
           if (task instanceof FailedResult) {
-            res.canBeVerified = true;
             res.isVerified = true;
             res.error = null;
-          } else {
-            res.canBeVerified = true;
+          }
+          else {
             res.isVerified = false;
             res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
           }
-        } else {
+        }
+        else {
           res.canBeVerified = false;
           res.isVerified = null;
           res.error = null;
         }
-        return resolve(res);
-      } catch (e) {
+      }
+      catch (e) {
         this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
         // TODO: consider adding a retry mechanism
         res.canBeVerified = true;
         res.isVerified = false;
         res.error = e;
-        return resolve(res);
       }
+      return resolve(res);
     });
+  }
+
+  async _checkDeployResult(task, contractAddress) {
+    let res = {};
+
+    const deltaKey = task.getDelta().key;
+    if (deltaKey !== 0) {
+      res.isVerified = false;
+      res.error = new errors.TaskVerificationErr("Mismatch in delta index in task result " + task.getTaskId());
+    }
+    else {
+      try {
+        let contractParams = await this._contractApi.getContractParams(contractAddress);
+        res = this._verifyHashesParams(
+          contractParams.deltaHashes[deltaKey],
+          contractParams.codeHash,
+          task);
+      }
+      catch (e) {
+        res.isVerified = false;
+        res.error = e;
+      }
+    }
+    return res;
+  }
+
+  async _checkComputeResult(taskParams, task, contractAddress) {
+    let res = {};
+
+    const deltaKey = task.getDelta().key;
+    try {
+      let contractParams = await this._contractApi.getContractParams(contractAddress);
+      res = this._verifyHashesParams(
+        contractParams.deltaHashes[deltaKey],
+        taskParams.outputHash,
+        task);
+    }
+    catch (e) {
+      res.isVerified = false;
+      res.error = e;
+    }
+    return res;
   }
 
   /**
