@@ -13,12 +13,11 @@ class RegisterAction {
           this._controller.logger().error(`[REGISTER] error=  ${err}`);
         }
         else {
-          const workerAddress = regParams.result.signingKey;
+          const signerAddress = regParams.result.signingKey;
           const report = regParams.result.report;
           const signature = regParams.result.signature;
-          const txParams = {from: workerAddress};
           try {
-            const txReceipt = await this._controller.ethereum().api().register(workerAddress, report, signature, txParams);
+            const txReceipt = await this._controller.ethereum().api().register(signerAddress, report, signature);
             this._controller.logger().info(`[REGISTER] successful registration, receipt = ${txReceipt}`);
             success = true;
           } catch (e) {
@@ -35,6 +34,7 @@ class RegisterAction {
   async asyncExecute(params) {
     const action = this;
     return new Promise((res, rej)=>{
+      if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);

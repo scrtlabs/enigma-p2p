@@ -1,15 +1,19 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const DbUtils = require('../common/DbUtils');
-const nodeUtils = require('../common/utils');
 const Task = require('../worker/tasks/Task');
+const DeployTask = require('../worker/tasks/DeployTask');
 const constants = require('../common/constants');
 const cryptography = require('../common/cryptography');
+const JSBI = require('jsbi');
+const abi = require('ethereumjs-abi');
 const errors = require('../common/errors');
+const nodeUtils = require('../common/utils');
 
 const result = require('../worker/tasks/Result');
 const Result = result.Result;
 const DeployResult  = result.DeployResult;
 const FailedResult  = result.FailedResult;
+
 
 class EthereumVerifier {
   /**
@@ -185,7 +189,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.codeHash, task);
+              const res = this._verifyTaskResultsParams(event.stateDeltaHash, 0, event.codeHash, task);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -195,7 +199,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.outputHash, task);
+              const res = this._verifyTaskResultsParams(event.stateDeltaHash, event.stateDeltaHashIndex, event.outputHash, task);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -292,7 +296,7 @@ class EthereumVerifier {
               outputHash = contractParams.outputHashes[deltaKey-1]; //await this._contractApi.getOutputHash(contractAddress, deltaKey - 1);
               deltaHash = contractParams.deltaHashes[deltaKey];//await this._contractApi.getStateDeltaHash(contractAddress, deltaKey);
             }
-            const result = this._verifyTaskResultsParams(deltaHash, outputHash, task);
+            const result = this._verifyHashesParams(deltaHash, outputHash, task);
             res.isVerified = result.isVerified;
             res.error = result.error;
           }
@@ -334,8 +338,8 @@ class EthereumVerifier {
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = {error: null, isVerified: true};
     let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
-    // selectedWorker = nodeUtils.remove0x(selectedWorker.signer.toLowerCase());  // To enable in update to the contract
-    if (selectedWorker.signer !== workerAddress) {
+    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
+    if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr("Not the selected worker for the " + secretContractAddress + " task");
       result.error = err;
       result.isVerified = false;
@@ -354,24 +358,24 @@ class EthereumVerifier {
    */
   static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
     // Find total number of staked tokens for workers
-    const tokenCpt = params.balances.reduce((a, b) => a + b, 0);
+    const tokenCpt = params.balances.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
     let nonce = 0;
     const selectedWorkers = [];
     do {
       // Unique hash for epoch, secret contract address, and nonce
-      const hash = cryptography.soliditySha3(
-        {t: 'uint256', v: params.seed},
-        {t: 'bytes32', v: secretContractAddress},
-        {t: 'uint256', v: nonce});
+      const hash = cryptography.hash(abi.rawEncode(
+          ['uint256', 'bytes32', 'uint256'],
+          [params.seed, secretContractAddress, nonce]
+        ));
 
       // Find random number between [0, tokenCpt)
-      let randVal = (cryptography.toBN(hash).mod(cryptography.toBN(tokenCpt))).toNumber();
+      let randVal = JSBI.remainder(cryptography.toBN(hash), cryptography.toBN(tokenCpt));
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
       // workers. If worker has already been selected, increase nonce by one, resulting in a new hash computed above.
       for (let i = 0; i < params.workers.length; i++) {
-        randVal -= params.balances[i];
+        randVal = JSBI.subtract(randVal, params.balances[i]);
         if (randVal <= 0) {
           selectedWorker = params.workers[i];
           break;
@@ -395,32 +399,68 @@ class EthereumVerifier {
    *                isVerified - true/false
    */
   _verifyTaskCreateParams(inputsHash, task) {
-    //TODO: implement this!!!! + add UT
-    return {isVerified: true, error: null};
+    let res = {};
+    let paramsArray = [];
+    if (task instanceof DeployTask) {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
+    }
+    else {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), task.getContractAddr(), task.getUserDHKey()];
+    }
+    if (cryptography.hashArray(paramsArray) === inputsHash) {
+      res.isVerified = true;
+      res.error = null;
+    }
+    else {
+      res.isVerified = false;
+      res.error = new errors.TaskVerificationErr("Mismatch in inputs hash in task record " + task.getTaskId());
+    }
+    return res;
   }
 
   /**
    * Verify task submission
+   * @param {string} deltaHash - from remote
+   * @param {integer} deltaIndex - from remote
+   * @param {string} outputHash - from remote
+   * @param {Task} task to verify
+   * @return {JSON} error
+   *                isVerified - true/false
+   */
+  _verifyTaskResultsParams(deltaHash, deltaIndex, outputHash, task) {
+    let res = {};
+
+    if (deltaIndex === task.getDelta().key) {
+      return this._verifyHashesParams(deltaHash, outputHash, task);
+    }
+
+    res.isVerified = false;
+    res.error = new errors.TaskVerificationErr("Mismatch in deltaHash index in task result " + task.getTaskId());
+
+    return res;
+  }
+
+  /**
+   * Verify task result hashes
    * @param {string} deltaHash - from remote
    * @param {string} outputHash - from remote
    * @param {Task} task to verify
    * @return {JSON} error
    *                isVerified - true/false
    */
-  _verifyTaskResultsParams(deltaHash, outputHash, task) {
-    let res = {};
+  _verifyHashesParams(deltaHash, outputHash, task) {
+    let res = {isVerified: false};
+
     if (cryptography.hash(task.getOutput()) === outputHash) {
       if (cryptography.hash(task.getDelta().data) === deltaHash) {
         res.isVerified = true;
         res.error = null;
       }
       else {
-        res.isVerified = false;
         res.error = new errors.TaskVerificationErr("Mismatch in deltaHash in task result " + task.getTaskId());
       }
     }
     else {
-      res.isVerified = false;
       res.error = new errors.TaskVerificationErr("Mismatch in outputHash in task result " + task.getTaskId());
     }
     return res;

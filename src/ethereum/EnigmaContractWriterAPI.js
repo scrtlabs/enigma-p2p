@@ -1,15 +1,14 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const utils = require('../common/utils');
+const errors = require('../common/errors');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
-// TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
-const config = require('./config.json');
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
-    super(enigmaContractAddress, enigmaContractABI, web3, logger);
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
+    super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
   }
   /**
      * Step 1 in registration
@@ -20,19 +19,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-  register(signerAddress, report, signature, txParams) {
+  register(signerAddress, report, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(defaultOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.register(signerAddress, this._web3.utils.asciiToHex(report), signature)
+      this._enigmaContract.methods.register(
+        utils.add0x(signerAddress),
+        utils.add0x(report),
+        utils.add0x(signature))
           .send(transactionOptions, (error, receipt)=> {
             if (error) {
               reject(error);
@@ -47,17 +48,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {Integer} amount
      * @param {JSON} txParams
      * */
-  deposit(custodian, amount, txParams) {
+  deposit(custodian, amount, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(defaultOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.deposit(custodian, amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -68,24 +68,50 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   /**
-   * Withdraw worker's stake (full or partial)
-   * @param {string} workerAddress
+   * Step 2 in registration : stake ENG's of the current worker(TO DA MOON)
    * @param {Integer} amount
    * @param {JSON} txParams
    * */
-  withdraw(workerAddress, amount, txParams) {
+  selfDeposit(amount, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(defaultOptions, txParams);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.withdraw(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
+      let workerAddress = this.getWorkerAddress();
+      if (!workerAddress) {
+        reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
+      }
+      this._enigmaContract.methods.deposit(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(receipt);
+      });
+    });
+  }
+  /**
+   * Withdraw worker's stake (full or partial)
+   * @param {Integer} amount
+   * @param {JSON} txParams
+   * */
+  withdraw(amount, txParams) {
+    return new Promise((resolve, reject) => {
+      let transactionOptions = this._defaultTrxOptions;
+      if (txParams !== undefined && txParams !== null) {
+        const error = this._validateTxParams(txParams);
+        if (error !== null) {
+          reject(error);
+          return;
+        }
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
+      }
+      this._enigmaContract.methods.withdraw(amount).send(transactionOptions, (error, receipt)=> {
         if (error) {
           console.log(error);
           reject(error);
@@ -107,17 +133,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt //TODO:: we want to turn all the Json's into real classes.
      * */
-  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams) {
+  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
 
       if(!optionalEthereumData) {
@@ -145,17 +170,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * login a worker
      * @return {Promise} receipt
      * */
-  login(txParams) {
+  login(txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.login().send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -169,17 +193,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * login a worker
      * @return {Promise} receipt
      * */
-  logout(txParams) {
+  logout(txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.logout().send(transactionOptions, (error, receipt)=> {
         if (error) {
@@ -192,17 +215,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   /**
      * Irrelevant for workers -> users create deployment tasks with it
      * */
-  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams) {
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce)
           .send(transactionOptions, (error, receipt)=> {
@@ -272,17 +294,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} receipt
      * */
-  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams) {
+  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       if(!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
@@ -309,17 +330,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   }
   /** same as above but for a batch */
   commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
-                 optionalEthereumContractAddress, gasUsed, signature, txParams) {
+                 optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
         optionalEthereumContractAddress, gasUsed, signature)
@@ -340,19 +360,22 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {JSON} txParams
    * @return {Promise} receipt
    * */
-  commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams) {
+  commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.commitTaskFailure(secretContractAddress, taskId, gasUsed, signature)
+      this._enigmaContract.methods.commitTaskFailure(
+        utils.add0x(secretContractAddress),
+        utils.add0x(taskId),
+        gasUsed,
+        utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);
@@ -369,19 +392,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {JSON} txParams
    * @return {Promise} receipt
    * */
-  deploySecretContractFailure(taskId, gasUsed, signature, txParams) {
+  deploySecretContractFailure(taskId, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.deploySecretContractFailure(taskId, gasUsed, signature)
+      this._enigmaContract.methods.deploySecretContractFailure(
+        utils.add0x(taskId),
+        gasUsed,
+        utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
           if (error) {
             reject(error);
@@ -391,17 +416,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   /** used by the principal node to commit a random number === new epoch */
-  setWorkersParams(seed, signature, txParams) {
+  setWorkersParams(seed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
-      const defaultOptions = config.default;
-      let transactionOptions = defaultOptions;
+      let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
         const error = this._validateTxParams(txParams);
         if (error !== null) {
           reject(error);
           return;
         }
-        transactionOptions = defaultsDeep(txParams, defaultOptions);
+        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
       this._enigmaContract.methods.setWorkersParams(seed, signature)
           .send(transactionOptions, (error, receipt)=> {
@@ -414,18 +438,18 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   }
   _validateTxParams(txParams) {
     if ('gas' in txParams) {
-      if (txParams.gas < config.valid.gasMin || txParams.gas > config.valid.gasMax) {
-        return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + config.valid.gasMin + '-' + config.valid.gasMax;
+      if (txParams.gas < this._validTrxParams.gasMin || txParams.gas > this._validTrxParams.gasMax) {
+        return 'gas limit specified ' + txParams.gas + ' is not in the allowed range: ' + this._validTrxParams.gasMin + '-' + this._validTrxParams.gasMax;
       }
     }
     if ('gasPrice' in txParams) {
-      if (txParams.gasPrice < config.valid.gasPriceMin || txParams.gasPrice > config.valid.gasPriceMax) {
-        return 'gas price specified ' + txParams.gasPrice + ' is not in the allowed range: ' + config.valid.gasPriceMin + '-' + config.valid.gasPriceMax;
+      if (txParams.gasPrice < this._validTrxParams.gasPriceMin || txParams.gasPrice > this._validTrxParams.gasPriceMax) {
+        return 'gas price specified ' + txParams.gasPrice + ' is not in the allowed range: ' + this._validTrxParams.gasPriceMin + '-' + this._validTrxParams.gasPriceMax;
       }
     }
     if ('from' in txParams) {
       if (!this._web3.utils.isAddress(txParams.from)) {
-        return 'the from address specified ' + txParams.from + ' is not a valid Ethereum address'; + config.valid.gasPriceMin + '-' + config.valid.gasPriceMax;
+        return 'the from address specified ' + txParams.from + ' is not a valid Ethereum address' + this._validTrxParams.gasPriceMin + '-' + this._validTrxParams.gasPriceMax;
       }
     }
     return null;

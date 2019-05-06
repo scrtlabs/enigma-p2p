@@ -1,6 +1,10 @@
 const errors = require('../common/errors');
 const Logger = require('../common/logger');
 const nodeUtils = require('../common/utils');
+const cryptography = require('../common/cryptography');
+
+// TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
+const config = require('./config.json');
 
 class EnigmaContractReaderAPI {
   /**
@@ -8,7 +12,7 @@ class EnigmaContractReaderAPI {
    * {Json} enigmaContractABI
    * {Web3} web3
    * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
     this._activeEventSubscriptions = {};
@@ -19,12 +23,28 @@ class EnigmaContractReaderAPI {
     } else {
       this._logger = new Logger();
     }
+
+    const conf = JSON.parse(JSON.stringify(config)); // deep copy
+
+    this._defaultTrxOptions = conf.default;
+    this._validTrxParams = conf.valid;
+
+    if (workerAddress) {
+      this._workerAddress = workerAddress;
+      this._defaultTrxOptions.from = workerAddress;
+    }
+    else {
+      this._workerAddress = null;
+    }
   }
   w3() {
     return this._web3;
   }
   logger() {
     return this._logger;
+  }
+  getWorkerAddress() {
+    return this._workerAddress;
   }
   /**
      * get a secret contract hash
@@ -34,7 +54,7 @@ class EnigmaContractReaderAPI {
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call((error, data)=> {
+      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -57,7 +77,7 @@ class EnigmaContractReaderAPI {
    * */
   countSecretContracts() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.countSecretContracts().call((error, data)=> {
+      this._enigmaContract.methods.countSecretContracts().call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -73,7 +93,7 @@ class EnigmaContractReaderAPI {
    * */
   getSecretContractAddresses(from, to) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getSecretContractAddresses(from, to).call((error, data)=> {
+      this._enigmaContract.methods.getSecretContractAddresses(from, to).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -88,7 +108,7 @@ class EnigmaContractReaderAPI {
      * */
   getWorkerParams(blockNumber) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getWorkerParams(blockNumber).call((error, data)=> {
+      this._enigmaContract.methods.getWorkerParams(blockNumber).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -102,7 +122,7 @@ class EnigmaContractReaderAPI {
    * */
   getWorkersParams() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getWorkersParams().call((error, data)=> {
+      this._enigmaContract.methods.getWorkersParams().call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -131,7 +151,36 @@ class EnigmaContractReaderAPI {
    * */
   getWorker (address) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getWorker(address).call((error, data)=> {
+      this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, (error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        if (Object.keys(data).length < 4) {
+          const err =  new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
+          reject(err);
+        }
+        const params = {
+          address: data.signer,
+          status: parseInt(data.status),
+          report: data.report,
+          balance: parseInt(data.balance)
+        };
+
+        resolve(params);
+      });
+    });
+  }
+  /**
+   * Get self information
+   * @return {Promise} returning {JSON}: address, status, report, balance
+   * */
+  getSelfWorker() {
+    return new Promise((resolve, reject) => {
+      let address = this.getWorkerAddress();
+      if (!address) {
+        reject(new errors.InputErr("Missing worker-address when calling getSelfWorker"));
+      }
+      this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -146,7 +195,6 @@ class EnigmaContractReaderAPI {
           report: report,
           balance: parseInt(data.balance)
         };
-
         resolve(params);
       });
     });
@@ -158,7 +206,7 @@ class EnigmaContractReaderAPI {
      * */
   getReport(workerAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getReport(workerAddress).call((error, data)=> {
+      this._enigmaContract.methods.getReport(workerAddress).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -168,7 +216,7 @@ class EnigmaContractReaderAPI {
         }
         const params = {
           signer: data[0],
-          report: this._web3.utils.hexToAscii(data[1]),
+          report: data[1],
         };
         resolve(params);
       });
@@ -182,7 +230,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskParams(taskId) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call((error, data)=> {
+      this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -219,7 +267,7 @@ class EnigmaContractReaderAPI {
    * */
   getEpochSize() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getEpochSize().call((error, data)=> {
+      this._enigmaContract.methods.getEpochSize().call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -296,7 +344,7 @@ class EnigmaContractReaderAPI {
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,
-          balances: event.returnValues.stakes,
+          balances: event.returnValues.stakes.map((x) => cryptography.toBN(x)),
           nonce: parseInt(event.returnValues.nonce),
         };
       },
@@ -331,13 +379,14 @@ class EnigmaContractReaderAPI {
         return res;
       },
       /**
-       * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash,
+       * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash, {integer} stateDeltaHashIndex
        *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
        * */
       'ReceiptVerified': (event) => {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
+          stateDeltaHashIndex: parseInt(event.returnValues.hashIndex),
           outputHash: event.returnValues.outputHash,
           optionalEthereumData: event.returnValues.optionalEthereumData,
           optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,

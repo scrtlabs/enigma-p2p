@@ -19,6 +19,7 @@ const tempdir = require('tempdir');
 class CLI {
   constructor() {
     // mock server
+    this._mockCore = false;
     this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
@@ -26,6 +27,10 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._ethereumAddress = null;
+    this._autoInit = false;
+    this._depositValue = null;
+
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -64,7 +69,7 @@ class CLI {
           if (err) {
             console.log('[-] ERROR $init ', err);
           }
-          const uri ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
           console.log("----------------------- ATTENTION --------------------------");
           console.log('please visit %s for more info', uri);
         });
@@ -315,8 +320,11 @@ class CLI {
     .option('-i, --path [value]', 'id path', (theIdPath)=>{
       Parsers.idPath(theIdPath, this._globalWrapper);
     })
-    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+    .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
       this._coreAddressPort = addrPortStr;
+    })
+    .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', ()=>{
+        this._mockCore = true;
     })
     .option('--random-db', 'random tasks db', (randomPath)=>{
       if (randomPath) {
@@ -339,8 +347,19 @@ class CLI {
     .option('-E, --init-ethereum', 'init Ethereum', ()=>{
       this._initEthereum = true;
     })
+    .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
+      this._initEthereum = true;
+      this._ethereumAddress = address;
+    })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
+    })
+    .option('--auto-init', 'perform automatic worker initialization ', ()=>{
+      this._autoInit = true;
+    })
+    .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
+      this._autoInit = true;
+      this._depositValue = value;
     })
     .parse(process.argv);
   }
@@ -355,10 +374,11 @@ class CLI {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
       const uri ='tcp://' + this._coreAddressPort;
-      // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      const coreServer = new CoreServer();
-      coreServer.setProvider(true);
-      coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      if (this._mockCore) {
+        const coreServer = new CoreServer();
+        coreServer.setProvider(true);
+        coreServer.runServer(uri);
+      }
       builder.setIpcConfig({uri: uri});
     }
     if (this._rpcPort) {
@@ -371,8 +391,9 @@ class CLI {
      * */
     if (this._initEthereum) {
       builder.setEthereumConfig({
-        ethereumWebsocketProvider: this._ethereumWebsocketProvider,
+        ethereumUrlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
+        ethereumAddress: this._ethereumAddress
       });
     }
     const nodeConfig = this._getFinalConfig();
@@ -395,6 +416,17 @@ class CLI {
       await n.stop();
       process.exit();
     });
+
+    this._setup();
+  }
+  _setup() {
+    if (this._autoInit) {
+      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+        if (err) {
+          console.log('[-] ERROR with automatic worker initialization: ', err);
+        }
+      });
+    }
   }
   start() {
     console.log(Parsers.opener);

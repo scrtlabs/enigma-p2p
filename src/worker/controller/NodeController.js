@@ -72,6 +72,7 @@ const LogoutAction = require('./actions/ethereum/LogoutAction');
 const DepositAction = require('./actions/ethereum/DepositAction');
 const WithdrawAction = require('./actions/ethereum/WithdrawAction');
 const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
+const GetWorkerParamsAction =  require('./actions/ethereum/GetWorkerParamsAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
@@ -154,7 +155,8 @@ class NodeController {
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
       [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
-      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
+      [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
+      [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this), // get worker params set in enigma contract
     };
   }
   /**
@@ -730,19 +732,19 @@ class NodeController {
    * @return {Promise} returning boolean indicating a successful login
    * */
   login() {
-    return this._actions[NOTIFICATION.LOGIN].asyncExecute({});
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute();
   }
   /** Logout to Enigma contract
    * @return {Promise} returning boolean indicating a successful logout
    * */
   logout() {
-    return this._actions[NOTIFICATION.LOGOUT].asyncExecute({});
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute();
   }
   /** Register to Enigma contract
    * @return {Promise} returning boolean indicating a successful registration
    * */
   register() {
-    return this._actions[NOTIFICATION.REGISTER].asyncExecute({});
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute();
   }
   /** Deposit to Enigma contract
    * @param {Integer} amount
