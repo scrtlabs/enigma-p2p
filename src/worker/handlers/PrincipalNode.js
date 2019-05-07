@@ -30,7 +30,7 @@ class PrincipalNode {
             this._logger.debug('Connecting to principal node: ' + this._uri);
           }
           // Check if there was an error and the operation can be retried
-          if (err && operation.retry(err)) return;
+          if ((err || (response.error && response.error.message.match('EpochStateTransitionErr'))) && operation.retry(true)) return;
 
           // Check if there was an error (after the retries have done) and reject
           if (err) return reject(response.error);
