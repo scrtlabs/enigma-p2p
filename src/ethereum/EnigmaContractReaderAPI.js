@@ -50,7 +50,7 @@ class EnigmaContractReaderAPI {
      * get a secret contract hash
      * @param {string} secrectContractAddress
      * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
-     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes, {Array<string>} outputHashes
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
@@ -58,14 +58,13 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
+        console.log("contract params=", data);
         const params = {
           owner: data.owner,
           preCodeHash: data.preCodeHash,
           codeHash: data.codeHash,
-          outputHash: data.outputHash,
           status: parseInt(data.status),
-          deltaHashes: data.stateDeltaHashes,
-          outputHashes: data.outputHashes
+          deltaHashes: data.stateDeltaHashes
         };
         resolve(params);
       });
@@ -225,7 +224,8 @@ class EnigmaContractReaderAPI {
   /**
    * * Get task parameters
    * @param {string} taskId
-   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof, {string} senderAddress,
+   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof,
+   *                                      {string} senderAddress, {string} outputHash
    *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
    * */
   getTaskParams(taskId) {
@@ -242,6 +242,7 @@ class EnigmaContractReaderAPI {
           senderAddress: data.sender,
           blockNumber: parseInt(data.blockNumber),
           status: parseInt(data.status),
+          outputHash: data.outputHash,
         };
         resolve(params);
       });
@@ -386,7 +387,7 @@ class EnigmaContractReaderAPI {
         return {
           taskId: event.returnValues.taskId,
           stateDeltaHash: event.returnValues.stateDeltaHash,
-          stateDeltaHashIndex: parseInt(event.returnValues.hashIndex),
+          stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
           outputHash: event.returnValues.outputHash,
           optionalEthereumData: event.returnValues.optionalEthereumData,
           optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,
