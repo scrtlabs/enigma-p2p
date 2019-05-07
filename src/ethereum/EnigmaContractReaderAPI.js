@@ -340,7 +340,7 @@ class EnigmaContractReaderAPI {
        * */
       'WorkersParameterized': (event) => {
         return {
-          seed: event.returnValues.seed,
+          seed: cryptography.toBN(event.returnValues.seed),
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,

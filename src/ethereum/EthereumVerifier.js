@@ -365,7 +365,7 @@ class EthereumVerifier {
       // Unique hash for epoch, secret contract address, and nonce
       const hash = cryptography.hash(abi.rawEncode(
           ['uint256', 'bytes32', 'uint256'],
-          [params.seed, nodeUtils.add0x(secretContractAddress), nonce]
+          [params.seed.toString(10), nodeUtils.add0x(secretContractAddress), nonce]
         ));
 
       // Find random number between [0, tokenCpt)
