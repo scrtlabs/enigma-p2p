@@ -242,5 +242,6 @@ module.exports.PRINCIPAL_NODE = {
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
+  EpochStateTransitionErr: 'EpochStateTransitionErr'
 
 };
