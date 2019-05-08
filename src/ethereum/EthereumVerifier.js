@@ -329,22 +329,30 @@ class EthereumVerifier {
   async _checkDeployResult(task, contractAddress) {
     let res = {};
 
-    const deltaKey = task.getDelta().key;
-    if (deltaKey !== 0) {
+    if (!task.hasDelta()) {
       res.isVerified = false;
-      res.error = new errors.TaskVerificationErr("Mismatch in delta index in task result " + task.getTaskId());
+      res.error = new errors.TaskVerificationErr("No delta in task result " + task.getTaskId());
+    }
+    else if (!task.getOutput()) {
+      res.isVerified = false;
+      res.error = new errors.TaskVerificationErr("No output in task result " + task.getTaskId());
     }
     else {
-      try {
-        let contractParams = await this._contractApi.getContractParams(contractAddress);
-        res = this._verifyHashesParams(
-          contractParams.deltaHashes[deltaKey],
-          contractParams.codeHash,
-          task);
-      }
-      catch (e) {
+      const deltaKey = task.getDelta().key;
+      if (deltaKey !== 0) {
         res.isVerified = false;
-        res.error = e;
+        res.error = new errors.TaskVerificationErr("Mismatch in delta index in task result " + task.getTaskId());
+      } else {
+        try {
+          let contractParams = await this._contractApi.getContractParams(contractAddress);
+          res = this._verifyHashesParams(
+            contractParams.deltaHashes[deltaKey],
+            contractParams.codeHash,
+            task);
+        } catch (e) {
+          res.isVerified = false;
+          res.error = e;
+        }
       }
     }
     return res;
