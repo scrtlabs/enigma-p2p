@@ -9,6 +9,7 @@ const constants = require('../../../../common/constants');
 const EngCid = require('../../../../common/EngCID');
 const DeployResult  = require('../../../tasks/Result').DeployResult;
 const ComputeResult  = require('../../../tasks/Result').ComputeResult;
+const FailedResult  = require('../../../tasks/Result').FailedResult;
 const OutsideTask = require('../../../tasks/OutsideTask');
 
 class VerifyAndStoreResultAction {
@@ -38,11 +39,15 @@ class VerifyAndStoreResultAction {
     if(this._controller.hasEthereum()) {
       isVerified = false;
       let result;
-      if (type === constants.CORE_REQUESTS.DeploySecretContract) {
-        result = DeployResult.buildDeployResult(resultObj);
-      }
-      else {
-        result = ComputeResult.buildComputeResult(resultObj);
+      if(resultObj.status == constants.TASK_STATUS.FAILED) {
+        result = FailedResult.buildFailedResult(resultObj);
+      } else {
+        if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+          result = DeployResult.buildDeployResult(resultObj);
+        }
+        else {
+          result = ComputeResult.buildComputeResult(resultObj);
+        }
       }
       try {
         let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
