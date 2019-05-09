@@ -114,7 +114,7 @@ class DeployResult extends ComputeResult {
     if (nodeUtils.isString(result)) {
       result = JSON.parse(result);
     }
-    const expected = ['taskId', 'status', 'output', 'delta', 'usedGas', 'ethereumPayload', 'ethereumAddress', 'signature', 'preCodeHash'];
+    const expected = ['taskId', 'status', 'output', 'usedGas', 'signature'];
     const isMissing = expected.some((attr)=>{
       return !(attr in result);
     });
@@ -123,12 +123,12 @@ class DeployResult extends ComputeResult {
         result.taskId,
         result.status,
         result.output,
-        result.delta,
+        (result.delta ? result.delta : null),
         result.usedGas,
-        result.ethereumPayload,
-        result.ethereumAddress,
+        (result.ethereumPayload ? result.ethereumPayload : null),
+        (result.ethereumAddress ? result.ethereumAddress : null),
         result.signature,
-        result.preCodeHash
+        (result.preCodeHash ? result.preCodeHash : null)
     );
   }
   getPreCodeHash() {
