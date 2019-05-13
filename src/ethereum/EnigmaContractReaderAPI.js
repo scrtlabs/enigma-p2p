@@ -58,7 +58,6 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
-        console.log("contract params=", data);
         const params = {
           owner: data.owner,
           preCodeHash: data.preCodeHash,

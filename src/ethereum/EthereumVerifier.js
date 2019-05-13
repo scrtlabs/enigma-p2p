@@ -181,7 +181,7 @@ class EthereumVerifier {
           // task failure is not expected
           const err = new errors.TaskFailedErr('Task ' + taskId + ' has failed');
           resolve({error:err, isVerified: false});
-          }
+        }
         else {
           if (task instanceof DeployResult) {
             if (event.type !== constants.ETHEREUM_EVENTS.SecretContractDeployment) {
@@ -223,7 +223,7 @@ class EthereumVerifier {
   /**
    * Checks whether the task can verified now and returns the verification result
    * @param {Task} task to verify
-   * @return {JSON} error
+   * @return {Object} error
    *                canBeVerified - true/false if the task can be verified at the moment
    *                isVerified - true/false is the task can be verified now, null otherwise
    */
@@ -359,22 +359,48 @@ class EthereumVerifier {
   }
 
   async _checkComputeResult(taskParams, task, contractAddress) {
-    let res = {};
+    if (task.hasDelta()) {
+      const deltaKey = task.getDelta().key;
+      let contractParams = null;
 
-    const deltaKey = task.getDelta().key;
-    try {
-      let contractParams = await this._contractApi.getContractParams(contractAddress);
-      res = this._verifyHashesParams(
-        contractParams.deltaHashes[deltaKey],
-        taskParams.outputHash,
-        task);
+      try {
+        contractParams = await this._contractApi.getContractParams(contractAddress);
+      }
+      catch (e) {
+        return {
+          isVerified: false,
+          error: e
+        }
+      }
+
+      if (deltaKey >= contractParams.deltaHashes.length) {
+        return {
+          isVerified: false,
+          error: new errors.TaskVerificationErr("Wrong delta index in task result " + task.getTaskId())
+        }
+      }
+      if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[deltaKey], task.getDelta().data)) {
+        return {
+          isVerified: false,
+          error: new errors.TaskVerificationErr("Mismatch in deltaHash in task result " + task.getTaskId())
+        }
+      }
     }
-    catch (e) {
-      res.isVerified = false;
-      res.error = e;
+    let output = task.getOutput();
+    if (output) {
+      if (!EthereumVerifier._verifyHash(taskParams.outputHash, output)) {
+        return {
+          isVerified: false,
+          error: new errors.TaskVerificationErr("Mismatch in outputHash in task result " + task.getTaskId())
+        }
+      }
     }
-    return res;
+    return {
+      isVerified: true,
+      error: null
+    }
   }
+
 
   /**
    * Verify that the worker address is in the selected workers group for the given secret contract address
@@ -437,82 +463,6 @@ class EthereumVerifier {
     }
     while (selectedWorkers.length < workerGroupSize);
     return selectedWorkers;
-  }
-
-  /**
-   * Verify task creation
-   * @param {string} deltaHash - from remote
-   * @param {string} outputHash - from remote
-   * @param {Task} task to verify
-   * @return {JSON} error
-   *                isVerified - true/false
-   */
-  _verifyTaskCreateParams(inputsHash, task) {
-    let res = {};
-    let paramsArray = [];
-    if (task instanceof DeployTask) {
-      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
-    }
-    else {
-      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), task.getContractAddr(), task.getUserDHKey()];
-    }
-    if (cryptography.hashArray(paramsArray) === inputsHash) {
-      res.isVerified = true;
-      res.error = null;
-    }
-    else {
-      res.isVerified = false;
-      res.error = new errors.TaskVerificationErr("Mismatch in inputs hash in task record " + task.getTaskId());
-    }
-    return res;
-  }
-
-  /**
-   * Verify task submission
-   * @param {string} deltaHash - from remote
-   * @param {integer} deltaIndex - from remote
-   * @param {string} outputHash - from remote
-   * @param {Task} task to verify
-   * @return {JSON} error
-   *                isVerified - true/false
-   */
-  _verifyTaskResultsParams(deltaHash, deltaIndex, outputHash, task) {
-    let res = {};
-
-    if (deltaIndex === task.getDelta().key) {
-      return this._verifyHashesParams(deltaHash, outputHash, task);
-    }
-
-    res.isVerified = false;
-    res.error = new errors.TaskVerificationErr("Mismatch in deltaHash index in task result " + task.getTaskId());
-
-    return res;
-  }
-
-  /**
-   * Verify task result hashes
-   * @param {string} deltaHash - from remote
-   * @param {string} outputHash - from remote
-   * @param {Task} task to verify
-   * @return {JSON} error
-   *                isVerified - true/false
-   */
-  _verifyHashesParams(deltaHash, outputHash, task) {
-    let res = {isVerified: false};
-
-    if (cryptography.hash(task.getOutput()) === outputHash) {
-      if (cryptography.hash(task.getDelta().data) === deltaHash) {
-        res.isVerified = true;
-        res.error = null;
-      }
-      else {
-        res.error = new errors.TaskVerificationErr("Mismatch in deltaHash in task result " + task.getTaskId());
-      }
-    }
-    else {
-      res.error = new errors.TaskVerificationErr("Mismatch in outputHash in task result " + task.getTaskId());
-    }
-    return res;
   }
 
   _findWorkerParamForTask(blockNumber) {
@@ -640,6 +590,94 @@ class EthereumVerifier {
 
   _validateWorkerParams(params) {
     return ('firstBlockNumber' in params);
+  }
+
+  /**
+   * Verify task creation
+   * @param {string} deltaHash - from remote
+   * @param {string} outputHash - from remote
+   * @param {Task} task to verify
+   * @return {JSON} error
+   *                isVerified - true/false
+   */
+  _verifyTaskCreateParams(inputsHash, task) {
+    let res = {};
+    let paramsArray = [];
+    if (task instanceof DeployTask) {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
+    }
+    else {
+      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), task.getContractAddr(), task.getUserDHKey()];
+    }
+    if (cryptography.hashArray(paramsArray) === inputsHash) {
+      res.isVerified = true;
+      res.error = null;
+    }
+    else {
+      res.isVerified = false;
+      res.error = new errors.TaskVerificationErr("Mismatch in inputs hash in task record " + task.getTaskId());
+    }
+    return res;
+  }
+
+  /**
+   * Verify task submission
+   * @param {string} deltaHash - from remote
+   * @param {integer} deltaIndex - from remote
+   * @param {string} outputHash - from remote
+   * @param {Task} task to verify
+   * @return {JSON} error
+   *                isVerified - true/false
+   */
+  _verifyTaskResultsParams(deltaHash, deltaIndex, outputHash, task) {
+    let res = {};
+
+    if (deltaIndex === task.getDelta().key) {
+      return this._verifyHashesParams(deltaHash, outputHash, task);
+    }
+
+    res.isVerified = false;
+    res.error = new errors.TaskVerificationErr("Mismatch in deltaHash index in task result " + task.getTaskId());
+
+    return res;
+  }
+
+  /**
+   * Verify task result hashes
+   * @param {string} deltaHash - from remote
+   * @param {string} outputHash - from remote
+   * @param {Task} task to verify
+   * @return {JSON} error
+   *                isVerified - true/false
+   */
+  _verifyHashesParams(deltaHash, outputHash, task) {
+    let res = {isVerified: false};
+
+    if (cryptography.hash(task.getOutput()) === outputHash) {
+      if (cryptography.hash(task.getDelta().data) === deltaHash) {
+        res.isVerified = true;
+        res.error = null;
+      }
+      else {
+        res.error = new errors.TaskVerificationErr("Mismatch in deltaHash in task result " + task.getTaskId());
+      }
+    }
+    else {
+      res.error = new errors.TaskVerificationErr("Mismatch in outputHash in task result " + task.getTaskId());
+    }
+    return res;
+  }
+
+  /**
+   * Verify hash
+   * @param {string} deltaHash - from remote
+   * @param {string} outputHash - from remote
+   * @param {Array} delta
+   * @return {Object} error
+   *                isVerified - true/false
+   */
+  static _verifyHash(hash, data) {
+      return (cryptography.hash(data) === hash);
   }
 }
 

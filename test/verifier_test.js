@@ -105,7 +105,6 @@ describe('Verifier tests', function() {
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
       res = await verifier.verifyTaskSubmission(task, taskId);
       assert.strictEqual(res.isVerified, false);
-      console.log("res.error=", JSON.stringify(res.error));
       assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
     }
   }
