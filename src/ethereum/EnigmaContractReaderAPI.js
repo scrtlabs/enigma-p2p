@@ -54,7 +54,7 @@ class EnigmaContractReaderAPI {
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call(this._defaultTrxOptions, (error, data)=> {
+      this._enigmaContract.methods.getSecretContract(nodeUtils.add0x(secrectContractAddress)).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }

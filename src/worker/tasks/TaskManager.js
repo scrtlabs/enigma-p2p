@@ -52,7 +52,7 @@ class TaskManager extends EventEmitter {
   }
   /**
    * store a result of a task computed by OTHER worker from the network.
-   * used to serve other for querys of type "getResult by taskId" since core does not save anything related to task Id.
+   * used to serve other for queries of type "getResult by taskId" since core does not save anything related to task Id.
    * @param {OutsideTask} outsideTask
    * @return {Promise<true>} if succeeded otherwise throws.
    * */
