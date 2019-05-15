@@ -34,10 +34,11 @@ class VerifyAndStoreResultAction {
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
 
-    let {error, isVerified} = await this._verifyResult(resultObj, type, contractAddress);
+    let taskResult = VerifyAndStoreResultAction.buildTaskResult(type, resultObj);
+    let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
 
     if (isVerified) {
-      const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
+      const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
       if (coreMsg) {
         try {
           await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
@@ -80,48 +81,48 @@ class VerifyAndStoreResultAction {
       return optionalCallback(error);
     }
   }
-  _buildIpcMsg(resultObject, type, contractAddr) {
+  _buildIpcMsg(taskResult, contractAddr) {
     // FailedTask
-    if (resultObject.status === constants.TASK_STATUS.FAILED) {
+    if (taskResult instanceof FailedResult) {
       // TODO:: what to do with a FailedTask ???
-      this._controller.logger().debug(`[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${resultObject.taskId}`);
+      this._controller.logger().debug(`[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${taskResult.getTaskId()}`);
       return null;
     }
     // DeployResult
-    else if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+    else if (taskResult instanceof DeployResult) {
       return {
         address: contractAddr,
-        bytecode: resultObject.output,
+        bytecode: taskResult.getOutput(),
         type: constants.CORE_REQUESTS.UpdateNewContract,
       };
     }
     // ComputeResult
-    else if (type === constants.CORE_REQUESTS.ComputeTask) {
-      return {
-        type: constants.CORE_REQUESTS.UpdateDeltas,
-        deltas: [{address: contractAddr, key: resultObject.delta.key, data: resultObject.delta.data}],
-      };
+    else {
+      // Check that there is indeed a delta
+      if (taskResult.hasDelta()) {
+        let delta = taskResult.getDelta();
+        return {
+          type: constants.CORE_REQUESTS.UpdateDeltas,
+          deltas: [{address: contractAddr, key: delta.key, data: delta.data}],
+        };
+      }
+      // No delta, no need to update core..
+      else {
+        return null;
+      }
     }
   }
-  async _verifyResult(resultObj, type, contractAddress) {
-    // TODO: remove this default!!!!
+  async _verifyResult(result, contractAddress) {
+    // TODO: remove this default!!!! (is there for being able to run UTs without Ethereum)
     let isVerified = true;
-    let result = null;
     let error = null;
 
     if (this._controller.hasEthereum()) {
       isVerified = false;
-      let result;
-      if (resultObj.status === constants.TASK_STATUS.FAILED) {
-        result = FailedResult.buildFailedResult(resultObj);
-      }
-      else {
-        if (type === constants.CORE_REQUESTS.DeploySecretContract) {
-          result = DeployResult.buildDeployResult(resultObj);
-        }
-        else {
-          result = ComputeResult.buildComputeResult(resultObj);
-        }
+      let tip = null;
+      // If it is a compute task without delta => request tip from core to validate with Ethereum
+      if (result instanceof ComputeResult && !result.hasDelta()) {
+
       }
       try {
         let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
@@ -140,6 +141,21 @@ class VerifyAndStoreResultAction {
       }
     }
     return {error: error, isVerified: isVerified};
+  }
+  static buildTaskResult(type, resultObj) {
+    let result = null;
+    if (resultObj.status === constants.TASK_STATUS.FAILED) {
+      result = FailedResult.buildFailedResult(resultObj);
+    }
+    else {
+      if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+        result = DeployResult.buildDeployResult(resultObj);
+      }
+      else {
+        result = ComputeResult.buildComputeResult(resultObj);
+      }
+    }
+    return result;
   }
 }
 module.exports = VerifyAndStoreResultAction;

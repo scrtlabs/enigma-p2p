@@ -13,6 +13,7 @@ module.exports.TEST_TREE = {
     '#4': true,
     '#5': true,
     '#6': true,
+    '#7': true,
   },
   'coverage' :{
     'all' : true,

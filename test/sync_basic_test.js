@@ -380,11 +380,13 @@ function createSyncMsgForVerifierTest(type, data) {
 
   if (type === MsgTypes.SYNC_STATE_RES) {
     rawMsg.type = 'GetDeltas';
-    rawMsg.deltas = data;
+    rawMsg.result = {deltas: data};
   } else if (type === MsgTypes.SYNC_BCODE_RES) {
     rawMsg.type = 'GetContract';
-    rawMsg.address = data.address;
-    rawMsg.bytecode = data.bytecode;
+    rawMsg.result = {
+      address: data.address,
+      bytecode: data.bytecode,
+    };
   } else {
     return SyncMsgBuilder.msgReqFromObjNoValidation(rawMsg);
   }

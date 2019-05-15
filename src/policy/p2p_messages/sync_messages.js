@@ -263,7 +263,7 @@ class SyncStateResMsg extends SyncMsg {
     return this._rawMsg.contractAddress;
   }
   deltas(){
-    return this._rawMsg.deltas;
+    return this._rawMsg.result.deltas;
   }
   states() {
     return this._rawMsg.states;
@@ -303,10 +303,10 @@ class SyncBcodeResMsg extends SyncMsg {
     return this._rawMsg.deployedBytecode;
   }
   bytecode(){
-    return this._rawMsg.bytecode;
+    return this._rawMsg.result.bytecode;
   }
   address(){
-    return this._rawMsg.address;
+    return this._rawMsg.result.address;
   }
 }
 
