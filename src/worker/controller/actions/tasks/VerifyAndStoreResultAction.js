@@ -34,51 +34,55 @@ class VerifyAndStoreResultAction {
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
 
-    let taskResult = VerifyAndStoreResultAction.buildTaskResult(type, resultObj);
-    let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
-
-    if (isVerified) {
-      const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
-      if (coreMsg) {
-        try {
-          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
-        }
-        catch(e) {
-          if(optionalCallback){
-            return optionalCallback(e);
-          }
-          return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
-        }
-        // announce as provider if its deployment and successful
-        if (type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS) {
-          let ecid = EngCid.createFromSCAddress(resultObj.taskId);
-          if (ecid){
-            try{
-              // announce the network
-              await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-            }
-            catch(e) {
-              this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
-              error = e;
-            }
-          }
-        }
-      }
-      try {
-        // store result in TaskManager mapped with taskId
-        let outsideTask = OutsideTask.buildTask(type, resultObj);
-        if (outsideTask){
-          await this._controller.taskManager().addOutsideResult(type,outsideTask);
-        }
-      }
-      catch(e){
-        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
-        error = e;
+    let {taskResult, err} = this._buildTaskResult(type, resultObj);
+    if (err) {
+      if(optionalCallback){
+        return optionalCallback(err);
       }
     }
-    this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
-    if (optionalCallback) {
-      return optionalCallback(error);
+    else {
+      let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
+
+      if (isVerified) {
+        const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
+        if (coreMsg) {
+          try {
+            await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
+          } catch (e) {
+            if (optionalCallback) {
+              return optionalCallback(e);
+            }
+            return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+          }
+          // announce as provider if its deployment and successful
+          if (type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS) {
+            let ecid = EngCid.createFromSCAddress(resultObj.taskId);
+            if (ecid) {
+              try {
+                // announce the network
+                await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {engCids: [ecid]});
+              } catch (e) {
+                this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
+                error = e;
+              }
+            }
+          }
+        }
+        try {
+          // store result in TaskManager mapped with taskId
+          let outsideTask = OutsideTask.buildTask(type, resultObj);
+          if (outsideTask) {
+            await this._controller.taskManager().addOutsideResult(type, outsideTask);
+          }
+        } catch (e) {
+          this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+          error = e;
+        }
+      }
+      this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
+      if (optionalCallback) {
+        return optionalCallback(error);
+      }
     }
   }
   _buildIpcMsg(taskResult, contractAddr) {
@@ -142,20 +146,24 @@ class VerifyAndStoreResultAction {
     }
     return {error: error, isVerified: isVerified};
   }
-  static buildTaskResult(type, resultObj) {
+  _buildTaskResult(type, resultObj) {
     let result = null;
+    let error = null;
+
     if (resultObj.status === constants.TASK_STATUS.FAILED) {
       result = FailedResult.buildFailedResult(resultObj);
     }
-    else {
-      if (type === constants.CORE_REQUESTS.DeploySecretContract) {
-        result = DeployResult.buildDeployResult(resultObj);
-      }
-      else {
-        result = ComputeResult.buildComputeResult(resultObj);
-      }
+    else if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+      result = DeployResult.buildDeployResult(resultObj);
     }
-    return result;
+    else if (type === constants.CORE_REQUESTS.ComputeTask) {
+      result = ComputeResult.buildComputeResult(resultObj);
+    }
+    else {
+      error = `[VERIFY_TASK_RESULT] received unrecognized task type ${type}, task is dropped`;
+      this._controller.logger().info(error);
+    }
+    return {taskResult: result, err: error};
   }
 }
 module.exports = VerifyAndStoreResultAction;
