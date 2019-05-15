@@ -54,7 +54,7 @@ class EnigmaContractReaderAPI {
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call(this._defaultTrxOptions, (error, data)=> {
+      this._enigmaContract.methods.getSecretContract(nodeUtils.add0x(secrectContractAddress)).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -340,7 +340,7 @@ class EnigmaContractReaderAPI {
        * */
       'WorkersParameterized': (event) => {
         return {
-          seed: event.returnValues.seed,
+          seed: cryptography.toBN(event.returnValues.seed),
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,

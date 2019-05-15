@@ -25,5 +25,16 @@ class UpdateDbAction {
         }
     );
   }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      if (!params) params = {};
+      params.callback = function(err, result) {
+        if (err) rej(err);
+        else res(result);
+      };
+      action.execute(params);
+    });
+  }
 }
 module.exports = UpdateDbAction;

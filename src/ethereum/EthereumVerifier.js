@@ -365,11 +365,11 @@ class EthereumVerifier {
       // Unique hash for epoch, secret contract address, and nonce
       const hash = cryptography.hash(abi.rawEncode(
           ['uint256', 'bytes32', 'uint256'],
-          [params.seed, secretContractAddress, nonce]
+          [params.seed.toString(10), nodeUtils.add0x(secretContractAddress), nonce]
         ));
 
       // Find random number between [0, tokenCpt)
-      let randVal = JSBI.remainder(cryptography.toBN(hash), cryptography.toBN(tokenCpt));
+      let randVal = JSBI.remainder(cryptography.toBN(hash), tokenCpt);
       let selectedWorker = params.workers[params.workers.length - 1];
       // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
       // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
