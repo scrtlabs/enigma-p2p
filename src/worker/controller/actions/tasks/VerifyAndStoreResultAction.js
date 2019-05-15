@@ -35,24 +35,20 @@ class VerifyAndStoreResultAction {
     this._controller.logger().debug(log);
 
     let {taskResult, err} = this._buildTaskResult(type, resultObj);
-    if (err) {
-      if(optionalCallback){
-        return optionalCallback(err);
-      }
-    }
-    else {
+    if (!err) {
       let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
-
       if (isVerified) {
         const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
         if (coreMsg) {
           try {
             await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
-          } catch (e) {
+          }
+          catch (e) {
+            this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
             if (optionalCallback) {
-              return optionalCallback(e);
+              optionalCallback(e);
             }
-            return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+            return;
           }
           // announce as provider if its deployment and successful
           if (type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS) {
@@ -74,7 +70,8 @@ class VerifyAndStoreResultAction {
           if (outsideTask) {
             await this._controller.taskManager().addOutsideResult(type, outsideTask);
           }
-        } catch (e) {
+        }
+        catch (e) {
           this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
           error = e;
         }
@@ -82,6 +79,11 @@ class VerifyAndStoreResultAction {
       this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
       if (optionalCallback) {
         return optionalCallback(error);
+      }
+    }
+    else { // if (err)
+      if(optionalCallback){
+        return optionalCallback(err);
       }
     }
   }
@@ -123,13 +125,28 @@ class VerifyAndStoreResultAction {
 
     if (this._controller.hasEthereum()) {
       isVerified = false;
-      let tip = null;
+      let localTip = null;
       // If it is a compute task without delta => request tip from core to validate with Ethereum
       if (result instanceof ComputeResult && !result.hasDelta()) {
-
+        try {
+          let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
+          if (!tips || tips[0].address !== contractAddress) {
+            error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
+          }
+          else {
+            localTip = tips[0];
+          }
+        }
+        catch (e) {
+          error = e;
+        }
+        if (error) {
+          this._controller.logger().info(error);
+          return {error: error, isVerified: isVerified};
+        }
       }
       try {
-        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
           error = res.error;
