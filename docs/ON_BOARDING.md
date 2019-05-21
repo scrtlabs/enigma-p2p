@@ -16,7 +16,7 @@ Below is a suggested plan for beginners.
 
 ### Javascript
 
-**Goal:** focus on synthax, core functionality and NOT on browser.
+**Goal:** focus on syntax, core functionality and NOT on the browser.
 - [Javascript documentation](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 - [JSON object](https://www.w3schools.com/js/js_json.asp)
 - [The Modern Javascript Tutorial](https://javascript.info/)
@@ -26,7 +26,7 @@ Below is a suggested plan for beginners.
 
 - [NodeJS documentation](https://nodejs.org/dist/latest-v10.x/docs/api/)
 - [Youtube](https://www.youtube.com/watch?v=TlB_eWDSMt4)
-- [Javascript VS NodeJS](https://www.educba.com/javascript-vs-node-js/)
+- [Javascript vs NodeJS](https://www.educba.com/javascript-vs-node-js/)
 
 ### NPM 
 
@@ -45,7 +45,7 @@ Below is a suggested plan for beginners.
  
 ### Promise and Async 
 
- - [Writting neat async code in js](https://medium.com/dev-bits/writing-neat-asynchronous-node-js-code-with-promises-32ed3a4fd098)
+ - [Writting neat async code in JS](https://medium.com/dev-bits/writing-neat-asynchronous-node-js-code-with-promises-32ed3a4fd098)
  - [Async/Await](https://javascript.info/async-await)
  - [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/all)
  - [utils.promisify](https://nodejs.org/dist/latest-v8.x/docs/api/util.html)
@@ -65,18 +65,16 @@ Very important module.
 
 ### Exercises
 
-The following exercises will require registring a free account and generating an API KEY from [etherscan.io](https://etherscan.io/apis) 
-Once you signed-in go and generate an API key.
+The following exercises will require registering a free account and generating an API KEY from [etherscan.io](https://etherscan.io/apis) 
+Once you have signed in, generate an API key.
 This might be a valid API-KEY `6W8CIWBAWXKPG3653117TYHZU4WG8BTHAX`
 
 ### Exercise 1 
 
 **Description:**
 
-Given a command line argument representing `Ethereum Account Address` and `output destination`
-Fetch the [Ethereum Price and total supply](https://etherscan.io/apis#stats) and the [Ethereum Balance](https://etherscan.io/apis#accounts). 
-
-Once done, save the result into a JSON file.
+Given a command line argument representing an `Ethereum Account Address` and `output destination`,
+fetch the [Ethereum Price and total supply](https://etherscan.io/apis#stats) and the [Ethereum Balance](https://etherscan.io/apis#accounts). Save the result into a JSON file.
 
 **Input:**
 
@@ -86,7 +84,7 @@ Command line:
   
 **Output:**
 
-Save into the output file an object: 
+Save into the output file an object as follows: 
 ```json
 {
     "lastPrice" : <price>,
@@ -103,7 +101,7 @@ Save into the output file an object:
 
 **Description:**
 
-Same thing as `Exercise 1` only this time its a list of ethereum addresses. 
+Same thing as `Exercise 1` only this time it is a list of Ethereum addresses. 
 For balances only the [Get Ether Balance for a single Address](https://etherscan.io/apis#accounts) endpoint is allowed.
 
 **Do not use `Get Ether Balance for multiple Addresses in a single call
@@ -113,7 +111,7 @@ For balances only the [Get Ether Balance for a single Address](https://etherscan
 **Input:**
 
 Command line: 
-- List seperated by commans of Ethereum Account address
+- List of Ethereum Account addresses seperated by commas
 - Output file destination 
   
 expected usage example: 
@@ -122,7 +120,7 @@ expected usage example:
 
 **Output:**
 
-Save into the output file an object: 
+Save into the output file an object as follows: 
 ```json
 {
     "lastPrice" : <price>,
@@ -183,17 +181,17 @@ hint: [Promise.all](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Refe
 
 ### Exercise 1 
   1. Run and understand the [Echo](https://github.com/libp2p/js-libp2p/tree/master/examples/echo) example.
-  2. Modify the example in such way that: 
+  2. Modify the example in such a way that: 
      1. The Listener doesn't simply echo the message but returns `<date> + dialer msg` echo. 
         for example: the dialer sends "hi!" the listener returns `2019-03-25T08:57:33.235Z hi!`.
      2. The `dialer` input should come from stdin 
-     3. The input from #2 should be infinite in a loop until user closes the terminal.
+     3. The input from #2 should be an infinite loop until user closes the terminal.
      
 
 ### Exercise 2
 
 
-Build a decentralized chat with no private messages only group messages based on [pubsub](https://github.com/libp2p/js-libp2p/tree/master/examples/pubsub)
+Build a decentralized chat with no private messages, only group messages based on [pubsub](https://github.com/libp2p/js-libp2p/tree/master/examples/pubsub)
 
 **example:**
 
@@ -203,4 +201,4 @@ nickname: user3 topics: enigma, reddit, facebook
 
 - every message posted to `enigma` topic will be seen by all 3 users.
 - user2 is the only one subscribed to `world news` and can post and read there 
-- if user3 post a message to `facebook` topic user1 will receive it. 
+- if user3 posts a message to `facebook` topic user1 will receive it. 
