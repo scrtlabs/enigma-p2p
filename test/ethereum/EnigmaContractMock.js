@@ -49,14 +49,6 @@ class EnigmaContractMock {
     return this._contracts[contractAddress];
   }
 
-  getStateDeltaHash(contractAddress, key) {
-    return this._contracts[contractAddress].deltaHashes[key];
-  }
-
-  getOutputHash(contractAddress, key) {
-    return this._contracts[contractAddress].outputHashes[key];
-  }
-
   subscribe(eventName, filter, callback) {
     this._eventListeners[eventName] = callback;
   }

@@ -296,12 +296,12 @@ class EthereumVerifier {
               contractParams = await this._contractApi.getContractParams(contractAddress);
               if (!contractParams.deltaHashes) {
                 res.isVerified = false;
-                res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: no delta hashes for contract ${contractAddress}`);;
+                res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: no delta hashes for contract ${contractAddress}`);
               }
             }
             catch (e) {
               res.isVerified = false;
-              res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: ${e}`);;
+              res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: ${e}`);
             }
             if (!res.error) {
               if (task instanceof DeployResult) {
