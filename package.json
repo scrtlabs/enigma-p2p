@@ -17,7 +17,7 @@
     "test-tree": "node scripts/test_tree_validation.js"
   },
   "author": "isan rivkin",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
     "async": "^2.6.1",
