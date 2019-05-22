@@ -237,12 +237,12 @@ describe('Ethereum tests', function() {
 
       await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
 
-      const taskParams = await api.getTaskParams(mock_taskId);
+      let taskParams = await api.getTaskParams(mock_taskId);
       assert.strictEqual(inputsHash, taskParams.inputsHash);
       assert.strictEqual(gasLimit, taskParams.gasLimit);
       assert.strictEqual(gasPrice, taskParams.gasPrice);
       assert.strictEqual(workerAddress, taskParams.senderAddress);
-      //assert.strictEqual(8, taskParams.blockNumber);
+      assert.strictEqual(constants.ETHEREUM_EMPTY_HASH, taskParams.outputHash);
       assert.strictEqual(1, taskParams.status);
 
       const stateDeltaHash1 = web3.utils.randomHex(32);
@@ -287,7 +287,6 @@ describe('Ethereum tests', function() {
       // Login the worker before commmitting receipts
       await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
         optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
-
 
       await api.commitReceipts(secretContractAddress, [taskId2, taskId3], [stateDeltaHash2, stateDeltaHash3],
         [outputHash2, outputHash3], optionalEthereumData, optionalEthereumContractAddress, [gasUsed, gasUsed], signature);

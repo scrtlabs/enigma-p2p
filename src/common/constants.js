@@ -31,6 +31,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'DB_REQUEST': 'dbreq', // some db request to core
   'GET_REMOTE_TIPS': 'gremotetipslocal', // get the local tips of some remote peer
   'GET_ALL_TIPS': 'getat', // get all tips from cache/core
+  'GET_TIPS': 'gett', // get tips from cache/core
   'GET_ALL_ADDRS': 'getaa', // get all addrs from cache/core
   'GET_DELTAS': 'getds', // get deltas request from core
   'GET_CONTRACT_BCODE': 'getcbc', // get the bytecode of some contract
@@ -233,6 +234,11 @@ module.exports.ETHEREUM_WORKER_STATUS = {
   LOGGEDOUT: 2
 };
 
+/**
+ * Enigma Contract worker status
+ * */
+module.exports.ETHEREUM_EMPTY_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
 module.exports.PRINCIPAL_NODE = {
   uri: 'http://127.0.0.1:10101',
   retryOptions: {
@@ -242,5 +248,4 @@ module.exports.PRINCIPAL_NODE = {
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
-
 };

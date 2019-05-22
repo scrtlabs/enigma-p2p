@@ -34,97 +34,119 @@ class VerifyAndStoreResultAction {
     const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
     this._controller.logger().debug(log);
 
-    let {error, isVerified} = await this._verifyResult(resultObj, type, contractAddress);
-
-    if (isVerified) {
-      const coreMsg = this._buildIpcMsg(resultObj, type, contractAddress);
-      if (coreMsg) {
+    let {taskResult, err} = this._buildTaskResult(type, resultObj);
+    if (!err) {
+      let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
+      if (isVerified) {
+        const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
+        if (coreMsg) {
+          try {
+            await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
+          }
+          catch (e) {
+            this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+            if (optionalCallback) {
+              optionalCallback(e);
+            }
+            return;
+          }
+          // announce as provider if its deployment and successful
+          if (type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS) {
+            let ecid = EngCid.createFromSCAddress(resultObj.taskId);
+            if (ecid) {
+              try {
+                // announce the network
+                await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {engCids: [ecid]});
+              } catch (e) {
+                this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
+                error = e;
+              }
+            }
+          }
+        }
         try {
-          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
-        }
-        catch(e) {
-          if(optionalCallback){
-            return optionalCallback(e);
-          }
-          return this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
-        }
-        // announce as provider if its deployment and successful
-        if (type === constants.CORE_REQUESTS.DeploySecretContract && resultObj.status === constants.TASK_STATUS.SUCCESS) {
-          let ecid = EngCid.createFromSCAddress(resultObj.taskId);
-          if (ecid){
-            try{
-              // announce the network
-              await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-            }
-            catch(e) {
-              this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
-              error = e;
-            }
+          // store result in TaskManager mapped with taskId
+          let outsideTask = OutsideTask.buildTask(type, resultObj);
+          if (outsideTask) {
+            await this._controller.taskManager().addOutsideResult(type, outsideTask);
           }
         }
-      }
-      try {
-        // store result in TaskManager mapped with taskId
-        let outsideTask = OutsideTask.buildTask(type, resultObj);
-        if (outsideTask){
-          await this._controller.taskManager().addOutsideResult(type,outsideTask);
+        catch (e) {
+          this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+          error = e;
         }
       }
-      catch(e){
-        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
-        error = e;
+      this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
+      if (optionalCallback) {
+        return optionalCallback(error);
       }
     }
-    this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
-    if (optionalCallback) {
-      return optionalCallback(error);
+    else { // if (err)
+      if(optionalCallback){
+        return optionalCallback(err);
+      }
     }
   }
-  _buildIpcMsg(resultObject, type, contractAddr) {
+  _buildIpcMsg(taskResult, contractAddr) {
     // FailedTask
-    if (resultObject.status === constants.TASK_STATUS.FAILED) {
+    if (taskResult instanceof FailedResult) {
       // TODO:: what to do with a FailedTask ???
-      this._controller.logger().debug(`[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${resultObject.taskId}`);
+      this._controller.logger().debug(`[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${taskResult.getTaskId()}`);
       return null;
     }
     // DeployResult
-    else if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+    else if (taskResult instanceof DeployResult) {
       return {
         address: contractAddr,
-        bytecode: resultObject.output,
+        bytecode: taskResult.getOutput(),
         type: constants.CORE_REQUESTS.UpdateNewContract,
       };
     }
     // ComputeResult
-    else if (type === constants.CORE_REQUESTS.ComputeTask) {
-      return {
-        type: constants.CORE_REQUESTS.UpdateDeltas,
-        deltas: [{address: contractAddr, key: resultObject.delta.key, data: resultObject.delta.data}],
-      };
+    else {
+      // Check that there is indeed a delta
+      if (taskResult.hasDelta()) {
+        let delta = taskResult.getDelta();
+        return {
+          type: constants.CORE_REQUESTS.UpdateDeltas,
+          deltas: [{address: contractAddr, key: delta.key, data: delta.data}],
+        };
+      }
+      // No delta, no need to update core..
+      else {
+        return null;
+      }
     }
   }
-  async _verifyResult(resultObj, type, contractAddress) {
-    // TODO: remove this default!!!!
+  async _verifyResult(result, contractAddress) {
+    // TODO: remove this default!!!! (is there for being able to run UTs without Ethereum)
     let isVerified = true;
-    let result = null;
     let error = null;
 
     if (this._controller.hasEthereum()) {
       isVerified = false;
-      let result;
-      if (resultObj.status === constants.TASK_STATUS.FAILED) {
-        result = FailedResult.buildFailedResult(resultObj);
-      }
-      else {
-        if (type === constants.CORE_REQUESTS.DeploySecretContract) {
-          result = DeployResult.buildDeployResult(resultObj);
+      let localTip = null;
+      // If it is a compute task without delta => request tip from core to validate with Ethereum
+      if (result instanceof ComputeResult && !result.hasDelta()) {
+        try {
+          let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
+          if (!tips || tips[0].address !== contractAddress) {
+            error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
+          }
+          else {
+            localTip = tips[0];
+          }
         }
-        else {
-          result = ComputeResult.buildComputeResult(resultObj);
+        catch (e) {
+          error = e;
+        }
+        if (error) {
+          this._controller.logger().info(error);
+          return {error: error, isVerified: isVerified};
         }
       }
       try {
-        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress);
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
           error = res.error;
@@ -140,6 +162,25 @@ class VerifyAndStoreResultAction {
       }
     }
     return {error: error, isVerified: isVerified};
+  }
+  _buildTaskResult(type, resultObj) {
+    let result = null;
+    let error = null;
+
+    if (resultObj.status === constants.TASK_STATUS.FAILED) {
+      result = FailedResult.buildFailedResult(resultObj);
+    }
+    else if (type === constants.CORE_REQUESTS.DeploySecretContract) {
+      result = DeployResult.buildDeployResult(resultObj);
+    }
+    else if (type === constants.CORE_REQUESTS.ComputeTask) {
+      result = ComputeResult.buildComputeResult(resultObj);
+    }
+    else {
+      error = `[VERIFY_TASK_RESULT] received unrecognized task type ${type}, task is dropped`;
+      this._controller.logger().info(error);
+    }
+    return {taskResult: result, err: error};
   }
 }
 module.exports = VerifyAndStoreResultAction;

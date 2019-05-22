@@ -44,7 +44,7 @@ class ExecuteVerifiedAction {
     // check for system error
     if (response.msg) {
       // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller.logger().error('response from Core' + response);
+      return this._controller.logger().error('response from Core' + JSON.stringify(response));
     }
     let result = null;
     if (response.result) {
