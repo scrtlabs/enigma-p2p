@@ -146,8 +146,10 @@ class MockCoreServer {
     return {
       type: msg.type,
       id: msg.id,
-      address: contractAddr,
-      bytecode: bcode,
+      result : {
+        address: contractAddr,
+        bytecode: bcode,
+      }
     };
   }
 
@@ -205,7 +207,9 @@ class MockCoreServer {
     return {
       type: msg.type,
       id: msg.id,
-      deltas: response,
+      result: {
+        deltas: response,
+      }
     };
   }
 
@@ -245,7 +249,11 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, response);
           break;
         case MsgTypes.GetAllTips:
-          const tips = this._getAllTips(msg);
+          const allTips = this._getAllTips(msg);
+          MockCoreServer._send(this._socket, allTips);
+          break;
+        case MsgTypes.GetTips:
+          const tips = this._getTips(msg);
           MockCoreServer._send(this._socket, tips);
           break;
         case MsgTypes.GetAllAddrs:
@@ -366,13 +374,40 @@ class MockCoreServer {
         return {
           type: msg.type,
           id: msg.id,
-          tips: tips,
+          result: {
+            tips: tips,
+          }
         };
       }
       return {
         type: msg.type,
         id: msg.id,
-        tips: this._receiverTips,
+        result: {
+          tips: this._receiverTips,
+        }
+      };
+    } else {
+      return MockCoreServer._Error(msg);
+    }
+  }
+
+  _getTips(msg) {
+    if (MockCoreServer._validate(msg, SCHEMES.GetTips)) {
+      let tips = [];
+      for (let i = 0; i < msg.input.length; i++) {
+        let tip = {
+          address: msg.input[i],
+          key: DEFAULT_TIPS[0].key,
+          data: DEFAULT_TIPS[0].data,
+        };
+        tips.push(tip);
+      }
+      return {
+        type: msg.type,
+        id: msg.id,
+        result: {
+          tips: tips,
+        }
       };
     } else {
       return MockCoreServer._Error(msg);

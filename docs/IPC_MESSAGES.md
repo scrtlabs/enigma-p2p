@@ -161,6 +161,7 @@ Response:
     id : <unique_request_id>,
     type : GetContract,
     result : {
+        address: ...,
         bytecode : []
     }
 }
