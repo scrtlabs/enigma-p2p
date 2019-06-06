@@ -7,6 +7,7 @@ const Result = require('../../../tasks/Result');
 const constants = require('../../../../common/constants');
 const taskTypes = constants.CORE_REQUESTS;
 const Envelop = require('../../../../main_controller/channels/Envelop');
+const DeployTask = require('../../../../worker/tasks/DeployTask');
 
 
 class ExecuteVerifiedAction {
@@ -15,6 +16,20 @@ class ExecuteVerifiedAction {
   }
   async execute(params) {
     const task = params.task;
+
+    // If this is a deploy task, trigger PTT for the specific contract address
+    if (task instanceof DeployTask) {
+      try {
+        await this._controller.asyncExecCmd(
+          constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
+          {addresses: [task.getContractAddr()]});
+
+        this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
+      } catch (e) {
+        return this._controller.logger().error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
+      }
+    }
+
     const requestEnv = new Envelop(true, {
       type: task.getTaskType(),
       input: task.toCoreJson(),
@@ -29,7 +44,7 @@ class ExecuteVerifiedAction {
     // check for system error
     if (response.msg) {
       // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller.logger().error('response from Core' + response);
+      return this._controller.logger().error('response from Core' + JSON.stringify(response));
     }
     let result = null;
     if (response.result) {

@@ -48,6 +48,7 @@ const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResult
 // db
 const DbRequestAction = require('./actions/db/DbRequestAction');
 const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
+const GetTipsAction = require('./actions/db/read/GetTipsAction');
 const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
@@ -75,6 +76,7 @@ const WithdrawAction = require('./actions/ethereum/WithdrawAction');
 const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 // action removal
 const DeleteAction = require('./actions/DeleteAction');
+const GetWorkerParamsAction =  require('./actions/ethereum/GetWorkerParamsAction');
 
 class NodeController {
   constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
@@ -137,6 +139,7 @@ class NodeController {
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
       [NOTIFICATION.GET_ALL_ADDRS]: new GetAllAddrsAction(this), // get all the addresses from core or from cache
+      [NOTIFICATION.GET_TIPS]: new GetTipsAction(this),
       [NOTIFICATION.GET_DELTAS]: new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE]: new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.UPDATE_DB]: new UpdateDbAction(this), // write to db, bytecode or delta
@@ -160,7 +163,8 @@ class NodeController {
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
       [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
-      [NOTIFICATION.COMMIT_RECEIPT] : new CommitReceiptAction(this), // commit a result back to ethereum
+      [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
+      [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this), // get worker params set in enigma contract
     };
   }
   /**
@@ -753,19 +757,19 @@ class NodeController {
    * @return {Promise} returning boolean indicating a successful login
    * */
   login() {
-    return this._actions[NOTIFICATION.LOGIN].asyncExecute({});
+    return this._actions[NOTIFICATION.LOGIN].asyncExecute();
   }
   /** Logout to Enigma contract
    * @return {Promise} returning boolean indicating a successful logout
    * */
   logout() {
-    return this._actions[NOTIFICATION.LOGOUT].asyncExecute({});
+    return this._actions[NOTIFICATION.LOGOUT].asyncExecute();
   }
   /** Register to Enigma contract
    * @return {Promise} returning boolean indicating a successful registration
    * */
   register() {
-    return this._actions[NOTIFICATION.REGISTER].asyncExecute({});
+    return this._actions[NOTIFICATION.REGISTER].asyncExecute();
   }
   /** Deposit to Enigma contract
    * @param {Integer} amount

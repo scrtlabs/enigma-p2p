@@ -1,31 +1,26 @@
-const constants = require('../../../../common/constants');
-
-class DepositAction {
+class GetWorkerParamsAction {
   constructor(controller) {
     this._controller = controller;
   }
   async execute(params) {
-    const amount = params.amount;
     const onResult = params.onResponse;
-    let success = false;
     let err = null;
+    let workerParams = null;
 
     try {
-      const txReceipt = await this._controller.ethereum().api().selfDeposit(amount);
-      this._controller.logger().info(`[DEPOSIT] successful deposit, receipt = ${txReceipt}`);
-      success = true;
+      workerParams = await this._controller.ethereum().api().getSelfWorker();
     } catch (e) {
-      this._controller.logger().error(`[DEPOSIT] error=  ${e}`);
+      this._controller.logger().error(`[GET_ETH_WORKER_PARAM] error =  ${e}`);
       err = e;
     }
     if (onResult) {
-      onResult(err, success);
+      onResult(err, workerParams);
     }
-
   }
   async asyncExecute(params) {
     const action = this;
     return new Promise((res, rej)=>{
+      if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);
@@ -34,4 +29,4 @@ class DepositAction {
     });
   }
 }
-module.exports = DepositAction;
+module.exports = GetWorkerParamsAction;

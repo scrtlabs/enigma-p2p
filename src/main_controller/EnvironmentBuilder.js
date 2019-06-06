@@ -109,8 +109,7 @@ class EnvironmentBuilder{
       let ethereumApi = null;
       if(this._ethereumConfig){
         ethereumApi = new EthereumAPI(logger);
-        await ethereumApi.init(this._ethereumConfig.enigmaContractAddress,
-          this._ethereumConfig.ethereumWebsocketProvider);
+        await ethereumApi.init(this._ethereumConfig);
       }
       let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
       // add node to logger for publishing globalLogging

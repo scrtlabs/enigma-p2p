@@ -5,6 +5,7 @@ const TEST_TREE = require('./test_tree').TEST_TREE;
 const CoreServer = require('../src/core/core_server_mock/core_server');
 const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const testUtils = require('./testUtils/utils');
+const ethTestUtils = require('./ethereum/utils');
 const crypto = require('../src/common/cryptography');
 
 const B2Path = path.join(__dirname, './testUtils/id-l');
@@ -16,11 +17,7 @@ const DbUtils = require('../src/common/DbUtils');
 
 const SYNC_SCENARIOS = {EMPTY_DB: 1, PARTIAL_DB_WITH_SOME_ADDRESSES: 2, PARTIAL_DB_WITH_ALL_ADDRESSES: 3};
 
-const envInitializer = require('./ethereum/scripts/env_initializer');
-const EnigmaContractWriterAPI = require(path.join(__dirname, '../src/ethereum/EnigmaContractWriterAPI'));
-
-const truffleDir = path.join(__dirname, './ethereum/scripts');
-
+const EnigmaContractAPIBuilder = require(path.join(__dirname, '../src/ethereum/EnigmaContractAPIBuilder'));
 const Verifier = require('../src/worker/state_sync/receiver/StateSyncReqVerifier');
 const Web3 = require('web3');
 
@@ -30,12 +27,10 @@ const parallel = require('async/parallel');
 
 
 async function initEthereumStuff() {
-  await envInitializer.start(truffleDir);
-  const result = await envInitializer.init(truffleDir);
-  const enigmaContractAddress = result.contractAddress;
-  const enigmaContractABI = result.contractABI;
-  const web3 = result.web3;
-  const enigmaContractApi = await new EnigmaContractWriterAPI(enigmaContractAddress, enigmaContractABI, web3);
+  const builder = new EnigmaContractAPIBuilder();
+  const res = await builder.createNetwork().deploy().build();
+  const enigmaContractApi = res.api;
+  const web3 = enigmaContractApi.w3();
 
   const accounts = await web3.eth.getAccounts();
   const workerEnclaveSigningAddress = accounts[0];
@@ -48,14 +43,14 @@ async function initEthereumStuff() {
   await enigmaContractApi.deposit(workerAddress, depositValue, {from: workerAddress});
   await enigmaContractApi.login({from: workerAddress});
 
-  return {enigmaContractAddress: enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
+  return {enigmaContractAddress: res.enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
     workerEnclaveSigningAddress: workerEnclaveSigningAddress,
-    workerAddress: workerAddress};
+    workerAddress: workerAddress,
+    environment: res.environment};
 }
 
-async function stopEthereumStuff(web3) {
-  await envInitializer.disconnect(web3);
-  await envInitializer.stop();
+async function stopEthereumStuff(environment) {
+  await environment.destroy();
 }
 
 function syncResultMsgToStatesMap(resultMsgs) {
@@ -92,7 +87,7 @@ function prepareSyncTestData(scenario) {
 
   if (scenario === SYNC_SCENARIOS.EMPTY_DB) {
     res.tips = [];
-    res.expected = testUtils.PROVIDERS_DB_MAP;
+    res.expected = ethTestUtils.PROVIDERS_DB_MAP;
   } else if (scenario === SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES) {
     res.tips = [{
       address: [13, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 42],
@@ -117,7 +112,7 @@ function prepareSyncTestData(scenario) {
         28, 195, 207, 222, 86, 42, 236, 92, 194, 214],
     }];
 
-    res.expected = testUtils.transformStatesListToMap([{
+    res.expected = ethTestUtils.transformStatesListToMap([{
       address: [76, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 33],
       key: 2,
       data: [135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
@@ -230,7 +225,7 @@ function prepareSyncTestData(scenario) {
         88, 135, 204],
     }];
 
-    res.expected = testUtils.transformStatesListToMap([{
+    res.expected = ethTestUtils.transformStatesListToMap([{
       address: [76, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 33],
       key: 1,
       data: [135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
@@ -326,7 +321,7 @@ function syncTest(scenario) {
         .build();
 
     // write all states to ethereum
-    await testUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(2000);
     waterfall([
       (cb)=>{
@@ -369,7 +364,7 @@ function syncTest(scenario) {
       dnsMockCore.disconnect();
       peerMockCore.disconnect();
 
-      await stopEthereumStuff(web3);
+      await stopEthereumStuff(ethereumInfo.environment);
 
       await testUtils.sleep(2000);
       resolve();
@@ -385,11 +380,13 @@ function createSyncMsgForVerifierTest(type, data) {
 
   if (type === MsgTypes.SYNC_STATE_RES) {
     rawMsg.type = 'GetDeltas';
-    rawMsg.deltas = data;
+    rawMsg.result = {deltas: data};
   } else if (type === MsgTypes.SYNC_BCODE_RES) {
     rawMsg.type = 'GetContract';
-    rawMsg.address = data.address;
-    rawMsg.bytecode = data.bytecode;
+    rawMsg.result = {
+      address: data.address,
+      bytecode: data.bytecode,
+    };
   } else {
     return SyncMsgBuilder.msgReqFromObjNoValidation(rawMsg);
   }
@@ -511,7 +508,6 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
         // start the mock server first
         coreServer.setProvider(true);
         coreServer.runServer(uri);
-        // await testUtils.sleep(500);
         cb(null);
       },
       (cb)=>{

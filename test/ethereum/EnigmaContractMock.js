@@ -9,15 +9,17 @@ class EnigmaContractMock {
     this._except = false;
   }
 
-  setTaskParams(taskId, blockNumber, status, gasLimit) {
+  setTaskParams(taskId, blockNumber, status, gasLimit, inputsHash, outputHash) {
     this._taskRecords[taskId] = {taskId: taskId,
                                  blockNumber: blockNumber,
                                  status: status,
-                                 gasLimit: gasLimit};
+                                 gasLimit: gasLimit,
+                                 inputsHash: inputsHash,
+                                 outputHash: outputHash};
   }
 
-  setContractParams(contractAddress, codeHash, deltas, outputs) {
-    this._contracts[contractAddress] = {codeHash: codeHash, deltaHashes: deltas, outputHashes: outputs};
+  setContractParams(contractAddress, codeHash, deltas) {
+    this._contracts[contractAddress] = {codeHash: codeHash, deltaHashes: deltas};
   }
 
   setEpochSize(size) {
@@ -45,14 +47,6 @@ class EnigmaContractMock {
 
   getContractParams(contractAddress) {
     return this._contracts[contractAddress];
-  }
-
-  getStateDeltaHash(contractAddress, key) {
-    return this._contracts[contractAddress].deltaHashes[key];
-  }
-
-  getOutputHash(contractAddress, key) {
-    return this._contracts[contractAddress].outputHashes[key];
   }
 
   subscribe(eventName, filter, callback) {

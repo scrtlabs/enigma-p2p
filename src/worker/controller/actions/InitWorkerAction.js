@@ -85,17 +85,16 @@ class InitWorkerAction {
       });
     };
     const backgroundServices = (cb)=>{
-      // TODO:: lena, here your EthereumServices should start. For example, read current Epoch data (like worker params)
       if(this._controller.hasEthereum()){
         this._controller.ethereum().services().on(constants.ETHEREUM_EVENTS.NewEpoch,
           function (error, event) {
-            if (err) {
+            if (error) {
               this._controller.logger().error('failed subscribing to NewEpoch events ' + error);
             }
             else {
               this._controller.execCmd(C.GET_STATE_KEYS);
             }
-          });
+          }.bind(this));
       }
       // TODO:: everything that runs in an infinite loop in the program should be started here.
       // TODO:: for example we could start here a process to always ping enigma-core and check if ok
@@ -105,37 +104,65 @@ class InitWorkerAction {
       this._controller.logger().debug('started background services');
       cb(null);
     };
-    const registerAndLoginWorker = (cb)=>{
+    const registerAndLoginWorker = async ()=>{
       console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
-      if(this._controller.hasEthereum()){
-        // todo: get worker params to check registration, deposit and login status
+      if (this._controller.hasEthereum()) {
+        let workerParams = null;
         let registered = false;
         let isDeposit = false;
-        let isLogged = false;
-        if (!registered) {
-          this._controller.execCmd(C.REGISTER, {onResponse: (err, registered) => {
-            if (err || !registered) {
-              this._controller.logger().error('error InitWorkerAction- Register to ethereum failed' + err);
-            }
-          }});
-        }
-        if (!isDeposit) {
-          this._controller.execCmd(C.DEPOSIT, {amount: depositAmount, onResponse: (err, deposit) => {
-              if (err || !deposit) {
-                this._controller.logger().error('error InitWorkerAction- Deposit stake failed' + err);
-              }
-          }});
-        }
+        let isLogIn = false;
 
-        if (!isLogged) {
-          this._controller.execCmd(C.LOGIN, {onResponse: (err, logged) => {
-              if (err || !logged) {
-                this._controller.logger().error('error InitWorkerAction- login to ethereum failed' + err);
-              }
-          }});
+        try {
+          workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
+        }
+        catch (err) {
+          return this._controller.logger().error('error InitWorkerAction- Reading worker params from ethereum failed' + err);
+        }
+        // If the worker is already logged-in, nothing to do
+        if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN) {
+          this._controller.logger().info('InitWorkerAction- worker is already logged-in');
+          return;
+        }
+        if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
+          registered = true;
+        }
+        // Check if  the worker should deposit money and login after registration
+        if (depositAmount) {
+          if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
+            isDeposit = (workerParams.balance > 0);
+          }
+        }
+        // The worker should only register, if it is required
+        else {
+          isDeposit = true;
+          isLogIn = true;
+        }
+        if (!registered) {
+          try {
+            registered = await this._controller.asyncExecCmd(C.REGISTER);
+          }
+          catch (err) {
+            return this._controller.logger().error('error InitWorkerAction- Register to ethereum failed' + err);
+          }
+        }
+        if (!isDeposit && registered) {
+          try {
+            isDeposit = await this._controller.asyncExecCmd(C.DEPOSIT, {amount: depositAmount});
+          }
+          catch (err) {
+            return this._controller.logger().error('error InitWorkerAction- Deposit stake failed' + err);
+          }
+        }
+        if (!isLogIn && isDeposit) {
+          try {
+            isLogIn = await this._controller.asyncExecCmd(C.LOGIN);
+          }
+          catch (err) {
+            return this._controller.logger().error('error InitWorkerAction- Login to ethereum failed' + err);
+          }
         }
       }
-      cb(null);
+      return;
     };
     waterfall([
       // BOOTSTRAP + DISCOVERY:

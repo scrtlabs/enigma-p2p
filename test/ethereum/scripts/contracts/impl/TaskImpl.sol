@@ -7,6 +7,7 @@ import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
 import { EnigmaCommon } from "./EnigmaCommon.sol";
 import { EnigmaState } from "./EnigmaState.sol";
 import { WorkersImpl } from "./WorkersImpl.sol";
+import { Bytes } from "../utils/Bytes.sol";
 import "../utils/SolRsaVerify.sol";
 
 /**
@@ -17,17 +18,22 @@ import "../utils/SolRsaVerify.sol";
 library TaskImpl {
     using SafeMath for uint256;
     using ECDSA for bytes32;
+    using Bytes for bytes;
+    using Bytes for bytes32;
+    using Bytes for uint64;
+    using Bytes for address;
 
     event TaskRecordCreated(bytes32 taskId, bytes32 inputsHash, uint gasLimit, uint gasPx, address sender,
         uint blockNumber);
     event TaskRecordsCreated(bytes32[] taskIds, bytes32[] inputsHashes, uint[] gasLimits, uint[] gasPxs, address sender,
         uint blockNumber);
     event SecretContractDeployed(bytes32 scAddr, bytes32 codeHash, bytes32 initStateDeltaHash);
-    event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, bytes optionalEthereumData,
-        address optionalEthereumContractAddress, bytes sig);
+    event ReceiptVerified(bytes32 taskId, bytes32 stateDeltaHash, bytes32 outputHash, uint deltaHashIndex,
+        bytes optionalEthereumData, address optionalEthereumContractAddress, bytes sig);
     event ReceiptsVerified(bytes32[] taskIds, bytes32[] stateDeltaHashes, bytes32[] outputHashes,
         bytes _optionalEthereumData, address optionalEthereumContractAddress, bytes sig);
     event ReceiptFailed(bytes32 taskId, bytes sig);
+    event TaskFeeReturned(bytes32 taskId);
 
     function createDeploymentTaskRecordImpl(
         EnigmaState.State storage state,
@@ -71,7 +77,7 @@ library TaskImpl {
         emit TaskRecordCreated(taskId, _inputsHash, _gasLimit, _gasPx, msg.sender, block.number);
     }
 
-    function deploySecretContractFailureImpl(EnigmaState.State storage state, bytes32 _taskId, uint _gasUsed,
+    function deploySecretContractFailureImpl(EnigmaState.State storage state, bytes32 _taskId, uint64 _gasUsed,
         bytes memory _sig)
     public
     {
@@ -97,9 +103,11 @@ library TaskImpl {
         //transferFundsAfterTask(state, msg.sender, task.sender, _gasUsed, task.gasLimit.sub(_gasUsed), task.gasPx);
 
         // Verify the worker's signature
-        bytes32 msgHash = keccak256(abi.encodePacked(task.inputsHash,
-            _gasUsed,
-            bytes1(0x00)));
+        bytes memory message;
+        message = EnigmaCommon.appendMessage(message, task.inputsHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, _gasUsed.toBytesFromUint64());
+        message = EnigmaCommon.appendMessage(message, hex"00");
+        bytes32 msgHash = keccak256(message);
         // MOCK
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
@@ -130,7 +138,7 @@ library TaskImpl {
 
     function deploySecretContractImpl(EnigmaState.State storage state, bytes32 _taskId, bytes32 _preCodeHash,
         bytes32 _codeHash, bytes32 _initStateDeltaHash, bytes memory _optionalEthereumData,
-        address _optionalEthereumContractAddress, uint _gasUsed, bytes memory _sig)
+        address _optionalEthereumContractAddress, uint64 _gasUsed, bytes memory _sig)
     public
     {
         // MOCK
@@ -139,14 +147,16 @@ library TaskImpl {
 
         // MOCK
         // Verify the worker's signature
-//        bytes32 msgHash = keccak256(abi.encodePacked(task.inputsHash,
-//            _codeHash,
-//            _initStateDeltaHash,
-//            _gasUsed,
-//            uint64(_optionalEthereumData.length), _optionalEthereumData,
-//            uint64(20), _optionalEthereumContractAddress,
-//            bytes1(0x01)));
-//        require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
+        //bytes memory message;
+        //message = EnigmaCommon.appendMessage(message, task.inputsHash.toBytes());
+        //message = EnigmaCommon.appendMessage(message, _codeHash.toBytes());
+        //message = EnigmaCommon.appendMessage(message, _initStateDeltaHash.toBytes());
+        //message = EnigmaCommon.appendMessage(message, _gasUsed.toBytesFromUint64());
+        //message = EnigmaCommon.appendMessage(message, _optionalEthereumData);
+        //message = EnigmaCommon.appendMessage(message, _optionalEthereumContractAddress.toBytes());
+        //message = EnigmaCommon.appendMessage(message, hex"01");
+        //bytes32 msgHash = keccak256(message);
+        //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
         // Set the secret contract's attributes in registry
         EnigmaCommon.SecretContract storage secretContract = state.contracts[_taskId];
@@ -215,7 +225,7 @@ library TaskImpl {
         EnigmaState.State storage state,
         bytes32 _scAddr,
         bytes32 _taskId,
-        uint _gasUsed,
+        uint64 _gasUsed,
         bytes memory _sig
     )
     public
@@ -239,13 +249,16 @@ library TaskImpl {
         task.proof = _sig;
         task.status = EnigmaCommon.TaskStatus.ReceiptFailed;
 
+        // MOCK
         //transferFundsAfterTask(state, msg.sender, task.sender, _gasUsed, task.gasLimit.sub(_gasUsed), task.gasPx);
 
         // Verify the worker's signature
-        bytes32 msgHash = keccak256(abi.encodePacked(task.inputsHash,
-            secretContract.codeHash,
-            _gasUsed,
-            bytes1(0x00)));
+        bytes memory message;
+        message = EnigmaCommon.appendMessage(message, task.inputsHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, secretContract.codeHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, _gasUsed.toBytesFromUint64());
+        message = EnigmaCommon.appendMessage(message, hex"00");
+        bytes32 msgHash = keccak256(message);
         // MOCK
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
@@ -285,7 +298,7 @@ library TaskImpl {
         bytes32 _outputHash,
         bytes memory _optionalEthereumData,
         address _optionalEthereumContractAddress,
-        uint _gasUsed,
+        uint64 _gasUsed,
         bytes memory _sig
     )
     public
@@ -297,22 +310,24 @@ library TaskImpl {
         // Verify the receipt
         verifyReceipt(state, _scAddr, _taskId, _stateDeltaHash, _gasUsed, msg.sender, _sig);
 
-        // Append the new state delta hash and set the contract's output hash
-        secretContract.stateDeltaHashes.push(_stateDeltaHash);
-        secretContract.outputHashes.push(_outputHash);
+        uint deltaHashIndex = _stateDeltaHash != bytes32(0) ? secretContract.stateDeltaHashes.push(_stateDeltaHash) - 1 :
+            0;
+        state.tasks[_taskId].outputHash = _outputHash;
+
+        // Verify the worker's signature
+        bytes memory message;
+        message = EnigmaCommon.appendMessage(message, secretContract.codeHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, state.tasks[_taskId].inputsHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, lastStateDeltaHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, _stateDeltaHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, _outputHash.toBytes());
+        message = EnigmaCommon.appendMessage(message, _gasUsed.toBytesFromUint64());
+        message = EnigmaCommon.appendMessage(message, _optionalEthereumData);
+        message = EnigmaCommon.appendMessage(message, _optionalEthereumContractAddress.toBytes());
+        message = EnigmaCommon.appendMessage(message, hex"01");
+        bytes32 msgHash = keccak256(message);
 
         // MOCK
-        // Verify the worker's signature
-        bytes32 msgHash = keccak256(abi.encodePacked(secretContract.codeHash,
-            state.tasks[_taskId].inputsHash,
-            lastStateDeltaHash,
-            _stateDeltaHash,
-            _outputHash,
-            _gasUsed,
-            uint64(_optionalEthereumData.length), _optionalEthereumData,
-            uint64(20), _optionalEthereumContractAddress,
-            bytes1(0x01)));
-
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
         if (_optionalEthereumContractAddress != address(0)) {
@@ -320,7 +335,7 @@ library TaskImpl {
             require(success, "Ethereum call failed");
         }
 
-        emit ReceiptVerified(_taskId, _stateDeltaHash, _outputHash, _optionalEthereumData,
+        emit ReceiptVerified(_taskId, _stateDeltaHash, _outputHash, deltaHashIndex, _optionalEthereumData,
             _optionalEthereumContractAddress, _sig);
     }
 
@@ -369,7 +384,7 @@ library TaskImpl {
         bytes32[] memory _outputHashes,
         bytes memory _optionalEthereumData,
         address _optionalEthereumContractAddress,
-        uint[] memory _gasesUsed,
+        uint64[] memory _gasesUsed,
         bytes memory _sig
     )
     public
@@ -386,10 +401,9 @@ library TaskImpl {
 
             // Append the new state delta hash
             secretContract.stateDeltaHashes.push(_stateDeltaHashes[i]);
-            secretContract.outputHashes.push(_outputHashes[i]);
+            state.tasks[_taskIds[i]].outputHash = _outputHashes[i];
         }
 
-        // MOCK
         // Verify the worker's signature
         bytes32 msgHash = keccak256(abi.encodePacked(secretContract.codeHash,
             inputsHashes,
@@ -401,6 +415,7 @@ library TaskImpl {
             uint64(20), _optionalEthereumContractAddress,
             bytes1(0x01)));
 
+        // MOCK
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
         if (_optionalEthereumContractAddress != address(0)) {
@@ -410,5 +425,24 @@ library TaskImpl {
 
         emit ReceiptsVerified(_taskIds, _stateDeltaHashes, _outputHashes, _optionalEthereumData,
             _optionalEthereumContractAddress, _sig);
+    }
+
+    function returnFeesForTaskImpl(
+        EnigmaState.State storage state,
+        bytes32 _taskId
+    )
+    public
+    {
+        EnigmaCommon.TaskRecord storage task = state.tasks[_taskId];
+
+        // Ensure that the timeout window has elapsed, allowing for a fee return
+        require(block.number - task.blockNumber > state.taskTimeoutSize, "Task timeout window has not elapsed yet");
+
+        // Return the full fee to the task sender
+        require(state.engToken.transfer(task.sender, task.gasLimit.mul(task.gasPx)), "Token transfer failed");
+
+        // Set task's status to ReceiptFailed and emit event
+        task.status = EnigmaCommon.TaskStatus.ReceiptFailed;
+        emit TaskFeeReturned(_taskId);
     }
 }

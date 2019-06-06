@@ -1,6 +1,6 @@
 const constants = require('../../../../common/constants');
-const cryptography = require('../../../../common/cryptography');
 const errors = require('../../../../common/errors');
+const cryptography = require('../../../../common/cryptography');
 const DeployTask = require('../../../../worker/tasks/DeployTask');
 
 class CommitReceiptAction {
@@ -11,78 +11,123 @@ class CommitReceiptAction {
     const task = params.task;
     const callback = params.callback;
     if (!task) return;
-    this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
-        if (err) {
-          this._controller.logger().error(`[COMMIT_RECEIPT] error error for task ${task.getTaskId()} error=  ${err}`);
-        }
-        else {
-          const txParams = {from: regParams.result.signingKey};
-          try {
-            const txReceipt = await this._commitTask(task, txParams);
-            this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${txReceipt}`);
-          } catch (e) {
-            this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
-            err = e;
-          }
+    let err = null;
 
-        }
-        if (callback) {
-          callback(err);
-        }
-      },
-    });
-  }
-  _commitTask(task, txParams) {
-    if (task.getResult().isSuccess() && task.getResult().getOutput()) {
-      return this._commitSuccessTask(task, txParams);
-    } else if (task.getResult().isFailed()) {
-      return this._commitFailedTask(task, txParams);
+    let result = await this._commitTask(task);
+    if (result.error) {
+      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
+      err = result.error;
     }
-    throw new errors.TypeErr(`wrong type or missing fields in Result`);
-  }
-  _commitFailedTask(task, txParams) {
-    if(task instanceof DeployTask) {
-      return this._controller.ethereum().api().deploySecretContractFailure(
-        task.getTaskId(),
-        task.getResult().getUsedGas(),
-        task.getResult().getSignature(),
-        txParams
-      );
+    else {
+      this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${result.txReceipt}`);
     }
-    return this._controller.ethereum().api().commitTaskFailure(
-      task.getContractAddr(),
-      task.getTaskId(),
-      task.getResult().getUsedGas(),
-      task.getResult().getSignature(),
-      txParams
-    );
+    if (callback) {
+      callback(err);
+    }
   }
-  _commitSuccessTask(task, txParams) {
+  async _commitTask(task) {
+    let res;
+    if (task.getResult().isSuccess()) {
+      res = await this._commitSuccessTask(task);
+    } else {
+      res = await this._commitFailedTask(task);
+    }
+    return res;
+  }
+  async _commitFailedTask(task) {
+    let txReceipt = null;
+    let err = null;
+
+    // Deploy task
     if(task instanceof DeployTask) {
-      return this._controller.ethereum().api().deploySecretContract(
+      try {
+        txReceipt = await this._controller.ethereum().api().deploySecretContractFailure(
           task.getTaskId(),
-          task.getResult().getPreCodeHash(),
-          cryptography.hash(task.getResult().getOutput()),
-          cryptography.hash(task.getResult().getDelta().data),
+          task.getResult().getUsedGas(),
+          task.getResult().getSignature(),
+        );
+      }
+      catch (e) {
+        err = e;
+      }
+    }
+    // Compute task
+    else {
+      try {
+        txReceipt = this._controller.ethereum().api().commitTaskFailure(
+          task.getContractAddr(),
+          task.getTaskId(),
+          task.getResult().getUsedGas(),
+          task.getResult().getSignature(),
+        );
+      }
+      catch (e) {
+        err = e;
+      }
+    }
+    return {error: err, txReceipt: txReceipt};
+  }
+  async _commitSuccessTask(task) {
+    let txReceipt = null;
+    let err = null;
+    const delta = task.getResult().getDelta();
+    const output = task.getResult().getOutput();
+
+    // Deploy task
+    if(task instanceof DeployTask) {
+      if (!output) {
+        err = new errors.InputErr(`No output for deploy task ${task.getTaskId()}`);
+      }
+      else if (!delta || (!`data` in delta) || !(delta.data)) {
+        err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
+      }
+      else {
+        try {
+          txReceipt = await this._controller.ethereum().api().deploySecretContract(
+            task.getTaskId(),
+            task.getResult().getPreCodeHash(),
+            cryptography.hash(output),
+            cryptography.hash(delta.data),
+            task.getResult().getEthPayload(),
+            task.getResult().getEthAddr(),
+            task.getResult().getUsedGas(),
+            task.getResult().getSignature(),
+          );
+        }
+        catch (e) {
+          err = e;
+        }
+      }
+    }
+    // Compute task
+    else {
+      let outputHash = constants.ETHEREUM_EMPTY_HASH;
+      let deltaHash = constants.ETHEREUM_EMPTY_HASH;
+
+      if (output) {
+        outputHash = cryptography.hash(output);
+      }
+      if (delta && parseInt(delta.key) !== 0) {
+        deltaHash = cryptography.hash(delta.data);
+      }
+      try {
+        txReceipt = await this._controller.ethereum().api().commitReceipt(
+          task.getContractAddr(),
+          task.getTaskId(),
+          deltaHash,
+          outputHash,
           task.getResult().getEthPayload(),
           task.getResult().getEthAddr(),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
-          txParams
-      );
+        );
+      }
+      catch (e) {
+        err = e;
+      }
     }
-    return this._controller.ethereum().api().commitReceipt(
-      task.getContractAddr(),
-      task.getTaskId(),
-      cryptography.hash(task.getResult().getDelta().data),
-      cryptography.hash(task.getResult().getOutput()),
-      task.getResult().getEthPayload(),
-      task.getResult().getEthAddr(),
-      task.getResult().getUsedGas(),
-      task.getResult().getSignature(),
-      txParams
-    );
+    return {error: err, txReceipt: txReceipt};
   }
 }
+
 module.exports = CommitReceiptAction;

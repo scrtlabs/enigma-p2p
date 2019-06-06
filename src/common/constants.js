@@ -32,6 +32,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'DB_REQUEST': 'dbreq', // some db request to core
   'GET_REMOTE_TIPS': 'gremotetipslocal', // get the local tips of some remote peer
   'GET_ALL_TIPS': 'getat', // get all tips from cache/core
+  'GET_TIPS': 'gett', // get tips from cache/core
   'GET_ALL_ADDRS': 'getaa', // get all addrs from cache/core
   'GET_DELTAS': 'getds', // get deltas request from core
   'GET_CONTRACT_BCODE': 'getcbc', // get the bytecode of some contract
@@ -63,6 +64,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'WITHDRAW': 'withdraw', // withdraw stacking to Enigma contract
   // global logger related
   'GLOBAL_LOG_HANDLE': 'globalhnl', // handle new global log
+  'GET_ETH_WORKER_PARAM': 'getworkparams', // get worker params set in Enigma contract
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -111,6 +113,7 @@ module.exports.CONSISTENT_DISCOVERY_PARAMS = {
   TIMEOUT: 100 * 1000, // stop if timeout millis
   //TODO:: avishai add exponential backoff interval instead of StoppableTask
   //TODO:: use 'retry' npm module with randomize flag (http://dthain.blogspot.com/2009/02/exponential-backoff-in-distributed.html)
+  //TODO: look at PRINCIPAL_NODE.retryOptions
   DELAY: 500, // delay between each try millis
 };
 module.exports.CONTENT_ROUTING = {
@@ -235,6 +238,18 @@ module.exports.ETHEREUM_WORKER_STATUS = {
   LOGGEDOUT: 2
 };
 
+/**
+ * Enigma Contract worker status
+ * */
+module.exports.ETHEREUM_EMPTY_HASH = '0x0000000000000000000000000000000000000000000000000000000000000000';
+
 module.exports.PRINCIPAL_NODE = {
   uri: 'http://127.0.0.1:10101',
+  retryOptions: {
+    retries: 10, // try 1 time and retry 10 times if needed, total = 11
+    factor: 1.7, // https://www.wolframalpha.com/input/?i=Sum%5B1000*x%5Ek,+%7Bk,+0,+9%7D%5D+%3D+5+*+60+*+1000
+    minTimeout: 1* 1000, // the number of milliseconds before starting the first retry
+    maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
+    randomize: true
+  },
 };

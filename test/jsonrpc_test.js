@@ -3,6 +3,7 @@ const axios = require('axios');
 const capcon = require('capture-console');
 const jaysonBrowserClient = require('jayson/lib/client/browser');
 const testUtils = require('./testUtils/utils');
+const principalMock = require('./testUtils/principal_mock');
 const waterfall = require('async/waterfall');
 const TEST_TREE = require('./test_tree').TEST_TREE;
 const tree = TEST_TREE.jsonrpc_basic;
@@ -12,6 +13,7 @@ const expect = require('expect');
 const assert = require('assert');
 const nodeUtils = require('../src/common/utils');
 const constants = require('../src/common/constants');
+const jayson = require('jayson');
 // const B1Path = path.join(__dirname, 'testUtils/id-l');
 // const B1Port = '10300';
 const B2Path = '../../test/testUtils/id-d';
@@ -32,11 +34,25 @@ const JsonRpcPort = 40000;
 const userPubKey = '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f9' +
   '8771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99';
 
+const fakeResponse = '0061d93b5412c0c9';
+const fakeSig = 'deadbeaf';
+
+function getStateKeysCallback(args, callback) {
+  if (args.data && args.sig) {
+    const result = {data: fakeResponse, sig: fakeSig};
+    callback(null, result);
+  } else {
+    assert(false);
+    callback('Missing data', null);
+  }
+}
+
 describe('JsonRPC tests', () => {
   let proxyController;
   let workerController;
   let JsonRpcClient;
   let coreServer;
+  let principalServer;
 
   before(() => {
     if(!tree['all']){
@@ -79,11 +95,21 @@ describe('JsonRPC tests', () => {
           coreServer.runServer(workerCoreUri);
           cb(null);
         },
+        (cb)=> {
+          principalServer = principalMock.create(getStateKeysCallback);
+          cb(null);
+        },
+        (cb)=> {
+          setTimeout(cb, 150);
+        },
         (cb)=>{
+          const principalPort = principalMock.getPort(principalServer);
+          const uri = 'http://127.0.0.1:';
           proxyConfig.extraConfig= {};
           proxyConfig.extraConfig.tm = {
             dbPath : path.join(__dirname, '/'+nodeUtils.randId()+".deletedb")
           };
+          proxyConfig.extraConfig.principal = {uri: uri + principalPort};
           // start the Proxy Node
           const builder = new EnvironmentBuilder();
           builder
@@ -94,7 +120,7 @@ describe('JsonRPC tests', () => {
                 cb(null);
               });
         },
-        (cb)=>{
+        (cb)=> {
           // start the Worker Node
           workerConfig.extraConfig= {};
           workerConfig.extraConfig.tm = {
@@ -129,6 +155,7 @@ describe('JsonRPC tests', () => {
       workerController.getIpcClient().disconnect();
       await workerController.getNode().stop();
       coreServer.disconnect();
+      principalMock.destroy(principalServer);
       resolve();
     });
   });
@@ -262,4 +289,6 @@ describe('JsonRPC tests', () => {
       });
     });
   });
+
+
 });

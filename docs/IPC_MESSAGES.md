@@ -161,6 +161,7 @@ Response:
     id : <unique_request_id>,
     type : GetContract,
     result : {
+        address: ...,
         bytecode : []
     }
 }
@@ -364,8 +365,8 @@ Response:
     id: <unique_request_id>,
     type: ComputeTask,
     result : {
-        output: 'the-output-of-the-execution',
-        delta: {key, data},
+        output: 'the-output-of-the-execution', // or '' in case of no output
+        delta: {key, data}, // key == 0 and no data in case of no state change
         usedGas: 'amount-of-gas-used',
         ethereumPayload: 'hex of payload for a call to the ethereum contract'',
         ethereumAddress: 'address of the ethereum contract to call',

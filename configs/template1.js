@@ -33,8 +33,16 @@ module.exports = {
       "dbPath" : null // the db path for storage, if null saves in default
     },
     // epoch related config
+    // TODO:: ignored because of constants/PRINCIPAL_NODE
     "principalNode" : {
-      "uri" : null //principal node url,  default if null
+      "uri" : null, //principal node url,  default if null
+      "retryOptions": {
+        retries: 10, // try 1 time and retry 10 times if needed, total = 11
+        factor: 1.7, // https://www.wolframalpha.com/input/?i=Sum%5B1000*x%5Ek,+%7Bk,+0,+9%7D%5D+%3D+5+*+60+*+1000
+        minTimeout: 1* 1000, // the number of milliseconds before starting the first retry
+        maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
+        randomize: true
+      }
     }
   },
   // IPC

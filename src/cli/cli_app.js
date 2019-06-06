@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const main = require('../index');
 const path = require('path');
 const readline = require('readline');
@@ -19,6 +20,7 @@ const constants = require('../common/constants');
 class CLI {
   constructor() {
     // mock server
+    this._mockCore = false;
     this._coreAddressPort = null;
     // tasks random path db
     this._randomTasksDbPath = null;
@@ -26,6 +28,10 @@ class CLI {
     this._initEthereum = false;
     this._enigmaContractAddress = null;
     this._ethereumWebsocketProvider = null;
+    this._ethereumAddress = null;
+    this._autoInit = false;
+    this._depositValue = null;
+
     this._principalNode = null;
     this._logger_node = false;
 
@@ -65,7 +71,7 @@ class CLI {
           if (err) {
             console.log('[-] ERROR $init ', err);
           }
-          const uri ='https://github.com/enigmampc/enigma-p2p#overview-on-start';
+          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
           console.log("----------------------- ATTENTION --------------------------");
           console.log('please visit %s for more info', uri);
         });
@@ -266,34 +272,35 @@ class CLI {
       },
       'help': (args)=>{
         console.log('---> Commands List <---');
-        console.log('$init : init all the required steps for the worker');
-        console.log('$getRegistration : get the registration params of the node. ');
-        console.log('$addPeer <address> : connect to a new peer manualy.');
-        console.log('$lookup <b58 address> : lookup a peer in the network');
-        console.log('$remoteTips <b58 address> : look up the tips of some remote peer');
-        console.log('$getAddr : get the multiaddress of the node. ');
-        console.log('$getOutConnections : get id list of the outbound connections ');
-        console.log('$getInConnections : get list of the inbound connections ');
-        console.log('$peerBank : get list of the potential (not connected) seeds');
-        console.log('$discover : perform persistent discovery to reach optimal DHT');
-        console.log('$inCount : number of inbound connections');
-        console.log('$outCount : number of outbound connections');
-        console.log('$broadcast <message> : broadcast a message to the whole network');
-        console.log('$tips : output to std the local existing states, tips');
-        console.log('$identify : output to std all the missing state, i.e what needs to be synced');
-        console.log('$announce : announce the network worker synchronized on states');
-        console.log('$sync : sync the worker from the network and get all the missing states');
-        console.log('$isConnected <PeerId>: check if some peer is connected');
-        console.log('$getResult <taskId>: check locally if task result exists');
-        console.log('$monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
-        console.log('$selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
-        console.log('$topics : list of subscribed topics');
-        console.log('$register : register to Enigma contract');
-        console.log('$login : login to Enigma contract');
-        console.log('$logout : logout from Enigma contract');
-        console.log('$deposit <amount>: deposit to Enigma contract');
-        console.log('$withdraw <amount>: withdraw from Enigma contract');
-        console.log('$help : help');
+        console.log('addPeer <address> : connect to a new peer manualy.');
+        console.log('announce : announce the network worker synchronized on states');
+        console.log('broadcast <message> : broadcast a message to the whole network');
+        console.log('deposit <amount>: deposit to Enigma contract');
+        console.log('discover : perform persistent discovery to reach optimal DHT');
+        console.log('getAddr : get the multiaddress of the node. ');
+        console.log('getInConnections : get list of the inbound connections ');
+        console.log('getOutConnections : get id list of the outbound connections ');
+        console.log('getRegistration : get the registration params of the node. ');
+        console.log('getResult <taskId>: check locally if task result exists');
+        console.log('help : help');
+        console.log('identify : output to std all the missing state, i.e what needs to be synced');
+        console.log('inCount : number of inbound connections');
+        console.log('init : init all the required steps for the worker');
+        console.log('isConnected <PeerId>: check if some peer is connected');
+        console.log('login : login to Enigma contract');
+        console.log('logout : logout from Enigma contract');
+        console.log('lookup <b58 address> : lookup a peer in the network');
+        console.log('monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
+        console.log('outCount : number of outbound connections');
+        console.log('peerBank : get list of the potential (not connected) seeds');
+        console.log('publish <topic> <str msg> : publish <str msg> on topic <topic> to the network')
+        console.log('register : register to Enigma contract');
+        console.log('remoteTips <b58 address> : look up the tips of some remote peer');
+        console.log('selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
+        console.log('sync : sync the worker from the network and get all the missing states');
+        console.log('tips : output to std the local existing states, tips');
+        console.log('topics : list of subscribed topics');
+        console.log('withdraw <amount>: withdraw from Enigma contract');
         console.log('>------------------------<');
       },
     };
@@ -320,8 +327,11 @@ class CLI {
     .option('-i, --path [value]', 'id path', (theIdPath)=>{
       Parsers.idPath(theIdPath, this._globalWrapper);
     })
-    .option('-c, --core [value]', '[TEST] specify address:port and start with core mock server', (addrPortStr)=>{
+    .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
       this._coreAddressPort = addrPortStr;
+    })
+    .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', ()=>{
+        this._mockCore = true;
     })
     .option('--random-db', 'random tasks db', (randomPath)=>{
       if (randomPath) {
@@ -344,8 +354,19 @@ class CLI {
     .option('-E, --init-ethereum', 'init Ethereum', ()=>{
       this._initEthereum = true;
     })
+    .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
+      this._initEthereum = true;
+      this._ethereumAddress = address;
+    })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
+    })
+    .option('--auto-init', 'perform automatic worker initialization ', ()=>{
+      this._autoInit = true;
+    })
+    .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
+      this._autoInit = true;
+      this._depositValue = value;
     })
     .option('-l, --logger', 'initialize this node as the global logger', ()=>{
       this._logger_node = true;
@@ -363,10 +384,11 @@ class CLI {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
       const uri ='tcp://' + this._coreAddressPort;
-      // start the mock server first, if a real server is on just comment the 2 lines below the ipc will connect automatically to the given port.
-      const coreServer = new CoreServer();
-      coreServer.setProvider(true);
-      coreServer.runServer(uri); // TODO: Remove this to use real core. @elichai
+      if (this._mockCore) {
+        const coreServer = new CoreServer();
+        coreServer.setProvider(true);
+        coreServer.runServer(uri);
+      }
       builder.setIpcConfig({uri: uri});
     }
     if (this._rpcPort) {
@@ -379,8 +401,9 @@ class CLI {
      * */
     if (this._initEthereum) {
       builder.setEthereumConfig({
-        ethereumWebsocketProvider: this._ethereumWebsocketProvider,
+        ethereumUrlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
+        ethereumAddress: this._ethereumAddress
       });
     }
     const nodeConfig = this._getFinalConfig();
@@ -416,6 +439,17 @@ class CLI {
       await n.stop();
       process.exit();
     });
+
+    this._setup();
+  }
+  _setup() {
+    if (this._autoInit) {
+      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+        if (err) {
+          console.log('[-] ERROR with automatic worker initialization: ', err);
+        }
+      });
+    }
   }
   start() {
     console.log(Parsers.opener);

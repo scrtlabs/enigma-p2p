@@ -8,13 +8,14 @@ const DeployTask  = require('../../src/worker/tasks/DeployTask');
 const ComputeResult  = require('../../src/worker/tasks/Result').ComputeResult;
 const DeployResult  = require('../../src/worker/tasks/Result').DeployResult;
 const constants = require('../../src/common/constants');
+const cryptography = require('../../src/common/cryptography');
 const errors = require('../../src/common/errors');
 const web3Utils = require('web3-utils');
-const testUtils = require('../testUtils/utils');
+
 
 // TODO: lena: THIS TESTS SUITE SHOULD USE REAL ETHEREUM, ONCE CONTRACT UPDATED
 
-describe('Verifier tests', function() {
+describe('Eth verifier tests', function() {
 
   async function init(isDeploy, taskCreation) {
     const builder = await ControllerBuilder.createNode();
@@ -40,7 +41,7 @@ describe('Verifier tests', function() {
       taskStatus = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
       taskData = ethTestUtils.createDataForTaskSubmission();
       if (isDeploy) {
-        ethereumAPI.api().setContractParams(secretContractAddress, taskData.outputHash, {0: taskData.deltaHash}, null);
+        ethereumAPI.api().setContractParams(secretContractAddress, taskData.outputHash, {0: taskData.deltaHash});
         const delta = taskData.delta;
         const key = 0;
         taskData.delta = {data: delta, key: key};
@@ -56,21 +57,34 @@ describe('Verifier tests', function() {
     taskData['contractAddress'] = secretContractAddress;
 
     let taskId;
+    let inputsHash;
+    const gasLimit = 989;
+
     if (isDeploy) {
       taskId = secretContractAddress;
       taskData.taskId = taskId;
+      if (taskCreation) {
+        inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, cryptography.hash(taskData.preCode), taskData.userDHKey]);
+      }
+      ethereumAPI.api().setTaskParams(taskId,
+        expectedParams.firstBlockNumber + 50,
+        taskStatus,
+        gasLimit,
+        inputsHash,
+        null);
     }
     else {
       taskId = taskData.taskId;
+      if (taskCreation) {
+        inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, taskData.contractAddress, taskData.userDHKey]);
+      }
+      ethereumAPI.api().setTaskParams(taskId,
+        expectedParams.firstBlockNumber + 50,
+        taskStatus,
+        gasLimit,
+        inputsHash,
+        taskData.outputHash);
     }
-
-    const gasLimit = 989;
-
-
-    ethereumAPI.api().setTaskParams(taskId,
-      expectedParams.firstBlockNumber + 50,
-      taskStatus,
-      gasLimit);
 
     const coreServer = builder.coreServer;
     coreServer.setSigningKey(expectedAddress);
@@ -83,7 +97,7 @@ describe('Verifier tests', function() {
       gasLimit: gasLimit};
   }
 
-  it('Verify new compute task verification action', async function() {
+  it('Verify new deploy task verification action', async function() {
     const tree = TEST_TREE.ethereum_integration;
     if (!tree['all'] || !tree['#1']) {
       this.skip();
@@ -96,7 +110,6 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -121,7 +134,6 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -146,7 +158,6 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -173,7 +184,6 @@ describe('Verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -200,7 +210,6 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -232,7 +241,6 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -264,7 +272,6 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -298,7 +305,6 @@ describe('Verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
