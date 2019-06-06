@@ -88,6 +88,35 @@
     "required": ["address", "bytecode"],
     "additionalProperties": false
   },
+  "UpdateNewContractOnDeployment": {
+    "properties": {
+      "address": {"type": "string"},
+      "bytecode": {
+        "type": "array",
+        "items": {
+          "type": "number",
+          "minItems": 1
+        }
+      },
+      "delta":{
+        "type": "object",
+        "properties": {
+          "key": {"type": "number"},
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minItems": 1
+            }
+          }
+        },
+        "required": ["key", "data"],
+        "additionalProperties": false
+      }
+    },
+    "required": ["address", "bytecode", "delta"],
+    "additionalProperties": false
+  },
   "UpdateDeltas": {
     "properties": {
       "deltas":{
