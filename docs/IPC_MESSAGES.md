@@ -198,7 +198,7 @@ Request:
     type : UpdateNewContractOnDeployment,
     address : ...,
     bytecode : [Secret Contract Address]
-    delta : [First delta]
+    delta : [key, data : []]
 }
 ```
 Response:
