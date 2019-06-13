@@ -23,6 +23,7 @@
     "async": "^2.6.1",
     "commander": "^2.18.0",
     "config": "^3.1.0",
+    "cors": "^2.8.5",
     "ethereumjs-abi": "^0.6.7",
     "expect": "^24.1.0",
     "fs": "0.0.1-security",
