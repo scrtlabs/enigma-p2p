@@ -99,7 +99,8 @@ class VerifyAndStoreResultAction {
       return {
         address: contractAddr,
         bytecode: taskResult.getOutput(),
-        type: constants.CORE_REQUESTS.UpdateNewContract,
+        type: constants.CORE_REQUESTS.UpdateNewContractOnDeployment,
+        delta: taskResult.getDelta(),
       };
     }
     // ComputeResult
