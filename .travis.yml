@@ -19,3 +19,9 @@ after_success:
 notifications:
   email:
     on_success: never
+
+deploy:
+  provider: script
+  script: bash scripts/deploy.sh
+  on:
+    branch: docker
