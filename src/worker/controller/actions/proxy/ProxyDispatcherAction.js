@@ -26,11 +26,15 @@ class ProxyDispatcherAction {
         const workerAddr = requestEnvelop.content().workerAddress;
         requestEnvelop.content().targetTopic = taskId + workerAddr;
         requestEnvelop.content().workerSignKey = workerAddr;
-        if (!requestEnvelop.content().id) { 
+        if (!requestEnvelop.content().id) {
           requestEnvelop.content().id = taskId;
         }
         break;
       case constants.CORE_REQUESTS.DeploySecretContract:
+        // translate from base64 to byte array
+        const preCodeBuffer = Buffer.from(requestEnvelop.content().request.preCode, 'base64');
+        const preCodeByteArray = [...preCodeBuffer];
+        requestEnvelop.content().request.preCode = preCodeByteArray;
       case constants.CORE_REQUESTS.ComputeTask:
         theAction =constants.NODE_NOTIFICATIONS.ROUTE_NON_BLOCK_RPC;
         break;
