@@ -134,7 +134,7 @@ class JsonRpcServer extends EventEmitter {
     return callback(null, clientResult);
   }
   /**
-   * TODO:: this function shoid check the workerAddress
+   * TODO:: this function should check the workerAddress
    * TODO:: if equals to self address than DO NOT route next
    * */
   _shouldRouteMessage(args){
