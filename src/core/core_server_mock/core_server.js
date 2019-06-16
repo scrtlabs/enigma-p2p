@@ -269,6 +269,7 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, contract);
           break;
         case MsgTypes.UpdateNewContract:
+        case MsgTypes.UpdateNewContractOnDeployment:
         case MsgTypes.UpdateDeltas:
           if (this._tmpDB instanceof Object) {
             this._writeTmpDB(msg);
