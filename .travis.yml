@@ -28,7 +28,7 @@ script:
     sed -i "s/SGX_MODE=HW/SGX_MODE=SW/" .env &&
     sed -i "s/-vv/-v/" enigma-core/start_core.bash &&
     popd
-  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:latest --no-cache . && popd
+  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:latest --no-cache . >/dev/null && popd
   - pushd discovery-docker-network && docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from client && popd
 
 after_success:
