@@ -61,7 +61,7 @@
     "zeromq": "^5.1.0"
   },
   "devDependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "babel-eslint": "^10.0.1",
     "body-parser": "^1.18.3",
     "capture-console": "^1.0.1",

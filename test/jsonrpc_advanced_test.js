@@ -136,7 +136,7 @@ describe('jsonrpc_advanced',()=>{
 function getDeployRequest(signKey){
   return {
     contractAddress : '0x4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
-    preCode : [22,33,100,202,111,223,211,22],
+    preCode : Buffer.from([22,33,100,202,111,223,211,22]).toString('base64'),
     workerAddress : signKey,
     encryptedFn : 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
     encryptedArgs : 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
