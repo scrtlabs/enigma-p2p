@@ -3,6 +3,15 @@ language: node_js
 node_js:
   - "10.14"
 
+env:
+  - DOCKER_COMPOSE_VERSION=1.23.2
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
 install:
   - npm install -g truffle@5.0.15
   - npm install
@@ -12,6 +21,15 @@ script:
   - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then
       echo $TRAVIS_BRANCH ; npm run test-tree;
     fi
+  - git clone https://github.com/enigmampc/discovery-docker-network.git
+  - |
+    pushd discovery-docker-network &&
+    cp .env-template .env &&
+    sed -i "s/SGX_MODE=HW/SGX_MODE=SW/" .env &&
+    sed -i "s/-vv/-v/" enigma-core/start_core.bash &&
+    popd
+  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:latest --no-cache . >/dev/null && popd
+  - pushd discovery-docker-network && docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from client && popd
 
 after_success:
   - npm run report-coverage
