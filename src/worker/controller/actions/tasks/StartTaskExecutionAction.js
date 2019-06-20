@@ -17,7 +17,10 @@ class StartTaskExecutionAction {
     const onResponse = params.onResponse;
     let task = null;
 
-    request.gasLimit = 0; // it is being overwritten in the VerifyNewTaskAction
+    // The following parameters are being overwritten in the VerifyNewTaskAction
+    request.gasLimit = 0;
+    request.blockNumber = 0;
+
     switch (type) {
       case taskTypes.DeploySecretContract:
         request.taskId = request.contractAddress;

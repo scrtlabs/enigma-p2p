@@ -18,14 +18,17 @@ const contractAddress = '0xae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a29
 const preCode = 'f236658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9';
 
 it('#1 Should test computeTask', function(done){
-  //let expected = ['taskId','encryptedArgs','encryptedFn','userPubKey','gasLimit','contractAddress'];
+  const gasLimit = 1200;
+  const blockNumber = 50;
+
   let task = ComputeTask.buildTask({
-    taskId : userTaskId,
-    encryptedArgs : encryptedArgs,
-    encryptedFn : encryptedFn,
-    userDHKey : userPubKey,
-    gasLimit : 1200,
-    contractAddress : contractAddress
+    taskId: userTaskId,
+    encryptedArgs: encryptedArgs,
+    encryptedFn: encryptedFn,
+    userDHKey: userPubKey,
+    gasLimit: gasLimit,
+    contractAddress: contractAddress,
+    blockNumber: blockNumber
   });
 
   assert(task instanceof ComputeTask, 'task was not initiallized');
@@ -42,21 +45,26 @@ it('#1 Should test computeTask', function(done){
   assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
   assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
-  assert.strictEqual(1200,task.getGasLimit(),'gasLimit dont match');
+  assert.strictEqual(gasLimit,task.getGasLimit(),'gasLimit dont match');
+  assert.strictEqual(blockNumber,task.getBlockNumber(),'blockNumber dont match');
   assert.strictEqual(contractAddress,task.getContractAddr(),'addr dont match');
   done();
 });
 
 
 it('#2 Should test DeployTask', function(done){
+  const gasLimit = 1200;
+  const blockNumber = 50;
+
   let task = DeployTask.buildTask({
-    taskId : userTaskId,
-    preCode : preCode,
-    encryptedArgs : encryptedArgs,
-    encryptedFn : encryptedFn,
-    userDHKey : userPubKey,
-    gasLimit : 1200,
-    contractAddress : contractAddress
+    taskId: userTaskId,
+    preCode: preCode,
+    encryptedArgs: encryptedArgs,
+    encryptedFn: encryptedFn,
+    userDHKey: userPubKey,
+    gasLimit: gasLimit,
+    contractAddress: contractAddress,
+    blockNumber: blockNumber
   });
 
   assert(task instanceof DeployTask, 'task was not initiallized');
@@ -73,7 +81,7 @@ it('#2 Should test DeployTask', function(done){
   assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
   assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
-  assert.strictEqual(1200,task.getGasLimit(),'gasLimit dont match');
+  assert.strictEqual(gasLimit,task.getGasLimit(),'gasLimit dont match');
   assert.strictEqual(contractAddress,task.getContractAddr(),'addr dont match');
   assert.strictEqual(preCode,task.getPreCode(),'preCode dont match');
   done();
@@ -81,14 +89,18 @@ it('#2 Should test DeployTask', function(done){
 
 
 it('#3 Should test DeployResult and ComputeResult', function(done){
+  const gasLimit = 1200;
+  const blockNumber = 50;
+
   let taskRawObj = {
-    taskId : userTaskId,
-    preCode : preCode,
-    encryptedArgs : encryptedArgs,
-    encryptedFn : encryptedFn,
-    userDHKey : userPubKey,
-    gasLimit : 1200,
-    contractAddress : contractAddress
+    taskId: userTaskId,
+    preCode: preCode,
+    encryptedArgs: encryptedArgs,
+    encryptedFn: encryptedFn,
+    userDHKey: userPubKey,
+    gasLimit: gasLimit,
+    contractAddress: contractAddress,
+    blockNumber: blockNumber
   };
 
   let deployTask = DeployTask.buildTask(taskRawObj);
@@ -127,14 +139,18 @@ it('#3 Should test DeployResult and ComputeResult', function(done){
 });
 
 it('#4 Should test FailedResult', function(done) {
+  const gasLimit = 1200;
+  const blockNumber = 50;
+
   let taskRawObj = {
-    taskId : userTaskId,
-    preCode : preCode,
-    encryptedArgs : encryptedArgs,
-    encryptedFn : encryptedFn,
-    userDHKey : userPubKey,
-    gasLimit : 1200,
-    contractAddress : contractAddress
+    taskId: userTaskId,
+    preCode: preCode,
+    encryptedArgs: encryptedArgs,
+    encryptedFn: encryptedFn,
+    userDHKey: userPubKey,
+    gasLimit: gasLimit,
+    contractAddress: contractAddress,
+    blockNumber: blockNumber
   };
 
   let deployTask = DeployTask.buildTask(taskRawObj);

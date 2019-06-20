@@ -49,10 +49,12 @@ class EthereumVerifier {
    * @param {string} workerAddress
    * @return {Promise} returning {JSON} {Boolean} isVerified - true/false if the task verified,
    *                                    {Error} error
+   *                                    {Integer} blockNumber
+   *                                    {Integer} gasLimit
    */
   verifyTaskCreation(task, workerAddress) {
     return new Promise((resolve) => {
-      let result = {isVerified: false, gasLimit: null, error: null};
+      let result = {isVerified: false, gasLimit: null, blockNumber: null, error: null};
       if (!(task instanceof Task)) {
         result.error = new errors.TypeErr('Wrong task type');
         return resolve(result);
@@ -70,6 +72,7 @@ class EthereumVerifier {
             result.error = res2.error;
             result.isVerified = res2.isVerified;
             result.gasLimit = res.taskParams.gasLimit;
+            result.blockNumber = res.taskParams.blockNumber;
           }
           else {
             result.error = res.error;
@@ -147,9 +150,9 @@ class EthereumVerifier {
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
         let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
-        return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: event.gasLimit});
+        return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: event.gasLimit, blockNumber: event.blockNumber});
       }
-      return resolve({error: res.error, isVerified: res.isVerified, gasLimit: null});
+      return resolve({error: res.error, isVerified: res.isVerified, gasLimit: null, blockNumber: null});
     });
   }
 

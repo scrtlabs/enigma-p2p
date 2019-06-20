@@ -26,28 +26,30 @@ let resultRawObj = {
 };
 
 const user1 = {
-   userEthAddr : '0xce16109f8b49da5324ce97771b81247db6e17868',
-   userNonce : 3,
+   userEthAddr: '0xce16109f8b49da5324ce97771b81247db6e17868',
+   userNonce: 3,
   // H(userEthAddr|userNonce)
-   taskId : 'ae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02b3',
-   encryptedArgs : '3cf8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
-   encryptedFn : '5a380b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd1c',
-   userDHKey : '2532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
-   contractAddress : '0xae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02b3',
-   gasLimit : 24334 ,
-   preCode : 'f236658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
+   taskId: 'ae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02b3',
+   encryptedArgs: '3cf8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
+   encryptedFn: '5a380b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd1c',
+   userDHKey: '2532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
+   contractAddress: '0xae2c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02b3',
+   gasLimit: 24334 ,
+   blockNumber: 100,
+   preCode: 'f236658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d9',
 };
 const user2 = {
-  userEthAddr : '0x3216109f8b49da5324ce97771b81247db6e17864',
-  userNonce : 43,
+  userEthAddr: '0x3216109f8b49da5324ce97771b81247db6e17864',
+  userNonce: 43,
   // H(userEthAddr|userNonce)
-  taskId : 'aaac488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02cc',
-  encryptedArgs : '4ff8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e5274f4',
-  encryptedFn : '0b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd',
-  userDHKey : '4343eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741aa',
-  contractAddress : '0x322c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b0233',
-  gasLimit : 24344 ,
-  preCode : 'ab36658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741ba',
+  taskId: 'aaac488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b02cc',
+  encryptedArgs: '4ff8eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e5274f4',
+  encryptedFn: '0b9a7f5982f2b9fa69d952064e82cb4b6b9a718d98142da4b83a43d823455d75a35cc3600ba01fe4aa0f1b140006e98106a112e13e6f676d4bccb7c70cdd',
+  userDHKey: '4343eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741aa',
+  contractAddress: '0x322c488a1a718dd9a854783cc34d1b3ae82121d0fc33615c54a290d90e2b0233',
+  gasLimit: 24344 ,
+  blockNumber: 100,
+  preCode: 'ab36658468465aef1grd56gse6fg1ae65f1aw684fr6aw81faw51f561fwawf32a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741d92532eb4f23632a59e3e2b21a25c6aa4538fde5253c7b50a10caa948e12ddc83f607790e4a0fb317cff8bde1a8b94f8e0e52741ba',
 };
 
 function destroyDb(dbPath,resolve){
@@ -61,15 +63,16 @@ function generateComputeTasks(num){
   let tasks = [];
   for(let i =0;i<num;i++){
     let task = ComputeTask.buildTask({
-      userEthAddr : '0x' + testUtils.randLenStr(40),
-      userNonce : testUtils.getRandomInt(100),
+      userEthAddr: '0x' + testUtils.randLenStr(40),
+      userNonce: testUtils.getRandomInt(100),
       // H(userEthAddr|userNonce)
-      taskId : '0x'+testUtils.randLenStr(64),
-      encryptedArgs : testUtils.randLenStr(200),
-      encryptedFn : testUtils.randLenStr(200),
-      userDHKey : testUtils.randLenStr(130),
-      contractAddress : '0x'+testUtils.randLenStr(40),
-      gasLimit : testUtils.getRandomInt(100) ,
+      taskId: '0x'+testUtils.randLenStr(64),
+      encryptedArgs: testUtils.randLenStr(200),
+      encryptedFn: testUtils.randLenStr(200),
+      userDHKey: testUtils.randLenStr(130),
+      contractAddress: '0x'+testUtils.randLenStr(40),
+      gasLimit: testUtils.getRandomInt(100) ,
+      blockNumber: testUtils.getRandomInt(100)
     });
     if(task)
       tasks.push(task);
@@ -82,16 +85,17 @@ function generateDeployTasks(num){
   let tasks = [];
   for(let i =0;i<num;i++){
     tasks.push(DeployTask.buildTask({
-      userEthAddr : '0x' + testUtils.randLenStr(40),
-      userNonce : testUtils.getRandomInt(100),
+      userEthAddr: '0x' + testUtils.randLenStr(40),
+      userNonce: testUtils.getRandomInt(100),
       // H(userEthAddr|userNonce)
-      taskId : '0x'+testUtils.randLenStr(64),
-      encryptedArgs : testUtils.randLenStr(200),
-      encryptedFn : testUtils.randLenStr(200),
-      userDHKey : testUtils.randLenStr(130),
-      contractAddress : '0x'+testUtils.randLenStr(40),
-      gasLimit : testUtils.getRandomInt(100) ,
-      preCode : testUtils.randLenStr(1000),
+      taskId: '0x'+testUtils.randLenStr(64),
+      encryptedArgs: testUtils.randLenStr(200),
+      encryptedFn: testUtils.randLenStr(200),
+      userDHKey: testUtils.randLenStr(130),
+      contractAddress: '0x'+testUtils.randLenStr(40),
+      gasLimit: testUtils.getRandomInt(100) ,
+      preCode: testUtils.randLenStr(1000),
+      blockNumber: testUtils.getRandomInt(100)
     }));
   }
   return tasks;
@@ -106,15 +110,16 @@ function generateDeployBundle(num, isSuccess){
   }
   tasks.forEach(t=>{
     let resObj = {
-      taskId : t.getTaskId(),
-      status : status,
-      output : testUtils.getRandomByteArray(80),
-      delta : {index : 2, delta : testUtils.getRandomByteArray(20)},
-      usedGas : testUtils.getRandomInt(10000),
-      ethereumPayload : testUtils.getRandomByteArray(100),
-      ethereumAddress : testUtils.randLenStr(40),
-      signature : testUtils.getRandomByteArray(120),
-      preCodeHash : testUtils.randLenStr(64),
+      taskId: t.getTaskId(),
+      status: status,
+      output: testUtils.getRandomByteArray(80),
+      delta: {index : 2, delta : testUtils.getRandomByteArray(20)},
+      usedGas: testUtils.getRandomInt(10000),
+      ethereumPayload: testUtils.getRandomByteArray(100),
+      ethereumAddress: testUtils.randLenStr(40),
+      signature: testUtils.getRandomByteArray(120),
+      preCodeHash: testUtils.randLenStr(64),
+      blockNumber: testUtils.getRandomInt(100)
     };
     let result = null;
     if(isSuccess){

@@ -59,6 +59,9 @@ describe('Eth verifier tests', function() {
     let taskId;
     let inputsHash;
     const gasLimit = 989;
+    let blockNumber = expectedParams.firstBlockNumber + 50;
+
+    taskData.blockNumber = blockNumber;
 
     if (isDeploy) {
       taskId = secretContractAddress;
@@ -67,7 +70,7 @@ describe('Eth verifier tests', function() {
         inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, cryptography.hash(taskData.preCode), taskData.userDHKey]);
       }
       ethereumAPI.api().setTaskParams(taskId,
-        expectedParams.firstBlockNumber + 50,
+        blockNumber,
         taskStatus,
         gasLimit,
         inputsHash,
@@ -79,7 +82,7 @@ describe('Eth verifier tests', function() {
         inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, taskData.contractAddress, taskData.userDHKey]);
       }
       ethereumAPI.api().setTaskParams(taskId,
-        expectedParams.firstBlockNumber + 50,
+        blockNumber,
         taskStatus,
         gasLimit,
         inputsHash,
