@@ -213,7 +213,9 @@ it('#6 GetPTTRequest *with* addresses - mock server', async function() {
     const coreRuntime = new CoreRuntime({uri: uri});
     coreRuntime.setChannel(c2);
     await nodeUtils.sleep(1000);
-    const input = {addresses: ['0x1203', '0xdeadbeaf']};
+    const addresses = [{address: '0x1203', blockNumber: 100},
+      {address: '0xdeadbeaf', blockNumber: 200}];
+    const input = {addresses: addresses};
     const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest, input: input},
         constants.CORE_REQUESTS.GetPTTRequest);
     c1.sendAndReceive(reqEnv)

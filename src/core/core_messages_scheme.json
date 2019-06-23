@@ -199,10 +199,17 @@
         "properties": {
           "addresses": {
             "type": "array",
-            "minItems": 1
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": {"type": "string"},
+                "blockNumber": {"type": "number"}
+              },
+              "required": ["address", "blockNumber"],
+              "additionalProperties": false
+            }
           }
-        },
-        "additionalProperties": false
+        }
       }
     },
     "additionalProperties": false

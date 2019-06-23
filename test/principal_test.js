@@ -12,13 +12,12 @@ const fakeResponse = '0061d93b5412c0c9';
 const fakeRequest = '84a46461746181a';
 const fakeSig = 'deadbeaf';
 const uri = 'http://127.0.0.1:';
-const addresses = ['0xdeadbeaf'];
 const TEST_TREE = require('./test_tree').TEST_TREE;
 
-
 let receivedRequest = false;
+let response = null;
 
-it('#1 Should Recieve Encrypted response message from mock principal', async function() {
+it('#1 Should Receive Encrypted response message from mock principal', async function() {
   const tree = TEST_TREE.principal;
   if (!tree['all'] || !tree['#1']) {
     this.skip();
@@ -56,6 +55,12 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     const controllers = await ControllerBuilder.createNode(nodeConfig);
     const mainController = controllers.mainController;
 
+    const addresses = [
+      {
+        address:'0xdeadbeaf',
+        blockNumber: 200
+      }];
+
     response = addresses;
 
     await mainController.getNode().asyncExecCmd(
@@ -66,7 +71,7 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     await mainController.shutdownSystem();
     controllers.coreServer.disconnect();
     principalMock.destroy(server);
-    assert(receivedRequest, 'The principal mock never recived a message');
+    assert(receivedRequest, 'The principal mock never received a message');
     resolve();
   });
 });
