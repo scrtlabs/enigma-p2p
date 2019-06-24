@@ -42,4 +42,5 @@ deploy:
   provider: script
   script: bash scripts/deploy.sh
   on:
-    branch: develop
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^master|develop$
