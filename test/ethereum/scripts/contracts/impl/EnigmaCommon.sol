@@ -15,13 +15,14 @@ library EnigmaCommon {
     // ========================================== Structs ==========================================
 
     struct TaskRecord {
+        address sender; // Sender of TaskRecord
         bytes32 inputsHash; // Inputs hash of encryptedFn, encryptedArgs, and contract address/preCodeHash)
+        bytes32 outputHash; // Output hash
         uint gasLimit; // ENG gas limit units
         uint gasPx; // ENG gas px in grains (10 ** 8) amount
-        bytes proof; // Signature of (taskId, inStateDeltaHash, outStateDeltaHash, ethCall)
-        address sender; // Sender of TaskRecord
         uint blockNumber; // Block number TaskRecord was mined
         TaskStatus status; // RecordUndefined: 0; RecordCreated: 1; ReceiptVerified: 2; ReceiptFailed: 3
+        bytes proof; // Signature of (taskId, inStateDeltaHash, outStateDeltaHash, ethCall)
     }
 
     struct Worker {
@@ -54,7 +55,6 @@ library EnigmaCommon {
         bytes32 preCodeHash; // Predeployed bytecode hash
         bytes32 codeHash; // Deployed bytecode hash
         bytes32[] stateDeltaHashes; // Array of state delta hashes
-        bytes32[] outputHashes; // Array of output hashes
         SecretContractStatus status; // Undefined: 0, Deployed: 1
         // TODO: consider keeping an index of taskIds
     }

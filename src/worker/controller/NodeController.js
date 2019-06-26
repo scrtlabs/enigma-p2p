@@ -47,6 +47,7 @@ const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResult
 // db
 const DbRequestAction = require('./actions/db/DbRequestAction');
 const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
+const GetTipsAction = require('./actions/db/read/GetTipsAction');
 const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
 const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
 const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
@@ -132,6 +133,7 @@ class NodeController {
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
       [NOTIFICATION.GET_ALL_ADDRS]: new GetAllAddrsAction(this), // get all the addresses from core or from cache
+      [NOTIFICATION.GET_TIPS]: new GetTipsAction(this),
       [NOTIFICATION.GET_DELTAS]: new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE]: new GetContractCodeAction(this), // get bytecode
       [NOTIFICATION.UPDATE_DB]: new UpdateDbAction(this), // write to db, bytecode or delta

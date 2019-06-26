@@ -8,6 +8,8 @@ const mafmt = require('mafmt');
 const multiaddr = require('multiaddr');
 const timestamp = require('unix-timestamp');
 const rimraf = require('rimraf');
+const zlib = require('zlib');
+
 /**
  * Simply sleep
  * @param {Integer} ms - milliseconds
@@ -310,3 +312,36 @@ module.exports.add0x = function(hexString) {
   }
 }
 
+/** Compress using GZIP
+ *  @param {Buffer} buffer to compress
+ *  @return {Promise}
+ * */
+module.exports.gzip = function gzip(buffer) {
+  return new Promise((resolve, reject)=> {
+    zlib.gzip(buffer, (error, result)=>{
+      if (error) {
+        reject(error);
+      }
+      else {
+        resolve(result);
+      }
+    });
+  });
+}
+
+/** Unzip using GZIP
+ *  @param {Buffer} compressed buffer
+ *  @return {Promise}
+ * */
+module.exports.gunzip = function gunzip(buffer) {
+  return new Promise((resolve, reject) => {
+    zlib.gunzip(buffer, (error, result) => {
+      if (error) {
+        reject(error);
+      }
+      else {
+        resolve(result);
+      }
+    });
+  });
+}

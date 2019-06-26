@@ -81,6 +81,12 @@ class ComputeResult extends Result {
   getDelta() {
     return this._delta;
   }
+  hasDelta() {
+    if (this._delta && this._delta.data) {
+      return true;
+    }
+    return false;
+  }
   getEthPayload() {
     return this._ethereumPayload;
   }

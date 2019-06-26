@@ -85,7 +85,7 @@ function getDeployResultTask(){
     taskId : deployTask.getTaskId(),
     status : constants.TASK_STATUS.SUCCESS,
     output : [123,22,4,55,66],
-    delta : {index : 2, data : [96,22,4,55,66,88]},
+    delta : {key : 2, data : [96,22,4,55,66,88]},
     usedGas : 213,
     ethereumPayload : [233,46,78],
     ethereumAddress : 'cc353334487696ebc3e15411e0b106186eba3c0c',

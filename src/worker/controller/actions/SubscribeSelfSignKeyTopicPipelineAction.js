@@ -6,7 +6,7 @@
  * */
 const constants = require('../../../common/constants');
 const msgs = constants.CORE_REQUESTS;
-
+const EncoderUtil = require('../../../common/EncoderUtil');
 
 class SubscribeSelfSignKeyTopicPipelineAction {
   constructor(controller) {
@@ -20,15 +20,20 @@ class SubscribeSelfSignKeyTopicPipelineAction {
             if (err) {
               this._controller.logger().error('[-] err in SubscribeSelfSignKeyTopicPipelineAction {' + err + '} ');
               if (params.onResponse) {
-                return params.onResponse(err);
+                params.onResponse(err);
               }
+              return;
             }
             // subscribe to topic
             this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB, {
               topic: regParams.result.signingKey,
-              // onPublish will be called everytime something is published to the topic param
+              // onPublish will be called every time something is published to the topic param
               onPublish: (msg) => {
-                const data = JSON.parse(msg.data);
+                const data = EncoderUtil.decode(msg.data);
+                if (!data) {
+                  this._controller.logger().info('error in decoding published message ');
+                  return;
+                }
                 const type = data.type;
                 this._controller.logger().info('[WORK_TOPIC_PUBLISH] ' + type);
                 const request = data.request;
@@ -71,18 +76,23 @@ class SubscribeSelfSignKeyTopicPipelineAction {
       request,
       onResponse: (err, encKeyResult) => {
         if (err || encKeyResult.type === 'Error') {
-          this._controller.logger().error(`Failed Core connection: err: ${err}, encKeyResult: ${JSON.stringify(encKeyResult)}`);
+          this._controller.logger().info(`Failed Core connection: err: ${err}, encKeyResult: ${JSON.stringify(encKeyResult)}`);
+          return;
+        }
+        const responseMessage = EncoderUtil.encode({
+          result: {
+            workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
+            workerSig: encKeyResult.result.workerSig,
+          },
+        });
+        if (!responseMessage) {
+          this._controller.logger().info(`Failed encode response message}`);
           return;
         }
         this._controller.logger().debug('published workerEncryptionKey=[' + encKeyResult.result.workerEncryptionKey + '] encryption key');
         this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
           topic: targetTopic,
-          message: JSON.stringify({
-            result: {
-              workerEncryptionKey: encKeyResult.result.workerEncryptionKey,
-              workerSig: encKeyResult.result.workerSig,
-            },
-          }),
+          message: responseMessage,
         });
       },
     });
@@ -93,14 +103,18 @@ class SubscribeSelfSignKeyTopicPipelineAction {
     this._controller.taskManager().getTaskStatus(request.taskId, (taskStatus)=>{
       final = taskStatus;
       if (!taskStatus) {
-        this._controller.logger().error('error check task status rpc taskId= ' + request.taskId);
+        this._controller.logger().info('error check task status rpc taskId= ' + request.taskId);
+        return;
+      }
+      const responseMessage = EncoderUtil.encode({result: final});
+      if (!responseMessage) {
+        this._controller.logger().info(`Failed encode response message}`);
+        return;
       }
       this._controller.logger().debug('publishing task ' + final +' status ' + request.taskId);
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
         topic: targetTopic,
-        message: JSON.stringify({
-          result: final,
-        }),
+        message: responseMessage,
       });
     });
   }
