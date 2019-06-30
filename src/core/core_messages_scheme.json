@@ -192,28 +192,7 @@
     "required": ["input"],
     "additionalProperties": false
   },
-  "GetPTTRequest": {
-    "properties": {
-      "input": {
-        "type": "object",
-        "properties": {
-          "addresses": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "properties": {
-                "address": {"type": "string"},
-                "blockNumber": {"type": "number"}
-              },
-              "required": ["address", "blockNumber"],
-              "additionalProperties": false
-            }
-          }
-        }
-      }
-    },
-    "additionalProperties": false
-  },
+  "GetPTTRequest": {},
   "PTTResponse": {
     "properties": {
       "input": {

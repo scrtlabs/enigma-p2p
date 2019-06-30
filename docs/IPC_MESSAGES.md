@@ -240,10 +240,7 @@ Request:
 ```
 {
     id: <unique_request_id>,
-    type: GetPTTRequest,
-    input: {
-        addresses: [{address, blockNumber : }, ...]
-    }
+    type: GetPTTRequest
 }
 ```
 
@@ -262,7 +259,6 @@ The request is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
-    data: [addresses],
     pubkey: 'DH pubkey',
     id: '12-bytes-msgID',
 }

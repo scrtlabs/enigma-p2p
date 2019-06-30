@@ -158,7 +158,7 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
   });
 });
 
-it('#5 GetPTTRequest without addresses - mock server', async function() {
+it('#5 GetPTTRequest - mock server', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();
@@ -184,7 +184,7 @@ it('#5 GetPTTRequest without addresses - mock server', async function() {
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
           expect(resEnv.id()).toBe(reqEnv.id());
           expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK);
+          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_REQUEST_MOCK);
           expect(resEnv.content().result.workerSig).toBeTruthy();
           coreRuntime.disconnect();
           coreServer.disconnect();
@@ -193,48 +193,9 @@ it('#5 GetPTTRequest without addresses - mock server', async function() {
   });
 });
 
-
-it('#6 GetPTTRequest *with* addresses - mock server', async function() {
+it('#6 GetTips - mock server', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#6']) {
-    this.skip();
-  }
-
-  return new Promise(async (resolve) => {
-    // start the server
-    const uri = 'tcp://127.0.0.1:7890';
-    const coreServer = new CoreServer();
-    coreServer.runServer(uri);
-    await nodeUtils.sleep(1000);
-    // start the client
-    const channels = Channel.biDirectChannel();
-    const c1 = channels.channel1;
-    const c2 = channels.channel2;
-    const coreRuntime = new CoreRuntime({uri: uri});
-    coreRuntime.setChannel(c2);
-    await nodeUtils.sleep(1000);
-    const addresses = [{address: '0x1203', blockNumber: 100},
-      {address: '0xdeadbeaf', blockNumber: 200}];
-    const input = {addresses: addresses};
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest, input: input},
-        constants.CORE_REQUESTS.GetPTTRequest);
-    c1.sendAndReceive(reqEnv)
-        .then((resEnv) => {
-          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
-          expect(resEnv.id()).toBe(reqEnv.id());
-          expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.request).toEqual(input.addresses);
-          expect(resEnv.content().result.workerSig).toBeTruthy();
-          coreRuntime.disconnect();
-          coreServer.disconnect();
-          resolve();
-        });
-  });
-});
-
-it('#7 GetTips - mock server', async function() {
-  const tree = TEST_TREE['ipc'];
-  if (!tree['all'] || !tree['#7']) {
     this.skip();
   }
   return new Promise(async (resolve) => {

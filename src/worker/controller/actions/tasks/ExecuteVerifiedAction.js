@@ -20,14 +20,12 @@ class ExecuteVerifiedAction {
     // If this is a deploy task, trigger PTT for the specific contract address
     if (task instanceof DeployTask) {
       try {
-        const addressInfo = {
-          address: task.getContractAddr(),
-          blockNumber: task.getBlockNumber()
-        };
         await this._controller.asyncExecCmd(
           constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-          {addresses: [addressInfo]});
-
+          {
+            addresses: [task.getContractAddr()],
+            blockNumber: task.getBlockNumber()
+          });
         this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
       } catch (e) {
         return this._controller.logger().error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);

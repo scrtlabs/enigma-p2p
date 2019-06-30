@@ -49,23 +49,17 @@ class MockCoreServer {
     };
   }
 
-  static get GET_PTT_NO_ADDRESSES_REQUEST_MOCK() {
+  static get GET_PTT_REQUEST_MOCK() {
     return 'no addresses';
   }
 
   static _getPTTRequest(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetPTTRequest)) {
-      let request;
-      if (msg.input && msg.input.addresses) {
-        request = msg.input.addresses;
-      } else {
-        request = MockCoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK;
-      }
       return {
         id: msg.id,
         type: msg.type,
         result: {
-          request: request,
+          request: MockCoreServer.GET_PTT_REQUEST_MOCK,
           workerSig: 'the-worker-sig',
         },
       };
