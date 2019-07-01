@@ -22,13 +22,16 @@ script:
       echo $TRAVIS_BRANCH ; npm run test-tree;
     fi
   - git clone https://github.com/enigmampc/discovery-docker-network.git
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then export TAG=latest; else export TAG=develop; fi
+
   - |
     pushd discovery-docker-network &&
     cp .env-template .env &&
     sed -i "s/SGX_MODE=HW/SGX_MODE=SW/" .env &&
+    if [[ $TAG == "develop" ]]; then sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=develop/" .env; fi &&
     sed -i "s/-vv/-v/" enigma-core/start_core.bash &&
     popd
-  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:latest --no-cache . >/dev/null && popd
+  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:$TAG --no-cache . >/dev/null && popd
   - pushd discovery-docker-network && docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from client && popd
 
 after_success:
