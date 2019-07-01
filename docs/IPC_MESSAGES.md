@@ -190,7 +190,28 @@ Response:
     }
 }
 ```
-
+### `UpdateNewContractOnDeployment` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : UpdateNewContractOnDeployment,
+    address : ...,
+    bytecode : [Secret Contract Address]
+    delta : [key, data : []]
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : UpdateNewContractOnDeployment,
+    address : ...,
+    result : {
+        status : 0 or err code
+    }
+}
+```
 ### `UpdateDeltas` message
 Request:
 ```
