@@ -634,16 +634,20 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey,
+        a.gasLimit, a.secretContractAddress, 0);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
       let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, cryptography.hash(a.preCode), a.userDHKey]);
 
       a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
+        assert.strictEqual(res.gasLimit, a.gasLimit);
+        assert.strictEqual(res.blockNumber, blockNumber);
         resolve();
       });
     });
@@ -729,7 +733,8 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress, 0);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
       let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, cryptography.hash(a.preCode), a.userDHKey]);
 
@@ -737,10 +742,10 @@ describe('Verifier tests', function() {
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
+        assert.strictEqual(res.gasLimit , a.gasLimit);
+        assert.strictEqual(res.blockNumber , blockNumber);
         resolve();
       });
-
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       const event = {taskId: a.secretContractAddress, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordCreated', event);
@@ -755,18 +760,21 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let task = new DeployTask(a.secretContractAddress, a.preCode, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress, 0);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
       let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, cryptography.hash(a.preCode), a.userDHKey]);
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.secretContractAddress,0, status, a.gasLimit, inputsHash);
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
+        assert.strictEqual(res.blockNumber , blockNumber);
+        assert.strictEqual(res.gasLimit , a.gasLimit);
         resolve();
       });
 
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
       let event = {tasks: {}};
       event.tasks[a.secretContractAddress] = {taskId: a.secretContractAddress, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       event.tasks[web3Utils.randomHex(32)] = {taskId: a.secretContractAddress, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
@@ -793,6 +801,8 @@ describe('Verifier tests', function() {
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error, null);
+        assert.strictEqual(res.blockNumber , blockNumber);
+        assert.strictEqual(res.gasLimit , a.gasLimit);
         resolve();
       });
     });
@@ -876,18 +886,20 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress, 0);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
       let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId,0, status);
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
+        assert.strictEqual(res.blockNumber , blockNumber);
+        assert.strictEqual(res.gasLimit , a.gasLimit);
         resolve();
       });
 
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
       const event = {taskId: a.taskId, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       a.apiMock.triggerEvent('TaskRecordCreated', event);
     });
@@ -901,18 +913,21 @@ describe('Verifier tests', function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskCreation();
-      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress);
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, a.secretContractAddress, 0);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
       let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
+      let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId,0, status);
       a.verifier.verifyTaskCreation(task, a.expectedAddress).then( (res)=> {
         assert.strictEqual(res.isVerified, true);
         assert.strictEqual(res.error , null);
+        assert.strictEqual(res.blockNumber , blockNumber);
+        assert.strictEqual(res.gasLimit , a.gasLimit);
         resolve();
       });
 
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+
       let event = {tasks: {}};
       event.tasks[a.taskId] = {taskId: a.taskId, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};
       event.tasks[web3Utils.randomHex(32)] = {taskId: a.taskId, inputsHash: inputsHash, gasLimit: a.gasLimit, blockNumber: blockNumber};

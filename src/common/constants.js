@@ -249,4 +249,5 @@ module.exports.PRINCIPAL_NODE = {
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
+  EPOCH_STATE_TRANSITION_ERROR_CODE: -32002
 };

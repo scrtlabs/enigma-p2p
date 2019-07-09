@@ -192,21 +192,7 @@
     "required": ["input"],
     "additionalProperties": false
   },
-  "GetPTTRequest": {
-    "properties": {
-      "input": {
-        "type": "object",
-        "properties": {
-          "addresses": {
-            "type": "array",
-            "minItems": 1
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "additionalProperties": false
-  },
+  "GetPTTRequest": {},
   "PTTResponse": {
     "properties": {
       "input": {

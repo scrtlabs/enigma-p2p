@@ -77,6 +77,7 @@ function getDeployResultTask(){
     encryptedFn : 'kjhbsarglikujrhehihiuhihikkkkkkkkkkkkjdhfyueuehen',
     userDHKey :  '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
     gasLimit : 1200,
+    blockNumber : 120,
     contractAddress : '0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538'
   };
   let deployTask = DeployTask.buildTask(taskRawObj);

@@ -8,7 +8,7 @@ class DeployTask extends Task {
    * @return {DeployTask} task
    * */
   static buildTask(deployReqMsg) {
-    const expected = ['taskId', 'preCode', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress'];
+    const expected = ['taskId', 'preCode', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress', 'blockNumber'];
     const isMissing = expected.some((attr)=>{
       return !(attr in deployReqMsg);
     });
@@ -24,20 +24,16 @@ class DeployTask extends Task {
           deployReqMsg.userDHKey,
           deployReqMsg.gasLimit,
           deployReqMsg.contractAddress,
+          deployReqMsg.blockNumber,
       );
     }
   }
-  constructor(taskId, preCode, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr) {
-    super(taskId, constants.CORE_REQUESTS.DeploySecretContract);
+  constructor(taskId, preCode, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr, blockNumber) {
+    super(taskId, constants.CORE_REQUESTS.DeploySecretContract, contractAddr, gasLimit, blockNumber);
     this._preCode = preCode;
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
     this._userDHKey = userDHKey;
-    this._gasLimit = gasLimit;
-    this._contractAddr = contractAddr;
-  }
-  setGasLimit(gasLimit) {
-    this._gasLimit = gasLimit;
   }
   getPreCode() {
     return this._preCode;
@@ -51,12 +47,6 @@ class DeployTask extends Task {
   getUserDHKey() {
     return this._userDHKey;
   }
-  getGasLimit() {
-    return this._gasLimit;
-  }
-  getContractAddr() {
-    return this._contractAddr;
-  }
   toDbJson() {
     const output ={
       status: this.getStatus(),
@@ -67,6 +57,7 @@ class DeployTask extends Task {
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
+      blockNumber: this.getBlockNumber(),
     };
     if (this.isFinished()) {
       output.result = this._result.toDbJson();

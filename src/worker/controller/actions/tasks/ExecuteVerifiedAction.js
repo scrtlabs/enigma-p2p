@@ -22,8 +22,10 @@ class ExecuteVerifiedAction {
       try {
         await this._controller.asyncExecCmd(
           constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-          {addresses: [task.getContractAddr()]});
-
+          {
+            addresses: [task.getContractAddr()],
+            blockNumber: task.getBlockNumber()
+          });
         this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
       } catch (e) {
         return this._controller.logger().error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
