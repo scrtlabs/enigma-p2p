@@ -98,7 +98,7 @@ class EthereumVerifier {
         result.error = new errors.TypeErr('Wrong task result type');
         return resolve(result);
       }
-      this._createTaskSubmissionListener(task, localTip, resolve);
+      this._createTaskSubmissionListener(task, resolve);
       this._verifyTaskSubmissionNow(task, contractAddress, localTip).then( (res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
@@ -168,7 +168,7 @@ class EthereumVerifier {
     return Object.keys(this._unverifiedCreateTasks);
   }
 
-  _createTaskSubmissionListener(task, localTip, resolve) {
+  _createTaskSubmissionListener(task, resolve) {
     const taskId = task.getTaskId();
     this._setTaskSubmissionListener(taskId, (event) => {
       // First verify the case of a FailedResult
@@ -194,7 +194,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash)
+              const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -204,7 +204,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._checkComputeResultEvent(task, event.outputHash, event.stateDeltaHash, event.stateDeltaHashIndex)
+              const res = this._checkComputeResultEvent(task, event.outputHash, event.stateDeltaHash, event.stateDeltaHashIndex);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -393,8 +393,12 @@ class EthereumVerifier {
     }
     // No delta
     else {
-      if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[contractParams.deltaHashes.length-1], localTip)) {
-        error = new errors.TaskVerificationErr("Mismatch in last local tip hash - no state change for task " + task.getTaskId());
+      const lastDeltaIndex = contractParams.deltaHashes.length-1;
+      if (lastDeltaIndex !== localTip.key) {
+        error = new errors.TaskVerificationErr("Mismatch in last local tip index (no state change) for task " + task.getTaskId());
+      }
+      else if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[lastDeltaIndex], localTip.data)) {
+        error = new errors.TaskVerificationErr("Mismatch in last local tip hash (no state change) for task " + task.getTaskId());
       }
     }
     // All fine by now...

@@ -142,7 +142,7 @@ describe('Verifier tests', function() {
       apiMock.setContractParams(contractAddress, null,  [deltaHash]);
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
       // ok
-      res = await verifier.verifyTaskSubmission(task, contractAddress, delta);
+      res = await verifier.verifyTaskSubmission(task, contractAddress, {key:0, data:delta});
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
       // and no output
@@ -152,9 +152,19 @@ describe('Verifier tests', function() {
       apiMock.setContractParams(contractAddress, null,  [deltaHash]);
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, constants.ETHEREUM_EMPTY_HASH);
       // ok
-      res = await verifier.verifyTaskSubmission(task, contractAddress, delta);
+      res = await verifier.verifyTaskSubmission(task, contractAddress, {key:0, data:delta});
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
+
+      // wrong key of localTip
+      res = await verifier.verifyTaskSubmission(task, contractAddress, {key:3, data:delta});
+      assert.strictEqual(res.isVerified, false);
+      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+
+      // wrong delta of localTip
+      res = await verifier.verifyTaskSubmission(task, contractAddress, {key:0, data:web3Utils.randomHex(32)});
+      assert.strictEqual(res.isVerified, false);
+      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
     }
     else {
       task = new DeployResult(taskId, constants.TASK_STATUS.UNVERIFIED, outputHash, null,
