@@ -131,7 +131,7 @@ class VerifyAndStoreResultAction {
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
           let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
-          if (!tips || tips[0].address !== contractAddress) {
+          if (!tips || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
           }
           else {

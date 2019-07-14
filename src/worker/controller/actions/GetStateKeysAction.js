@@ -32,7 +32,7 @@ class GetStateKeysAction {
         if (coreResponse && coreResponse.type === 'Error') {
           err = coreResponse.msg;
         }
-        this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
+        this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return onResponse(err, null);
       }
 
@@ -51,7 +51,7 @@ class GetStateKeysAction {
           } else if (response && response.result && response.result.errors.length > 0) {
             err = response.result;
           }
-          this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);
+          this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`);
           return onResponse(err, null);
         }
         return onResponse(null, null);

@@ -21,13 +21,11 @@ class GetTipsAction {
     else {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
         dbQueryType: constants.CORE_REQUESTS.GetTips,
+        input: [contractAddresses],
         onResponse: (err, result)=>{
-          let tips;
-          if (result.tips) {
-            tips = result.tips;
-          }
-          else {
-            tips = []
+          let tips = [];
+          if (result.result.tips) {
+            tips = result.result.tips;
           }
           return onResult(err, tips);
         },

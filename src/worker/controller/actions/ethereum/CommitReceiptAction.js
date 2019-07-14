@@ -15,7 +15,7 @@ class CommitReceiptAction {
 
     let result = await this._commitTask(task);
     if (result.error) {
-      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
+      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${result.error}`);
       err = result.error;
     }
     else {
@@ -70,7 +70,7 @@ class CommitReceiptAction {
   async _commitSuccessTask(task) {
     let txReceipt = null;
     let err = null;
-    const delta = task.getResult().getDelta();
+    const isDelta = task.getResult().hasDelta();
     const output = task.getResult().getOutput();
 
     // Deploy task
@@ -78,7 +78,7 @@ class CommitReceiptAction {
       if (!output) {
         err = new errors.InputErr(`No output for deploy task ${task.getTaskId()}`);
       }
-      else if (!delta || (!`data` in delta) || !(delta.data)) {
+      else if (!isDelta) {
         err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       }
       else {
@@ -87,7 +87,7 @@ class CommitReceiptAction {
             task.getTaskId(),
             task.getResult().getPreCodeHash(),
             cryptography.hash(output),
-            cryptography.hash(delta.data),
+            cryptography.hash(task.getResult().getDelta().data),
             task.getResult().getEthPayload(),
             task.getResult().getEthAddr(),
             task.getResult().getUsedGas(),
@@ -107,8 +107,8 @@ class CommitReceiptAction {
       if (output) {
         outputHash = cryptography.hash(output);
       }
-      if (delta && parseInt(delta.key) !== 0) {
-        deltaHash = cryptography.hash(delta.data);
+      if (isDelta) {
+        deltaHash = cryptography.hash(task.getResult().getDelta().data);
       }
       try {
         txReceipt = await this._controller.ethereum().api().commitReceipt(
