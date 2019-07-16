@@ -76,12 +76,13 @@ class VerifyAndStoreResultAction {
           error = e;
         }
       }
-      this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished : is_err ?  ${error}`);
       if (optionalCallback) {
         return optionalCallback(error);
       }
     }
     else { // if (err)
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished with an error:  ${err}`);
       if(optionalCallback){
         return optionalCallback(err);
       }

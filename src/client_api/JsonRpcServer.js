@@ -6,7 +6,6 @@
  * */
 const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
-// const nodeUtils = require('../common/utils');
 const jayson = require('jayson');
 const cors = require('cors');
 const connect = require('connect');
@@ -55,6 +54,7 @@ class JsonRpcServer extends EventEmitter {
       },
       deploySecretContract: async (args, callback)=>{
         if(this._shouldRouteMessage(args)){
+          this._logger.info("[+] JsonRpc: deploySecretContract" );
           let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
         }else{
@@ -63,6 +63,7 @@ class JsonRpcServer extends EventEmitter {
       },
       sendTaskInput: async (args, callback)=> {
         if(this._shouldRouteMessage(args)){
+          this._logger.info("[+] JsonRpc: sendTaskInput" );
           let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
         }else{

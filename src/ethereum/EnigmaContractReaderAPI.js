@@ -384,7 +384,7 @@ class EnigmaContractReaderAPI {
        * */
       'ReceiptVerified': (event) => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           stateDeltaHash: event.returnValues.stateDeltaHash,
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
           outputHash: event.returnValues.outputHash,
@@ -443,13 +443,13 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} initDeltaHash
+       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} stateDeltaHash
        * */
       'SecretContractDeployed': (event) => {
         return {
-          secretContractAddress: event.returnValues.scAddr,
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.scAddr),
           codeHash: event.returnValues.codeHash,
-          initDeltaHash: event.returnValues.initDeltaHash,
+          stateDeltaHash: event.returnValues.initStateDeltaHash,
         };
       },
     };

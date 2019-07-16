@@ -197,7 +197,7 @@ Request:
     id : <unique_request_id>,
     type : UpdateNewContractOnDeployment,
     address : ...,
-    bytecode : [Secret Contract Address]
+    bytecode : 'the-bytecode'
     delta : [key, data : []]
 }
 ```
