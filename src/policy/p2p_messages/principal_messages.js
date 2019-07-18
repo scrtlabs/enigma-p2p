@@ -43,7 +43,7 @@ class MsgPrincipal {
       dict.addresses = this._addresses;
     }
     if (this._blockNumber) {
-      dict.blockNumber = this._blockNumber;
+      dict.block_number = this._blockNumber.toString();
     }
     return dict;
   }
