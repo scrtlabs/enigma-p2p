@@ -42,7 +42,7 @@ class ProxyDispatcherAction {
           requestEnvelop.content().request.preCode = preCodeByteArray;
         }
         catch (e) {
-          this._controller.logger().info(`[PROXY_DISPATCH] an exception occured while trying to unpack DeploySecretContract RPC ${e}`);
+          this._controller.logger().info(`[PROXY_DISPATCH] an exception occurred while trying to unpack DeploySecretContract RPC ${e}`);
           return;
         }
       case constants.CORE_REQUESTS.ComputeTask:

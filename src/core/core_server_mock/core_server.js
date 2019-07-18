@@ -53,6 +53,10 @@ class MockCoreServer {
     return 'no addresses';
   }
 
+  static get GET_DEPLOY_BYTECODE_MOCK() {
+    return '88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc';
+  }
+
   static _getPTTRequest(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetPTTRequest)) {
       return {
@@ -88,7 +92,7 @@ class MockCoreServer {
         id: msg.id,
         type: msg.type,
         result: {
-          output: [22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99], // AKA exeCode
+          output: MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, // AKA exeCode
           preCodeHash: 'hash-of-the-precode-bytecode',
           delta: {key: 0, data: [11, 2, 3, 5, 41, 44]},
           usedGas: 'amount-of-gas-used',

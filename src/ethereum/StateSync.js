@@ -19,10 +19,6 @@ async function getRemoteMissingStates(api, localTips, callback) {
     if (typeof address !== 'string') {
       address = DbUtils.toHexString(address);
     }
-    // add '0x' to be able to compare the addresses with Ethereum
-    if (address.slice(0, 2) != '0x') {
-      address = '0x' + address;
-    }
     obj[address] = item.key;
     return obj;
   }, {});
@@ -73,12 +69,10 @@ async function getRemoteMissingStates(api, localTips, callback) {
       if (err) {
         return callback(err);
       }
-      // 1. Filter out undefined - due to synced addresses
-      // 2. Remove the '0x' from the secret contract addresses
+      // Filter out undefined - due to synced addresses
       const filtered = [];
       results.forEach((result)=>{
         if (result !== undefined) {
-          result.address = result.address.slice(2, result.address.length);
           filtered.push(result);
         }
       });
