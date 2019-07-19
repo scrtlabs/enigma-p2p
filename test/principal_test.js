@@ -86,8 +86,8 @@ function getStateKeysCallback(args, callback) {
     if (args.addresses) {
       expect(args.addresses).toEqual(fakeAddresses);
     }
-    if (args.blockNumber) {
-      expect(args.blockNumber).toEqual(fakeBlockNumber);
+    if (args.block_number) {
+      expect(args.block_number).toEqual(fakeBlockNumber.toString());
     }
     const result = {data: fakeResponse, sig: fakeSig};
     callback(null, result);
