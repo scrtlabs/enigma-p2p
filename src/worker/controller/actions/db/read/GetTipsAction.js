@@ -24,7 +24,7 @@ class GetTipsAction {
         input: [contractAddresses],
         onResponse: (err, result)=>{
           let tips = [];
-          if (result.result.tips) {
+          if (result && result.result && result.result.tips) {
             tips = result.result.tips;
           }
           return onResult(err, tips);

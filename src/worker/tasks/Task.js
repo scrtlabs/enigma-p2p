@@ -1,15 +1,16 @@
 const constants = require('../../common/constants');
+const utils = require('../../common/utils');
 const EventEmitter = require('events').EventEmitter;
 const Result = require('./Result').Result;
 
 class Task extends EventEmitter {
   constructor(taskId, type, contractAddress, gasLimit, blockNumber) {
     super();
-    this._taskId = taskId;
+    this._taskId = utils.remove0x(taskId);
     this._status = constants.TASK_STATUS.UNVERIFIED;
     this._result = null;
     this._type = type;
-    this._contractAddr = contractAddress;
+    this._contractAddr = utils.remove0x(contractAddress);
     this._gasLimit = gasLimit;
     this._blockNumber = blockNumber;
   }

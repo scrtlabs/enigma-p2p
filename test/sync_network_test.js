@@ -71,21 +71,21 @@ describe('sync_network_tests',()=> {
 
 function getDeployResultTask(){
   let taskRawObj = {
-    taskId : '0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538',
+    taskId : '0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538',
     preCode : [0,1,2,3,4,5,6,7,8,9,10,11,22,11,33,22,55,66,99,66,33,66,33,66,33,66,33],
     encryptedArgs : 'kjidejkdjeu83832uewhriowehjuehyhejdekioeuisdrhjfdrkhjfesdjksfdljkoifdkliutrjiukerfjk',
     encryptedFn : 'kjhbsarglikujrhehihiuhihikkkkkkkkkkkkjdhfyueuehen',
     userDHKey :  '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
     gasLimit : 1200,
     blockNumber : 120,
-    contractAddress : '0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538'
+    contractAddress : '0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538'
   };
   let deployTask = DeployTask.buildTask(taskRawObj);
   // create result
   let resultRawObj = {
     taskId : deployTask.getTaskId(),
     status : constants.TASK_STATUS.SUCCESS,
-    output : [123,22,4,55,66],
+    output : "bc3e15411e0b106186eb",
     delta : {key : 2, data : [96,22,4,55,66,88]},
     usedGas : 213,
     ethereumPayload : [233,46,78],

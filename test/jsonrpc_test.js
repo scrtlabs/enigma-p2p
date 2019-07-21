@@ -209,7 +209,7 @@ describe('JsonRPC tests', () => {
     }
     return new Promise(resolve => {
       const taskInput = {
-        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        taskId: 'b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
         contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
         workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
@@ -229,7 +229,7 @@ describe('JsonRPC tests', () => {
     const preCodeZip = await utils.gzip(Buffer.from([22,33,100,202,111,223,211,22]));
     return new Promise(resolve => {
       const deployInput = {
-        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        taskId: 'b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
         contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
         workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
@@ -250,7 +250,7 @@ describe('JsonRPC tests', () => {
     const preCodeZip = await utils.gzip(Buffer.from([22,33,100,202,111,223,211,22]));
     return new Promise(resolve => {
       const deployInput = {
-        taskId: '0xb79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
+        taskId: 'b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d',
         workerAddress: '5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a',
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
         encryptedArgs: 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
@@ -272,7 +272,7 @@ describe('JsonRPC tests', () => {
       await testUtils.sleep(1500);
       const preCodeZip = await utils.gzip(Buffer.from([22,33,100,202,111,223,211,22]));
       const deployInput = {
-        contractAddress: '0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
+        contractAddress: '9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e',
         preCode : preCodeZip.toString('base64'),
         workerAddress: signKey,
         encryptedFn: 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
