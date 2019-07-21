@@ -10,7 +10,7 @@ const nodeUtils = require('../../src/common/utils');
 function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
   const hash = crypto.hash(abi.rawEncode(
           ['uint256', 'bytes32', 'uint256'],
-          [seed, secretContractAddress, nonce]
+          [seed, nodeUtils.add0x(secretContractAddress), nonce]
         ));
   // Find random number between [0, tokenCpt)
   let randVal = JSBI.remainder(JSBI.BigInt(hash), JSBI.BigInt(balancesSum));
@@ -26,7 +26,7 @@ function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balan
 /**
  * */
 module.exports.createDataForTaskCreation = function() {
-  const taskId = web3Utils.randomHex(32);
+  const taskId = nodeUtils.remove0x(web3Utils.randomHex(32));
   const preCode = [56, 86, 27];
   const encryptedArgs = web3Utils.randomHex(32);
   const encryptedFn = web3Utils.randomHex(32);
@@ -44,9 +44,9 @@ module.exports.createDataForTaskCreation = function() {
 };
 
 module.exports.createDataForTaskSubmission = function() {
-  const taskId = web3Utils.randomHex(32);
+  const taskId = nodeUtils.remove0x(web3Utils.randomHex(32));
   const delta = [20, 30, 66];
-  const output = [59, 230, 1];
+  const output = "ff123456";
   const deltaHash = crypto.hash(delta);
   const outputHash = crypto.hash(output);
   const blockNumber = 0;
@@ -98,7 +98,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
 
   let balancesSum = balancesA.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
 
-  const secretContractAddress = web3Utils.randomHex(32);
+  const secretContractAddress = nodeUtils.remove0x(web3Utils.randomHex(32));
 
   const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA);
 

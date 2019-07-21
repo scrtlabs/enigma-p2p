@@ -39,11 +39,11 @@ class MsgPrincipal {
       'data': this._request,
       'sig': this._sig
     };
-    if (this._addresses) {
-      dict.addresses = this._addresses;
-    }
     if (this._blockNumber) {
       dict.block_number = this._blockNumber.toString();
+    }
+    if (this._addresses) {
+      dict.addresses = this._addresses;
     }
     return dict;
   }

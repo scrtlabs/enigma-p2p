@@ -19,7 +19,7 @@ class CommitReceiptAction {
       err = result.error;
     }
     else {
-      this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${result.txReceipt}`);
+      this._controller.logger().info(`[COMMIT_RECEIPT] success for ${result.method} of task ${task.getTaskId()} receipt = ${result.txReceipt}`);
     }
     if (callback) {
       callback(err);
@@ -37,6 +37,7 @@ class CommitReceiptAction {
   async _commitFailedTask(task) {
     let txReceipt = null;
     let err = null;
+    let method = null;
 
     // Deploy task
     if(task instanceof DeployTask) {
@@ -46,6 +47,7 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "deploySecretContractFailure";
       }
       catch (e) {
         err = e;
@@ -60,16 +62,19 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "commitTaskFailure";
       }
       catch (e) {
         err = e;
       }
     }
-    return {error: err, txReceipt: txReceipt};
+    return {error: err, txReceipt: txReceipt, method: method};
   }
   async _commitSuccessTask(task) {
     let txReceipt = null;
     let err = null;
+    let method = null;
+
     const isDelta = task.getResult().hasDelta();
     const output = task.getResult().getOutput();
 
@@ -93,6 +98,7 @@ class CommitReceiptAction {
             task.getResult().getUsedGas(),
             task.getResult().getSignature(),
           );
+          method = "deploySecretContract";
         }
         catch (e) {
           err = e;
@@ -121,12 +127,13 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "commitReceipt";
       }
       catch (e) {
         err = e;
       }
     }
-    return {error: err, txReceipt: txReceipt};
+    return {error: err, txReceipt: txReceipt, method: method};
   }
 }
 

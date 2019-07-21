@@ -91,13 +91,7 @@
   "UpdateNewContractOnDeployment": {
     "properties": {
       "address": {"type": "string"},
-      "bytecode": {
-        "type": "array",
-        "items": {
-          "type": "number",
-          "minItems": 1
-        }
-      },
+      "bytecode": {"type": "string"},
       "delta":{
         "type": "object",
         "properties": {
