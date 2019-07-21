@@ -11,7 +11,7 @@ Using "Ox" in hexadecimal strings: (not sure this belongs here but don't have a 
 Ethereum by default uses "0x" when representing hexadecimal strings, while Javascript dismisses the "0x".
 So in Enigma-P2P most hexadecimal strings are represented without "0x":
 TaskId and secretContractAddresses are thus treated everywhere without "0x" but hashes are represented the way Ethereum does,
-because we use web3 for the hash calculation. This inconsistency is misleading and should be addresses properly. TODO(lenak)
+because we use web3 for the hash calculation. This inconsistency is misleading and should be addressed properly. TODO(lenak)
  */
 
 
