@@ -40,7 +40,7 @@ class MsgPrincipal {
       'sig': this._sig
     };
     if (this._blockNumber) {
-      dict.blockNumber = this._blockNumber;
+      dict.block_number = this._blockNumber.toString();
     }
     if (this._addresses) {
       dict.addresses = this._addresses;
