@@ -3,7 +3,7 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true,
-    '#3' : true,
+    '#3' : false,
   },
   'ipc' :{
     'all' : true,
@@ -47,7 +47,7 @@ module.exports.TEST_TREE = {
     '#1' : true,
   },
   'sync_basic':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,

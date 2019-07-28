@@ -305,6 +305,17 @@ class EnigmaNode extends EventEmitter {
   getSelfPeerBook() {
     return this.node.peerBook;
   }
+  /** Get PeerBook
+   * @return {PeerBook} , peerBook of the current EnigmaNode
+   */
+  getSelfPeerBookIds() {
+    return this.node.peerBook.getAllArray();
+  }
+  /*
+   */
+  getConnectedPeers() {
+    return this.node.connectionManager._peerValues;
+  }
   /**
    * Get All the Peer info from the peer book.
    * @return {Array} [PeerInfo]
@@ -710,7 +721,8 @@ class EnigmaNode extends EventEmitter {
    */
   findContentProvider(engCid, timeout, callback) {
     const cid = engCid.getCID();
-    this.node.contentRouting.findProviders(cid, timeout, (err, providers)=>{
+    const options = {maxTimeout: timeout};
+    this.node.contentRouting.findProviders(cid, options, (err, providers)=>{
       callback(err, providers);
     });
   }
