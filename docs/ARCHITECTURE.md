@@ -319,7 +319,17 @@ There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/m
 # Running the Node
 * TBD
 # Running the tests
-* TBD
+
+```bash
+sudo npm install -g truffle
+git clone git@github.com:enigmampc/enigma-p2p.git
+cd enigma-p2p
+npm install
+npm run test
+```
+
+Notice: Currently v8.0.0 <= Node.JS <= v11.15.0 is required because web3 v1.0.0-beta.54 requires it. In the future this restriction will be lifted.
+
 # How it works
 
 ## Overview on start 
