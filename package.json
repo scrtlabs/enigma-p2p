@@ -17,12 +17,13 @@
     "test-tree": "node scripts/test_tree_validation.js"
   },
   "author": "isan rivkin",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
     "async": "^2.6.1",
     "commander": "^2.18.0",
     "config": "^3.1.0",
+    "cors": "^2.8.5",
     "ethereumjs-abi": "^0.6.7",
     "expect": "^24.1.0",
     "fs": "0.0.1-security",
@@ -60,7 +61,7 @@
     "zeromq": "^5.1.0"
   },
   "devDependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "babel-eslint": "^10.0.1",
     "body-parser": "^1.18.3",
     "capture-console": "^1.0.1",
@@ -78,6 +79,6 @@
     "Elichai Turkel <elichai.turkel@gmail.com>",
     "Avishai Weingarten <avishw89@gmail.com>",
     "Victor Grau Serrat <victor@enigma.co>",
-    "Aditya Apalepu <adi@enigma.co>"
+    "Aditya Palepu <adi@enigma.co>"
   ]
 }

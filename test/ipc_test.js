@@ -81,7 +81,7 @@ it('#2 GetRegistrationParams - mock server', async function() {
           resolve();
         });
   });
-}, 20000);
+});
 
 it('#3 GetAllTips - mock server', async function() {
   const tree = TEST_TREE['ipc'];
@@ -120,7 +120,7 @@ it('#3 GetAllTips - mock server', async function() {
       resolve();
     });
   });
-}, 30000);
+});
 
 it('#4 getNewTaskEncryptionKey - mock server', async function() {
   const tree = TEST_TREE['ipc'];
@@ -158,7 +158,7 @@ it('#4 getNewTaskEncryptionKey - mock server', async function() {
   });
 });
 
-it('#5 GetPTTRequest without addresses - mock server', async function() {
+it('#5 GetPTTRequest - mock server', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();
@@ -184,7 +184,7 @@ it('#5 GetPTTRequest without addresses - mock server', async function() {
           expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
           expect(resEnv.id()).toBe(reqEnv.id());
           expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK);
+          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_REQUEST_MOCK);
           expect(resEnv.content().result.workerSig).toBeTruthy();
           coreRuntime.disconnect();
           coreServer.disconnect();
@@ -193,16 +193,14 @@ it('#5 GetPTTRequest without addresses - mock server', async function() {
   });
 });
 
-
-it('#6 GetPTTRequest *with* addresses - mock server', async function() {
+it('#6 GetTips - mock server', async function() {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#6']) {
     this.skip();
   }
-
   return new Promise(async (resolve) => {
     // start the server
-    const uri = 'tcp://127.0.0.1:7890';
+    const uri = 'tcp://127.0.0.1:7896';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
     await nodeUtils.sleep(1000);
@@ -213,19 +211,22 @@ it('#6 GetPTTRequest *with* addresses - mock server', async function() {
     const coreRuntime = new CoreRuntime({uri: uri});
     coreRuntime.setChannel(c2);
     await nodeUtils.sleep(1000);
-    const input = {addresses: ['0x1203', '0xdeadbeaf']};
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest, input: input},
-        constants.CORE_REQUESTS.GetPTTRequest);
+    const input = ['0x98456a', '0xdeadbeaf'];
+    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetTips, input: input},
+      constants.CORE_REQUESTS.GetTips);
     c1.sendAndReceive(reqEnv)
-        .then((resEnv) => {
-          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
-          expect(resEnv.id()).toBe(reqEnv.id());
-          expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.request).toEqual(input.addresses);
-          expect(resEnv.content().result.workerSig).toBeTruthy();
-          coreRuntime.disconnect();
-          coreServer.disconnect();
-          resolve();
-        });
+      .then((resEnv) => {
+        expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetTips);
+        expect(resEnv.id()).toBe(reqEnv.id());
+        expect(resEnv.content().id).toBe(reqEnv.content().id);
+        for (let i=0; i<input.length; i++) {
+          expect(resEnv.content().result.tips[i].address).toEqual(input[i]);
+          expect(resEnv.content().result.tips[i].key).toBeTruthy();
+          expect(resEnv.content().result.tips[i].data).toBeTruthy();
+        }
+        coreRuntime.disconnect();
+        coreServer.disconnect();
+        resolve();
+      });
   });
 });

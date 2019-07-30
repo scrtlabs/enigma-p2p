@@ -1,7 +1,16 @@
 language: node_js
 
 node_js:
-  - "10.14"
+  - "11.15"
+
+env:
+  - DOCKER_COMPOSE_VERSION=1.23.2
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
 
 install:
   - npm install -g truffle@5.0.15
@@ -12,6 +21,18 @@ script:
   - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then
       echo $TRAVIS_BRANCH ; npm run test-tree;
     fi
+  - git clone https://github.com/enigmampc/discovery-docker-network.git
+  - if [[ $TRAVIS_BRANCH == "master" ]]; then export TAG=latest; else export TAG=develop; fi
+
+  - |
+    pushd discovery-docker-network &&
+    cp .env-template .env &&
+    sed -i "s/SGX_MODE=HW/SGX_MODE=SW/" .env &&
+    if [[ $TAG == "develop" ]]; then sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=develop/" .env; fi &&
+    sed -i "s/-vv/-v/" enigma-core/start_core.bash &&
+    popd
+  - pushd discovery-docker-network/enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=$TRAVIS_BRANCH -t enigmampc/enigma_p2p:$TAG --no-cache . >/dev/null && popd
+  - pushd discovery-docker-network && docker-compose -f docker-compose.yml -f docker-compose.test.yml up --exit-code-from client && popd
 
 after_success:
   - npm run report-coverage
@@ -19,3 +40,10 @@ after_success:
 notifications:
   email:
     on_success: never
+
+deploy:
+  provider: script
+  script: bash scripts/deploy.sh
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^master|develop$

@@ -6,7 +6,7 @@
  * */
 const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
-// const nodeUtils = require('../common/utils');
+const nodeUtils = require('../common/utils');
 const jayson = require('jayson');
 const cors = require('cors');
 const connect = require('connect');
@@ -55,6 +55,7 @@ class JsonRpcServer extends EventEmitter {
       },
       deploySecretContract: async (args, callback)=>{
         if(this._shouldRouteMessage(args)){
+          this._logger.info("[+] JsonRpc: deploySecretContract" );
           let expected = ['workerAddress','preCode','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.DeploySecretContract,expected,args,callback);
         }else{
@@ -63,6 +64,7 @@ class JsonRpcServer extends EventEmitter {
       },
       sendTaskInput: async (args, callback)=> {
         if(this._shouldRouteMessage(args)){
+          this._logger.info("[+] JsonRpc: sendTaskInput" );
           let expected = ['taskId','workerAddress','encryptedArgs','encryptedFn','userDHKey','contractAddress'];
           this._routeTask(constants.CORE_REQUESTS.ComputeTask,expected,args,callback);
         }else{
@@ -72,7 +74,7 @@ class JsonRpcServer extends EventEmitter {
       getTaskStatus: async (args, callback)=>{
         if(args.workerAddress && args.taskId){
           this._logger.info("[+] JsonRpc: getTaskStatus" );
-          let coreRes = await this._routeNext({taskId : args.taskId, workerAddress : args.workerAddress,
+          let coreRes = await this._routeNext({taskId : nodeUtils.remove0x(args.taskId), workerAddress : args.workerAddress,
             withResult : args.withResult,
           type : constants.NODE_NOTIFICATIONS.GET_TASK_STATUS});
           if(coreRes === null){
@@ -89,7 +91,7 @@ class JsonRpcServer extends EventEmitter {
       getTaskResult : async (args,callback)=>{
         if(args.taskId){
           this._logger.info("[+] JsonRpc: getTaskResult" );
-          let coreRes = await this._routeNext({taskId : args.taskId, type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
+          let coreRes = await this._routeNext({taskId : nodeUtils.remove0x(args.taskId), type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
           if(coreRes === null){
             return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
@@ -134,7 +136,7 @@ class JsonRpcServer extends EventEmitter {
     return callback(null, clientResult);
   }
   /**
-   * TODO:: this function shoid check the workerAddress
+   * TODO:: this function should check the workerAddress
    * TODO:: if equals to self address than DO NOT route next
    * */
   _shouldRouteMessage(args){

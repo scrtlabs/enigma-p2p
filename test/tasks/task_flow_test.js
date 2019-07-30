@@ -75,6 +75,7 @@ const generateDeployBundle = (num, isSuccess)=>{
       ethereumPayload : testUtils.getRandomByteArray(100),
       ethereumAddress : testUtils.randLenStr(40),
       signature : testUtils.getRandomByteArray(120),
+      blockNumber : testUtils.getRandomInt(100) ,
       preCodeHash : testUtils.randLenStr(64),
     };
     let result = null;
@@ -101,6 +102,7 @@ function generateDeployTasks(num){
       userDHKey : testUtils.randLenStr(130),
       contractAddress : '0x'+testUtils.randLenStr(40),
       gasLimit : testUtils.getRandomInt(100) ,
+      blockNumber : testUtils.getRandomInt(100) ,
       preCode : testUtils.randLenStr(1000),
     }));
   }

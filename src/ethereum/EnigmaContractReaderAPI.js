@@ -6,6 +6,15 @@ const cryptography = require('../common/cryptography');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
 
+/*
+Using "Ox" in hexadecimal strings: (not sure this belongs here but don't have a better place at the moment)
+Ethereum by default uses "0x" when representing hexadecimal strings, while Javascript dismisses the "0x".
+So in Enigma-P2P most hexadecimal strings are represented without "0x":
+TaskId and secretContractAddresses are thus treated everywhere without "0x" but hashes are represented the way Ethereum does,
+because we use web3 for the hash calculation. This inconsistency is misleading and should be addressed properly. TODO(lenak)
+ */
+
+
 class EnigmaContractReaderAPI {
   /**
    * {string} enigmaContractAddress
@@ -50,11 +59,11 @@ class EnigmaContractReaderAPI {
      * get a secret contract hash
      * @param {string} secrectContractAddress
      * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
-     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes, {Array<string>} outputHashes
+     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes
      * */
   getContractParams(secrectContractAddress) {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getSecretContract(secrectContractAddress).call(this._defaultTrxOptions, (error, data)=> {
+      this._enigmaContract.methods.getSecretContract(nodeUtils.add0x(secrectContractAddress)).call(this._defaultTrxOptions, (error, data)=> {
         if (error) {
           reject(error);
         }
@@ -62,10 +71,8 @@ class EnigmaContractReaderAPI {
           owner: data.owner,
           preCodeHash: data.preCodeHash,
           codeHash: data.codeHash,
-          outputHash: data.outputHash,
           status: parseInt(data.status),
-          deltaHashes: data.stateDeltaHashes,
-          outputHashes: data.outputHashes
+          deltaHashes: data.stateDeltaHashes
         };
         resolve(params);
       });
@@ -97,7 +104,21 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
-        resolve(data);
+        if (data) {
+          if (Array.isArray(data)) {
+              let newScAddressesArray = [];
+              data.forEach((scAddress) => {
+                newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+              });
+              resolve(newScAddressesArray);
+          }
+          else {
+            resolve(nodeUtils.remove0x(data));
+          }
+        }
+        else {
+          resolve(data);
+        }
       });
     });
   }
@@ -225,7 +246,8 @@ class EnigmaContractReaderAPI {
   /**
    * * Get task parameters
    * @param {string} taskId
-   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof, {string} senderAddress,
+   * @return {Promise} returning {JSON} : {string} inputsHash, {integer} gasLimit, {integer} gasPrice, {string} proof,
+   *                                      {string} senderAddress, {string} outputHash
    *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
    * */
   getTaskParams(taskId) {
@@ -242,6 +264,7 @@ class EnigmaContractReaderAPI {
           senderAddress: data.sender,
           blockNumber: parseInt(data.blockNumber),
           status: parseInt(data.status),
+          outputHash: data.outputHash,
         };
         resolve(params);
       });
@@ -340,7 +363,7 @@ class EnigmaContractReaderAPI {
        * */
       'WorkersParameterized': (event) => {
         return {
-          seed: event.returnValues.seed,
+          seed: cryptography.toBN(event.returnValues.seed),
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
           inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
           workers: event.returnValues.workers,
@@ -384,9 +407,9 @@ class EnigmaContractReaderAPI {
        * */
       'ReceiptVerified': (event) => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           stateDeltaHash: event.returnValues.stateDeltaHash,
-          stateDeltaHashIndex: parseInt(event.returnValues.hashIndex),
+          stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
           outputHash: event.returnValues.outputHash,
           optionalEthereumData: event.returnValues.optionalEthereumData,
           optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,
@@ -412,7 +435,7 @@ class EnigmaContractReaderAPI {
        * */
       'ReceiptFailed': (event) => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           signature: event.returnValues.sig,
         };
       },
@@ -443,13 +466,13 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} initDeltaHash
+       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} stateDeltaHash
        * */
       'SecretContractDeployed': (event) => {
         return {
-          secretContractAddress: event.returnValues.scAddr,
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.scAddr),
           codeHash: event.returnValues.codeHash,
-          initDeltaHash: event.returnValues.initDeltaHash,
+          stateDeltaHash: event.returnValues.initStateDeltaHash,
         };
       },
     };
