@@ -6,7 +6,6 @@
  * */
 const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
-const nodeUtils = require('../common/utils');
 const jayson = require('jayson');
 const cors = require('cors');
 const connect = require('connect');
@@ -74,7 +73,7 @@ class JsonRpcServer extends EventEmitter {
       getTaskStatus: async (args, callback)=>{
         if(args.workerAddress && args.taskId){
           this._logger.info("[+] JsonRpc: getTaskStatus" );
-          let coreRes = await this._routeNext({taskId : nodeUtils.remove0x(args.taskId), workerAddress : args.workerAddress,
+          let coreRes = await this._routeNext({taskId : args.taskId, workerAddress : args.workerAddress,
             withResult : args.withResult,
           type : constants.NODE_NOTIFICATIONS.GET_TASK_STATUS});
           if(coreRes === null){
@@ -91,7 +90,7 @@ class JsonRpcServer extends EventEmitter {
       getTaskResult : async (args,callback)=>{
         if(args.taskId){
           this._logger.info("[+] JsonRpc: getTaskResult" );
-          let coreRes = await this._routeNext({taskId : nodeUtils.remove0x(args.taskId), type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
+          let coreRes = await this._routeNext({taskId : args.taskId, type : constants.NODE_NOTIFICATIONS.GET_TASK_RESULT});
           if(coreRes === null){
             return callback({code: this._SERVER_ERR , message: 'Server error'});
           }
