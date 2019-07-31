@@ -306,12 +306,13 @@ class EnigmaNode extends EventEmitter {
     return this.node.peerBook;
   }
   /** Get PeerBook
-   * @return {PeerBook} , peerBook of the current EnigmaNode
+   * @return {Array} ,the list of all the PeerInfo are in the peerBook of the current EnigmaNode
    */
   getSelfPeerBookIds() {
     return this.node.peerBook.getAllArray();
   }
-  /*
+  /** FOR DEBUG PURPOSES ONLY !!!!!!!!
+   * @return {Map}, the current connected peers
    */
   getConnectedPeers() {
     return this.node.connectionManager._peerValues;
