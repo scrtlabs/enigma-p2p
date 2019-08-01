@@ -1,6 +1,4 @@
 const Logger = require('../../src/common/logger');
-const path = require('path');
-const Task = require('../../src/worker/tasks/Task');
 const ComputeTask = require('../../src/worker/tasks/ComputeTask');
 const DeployTask = require('../../src/worker/tasks/DeployTask');
 const OutsideTask = require('../../src/worker/tasks/OutsideTask');
@@ -10,7 +8,7 @@ const constants = require('../../src/common/constants');
 const TaskManager = require('../../src/worker/tasks/TaskManager');
 const tempdir = require('tempdir');
 const TEST_TREE = require('../test_tree').TEST_TREE;
-const testUtils = require('../testUtils/utils');
+const utils = require('./utils');
 let tree = TEST_TREE.task_manager;
 
 let resultRawObj = {
@@ -59,78 +57,7 @@ function destroyDb(dbPath,resolve){
   // });
 }
 
-function generateComputeTasks(num){
-  let tasks = [];
-  for(let i =0;i<num;i++){
-    let task = ComputeTask.buildTask({
-      userEthAddr: '0x' + testUtils.randLenStr(40),
-      userNonce: testUtils.getRandomInt(100),
-      // H(userEthAddr|userNonce)
-      taskId: '0x'+testUtils.randLenStr(64),
-      encryptedArgs: testUtils.randLenStr(200),
-      encryptedFn: testUtils.randLenStr(200),
-      userDHKey: testUtils.randLenStr(130),
-      contractAddress: '0x'+testUtils.randLenStr(40),
-      gasLimit: testUtils.getRandomInt(100) ,
-      blockNumber: testUtils.getRandomInt(100)
-    });
-    if(task)
-      tasks.push(task);
-    else
-      console.log("task is null error in generating test data!!!!");
-  }
-  return tasks;
-}
-function generateDeployTasks(num){
-  let tasks = [];
-  for(let i =0;i<num;i++){
-    tasks.push(DeployTask.buildTask({
-      userEthAddr: '0x' + testUtils.randLenStr(40),
-      userNonce: testUtils.getRandomInt(100),
-      // H(userEthAddr|userNonce)
-      taskId: '0x'+testUtils.randLenStr(64),
-      encryptedArgs: testUtils.randLenStr(200),
-      encryptedFn: testUtils.randLenStr(200),
-      userDHKey: testUtils.randLenStr(130),
-      contractAddress: '0x'+testUtils.randLenStr(40),
-      gasLimit: testUtils.getRandomInt(100) ,
-      preCode: testUtils.randLenStr(1000),
-      blockNumber: testUtils.getRandomInt(100)
-    }));
-  }
-  return tasks;
-}
 
-function generateDeployBundle(num, isSuccess){
-  let output = [];
-  let tasks = generateDeployTasks(num);
-  let status = constants.TASK_STATUS.SUCCESS;
-  if(!isSuccess){
-    status = constants.TASK_STATUS.FAILED;
-  }
-  tasks.forEach(t=>{
-    let resObj = {
-      taskId: t.getTaskId(),
-      status: status,
-      output: testUtils.getRandomByteArray(80),
-      delta: {index : 2, delta : testUtils.getRandomByteArray(20)},
-      usedGas: testUtils.getRandomInt(10000),
-      ethereumPayload: testUtils.getRandomByteArray(100),
-      ethereumAddress: testUtils.randLenStr(40),
-      signature: testUtils.getRandomByteArray(120),
-      preCodeHash: testUtils.randLenStr(64),
-      blockNumber: testUtils.getRandomInt(100)
-    };
-    let result = null;
-    if(isSuccess){
-      result = Result.DeployResult.buildDeployResult(resObj);
-    }else{
-      result = Result.FailedResult.buildFailedResult(resObj);
-    }
-    output.push({task : t, result : result});
-  });
-  return output;
-}
 describe('TaskManager isolated tests', ()=>{
 
 
@@ -221,7 +148,7 @@ describe('TaskManager isolated tests', ()=>{
       dbPath = tempdir.sync()
       let tasksNum = 30;
       let taskManager = new TaskManager(dbPath,logger);
-      let tasks = generateDeployTasks(tasksNum);
+      let tasks = utils.generateDeployTasks(tasksNum);
       tasks.forEach(task=>{
         taskManager.addTaskUnverified(task);
       });
@@ -294,13 +221,13 @@ describe('TaskManager isolated tests', ()=>{
       let unFinishedDeployNum = 250, unFinishedComputeNum = 250, finishedSuccess = 400, finishedFail = 100;
       let allTasksLen = unFinishedDeployNum + unFinishedComputeNum + finishedSuccess + finishedFail;
       // generate 250 unfinished deploy tasks
-      let unDeployTasks = generateDeployTasks(unFinishedDeployNum);
+      let unDeployTasks = utils.generateDeployTasks(unFinishedDeployNum);
       // // generate 250 unfinished compute tasks
-      let unComputeTasks = generateComputeTasks(unFinishedComputeNum);
+      let unComputeTasks = utils.generateComputeTasks(unFinishedComputeNum);
       // // generate 400 finished + success
-      let successBundle = generateDeployBundle(finishedSuccess,true);
+      let successBundle = utils.generateDeployBundle(finishedSuccess,true);
       // generate 100 failed
-      let failedBundle = generateDeployBundle(finishedFail,false);
+      let failedBundle = utils.generateDeployBundle(finishedFail,false);
       // create task manager
       let taskManager = new TaskManager(dbPath, logger);
       // add all tasks
