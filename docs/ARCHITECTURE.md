@@ -328,8 +328,7 @@ npm install
 npm run test
 ```
 
-Currently v8.0.0 <= Node.JS <= v11.15.0 is required because web3 v1.0.0-beta.54 requires it. In the future this restriction will be lifted.
-
+## Troubleshooting
 If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the ports `5555`, `5556`, `5557`, `5558`, `6785`, `7890` (from `./test/ipc_test.js`).
 
 # How it works
