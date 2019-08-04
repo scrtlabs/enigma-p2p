@@ -7,10 +7,6 @@ const utils = require('./utils');
 const VerifyAndStoreResultAction = require('../../src/worker/controller/actions/tasks/VerifyAndStoreResultAction');
 
 
-//function createVerifyAndStoreResultActionMock (callback){
-//  exe
-//}
-
 class VerifyAndStoreResultActionMock extends VerifyAndStoreResultAction {
   constructor(controller, callback) {
     super(controller);
@@ -21,6 +17,35 @@ class VerifyAndStoreResultActionMock extends VerifyAndStoreResultAction {
     super.execute(params);
   }
 }
+
+const createStopTestCallback = (bNode, peer, resolve)=> {
+  let bNodeController = bNode.mainController;
+  let bNodeCoreServer = bNode.coreServer;
+  let peerController = peer.mainController;
+  let peerCoreServer = peer.coreServer;
+
+  const stopTest = async ()=> {
+    await peerController.shutdownSystem();
+    peerCoreServer.disconnect();
+    await bNodeController.shutdownSystem();
+    bNodeCoreServer.disconnect();
+    resolve();
+  };
+  return stopTest;
+};
+
+const createVerifyResultCallback = (bNode, peer, resolve, task)=> {
+  const stopTest = createStopTestCallback(bNode, peer, resolve);
+
+  const verifyResultCallback = async (err) => {
+    assert.strictEqual(err, null);
+    const status = await peer.mainController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
+    assert.strictEqual(status, task.getStatus());
+    stopTest();
+  };
+
+  return verifyResultCallback;
+};
 
 describe('task_flow_tests',()=>{
   it('#1 Should test w1 Publish a successful deploy task and w2 receive it', async function(){
@@ -33,32 +58,14 @@ describe('task_flow_tests',()=>{
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
       await testUtils.sleep(5000);
-      let bNodeController = bNode.mainController;
-      let bNodeCoreServer = bNode.coreServer;
-      let peerController = peer.mainController;
-      let peerCoreServer = peer.coreServer;
 
-      const stopTest = async ()=>{
-        await peerController.shutdownSystem();
-        peerCoreServer.disconnect();
-        await bNodeController.shutdownSystem();
-        bNodeCoreServer.disconnect();
-        resolve();
-      };
-
-      const verifyResultPropagation = async (err) => {
-        assert.strictEqual(err, null);
-        const status = await peerController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
-        assert.strictEqual(status, task.getStatus());
-        stopTest();
-      }
-
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(peerController.getNode(), verifyResultPropagation);
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 
@@ -72,32 +79,15 @@ describe('task_flow_tests',()=>{
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
       await testUtils.sleep(5000);
-      let bNodeController = bNode.mainController;
-      let bNodeCoreServer = bNode.coreServer;
-      let peerController = peer.mainController;
-      let peerCoreServer = peer.coreServer;
 
-      const stopTest = async ()=>{
-        await peerController.shutdownSystem();
-        peerCoreServer.disconnect();
-        await bNodeController.shutdownSystem();
-        bNodeCoreServer.disconnect();
-        resolve();
-      };
-
-      const verifyResultPropagation = async (err) => {
-        assert.strictEqual(err, null);
-        const status = await peerController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
-        assert.strictEqual(status, task.getStatus());
-        stopTest();
-      }
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(peerController.getNode(), verifyResultPropagation);
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 
@@ -111,32 +101,15 @@ describe('task_flow_tests',()=>{
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
       await testUtils.sleep(5000);
-      let bNodeController = bNode.mainController;
-      let bNodeCoreServer = bNode.coreServer;
-      let peerController = peer.mainController;
-      let peerCoreServer = peer.coreServer;
 
-      const stopTest = async ()=>{
-        await peerController.shutdownSystem();
-        peerCoreServer.disconnect();
-        await bNodeController.shutdownSystem();
-        bNodeCoreServer.disconnect();
-        resolve();
-      };
-
-      const verifyResultPropagation = async (err) => {
-        assert.strictEqual(err, null);
-        const status = await peerController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
-        assert.strictEqual(status, task.getStatus());
-        stopTest();
-      }
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(peerController.getNode(), verifyResultPropagation);
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 
@@ -150,32 +123,15 @@ describe('task_flow_tests',()=>{
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
       await testUtils.sleep(5000);
-      let bNodeController = bNode.mainController;
-      let bNodeCoreServer = bNode.coreServer;
-      let peerController = peer.mainController;
-      let peerCoreServer = peer.coreServer;
 
-      const stopTest = async ()=>{
-        await peerController.shutdownSystem();
-        peerCoreServer.disconnect();
-        await bNodeController.shutdownSystem();
-        bNodeCoreServer.disconnect();
-        resolve();
-      };
-
-      const verifyResultPropagation = async (err) => {
-        assert.strictEqual(err, null);
-        const status = await peerController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
-        assert.strictEqual(status, task.getStatus());
-        stopTest();
-      }
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(peerController.getNode(), verifyResultPropagation);
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 });
