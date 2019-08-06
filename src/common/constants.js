@@ -177,6 +177,11 @@ module.exports.CORE_REQUESTS = {
   PTTResponse: 'PTTResponse', // Give Core the response from the principal node.
 };
 
+// Status codes returned from core
+module.exports.CORE_RESPONSE_STATUS_CODES = {
+  OK: 0
+};
+
 /** Default configuration for JSON RPC Server
  */
 module.exports.JSON_RPC_SERVER = {
