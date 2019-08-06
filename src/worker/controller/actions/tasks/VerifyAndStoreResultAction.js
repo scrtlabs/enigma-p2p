@@ -44,7 +44,7 @@ class VerifyAndStoreResultAction {
             await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
           }
           catch (e) {
-            this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+            this._controller.logger().error(`[UPDATE_CORE] can't update core with outside task results -> ${e}`);
             if (optionalCallback) {
               optionalCallback(e);
             }
@@ -72,7 +72,7 @@ class VerifyAndStoreResultAction {
           }
         }
         catch (e) {
-          this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+          this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
           error = e;
         }
       }

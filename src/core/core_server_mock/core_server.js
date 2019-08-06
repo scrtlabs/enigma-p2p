@@ -275,7 +275,7 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, {
             type: msg.type,
             id: msg.id,
-            success: true,
+            status: constants.CORE_RESPONSE_STATUS_CODES.OK,
           });
           break;
         case MsgTypes.NewTaskEncryptionKey:
