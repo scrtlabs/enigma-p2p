@@ -20,7 +20,18 @@ class UpdateDbAction {
           input: msgRes,
           dbQueryType: constants.CORE_REQUESTS.UpdateDb,
           onResponse: (err, result)=>{
-            onFinish(err, result);
+            let error = err;
+            if (!error) {
+              if (result.status !== constants.CORE_RESPONSE_STATUS_CODES.OK) {
+                if (result.errors) {
+                  error = result.errors;
+                }
+                else {
+                  error = result.status;
+                }
+              }
+            }
+            onFinish(error, result);
           },
         }
     );
