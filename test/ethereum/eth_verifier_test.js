@@ -41,7 +41,7 @@ describe('Eth verifier tests', function() {
       taskStatus = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
       taskData = ethTestUtils.createDataForTaskSubmission();
       if (isDeploy) {
-        ethereumAPI.api().setContractParams(secretContractAddress, taskData.outputHash, {0: taskData.deltaHash}, null);
+        ethereumAPI.api().setContractParams(secretContractAddress, taskData.outputHash, {0: taskData.deltaHash});
         const delta = taskData.delta;
         const key = 0;
         taskData.delta = {data: delta, key: key};
@@ -58,6 +58,10 @@ describe('Eth verifier tests', function() {
 
     let taskId;
     let inputsHash;
+    const gasLimit = 989;
+    let blockNumber = expectedParams.firstBlockNumber + 50;
+
+    taskData.blockNumber = blockNumber;
 
     if (isDeploy) {
       taskId = secretContractAddress;
@@ -65,21 +69,25 @@ describe('Eth verifier tests', function() {
       if (taskCreation) {
         inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, cryptography.hash(taskData.preCode), taskData.userDHKey]);
       }
+      ethereumAPI.api().setTaskParams(taskId,
+        blockNumber,
+        taskStatus,
+        gasLimit,
+        inputsHash,
+        null);
     }
     else {
       taskId = taskData.taskId;
       if (taskCreation) {
         inputsHash = cryptography.hashArray([taskData.encryptedFn, taskData.encryptedArgs, taskData.contractAddress, taskData.userDHKey]);
       }
+      ethereumAPI.api().setTaskParams(taskId,
+        blockNumber,
+        taskStatus,
+        gasLimit,
+        inputsHash,
+        taskData.outputHash);
     }
-
-    const gasLimit = 989;
-
-    ethereumAPI.api().setTaskParams(taskId,
-      expectedParams.firstBlockNumber + 50,
-      taskStatus,
-      gasLimit,
-      inputsHash);
 
     const coreServer = builder.coreServer;
     coreServer.setSigningKey(expectedAddress);
@@ -92,7 +100,7 @@ describe('Eth verifier tests', function() {
       gasLimit: gasLimit};
   }
 
-  it('Verify new compute task verification action', async function() {
+  it('Verify new deploy task verification action', async function() {
     const tree = TEST_TREE.ethereum_integration;
     if (!tree['all'] || !tree['#1']) {
       this.skip();
@@ -105,7 +113,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -130,7 +137,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -155,7 +161,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -182,7 +187,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async ()=>{
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -209,7 +213,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -241,7 +244,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -273,7 +275,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 
@@ -307,7 +308,6 @@ describe('Eth verifier tests', function() {
       const stopTest = async () => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(dbPath);
         resolve();
       };
 

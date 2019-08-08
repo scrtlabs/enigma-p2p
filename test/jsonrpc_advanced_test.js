@@ -6,6 +6,8 @@ const principalMock = require('./testUtils/principal_mock');
 const assert = require('assert');
 const constants = require('../src/common/constants');
 const jayson = require('jayson');
+const utils = require('../src/common/utils');
+const MockCoreServer = require('../src/core/core_server_mock/core_server')
 
 const fakeResponse = '0061d93b5412c0c9';
 const fakeSig = 'deadbeaf';
@@ -58,7 +60,7 @@ describe('jsonrpc_advanced',()=>{
       const client = jayson.client.http('http://localhost:3346');
       let signKey = await peerController.getNode().selfSubscribeAction();
       await testUtils.sleep(1000);
-      const deployInput = getDeployRequest(signKey);
+      const deployInput = await getDeployRequest(signKey);
       client.request('deploySecretContract',deployInput,async (err,res)=>{
         assert.strictEqual(true,res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(5000);
@@ -68,7 +70,7 @@ describe('jsonrpc_advanced',()=>{
               if(err) assert.strictEqual(true,false,"err" + err);
               assert.strictEqual(constants.TASK_STATUS.SUCCESS, res.result.result, "result not success");
               // the output result comes from core_mock hardcoded data which might brake in the future
-              assert.deepStrictEqual([ 22, 22, 22, 22, 22, 33, 44, 44, 44, 44, 44, 44, 44, 55, 66, 77, 88, 99 ],res.result.output, "output don't match");
+              assert.deepStrictEqual(MockCoreServer.GET_DEPLOY_BYTECODE_MOCK,res.result.output, "output don't match");
               // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
               await stopTest();
             });
@@ -112,7 +114,7 @@ describe('jsonrpc_advanced',()=>{
       const client = jayson.client.http('http://localhost:3346');
       let signKey = await peerController.getNode().selfSubscribeAction();
       await testUtils.sleep(1000);
-      const deployInput = getDeployRequest(signKey);
+      const deployInput = await getDeployRequest(signKey);
       client.request('deploySecretContract',deployInput,async (err,res)=>{
         assert.strictEqual(true,res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(5000);
@@ -124,7 +126,7 @@ describe('jsonrpc_advanced',()=>{
               let output = res.result.result.output;
               assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
               // the output result comes from core_mock hardcoded data which might brake in the future
-              assert.deepStrictEqual([ 22, 22, 22, 22, 22, 33, 44, 44, 44, 44, 44, 44, 44, 55, 66, 77, 88, 99 ],output, "output don't match");
+              assert.deepStrictEqual(MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, output, "output don't match");
               // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
               await stopTest();
             });
@@ -133,10 +135,12 @@ describe('jsonrpc_advanced',()=>{
   });
 });
 
-function getDeployRequest(signKey){
+async function getDeployRequest(signKey){
+  const preCodeZip = await utils.gzip(Buffer.from([22,33,100,202,111,223,211,22]));
+
   return {
-    contractAddress : '0x4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
-    preCode : [22,33,100,202,111,223,211,22],
+    contractAddress : '4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
+    preCode : preCodeZip.toString('base64'),
     workerAddress : signKey,
     encryptedFn : 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
     encryptedArgs : 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',

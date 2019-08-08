@@ -22,8 +22,10 @@ class ExecuteVerifiedAction {
       try {
         await this._controller.asyncExecCmd(
           constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-          {addresses: [task.getContractAddr()]});
-
+          {
+            addresses: [task.getContractAddr()],
+            blockNumber: task.getBlockNumber()
+          });
         this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
       } catch (e) {
         return this._controller.logger().error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
@@ -44,7 +46,7 @@ class ExecuteVerifiedAction {
     // check for system error
     if (response.msg) {
       // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller.logger().error('response from Core' + response);
+      return this._controller.logger().error('response from Core' + JSON.stringify(response));
     }
     let result = null;
     if (response.result) {

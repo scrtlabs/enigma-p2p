@@ -13,16 +13,25 @@ class PublishTaskResultAction {
   }
   async execute(params) {
     const task = params.task;
+    let taskType;
+
+    if (task.isSuccess()) {
+      taskType = task.getTaskType();
+    }
+    else {
+      taskType = constants.CORE_REQUESTS.FailedTask;
+    }
+
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
       topic: constants.PUBSUB_TOPICS.TASK_RESULTS,
       message: JSON.stringify({
         contractAddress: task.getContractAddr(),
         result: task.getResult().toDbJson(),
-        type: task.getTaskType(),
+        type: taskType,
       }),
     });
     // announce as provider if its deployment and successfull
-    if(task instanceof DeployTask && task.getResult().isSuccess()){
+    if (task instanceof DeployTask && task.getResult().isSuccess()){
       let ecid = EngCid.createFromSCAddress(task.getContractAddr());
       if(ecid){
         try{

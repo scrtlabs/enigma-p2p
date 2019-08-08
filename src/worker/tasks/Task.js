@@ -1,13 +1,18 @@
 const constants = require('../../common/constants');
+const utils = require('../../common/utils');
 const EventEmitter = require('events').EventEmitter;
 const Result = require('./Result').Result;
+
 class Task extends EventEmitter {
-  constructor(taskId, type) {
+  constructor(taskId, type, contractAddress, gasLimit, blockNumber) {
     super();
-    this._taskId = taskId;
+    this._taskId = utils.remove0x(taskId);
     this._status = constants.TASK_STATUS.UNVERIFIED;
     this._result = null;
     this._type = type;
+    this._contractAddr = utils.remove0x(contractAddress);
+    this._gasLimit = gasLimit;
+    this._blockNumber = blockNumber;
   }
   /**
    * set the task result
@@ -46,11 +51,29 @@ class Task extends EventEmitter {
     this._setStatus(constants.TASK_STATUS.FAILED);
     return this;
   }
+  setGasLimit(gasLimit) {
+    this._gasLimit = gasLimit;
+  }
+  setBlockNumber(blockNumber) {
+    this._blockNumber = blockNumber;
+  }
   getStatus() {
     return this._status;
   }
   getTaskId() {
     return this._taskId;
+  }
+  getTaskType() {
+    return this._type;
+  }
+  getGasLimit() {
+    return this._gasLimit;
+  }
+  getContractAddr() {
+    return this._contractAddr;
+  }
+  getBlockNumber() {
+    return this._blockNumber;
   }
   isUnverified() {
     return (this._status === constants.TASK_STATUS.UNVERIFIED);
@@ -63,9 +86,6 @@ class Task extends EventEmitter {
   }
   isFinished() {
     return (this.isSuccess() || this.isFailed());
-  }
-  getTaskType() {
-    return this._type;
   }
 }
 module.exports = Task;

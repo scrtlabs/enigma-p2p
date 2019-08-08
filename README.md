@@ -60,7 +60,7 @@ To run the node inside a container from the project directory type:
 ## Installing globally with nvm 
 
 1. install `nvm` 
-2. install some node version : `$nvm install 10.14`
+2. install some node version : `$nvm install 11.15`
 3. type `npm install -g enigma-p2p`
 4. to run global type : `enigma-p2p-test <flags>`
 

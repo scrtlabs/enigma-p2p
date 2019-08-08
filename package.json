@@ -1,6 +1,6 @@
 {
   "name": "enigma-p2p",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
   "bin": {
@@ -17,12 +17,13 @@
     "test-tree": "node scripts/test_tree_validation.js"
   },
   "author": "isan rivkin",
-  "license": "ISC",
+  "license": "AGPL-3.0-or-later",
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
     "async": "^2.6.1",
     "commander": "^2.18.0",
     "config": "^3.1.0",
+    "cors": "^2.8.5",
     "ethereumjs-abi": "^0.6.7",
     "expect": "^24.1.0",
     "fs": "0.0.1-security",
@@ -45,7 +46,6 @@
     "log": "^1.4.0",
     "mocha": "^6.1.4",
     "msgpack-lite": "^0.1.26",
-    "multispinner": "^0.2.1",
     "openzeppelin-solidity": "2.1",
     "package.json": "^2.0.1",
     "peer-info": "^0.14.1",
@@ -55,12 +55,12 @@
     "retry": "^0.12.0",
     "rimraf": "^2.6.2",
     "unix-timestamp": "^0.2.0",
-    "web3": "^1.0.0-beta.54",
-    "web3-utils": "^1.0.0-beta.54",
+    "web3": "1.0.0-beta.37",
+    "web3-utils": "1.0.0-beta.37",
     "zeromq": "^5.1.0"
   },
   "devDependencies": {
-    "axios": "^0.18.0",
+    "axios": "^0.18.1",
     "babel-eslint": "^10.0.1",
     "body-parser": "^1.18.3",
     "capture-console": "^1.0.1",
@@ -78,6 +78,6 @@
     "Elichai Turkel <elichai.turkel@gmail.com>",
     "Avishai Weingarten <avishw89@gmail.com>",
     "Victor Grau Serrat <victor@enigma.co>",
-    "Aditya Apalepu <adi@enigma.co>"
+    "Aditya Palepu <adi@enigma.co>"
   ]
 }

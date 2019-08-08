@@ -32,14 +32,13 @@ class GetStateKeysAction {
         if (coreResponse && coreResponse.type === 'Error') {
           err = coreResponse.msg;
         }
-        this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(coreResponse)}`);
+        this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`);
         return onResponse(err, null);
       }
 
-      const msg = MsgPrincipal.build({request: coreResponse.result.request, sig: coreResponse.result.workerSig});
       let principalResponse;
       try {
-        principalResponse = await this._controller.principal().getStateKeys(msg);
+        principalResponse = await this._controller.principal().getStateKeys(this._buildRequestMsg(coreResponse, params));
       } catch (err) {
         // TODO: Errors.
         this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
@@ -52,7 +51,7 @@ class GetStateKeysAction {
           } else if (response && response.result && response.result.errors.length > 0) {
             err = response.result;
           }
-          this._controller.logger().error(`Failed Core connection: err: ${err}, coreResponse: ${JSON.stringify(response)}`);
+          this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`);
           return onResponse(err, null);
         }
         return onResponse(null, null);
@@ -64,9 +63,6 @@ class GetStateKeysAction {
       onResponse: onPTTRequestResponse,
     };
 
-    if (params && params.addresses) {
-      dbRequestParams.input = {addresses: params.addresses};
-    }
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, dbRequestParams);
   }
 
@@ -79,6 +75,22 @@ class GetStateKeysAction {
         onResponse: cb,
       },
     );
+  }
+
+  _buildRequestMsg(coreResponse, params) {
+    let msg = {
+      request: coreResponse.result.request,
+      sig: coreResponse.result.workerSig
+    };
+    if (params) {
+      if (params.addresses) {
+        msg.addresses = params.addresses;
+      }
+      if (params.blockNumber) {
+        msg.blockNumber = params.blockNumber;
+      }
+    }
+    return MsgPrincipal.build(msg);
   }
 }
 

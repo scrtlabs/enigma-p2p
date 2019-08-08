@@ -20,10 +20,32 @@ class UpdateDbAction {
           input: msgRes,
           dbQueryType: constants.CORE_REQUESTS.UpdateDb,
           onResponse: (err, result)=>{
-            onFinish(err, result);
+            let error = err;
+            if (!error) {
+              if (result.status !== constants.CORE_RESPONSE_STATUS_CODES.OK) {
+                if (result.errors) {
+                  error = result.errors;
+                }
+                else {
+                  error = result.status;
+                }
+              }
+            }
+            onFinish(error, result);
           },
         }
     );
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((res, rej)=>{
+      if (!params) params = {};
+      params.callback = function(err, result) {
+        if (err) rej(err);
+        else res(result);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = UpdateDbAction;

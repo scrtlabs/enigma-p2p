@@ -1,108 +1,138 @@
-const Task = require('../../src/worker/tasks/Task');
-const ComputeTask = require('../../src/worker/tasks/ComputeTask');
-const DeployTask = require('../../src/worker/tasks/DeployTask');
-const Result = require('../../src/worker/tasks/Result');
-const DeployResult = Result.DeployResult;
-const FailedResult = Result.FailedResult;
-const ComputeResult = Result.ComputeResult;
 const constants = require('../../src/common/constants');
 const testBuilder = require('../testUtils/quickBuilderUtil');
 const testUtils = require('../testUtils/utils');
-const path = require('path');
-const nodeUtils = require('../../src/common/utils');
 const assert = require('assert');
 const tree = require('../test_tree').TEST_TREE.task_flow;
+const utils = require('./utils');
+const VerifyAndStoreResultAction = require('../../src/worker/controller/actions/tasks/VerifyAndStoreResultAction');
+
+
+class VerifyAndStoreResultActionMock extends VerifyAndStoreResultAction {
+  constructor(controller, callback) {
+    super(controller);
+    this._callback = callback;
+  }
+  execute(params) {
+    params.callback = this._callback;
+    super.execute(params);
+  }
+}
+
+const createStopTestCallback = (bNode, peer, resolve)=> {
+  let bNodeController = bNode.mainController;
+  let bNodeCoreServer = bNode.coreServer;
+  let peerController = peer.mainController;
+  let peerCoreServer = peer.coreServer;
+
+  const stopTest = async ()=> {
+    await peerController.shutdownSystem();
+    peerCoreServer.disconnect();
+    await bNodeController.shutdownSystem();
+    bNodeCoreServer.disconnect();
+    resolve();
+  };
+  return stopTest;
+};
+
+const createVerifyResultCallback = (bNode, peer, resolve, task)=> {
+  const stopTest = createStopTestCallback(bNode, peer, resolve);
+
+  const verifyResultCallback = async (err) => {
+    assert.strictEqual(err, null);
+    const status = await peer.mainController.getNode().taskManager().asyncGetTaskStatus(task.getTaskId());
+    assert.strictEqual(status, task.getStatus());
+    stopTest();
+  };
+
+  return verifyResultCallback;
+};
 
 describe('task_flow_tests',()=>{
-  it('#1 Should test w1 Publish a task and w2 receive it', async function(){
+  it('#1 Should test w1 Publish a successful deploy task and w2 receive it', async function(){
     if(!tree['#1'] || !tree['all'] )
       this.skip();
     return new Promise(async resolve => {
       // craete deploy task
-      let {task, result} = generateDeployBundle(1,true)[0];
+      let {task, result} = utils.generateDeployBundle(1,true)[0];
       task.setResult(result);
       // create all the boring stuff
       let {bNode,peer} = await testBuilder.createTwo();
       await testUtils.sleep(5000);
-      let bNodeController = bNode.mainController;
-      let bNodeCoreServer = bNode.coreServer;
-      let peerController = peer.mainController;
-      let peerCoreServer = peer.coreServer;
-      let pPath = peer.tasksDbPath;
-      let bPath = bNode.tasksDbPath;
-      const stopTest = async ()=>{
-        await peerController.shutdownSystem();
-        peerCoreServer.disconnect();
-        await bNodeController.shutdownSystem();
-        bNodeCoreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(pPath);
-        // await testUtils.rm_Minus_Rf(bPath);
-        resolve();
-      };
-      const verifyPublish = async (params)=>{
-        let message = params.params;
-        let data = message.data;
-        let msgObj = JSON.parse(data.toString());
-        let resultObj = JSON.parse(msgObj.result);
-        assert.strictEqual(task.getTaskId(),resultObj.taskId,"taskid not equal");
-        stopTest();
-      };
+
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
       // override the action response
-      peerController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,{
-        execute : verifyPublish
-      });
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNodeController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+    });
+  });
+
+  it('#2 Should test w1 Publish a failed deploy task and w2 receive it', async function(){
+    if(!tree['#2'] || !tree['all'] )
+      this.skip();
+    return new Promise(async resolve => {
+      // craete deploy task
+      let {task, result} = utils.generateDeployBundle(1,false)[0];
+      task.setResult(result);
+      // create all the boring stuff
+      let {bNode,peer} = await testBuilder.createTwo();
+      await testUtils.sleep(5000);
+
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
+
+      // override the action response
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      // run the test
+      // publish the task result
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+    });
+  });
+
+  it('#3 Should test w1 Publish a successful compute task and w2 receive it', async function(){
+    if(!tree['#3'] || !tree['all'] )
+      this.skip();
+    return new Promise(async resolve => {
+      // craete deploy task
+      let {task, result} = utils.generateComputeBundle(1,true)[0];
+      task.setResult(result);
+      // create all the boring stuff
+      let {bNode,peer} = await testBuilder.createTwo();
+      await testUtils.sleep(5000);
+
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
+
+      // override the action response
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      // run the test
+      // publish the task result
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
+    });
+  });
+
+  it('#4 Should test w1 Publish a failed compute task and w2 receive it', async function(){
+    if(!tree['#4'] || !tree['all'] )
+      this.skip();
+    return new Promise(async resolve => {
+      // craete deploy task
+      let {task, result} = utils.generateComputeBundle(1,false)[0];
+      task.setResult(result);
+      // create all the boring stuff
+      let {bNode,peer} = await testBuilder.createTwo();
+      await testUtils.sleep(5000);
+
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
+
+      // override the action response
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
+      // run the test
+      // publish the task result
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task : task});
     });
   });
 });
 
-const generateDeployBundle = (num, isSuccess)=>{
-  let output = [];
-  let tasks = generateDeployTasks(num);
-  let status = constants.TASK_STATUS.SUCCESS;
-  if(!isSuccess){
-    status = constants.TASK_STATUS.FAILED;
-  }
-  tasks.forEach(t=>{
-    let resObj = {
-      taskId : t.getTaskId(),
-      status : status,
-      output : testUtils.getRandomByteArray(80),
-      delta : {index : 2, delta : testUtils.getRandomByteArray(20)},
-      usedGas : testUtils.getRandomInt(10000),
-      ethereumPayload : testUtils.getRandomByteArray(100),
-      ethereumAddress : testUtils.randLenStr(40),
-      signature : testUtils.getRandomByteArray(120),
-      preCodeHash : testUtils.randLenStr(64),
-    };
-    let result = null;
-    if(isSuccess){
-      result = Result.DeployResult.buildDeployResult(resObj);
-    }else{
-      result = Result.FailedResult.buildFailedResult(resObj);
-    }
-    output.push({task : t, result : result});
-  });
-  return output;
-};
-
-function generateDeployTasks(num){
-  let tasks = [];
-  for(let i =0;i<num;i++){
-    tasks.push(DeployTask.buildTask({
-      userEthAddr : '0x' + testUtils.randLenStr(40),
-      userNonce : testUtils.getRandomInt(100),
-      // H(userEthAddr|userNonce)
-      taskId : '0x'+testUtils.randLenStr(64),
-      encryptedArgs : testUtils.randLenStr(200),
-      encryptedFn : testUtils.randLenStr(200),
-      userDHKey : testUtils.randLenStr(130),
-      contractAddress : '0x'+testUtils.randLenStr(40),
-      gasLimit : testUtils.getRandomInt(100) ,
-      preCode : testUtils.randLenStr(1000),
-    }));
-  }
-  return tasks;
-}
