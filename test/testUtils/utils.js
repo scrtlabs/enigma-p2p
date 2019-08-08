@@ -1,4 +1,5 @@
-var rimraf = require('rimraf');
+/* eslint-disable valid-jsdoc */
+const rimraf = require('rimraf');
 const randomize = require('randomatic');
 
 /**
@@ -17,37 +18,37 @@ module.exports.getRandomInt = function(max) {
   return _randomInt(max);
 };
 
-function _randomInt(max){
+function _randomInt(max) {
   return Math.floor(Math.random() * Math.floor(max));
 }
 
-module.exports.getRandomByteArray = function(size){
-  let output = [];
-  for(let i=0;i<size;++i){
+module.exports.getRandomByteArray = function(size) {
+  const output = [];
+  for (let i=0; i<size; ++i) {
     output.push(_randomInt(256));
   }
   return output;
 };
 
 module.exports.sleep = function(ms) {
-    return _sleep(ms);
+  return _sleep(ms);
 };
 
-function _sleep(ms){
-    return new Promise(resolve => setTimeout(resolve, ms));
+function _sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 module.exports.rm_Minus_Rf = async (path)=>{
-  return new Promise((resolve,reject)=>{
-    _deleteFolderFromOSRecursive(path,(err)=>{
-      if(err) reject(err);
+  return new Promise((resolve, reject)=>{
+    _deleteFolderFromOSRecursive(path, (err)=>{
+      if (err) reject(err);
       else resolve();
     });
   });
 };
 
-module.exports.deleteFolderFromOSRecursive = function(path, callback){
-  _deleteFolderFromOSRecursive(path,callback);
+module.exports.deleteFolderFromOSRecursive = function(path, callback) {
+  _deleteFolderFromOSRecursive(path, callback);
 };
 
 /**
@@ -55,4 +56,6 @@ module.exports.deleteFolderFromOSRecursive = function(path, callback){
  *   @param {string} path
  *   @param {function} callback
  */
-function _deleteFolderFromOSRecursive(path, callback){rimraf(path, callback);}
+function _deleteFolderFromOSRecursive(path, callback) {
+  rimraf(path, callback);
+}

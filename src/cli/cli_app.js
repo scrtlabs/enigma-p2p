@@ -11,6 +11,8 @@ const cryptography = main.cryptography;
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
 
+const log = console;
+
 // TODO:: add to manager events with spinner link below
 // https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
@@ -67,11 +69,11 @@ class CLI {
         const amount = args[1];
         this._node.initializeWorkerProcess(amount, (err)=>{
           if (err) {
-            console.log('[-] ERROR $init ', err);
+            log.info('[-] ERROR $init ', err);
           }
           const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
-          console.log('----------------------- ATTENTION --------------------------');
-          console.log('please visit %s for more info', uri);
+          log.info('----------------------- ATTENTION --------------------------');
+          log.info('please visit %s for more info', uri);
         });
       },
       'addPeer': (args)=>{
@@ -81,73 +83,73 @@ class CLI {
       'lookup': async (args)=>{
         const b58Addr = args[1];
         const peerInfo = await this._node.lookUpPeer(b58Addr);
-        console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
+        log.info(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
         if (peerInfo) {
-          console.log('Listening on:');
-          peerInfo.multiaddrs.forEach((ma)=> console.log(ma.toString()));
+          log.info('Listening on:');
+          peerInfo.multiaddrs.forEach((ma)=> log.info(ma.toString()));
         } else {
-          console.log('Not Found');
+          log.info('Not Found');
         }
       },
       'remoteTips': async (args)=>{
         const b58Addr = args[1];
         const tips = await this._node.getLocalStateOfRemote(b58Addr);
-        console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
+        log.info(`--------------> tips of  ${b58Addr} Lookup <--------------`);
         if (tips) {
           tips.forEach((tip)=>{
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+            log.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
-          console.log(`-> total of ${tips.length} secret contracts.`);
+          log.info(`-> total of ${tips.length} secret contracts.`);
         } else {
-          console.log('Not Found');
+          log.info('Not Found');
         }
       },
       'getAddr': ()=>{
         const addrs = this._node.getSelfAddrs();
-        console.log('---> self addrs : <---- ');
-        console.log(addrs);
-        console.log('>------------------------<');
+        log.info('---> self addrs : <---- ');
+        log.info(addrs);
+        log.info('>------------------------<');
       },
       'getOutConnections': ()=>{
         const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
+        log.info('---> outbound connections <---');
         cons.forEach((con)=>{
-          console.log(con.id.toB58String());
+          log.info(con.id.toB58String());
         });
-        console.log('>------------------------<');
+        log.info('>------------------------<');
       },
       'getInConnections': ()=>{
         const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
+        log.info('---> inbound connections <---');
         cons.forEach((con)=>{
-          console.log(con.id.toB58String());
+          log.info(con.id.toB58String());
         });
-        console.log('>------------------------<');
+        log.info('>------------------------<');
       },
       'peerBank': () =>{
         const peers = this._node.getAllPeerBank();
-        console.log('peer bank: ');
+        log.info('peer bank: ');
         for (let k=0; k<peers.lentgh; k++) {
-          console.log(k);
+          log.info(k);
         }
-        console.log('>------------------------<');
+        log.info('>------------------------<');
       },
       'discover': () =>{
         this._node.tryConsistentDiscovery();
       },
       'inCount': () =>{
         const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
-        console.log(cons.length);
-        console.log('>------------------------<');
+        log.info('---> inbound connections <---');
+        log.info(cons.length);
+        log.info('>------------------------<');
       },
       'outCount': () =>{
         const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
-        console.log(cons.length);
-        console.log('>------------------------<');
+        log.info('---> outbound connections <---');
+        log.info(cons.length);
+        log.info('>------------------------<');
       },
       'broadcast': (args) =>{
         const msg = args[1];
@@ -164,14 +166,14 @@ class CLI {
       },
       'monitorSubscribe': (args)=>{
         if (args.length < 2 ) {
-          return console.log('error please use $monitorSubscribe <topic str name>');
+          return log.info('error please use $monitorSubscribe <topic str name>');
         }
         const topic = args[1];
         this._node.monitorSubscribe(topic);
       },
       'publish': (args) =>{
         if (args.length <3) {
-          return console.log('error please $publish <topic> <str msg>');
+          return log.info('error please $publish <topic> <str msg>');
         }
         const topic = args[1];
         const message = args[2];
@@ -183,31 +185,31 @@ class CLI {
       'getRegistration': (args)=>{
         this._node.getRegistrationParams((err, result)=>{
           if (err) {
-            console.log('err in getRegistration' + err);
+            log.info('err in getRegistration' + err);
           } else {
             const out = {};
             out.report = result.result.report;
             out.signature = result.result.signature;
             out.singingKey = result.result.signingKey;
-            console.log(out);
+            log.info(out);
           }
         });
       },
       'getAllHandshakedPeers': () =>{
         const hsPeers = this._node.getAllHandshakedPeers();
-        console.log(hsPeers);
+        log.info(hsPeers);
         // res == FindPeersResMsg inside messages.js
         this._node.sendFindPeerRequest(hsPeers[0], (err, req, res)=>{
-          console.log('ok got response!!! ', res.peers().length);
+          log.info('ok got response!!! ', res.peers().length);
           nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err, peerInfo)=>{
             if (err) {
-              console.log('ERR converting seed into peerInfo', err);
+              log.info('ERR converting seed into peerInfo', err);
             } else {
               this._node.sendFindPeerRequest(peerInfo, (err, req, res)=>{
                 if (err) {
-                  console.log('error connecting to the seed peer! ', err);
+                  log.info('error connecting to the seed peer! ', err);
                 } else {
-                  console.log('success connecting to the seed peer, his seeds len : ' + res.peers().length);
+                  log.info('success connecting to the seed peer, his seeds len : ' + res.peers().length);
                 }
               });
             }
@@ -220,24 +222,24 @@ class CLI {
       },
       'topics': async (args)=>{
         const list = await this._node.getTopics();
-        console.log('----> topics <-----');
+        log.info('----> topics <-----');
         list.forEach((t)=>{
-          console.log(t);
+          log.info(t);
         });
       },
       'tips': async (args)=>{
-        console.log('----------------> local tips <----------------');
+        log.info('----------------> local tips <----------------');
         try {
           // addr -> index + hash
           const tips = await this._node.getLocalTips();
           tips.forEach((tip)=>{
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+            log.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
-          console.log(`-> total of ${tips.length} secret contracts.`);
+          log.info(`-> total of ${tips.length} secret contracts.`);
         } catch (e) {
-          console.log(e);
+          log.info(e);
         }
       },
       'unsubscribe': async (args)=>{
@@ -247,9 +249,9 @@ class CLI {
       'getResult': async (args)=>{
         const taskId = args[1];
         const result = await this._node.getTaskResult(taskId);
-        console.log(`-------------> Result for ${taskId} <-------------`);
-        console.log(result);
-        console.log(`>----------------------------------------------<`);
+        log.info(`-------------> Result for ${taskId} <-------------`);
+        log.info(result);
+        log.info(`>----------------------------------------------<`);
       },
       'register': async ()=>{
         await this._node.register();
@@ -269,37 +271,37 @@ class CLI {
         await this._node.withdraw(amount);
       },
       'help': (args)=>{
-        console.log('---> Commands List <---');
-        console.log('addPeer <address> : connect to a new peer manualy.');
-        console.log('announce : announce the network worker synchronized on states');
-        console.log('broadcast <message> : broadcast a message to the whole network');
-        console.log('deposit <amount>: deposit to Enigma contract');
-        console.log('discover : perform persistent discovery to reach optimal DHT');
-        console.log('getAddr : get the multiaddress of the node. ');
-        console.log('getInConnections : get list of the inbound connections ');
-        console.log('getOutConnections : get id list of the outbound connections ');
-        console.log('getRegistration : get the registration params of the node. ');
-        console.log('getResult <taskId>: check locally if task result exists');
-        console.log('help : help');
-        console.log('identify : output to std all the missing state, i.e what needs to be synced');
-        console.log('inCount : number of inbound connections');
-        console.log('init : init all the required steps for the worker');
-        console.log('isConnected <PeerId>: check if some peer is connected');
-        console.log('login : login to Enigma contract');
-        console.log('logout : logout from Enigma contract');
-        console.log('lookup <b58 address> : lookup a peer in the network');
-        console.log('monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
-        console.log('outCount : number of outbound connections');
-        console.log('peerBank : get list of the potential (not connected) seeds');
-        console.log('publish <topic> <str msg> : publish <str msg> on topic <topic> to the network');
-        console.log('register : register to Enigma contract');
-        console.log('remoteTips <b58 address> : look up the tips of some remote peer');
-        console.log('selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
-        console.log('sync : sync the worker from the network and get all the missing states');
-        console.log('tips : output to std the local existing states, tips');
-        console.log('topics : list of subscribed topics');
-        console.log('withdraw <amount>: withdraw from Enigma contract');
-        console.log('>------------------------<');
+        log.info('---> Commands List <---');
+        log.info('addPeer <address> : connect to a new peer manualy.');
+        log.info('announce : announce the network worker synchronized on states');
+        log.info('broadcast <message> : broadcast a message to the whole network');
+        log.info('deposit <amount>: deposit to Enigma contract');
+        log.info('discover : perform persistent discovery to reach optimal DHT');
+        log.info('getAddr : get the multiaddress of the node. ');
+        log.info('getInConnections : get list of the inbound connections ');
+        log.info('getOutConnections : get id list of the outbound connections ');
+        log.info('getRegistration : get the registration params of the node. ');
+        log.info('getResult <taskId>: check locally if task result exists');
+        log.info('help : help');
+        log.info('identify : output to std all the missing state, i.e what needs to be synced');
+        log.info('inCount : number of inbound connections');
+        log.info('init : init all the required steps for the worker');
+        log.info('isConnected <PeerId>: check if some peer is connected');
+        log.info('login : login to Enigma contract');
+        log.info('logout : logout from Enigma contract');
+        log.info('lookup <b58 address> : lookup a peer in the network');
+        log.info('monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
+        log.info('outCount : number of outbound connections');
+        log.info('peerBank : get list of the potential (not connected) seeds');
+        log.info('publish <topic> <str msg> : publish <str msg> on topic <topic> to the network');
+        log.info('register : register to Enigma contract');
+        log.info('remoteTips <b58 address> : look up the tips of some remote peer');
+        log.info('selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)');
+        log.info('sync : sync the worker from the network and get all the missing states');
+        log.info('tips : output to std the local existing states, tips');
+        log.info('topics : list of subscribed topics');
+        log.info('withdraw <amount>: withdraw from Enigma contract');
+        log.info('>------------------------<');
       },
     };
     this._initInitialFlags();
@@ -402,7 +404,7 @@ class CLI {
     const nodeConfig = this._getFinalConfig();
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
-        console.log('Connecting to Principal Node at ' + this._principalNode);
+        log.info('Connecting to Principal Node at ' + this._principalNode);
         nodeConfig.extraConfig = {principal: {uri: this._principalNode}};
       } else {
         nodeConfig.extraConfig = {};
@@ -415,7 +417,7 @@ class CLI {
     this._node = this._mainController.getNode();
     const n = this._node;
     process.on('SIGINT', async function() {
-      console.log('----> closing gracefully <------');
+      log.info('----> closing gracefully <------');
       await n.stop();
       process.exit();
     });
@@ -426,13 +428,13 @@ class CLI {
     if (this._autoInit) {
       this._node.initializeWorkerProcess(this._depositValue, (err)=>{
         if (err) {
-          console.log('[-] ERROR with automatic worker initialization: ', err);
+          log.info('[-] ERROR with automatic worker initialization: ', err);
         }
       });
     }
   }
   start() {
-    console.log(Parsers.opener);
+    log.info(Parsers.opener);
     const cmds = this._commands;
     readline.createInterface({
       input: process.stdin,
@@ -443,7 +445,7 @@ class CLI {
       if (cmds[args[0]]) {
         cmds[args[0]](args);
       } else {
-        console.log('XXX no such command XXX ');
+        log.info('XXX no such command XXX ');
       }
     });
     return this;

@@ -274,7 +274,9 @@ module.exports.deleteFolderFromOSRecursive = function(path, callback) {
  *  @return {PeerId} peerId
  * */
 
-module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)};
+module.exports.b58ToPeerId = (b58Id)=> {
+  return PeerId.createFromB58String(b58Id);
+};
 
 /**
  * Removes '0x' from a hex string, if present
@@ -292,7 +294,7 @@ module.exports.remove0x = function(hexString) {
   } else {
     return null;
   }
-}
+};
 
 /**
  * Adds '0x' to a hex string, if not present
@@ -310,7 +312,7 @@ module.exports.add0x = function(hexString) {
   } else {
     return null;
   }
-}
+};
 
 /** Compress using GZIP
  *  @param {Buffer} buffer to compress
@@ -321,16 +323,15 @@ module.exports.gzip = function gzip(buffer) {
     zlib.gzip(buffer, (error, result)=>{
       if (error) {
         reject(error);
-      }
-      else {
+      } else {
         resolve(result);
       }
     });
   });
-}
+};
 
 /** Unzip using GZIP
- *  @param {Buffer} compressed buffer
+ *  @param {Buffer} buffer compressed
  *  @return {Promise}
  * */
 module.exports.gunzip = function gunzip(buffer) {
@@ -338,10 +339,9 @@ module.exports.gunzip = function gunzip(buffer) {
     zlib.gunzip(buffer, (error, result) => {
       if (error) {
         reject(error);
-      }
-      else {
+      } else {
         resolve(result);
       }
     });
   });
-}
+};
