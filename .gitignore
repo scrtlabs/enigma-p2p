@@ -253,3 +253,6 @@ test/*.deletedb
 *.deletedb
 src/cli/*.deletedb
 
+#pyenv python version (for node-gyp builds) (pyenv local 2.7.15)
+.python-version
+
