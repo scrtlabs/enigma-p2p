@@ -405,7 +405,7 @@ class CLI {
           type: 'string',
           coerce: (address) => {
             this._initEthereum = true;
-            this._enigmaContractAddress = address;
+            this._ethereumAddress = address;
           },
         })
         .option('pn', {
