@@ -20,7 +20,7 @@ module.exports.list = function(val, params) {
   return parseVal;
 };
 
-module.exports.nickname = function(val,params) {
+module.exports.nickname = function(val, params) {
   const parsedVal =val.toString();
   params.configObject.nickname = parsedVal;
   params.changedKeys.push('nickname');
@@ -40,7 +40,7 @@ module.exports.port = function(val, params) {
   return parseVal;
 };
 
-module.exports.idPath = function(val,params) {
+module.exports.idPath = function(val, params) {
   let parsedVal = val.toString();
   if (parsedVal === 'B1') {
     parsedVal = params.B1Path;
@@ -60,14 +60,13 @@ module.exports.idPath = function(val,params) {
 //     return val;
 //   };
 
-module.exports.opener= "  ______       _                         _____ ___  _____  \n" +
-    " |  ____|     (_)                       |  __ \\__ \\|  __ \\ \n" +
-    " | |__   _ __  _  __ _ _ __ ___   __ _  | |__) | ) | |__) |\n" +
-    " |  __| | '_ \\| |/ _` | '_ ` _ \\ / _` | |  ___/ / /|  ___/ \n" +
-    " | |____| | | | | (_| | | | | | | (_| | | |    / /_| |     \n" +
-    " |______|_| |_|_|\\__, |_| |_| |_|\\__,_| |_|   |____|_|     \n" +
-    "                  __/ |                                    \n" +
-    "                 |___/                                     ";
-
+module.exports.opener= '  ______       _                         _____ ___  _____  \n' +
+    ' |  ____|     (_)                       |  __ \\__ \\|  __ \\ \n' +
+    ' | |__   _ __  _  __ _ _ __ ___   __ _  | |__) | ) | |__) |\n' +
+    ' |  __| | \'_ \\| |/ _` | \'_ ` _ \\ / _` | |  ___/ / /|  ___/ \n' +
+    ' | |____| | | | | (_| | | | | | | (_| | | |    / /_| |     \n' +
+    ' |______|_| |_|_|\\__, |_| |_| |_|\\__,_| |_|   |____|_|     \n' +
+    '                  __/ |                                    \n' +
+    '                 |___/                                     ';
 
 
