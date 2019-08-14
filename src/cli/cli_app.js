@@ -2,7 +2,7 @@
 const main = require('../index');
 const path = require('path');
 const readline = require('readline');
-const program = require('commander');
+const yargs = require('yargs');
 const Parsers = require('./Parsers');
 const nodeUtils = main.Utils.nodeUtils;
 const EnviornmentBuilder = main.Builder;
@@ -10,6 +10,7 @@ const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = main.cryptography;
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
+
 
 const log = console;
 
@@ -65,38 +66,38 @@ class CLI {
     this._node = null;
     this._mainController = null;
     this._commands = {
-      'init': (args)=>{
+      'init': (args) => {
         const amount = args[1];
-        this._node.initializeWorkerProcess(amount, (err)=>{
+        this._node.initializeWorkerProcess(amount, (err) => {
           if (err) {
             log.info('[-] ERROR $init ', err);
           }
-          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
+          const uri = 'https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
           log.info('----------------------- ATTENTION --------------------------');
           log.info('please visit %s for more info', uri);
         });
       },
-      'addPeer': (args)=>{
+      'addPeer': (args) => {
         const ma = args[1];
         this._node.addPeer(ma);
       },
-      'lookup': async (args)=>{
+      'lookup': async (args) => {
         const b58Addr = args[1];
         const peerInfo = await this._node.lookUpPeer(b58Addr);
         log.info(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
         if (peerInfo) {
           log.info('Listening on:');
-          peerInfo.multiaddrs.forEach((ma)=> log.info(ma.toString()));
+          peerInfo.multiaddrs.forEach((ma) => log.info(ma.toString()));
         } else {
           log.info('Not Found');
         }
       },
-      'remoteTips': async (args)=>{
+      'remoteTips': async (args) => {
         const b58Addr = args[1];
         const tips = await this._node.getLocalStateOfRemote(b58Addr);
         log.info(`--------------> tips of  ${b58Addr} Lookup <--------------`);
         if (tips) {
-          tips.forEach((tip)=>{
+          tips.forEach((tip) => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
             log.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
@@ -106,84 +107,84 @@ class CLI {
           log.info('Not Found');
         }
       },
-      'getAddr': ()=>{
+      'getAddr': () => {
         const addrs = this._node.getSelfAddrs();
         log.info('---> self addrs : <---- ');
         log.info(addrs);
         log.info('>------------------------<');
       },
-      'getOutConnections': ()=>{
+      'getOutConnections': () => {
         const cons = this._node.getAllOutboundHandshakes();
         log.info('---> outbound connections <---');
-        cons.forEach((con)=>{
+        cons.forEach((con) => {
           log.info(con.id.toB58String());
         });
         log.info('>------------------------<');
       },
-      'getInConnections': ()=>{
+      'getInConnections': () => {
         const cons = this._node.getAllInboundHandshakes();
         log.info('---> inbound connections <---');
-        cons.forEach((con)=>{
+        cons.forEach((con) => {
           log.info(con.id.toB58String());
         });
         log.info('>------------------------<');
       },
-      'peerBank': () =>{
+      'peerBank': () => {
         const peers = this._node.getAllPeerBank();
         log.info('peer bank: ');
-        for (let k=0; k<peers.lentgh; k++) {
+        for (let k = 0; k < peers.lentgh; k++) {
           log.info(k);
         }
         log.info('>------------------------<');
       },
-      'discover': () =>{
+      'discover': () => {
         this._node.tryConsistentDiscovery();
       },
-      'inCount': () =>{
+      'inCount': () => {
         const cons = this._node.getAllInboundHandshakes();
         log.info('---> inbound connections <---');
         log.info(cons.length);
         log.info('>------------------------<');
       },
-      'outCount': () =>{
+      'outCount': () => {
         const cons = this._node.getAllOutboundHandshakes();
         log.info('---> outbound connections <---');
         log.info(cons.length);
         log.info('>------------------------<');
       },
-      'broadcast': (args) =>{
+      'broadcast': (args) => {
         const msg = args[1];
         this._node.broadcast(msg);
       },
-      'announce': ()=>{
+      'announce': () => {
         this._node.tryAnnounce();
       },
-      'identify': ()=>{
+      'identify': () => {
         this._node.identifyMissingStates();
       },
-      'sync': ()=>{
+      'sync': () => {
         this._node.syncReceiverPipeline();
       },
-      'monitorSubscribe': (args)=>{
-        if (args.length < 2 ) {
+      'monitorSubscribe': (args) => {
+        if (args.length < 2) {
           return log.info('error please use $monitorSubscribe <topic str name>');
         }
         const topic = args[1];
         this._node.monitorSubscribe(topic);
       },
-      'publish': (args) =>{
-        if (args.length <3) {
+      'publish': (args) => {
+        if (args.length < 3) {
           return log.info('error please $publish <topic> <str msg>');
         }
         const topic = args[1];
         const message = args[2];
         this._node.publish(topic, JSON.stringify(message));
       },
-      'selfSubscribe': (args)=>{
+      'selfSubscribe': (args) => {
         this._node.selfSubscribeAction();
       },
-      'getRegistration': (args)=>{
-        this._node.getRegistrationParams((err, result)=>{
+      'getRegistration': (args) => {
+        this._node.getRegistrationParams((err, result) => {
           if (err) {
             log.info('err in getRegistration' + err);
           } else {
@@ -195,17 +196,17 @@ class CLI {
           }
         });
       },
-      'getAllHandshakedPeers': () =>{
+      'getAllHandshakedPeers': () => {
         const hsPeers = this._node.getAllHandshakedPeers();
         log.info(hsPeers);
         // res == FindPeersResMsg inside messages.js
-        this._node.sendFindPeerRequest(hsPeers[0], (err, req, res)=>{
+        this._node.sendFindPeerRequest(hsPeers[0], (err, req, res) => {
           log.info('ok got response!!! ', res.peers().length);
-          nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err, peerInfo)=>{
+          nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err, peerInfo) => {
             if (err) {
               log.info('ERR converting seed into peerInfo', err);
             } else {
-              this._node.sendFindPeerRequest(peerInfo, (err, req, res)=>{
+              this._node.sendFindPeerRequest(peerInfo, (err, req, res) => {
                 if (err) {
                   log.info('error connecting to the seed peer! ', err);
                 } else {
@@ -216,23 +217,23 @@ class CLI {
           });
         });
       },
-      'isConnected': (args)=>{
+      'isConnected': (args) => {
         const id = args[1];
         this._node.isSimpleConnected(id);
       },
-      'topics': async (args)=>{
+      'topics': async (args) => {
         const list = await this._node.getTopics();
         log.info('----> topics <-----');
-        list.forEach((t)=>{
+        list.forEach((t) => {
           log.info(t);
         });
       },
-      'tips': async (args)=>{
+      'tips': async (args) => {
         log.info('----------------> local tips <----------------');
         try {
           // addr -> index + hash
           const tips = await this._node.getLocalTips();
-          tips.forEach((tip)=>{
+          tips.forEach((tip) => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
             log.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
@@ -242,35 +243,35 @@ class CLI {
           log.info(e);
         }
       },
-      'unsubscribe': async (args)=>{
+      'unsubscribe': async (args) => {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
-      'getResult': async (args)=>{
+      'getResult': async (args) => {
         const taskId = args[1];
         const result = await this._node.getTaskResult(taskId);
         log.info(`-------------> Result for ${taskId} <-------------`);
         log.info(result);
         log.info(`>----------------------------------------------<`);
       },
-      'register': async ()=>{
+      'register': async () => {
         await this._node.register();
       },
-      'login': async ()=>{
+      'login': async () => {
         await this._node.login();
       },
-      'logout': async ()=>{
+      'logout': async () => {
         await this._node.logout();
       },
-      'deposit': async (args)=>{
+      'deposit': async (args) => {
         const amount = args[1];
         await this._node.deposit(amount);
       },
-      'withdraw': async (args)=>{
+      'withdraw': async (args) => {
         const amount = args[1];
         await this._node.withdraw(amount);
       },
-      'help': (args)=>{
+      'help': (args) => {
         log.info('---> Commands List <---');
         log.info('addPeer <address> : connect to a new peer manualy.');
         log.info('announce : announce the network worker synchronized on states');
@@ -308,69 +309,135 @@ class CLI {
     this._initEnvironment();
   }
   _initInitialFlags() {
-    program
+    yargs
+        .env(true) // Take environment variables too
         .version('0.1.0')
-        .usage('[options] <file ...>')
-        .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
-          Parsers.list(listVal, this._globalWrapper);
+        .option('b', {
+          alias: 'bnodes',
+          describe: 'Bootstrap nodes',
+          type: 'string',
+          coerce: (listVal) => Parsers.list(listVal, this._globalWrapper),
         })
-        .option('-n, --nickname [value]', 'nickname', (nick)=>{
-          Parsers.nickname(nick, this._globalWrapper);
+        .option('n', {
+          alias: 'nickname',
+          describe: 'nickname',
+          type: 'string',
+          coerce: (nick) => Parsers.nickname(nick, this._globalWrapper),
         })
-        .option('-p, --port [value]', 'listening port', (strPort)=>{
-          Parsers.port(strPort, this._globalWrapper);
+        .option('p', {
+          alias: 'port',
+          describe: 'listening port',
+          type: 'string',
+          coerce: (strPort) => Parsers.port(strPort, this._globalWrapper),
         })
-        .option('-i, --path [value]', 'id path', (theIdPath)=>{
-          Parsers.idPath(theIdPath, this._globalWrapper);
+        .option('i', {
+          alias: 'path',
+          describe: 'id path',
+          type: 'string',
+          coerce: (theIdPath) => Parsers.idPath(theIdPath, this._globalWrapper),
         })
-        .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
-          this._coreAddressPort = addrPortStr;
+        .option('c', {
+          alias: 'core',
+          describe: 'specify address:port of core',
+          type: 'string',
+          coerce: (addrPortStr) => {
+            this._coreAddressPort = addrPortStr;
+          },
         })
-        .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', ()=>{
-          this._mockCore = true;
+        .option('mc', {
+          alias: 'mock-core',
+          describe: '[TEST] start with core mock server. Must be used with --core option',
+          type: 'boolean',
+          coerce: () => {
+            this._mockCore = true;
+          },
         })
-        .option('--random-db', 'random tasks db', (randomPath)=>{
-          if (randomPath) {
-            this._randomTasksDbPath = randomPath;
-          } else {
-            this._randomTasksDbPath = true;
-          }
+        .option('rdb', {
+          alias: 'random-db',
+          describe: 'random tasks db',
+          default: '', // Must be set so the coerce function will always run
+          type: 'string',
+          coerce: (randomPath) => {
+            if (randomPath) {
+              this._randomTasksDbPath = randomPath;
+            } else {
+              this._randomTasksDbPath = true;
+            }
+          },
         })
-        .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
-          this._rpcPort = portStr;
+        .option('a', {
+          alias: 'proxy',
+          describe: 'specify port and start with proxy feature (client jsonrpc api)',
+          type: 'string',
+          coerce: ((portStr) => {
+            this._rpcPort = portStr;
+          }),
         })
-        .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
-          this._initEthereum = true;
-          this._ethereumWebsocketProvider = provider;
+        .option('ewp', {
+          alias: 'ethereum-websocket-provider',
+          describe: 'specify the Ethereum websocket provider',
+          type: 'string',
+          coerce: (provider) => {
+            this._initEthereum = true;
+            this._ethereumWebsocketProvider = provider;
+          },
         })
-        .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
-          this._initEthereum = true;
-          this._enigmaContractAddress = address;
+        .option('eca', {
+          alias: 'ethereum-contract-address',
+          describe: 'specify the Enigma contract address to start with',
+          type: 'string',
+          coerce: (address) => {
+            this._initEthereum = true;
+            this._enigmaContractAddress = address;
+          },
         })
-        .option('-E, --init-ethereum', 'init Ethereum', ()=>{
-          this._initEthereum = true;
+        .option('E', {
+          alias: 'init-ethereum',
+          describe: 'init Ethereum',
+          type: 'boolean',
+          coerce: () => {
+            this._initEthereum = true;
+          },
         })
-        .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
-          this._initEthereum = true;
-          this._ethereumAddress = address;
+        .option('ea', {
+          alias: 'ethereum-address',
+          describe: 'specify the Ethereum wallet address',
+          type: 'string',
+          coerce: (address) => {
+            this._initEthereum = true;
+            this._enigmaContractAddress = address;
+          },
         })
-        .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
-          this._principalNode = addrPortstr;
+        .option('pn', {
+          alias: 'principal-node',
+          describe: 'specify the address:port of the Principal Node',
+          type: 'string',
+          coerce: (addrPortstr) => {
+            this._principalNode = addrPortstr;
+          },
         })
-        .option('--auto-init', 'perform automatic worker initialization ', ()=>{
-          this._autoInit = true;
+        .option('ai', {
+          alias: 'auto-init',
+          describe: 'perform automatic worker initialization',
+          type: 'boolean',
+          coerce: () => {
+            this._autoInit = true;
+          },
         })
-        .option('--deposit-and-login [value]',
-            'deposit and login the worker, specify the amount to be deposited, while running automatic initialization',
-            (value)=>{
-              this._autoInit = true;
-              this._depositValue = value;
-            })
-        .parse(process.argv);
+        .option('dal', {
+          alias: 'deposit-and-login',
+          describe: 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization',
+          type: 'string',
+          coerce: (value) => {
+            this._autoInit = true;
+            this._depositValue = value;
+          },
+        })
+        .argv;
   }
   _getFinalConfig() {
     const finalConfig = {};
-    this._changedKeys.forEach((key)=>{
+    this._changedKeys.forEach((key) => {
       finalConfig[key] = this._configObject[key];
     });
     return finalConfig;
@@ -378,7 +445,7 @@ class CLI {
   async _initEnvironment() {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
-      const uri ='tcp://' + this._coreAddressPort;
+      const uri = 'tcp://' + this._coreAddressPort;
       if (this._mockCore) {
         const coreServer = new CoreServer();
         coreServer.setProvider(true);
@@ -426,7 +493,7 @@ class CLI {
   }
   _setup() {
     if (this._autoInit) {
-      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+      this._node.initializeWorkerProcess(this._depositValue, (err) => {
         if (err) {
           log.info('[-] ERROR with automatic worker initialization: ', err);
         }
