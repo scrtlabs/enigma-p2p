@@ -369,9 +369,9 @@ class CLI {
           alias: 'proxy',
           describe: 'specify port and start with proxy feature (client jsonrpc api)',
           type: 'string',
-          coerce: ((portStr) => {
+          coerce: (portStr) => {
             this._rpcPort = portStr;
-          }),
+          },
         })
         .option('ewp', {
           alias: 'ethereum-websocket-provider',
