@@ -4,10 +4,6 @@ node_modules
 ### Visual studio code ignore ###
 
 .vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
 
 ### Webstorm IDE ignore files ###
 
@@ -253,6 +249,6 @@ test/*.deletedb
 *.deletedb
 src/cli/*.deletedb
 
-#pyenv python version (for node-gyp builds) (pyenv local 2.7.15)
+# pyenv python version (for node-gyp builds) (pyenv local 2.7.15)
 .python-version
 
