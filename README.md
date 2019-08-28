@@ -96,24 +96,26 @@ Example:
 1. launch a Bootstrap node: 
 
 ```
-node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db 
+node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db --mock-core
 ```
 
 2. launch a regular worker node that will connect to the bootstrap: 
 
 ```
-node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db
+node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db --mock-core
 ```
 
 3. launch ANOTHER regular worker node that will connect to the bootstrap:
 
 ```
-node cli_app.js -b B1 --core 127.0.0.1:6001 --random-db
+node cli_app.js -b B1 --core 127.0.0.1:6001 --random-db --mock-core
 ```
 
 In this example: 
 
-`--core <ip>:<port>` enigma-core uri
+`--core <ip>:<port>` enigma-core uri. In this example we will be using a core simulation.
+
+`--mock-core <ip>:<port>` launch a core simulation.
 
 `--proxy <port>` will start up the JSONrpc server as well.
 
@@ -124,6 +126,7 @@ In this example:
 `-i` load specific node id from a hardcoded path.
 
 `-p` run on a specific port since the bootstrap node is the first node everyone will connect to.
+
 
 
 # Running the tests
