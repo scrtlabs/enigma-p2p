@@ -10,7 +10,7 @@ const Envelop = require('../../../../main_controller/channels/Envelop');
 const DeployTask = require('../../../../worker/tasks/DeployTask');
 
 
-class ExecuteVerifiedAction {
+class ExecuteTaskAction {
   constructor(controller) {
     this._controller = controller;
   }
@@ -78,4 +78,4 @@ class ExecuteVerifiedAction {
     }
   }
 }
-module.exports = ExecuteVerifiedAction;
+module.exports = ExecuteTaskAction;

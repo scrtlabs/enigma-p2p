@@ -50,6 +50,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
+  'EXEC_TASK' : 'etask',
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
   'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status
@@ -256,3 +257,5 @@ module.exports.PRINCIPAL_NODE = {
   },
   EPOCH_STATE_TRANSITION_ERROR_CODE: -32002
 };
+
+module.exports.PTT_END_EVENT = "PTT";

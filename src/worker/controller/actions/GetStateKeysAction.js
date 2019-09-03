@@ -27,21 +27,32 @@ class GetStateKeysAction {
     } else {
       onResponse = () => {};
     }
+
+    // First, set PTT flag (and validate that no PTT is in progress now)
+    if (!this._controller.principal().startPTT()) {
+      const err = 'PTT in progress.. aborting GetStateKeysAction';
+      this._controller.logger().error(err);
+      return onResponse(err, null);
+    }
+
     const onPTTRequestResponse = async (err, coreResponse) => {
       if (err || coreResponse.type === 'Error') {
         if (coreResponse && coreResponse.type === 'Error') {
           err = coreResponse.msg;
         }
         this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`);
+        this._controller.principal().onPTTEnd();
         return onResponse(err, null);
       }
 
       let principalResponse;
       try {
         principalResponse = await this._controller.principal().getStateKeys(this._buildRequestMsg(coreResponse, params));
-      } catch (err) {
+      }
+      catch (err) {
         // TODO: Errors.
         this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
+        this._controller.principal().onPTTEnd();
         return onResponse(err, null);
       }
       this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
@@ -52,8 +63,10 @@ class GetStateKeysAction {
             err = response.result;
           }
           this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`);
+          this._controller.principal().onPTTEnd();
           return onResponse(err, null);
         }
+        this._controller.principal().onPTTEnd();
         return onResponse(null, null);
       });
     };
