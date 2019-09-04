@@ -32,7 +32,7 @@ class GetStateKeysAction {
     if (!this._controller.principal().startPTT()) {
       const err = 'PTT in progress.. aborting GetStateKeysAction';
       this._controller.logger().error(err);
-      return onResponse(err, null);
+      return onResponse(err);
     }
 
     const onPTTRequestResponse = async (err, coreResponse) => {
@@ -40,9 +40,8 @@ class GetStateKeysAction {
         if (coreResponse && coreResponse.type === 'Error') {
           err = coreResponse.msg;
         }
-        this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`);
-        this._controller.principal().onPTTEnd();
-        return onResponse(err, null);
+        return this._handleError(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`,
+          err, onResponse);
       }
 
       let principalResponse;
@@ -51,9 +50,8 @@ class GetStateKeysAction {
       }
       catch (err) {
         // TODO: Errors.
-        this._controller.logger().error(`Failed Principal node connection: ${err.code} - ${err.message}`);
-        this._controller.principal().onPTTEnd();
-        return onResponse(err, null);
+        return this._handleError(`Failed Principal node connection: ${err.code} - ${err.message}`,
+          err, onResponse);
       }
       this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
         if (err || response.type === 'Error' || response.result.errors.length > 0) {
@@ -62,12 +60,11 @@ class GetStateKeysAction {
           } else if (response && response.result && response.result.errors.length > 0) {
             err = response.result;
           }
-          this._controller.logger().error(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`);
-          this._controller.principal().onPTTEnd();
-          return onResponse(err, null);
+          return this._handleError(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`,
+            err, onResponse);
         }
         this._controller.principal().onPTTEnd();
-        return onResponse(null, null);
+        return onResponse(null);
       });
     };
 
@@ -104,6 +101,12 @@ class GetStateKeysAction {
       }
     }
     return MsgPrincipal.build(msg);
+  }
+
+  _handleError(errMsg, err, onResponse) {
+    this._controller.logger().error(errMsg);
+    this._controller.principal().onPTTEnd();
+    onResponse(err);
   }
 }
 
