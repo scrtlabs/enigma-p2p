@@ -518,7 +518,7 @@ class CLI {
     return this;
   }
 }
-// TODO:: the CLI starts automatically for now
+// TODO:: the CLI starts automatically for now, also called from server.js (includes this file)
 new CLI().start();
 
 module.exports = CLI;
