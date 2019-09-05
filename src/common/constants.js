@@ -48,9 +48,9 @@ module.exports.NODE_NOTIFICATIONS = {
   // task computation related
   'GET_TASK_RESULT': 'gltresult', // get local task result given a task id
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
-  'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
+  'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask task
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
-  'EXEC_TASK' : 'etask',
+  'EXEC_TASK' : 'etask', // execute the task
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
   'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status

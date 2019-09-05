@@ -56,14 +56,22 @@ class ExecuteTaskAction {
       case taskTypes.FailedTask:
         response.result.status = constants.TASK_STATUS.FAILED;
         result = Result.FailedResult.buildFailedResult(response.result);
+        this._controller.logger().debug('received failed result');
         break;
       case taskTypes.DeploySecretContract:
         response.result.status = constants.TASK_STATUS.SUCCESS;
         result = Result.DeployResult.buildDeployResult(response.result);
+        this._controller.logger().debug('received deploy result');
         break;
       case taskTypes.ComputeTask:
         response.result.status = constants.TASK_STATUS.SUCCESS;
         result = Result.ComputeResult.buildComputeResult(response.result);
+        if (result.hasDelta()) {
+          this._controller.logger().debug('received compute result for contract:' + task.getContractAddr() + ' delta-key:' + result.getDelta().key);
+        }
+        else {
+          this._controller.logger().debug('received compute result for contract:' + task.getContractAddr() + ' ,no delta');
+        }
         break;
     }
     // update task manager with the result
