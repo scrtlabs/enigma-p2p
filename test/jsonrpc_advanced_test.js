@@ -44,8 +44,6 @@ describe('jsonrpc_advanced',()=>{
       let bNodeCoreServer = bNode.coreServer;
       let peerController = peer.mainController;
       let peerCoreServer = peer.coreServer;
-      let pPath = peer.tasksDbPath;
-      let bPath = bNode.tasksDbPath;
       // stop the test
       const stopTest = async ()=>{
         await peerController.shutdownSystem();
@@ -53,8 +51,6 @@ describe('jsonrpc_advanced',()=>{
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
         principalMock.destroy(principalServer);
-        // await testUtils.rm_Minus_Rf(pPath);
-        // await testUtils.rm_Minus_Rf(bPath);
         resolve();
       };
       const client = jayson.client.http('http://localhost:3346');
@@ -63,7 +59,7 @@ describe('jsonrpc_advanced',()=>{
       const deployInput = await getDeployRequest(signKey);
       client.request('deploySecretContract',deployInput,async (err,res)=>{
         assert.strictEqual(true,res.result.sendTaskResult, "sendTaskResult not true");
-        await testUtils.sleep(5000);
+        await testUtils.sleep(1000);
         client.request('getTaskStatus' ,
             {"workerAddress":deployInput.workerAddress,"taskId":deployInput.contractAddress, "withResult" : true},
             async (err,res)=>{
@@ -98,16 +94,12 @@ describe('jsonrpc_advanced',()=>{
       let bNodeCoreServer = bNode.coreServer;
       let peerController = peer.mainController;
       let peerCoreServer = peer.coreServer;
-      let pPath = peer.tasksDbPath;
-      let bPath = bNode.tasksDbPath;
       // stop the test
       const stopTest = async ()=>{
         await peerController.shutdownSystem();
         peerCoreServer.disconnect();
         await bNodeController.shutdownSystem();
         bNodeCoreServer.disconnect();
-        // await testUtils.rm_Minus_Rf(pPath);
-        // await testUtils.rm_Minus_Rf(bPath);
         principalMock.destroy(principalServer);
         resolve();
       };
@@ -117,7 +109,7 @@ describe('jsonrpc_advanced',()=>{
       const deployInput = await getDeployRequest(signKey);
       client.request('deploySecretContract',deployInput,async (err,res)=>{
         assert.strictEqual(true,res.result.sendTaskResult, "sendTaskResult not true");
-        await testUtils.sleep(5000);
+        await testUtils.sleep(1000);
         client.request('getTaskResult',
             {"taskId":deployInput.contractAddress},
             async (err,res)=>{
@@ -133,6 +125,114 @@ describe('jsonrpc_advanced',()=>{
       });
     });
   });
+
+  it('#3 Should computeTask and GetTaskResult endpoint', async function(){
+    if(!tree['all'] || !tree['#3']){
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      // create all the boring stuff
+      const principalServer = principalMock.create(getStateKeysCallback);
+      await testUtils.sleep(150);
+      const principalPort = principalMock.getPort(principalServer);
+      const uri = 'http://127.0.0.1:';
+
+      let {bNode,peer} = await testBuilder.createTwo({
+        bOpts:{withProxy : true,proxyPort : 3346,withLogger : false},
+        pOpts :{withLogger : false, principalUri :uri + principalPort}});
+
+      await testUtils.sleep(3000);
+      let bNodeController = bNode.mainController;
+      let bNodeCoreServer = bNode.coreServer;
+      let peerController = peer.mainController;
+      let peerCoreServer = peer.coreServer;
+      // stop the test
+      const stopTest = async ()=>{
+        await peerController.shutdownSystem();
+        peerCoreServer.disconnect();
+        await bNodeController.shutdownSystem();
+        bNodeCoreServer.disconnect();
+        principalMock.destroy(principalServer);
+        resolve();
+      };
+      const client = jayson.client.http('http://localhost:3346');
+      let signKey = await peerController.getNode().selfSubscribeAction();
+      await testUtils.sleep(1000);
+      const computeInput = await getComputeRequest(signKey);
+      client.request('sendTaskInput',computeInput,async (err,res)=>{
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
+        await testUtils.sleep(1000);
+        client.request('getTaskResult',
+          {"taskId":computeInput.taskId},
+          async (err,res)=>{
+            if(err) assert.strictEqual(true,false,"err" + err);
+            let status = res.result.result.status;
+            let output = res.result.result.output;
+            assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
+            // the output result comes from core_mock hardcoded data which might brake in the future
+            assert.deepStrictEqual(MockCoreServer.GET_COMPUTE_OUTPUT_MOCK, output, "output don't match");
+            await stopTest();
+          });
+      });
+    });
+  });
+
+  it('#4 Should computeTask and GetTaskResult endpoint, combined with PTT', async function(){
+    if(!tree['all'] || !tree['#4']){
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      // create all the boring stuff
+      const principalServer = principalMock.create(getStateKeysCallback);
+      await testUtils.sleep(150);
+      const principalPort = principalMock.getPort(principalServer);
+      const uri = 'http://127.0.0.1:';
+
+      let {bNode,peer} = await testBuilder.createTwo({
+        bOpts:{withProxy : true,proxyPort : 3346,withLogger : false},
+        pOpts :{withLogger : false, principalUri :uri + principalPort}});
+
+      await testUtils.sleep(3000);
+      let bNodeController = bNode.mainController;
+      let bNodeCoreServer = bNode.coreServer;
+      let peerController = peer.mainController;
+      let peerCoreServer = peer.coreServer;
+      // stop the test
+      const stopTest = async ()=>{
+        await peerController.shutdownSystem();
+        peerCoreServer.disconnect();
+        await bNodeController.shutdownSystem();
+        bNodeCoreServer.disconnect();
+        principalMock.destroy(principalServer);
+        resolve();
+      };
+      const client = jayson.client.http('http://localhost:3346');
+      let signKey = await peerController.getNode().selfSubscribeAction();
+      await testUtils.sleep(1000);
+      peerController.getNode().principal().startPTT();
+      const computeInput = await getComputeRequest(signKey);
+      peerController.getNode().principal().on(constants.PTT_END_EVENT, async ()=> {
+        await testUtils.sleep(1000);
+        client.request('getTaskResult',
+          {"taskId":computeInput.taskId},
+          async (err,res)=>{
+            if(err) assert.strictEqual(true,false,"err" + err);
+            let status = res.result.result.status;
+            let output = res.result.result.output;
+            assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
+            // the output result comes from core_mock hardcoded data which might brake in the future
+            assert.deepStrictEqual(MockCoreServer.GET_COMPUTE_OUTPUT_MOCK, output, "output don't match");
+            // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
+            await stopTest();
+          });
+      });
+      client.request('sendTaskInput',computeInput,async (err,res)=>{
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
+        await testUtils.sleep(1000);
+        peerController.getNode().principal().onPTTEnd();
+      });
+    });
+  });
 });
 
 async function getDeployRequest(signKey){
@@ -141,6 +241,17 @@ async function getDeployRequest(signKey){
   return {
     contractAddress : '4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
     preCode : preCodeZip.toString('base64'),
+    workerAddress : signKey,
+    encryptedFn : 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
+    encryptedArgs : 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
+    userDHKey : '5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99',
+  };
+}
+
+function getComputeRequest(signKey){
+  return {
+    taskId : '9980b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
+    contractAddress : '4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521',
     workerAddress : signKey,
     encryptedFn : 'be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95',
     encryptedArgs : 'fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90',
