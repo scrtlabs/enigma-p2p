@@ -117,7 +117,11 @@ describe('Ethereum tests', function() {
       const observedAddresses2 = await api.getSecretContractAddresses(1, 2);
       assert.strictEqual(observedAddresses2[0], secretContractAddress2);
 
-      const observedAddressesArray = await api.getSecretContractAddresses(0, 2);
+      let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
+      assert.strictEqual(observedAddressesArray[0], secretContractAddress);
+      assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
+
+      observedAddressesArray = await api.getAllSecretContractAddresses();
       assert.strictEqual(observedAddressesArray[0], secretContractAddress);
       assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
 

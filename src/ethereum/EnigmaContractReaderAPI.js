@@ -123,6 +123,34 @@ class EnigmaContractReaderAPI {
     });
   }
   /**
+   * return the list of all secret contract addresses
+   * @return {Promise} Array<string>
+   * */
+  getAllSecretContractAddresses() {
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getAllSecretContractAddresses().call(this._defaultTrxOptions, (error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        if (data) {
+          if (Array.isArray(data)) {
+            let newScAddressesArray = [];
+            data.forEach((scAddress) => {
+              newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+            });
+            resolve(newScAddressesArray);
+          }
+          else {
+            resolve(nodeUtils.remove0x(data));
+          }
+        }
+        else {
+          resolve(data);
+        }
+      });
+    });
+  }
+  /**
      * Get the Worker parameters
      * @param {Integer} blockNumber //TODO:: check which time solidity expects, maybe BN ?
      * @return {Promise} //TODO:: what are the exact parameters that are returned?

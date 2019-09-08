@@ -25,8 +25,7 @@ async function getRemoteMissingStates(api, localTips, callback) {
 
 
   try {
-    const remoteSecretContractNumber = await api.countSecretContracts();
-    const remoteSecretContractsAddresses = await api.getSecretContractAddresses(0, remoteSecretContractNumber);
+    const remoteSecretContractsAddresses = await api.getAllSecretContractAddresses();
     // initiate jobs
     const jobs = [];
     remoteSecretContractsAddresses.forEach((secretContractAddress)=>{
