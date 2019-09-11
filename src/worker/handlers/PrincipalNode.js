@@ -1,10 +1,16 @@
 const jayson = require('jayson');
-const MsgPrincipal = require('../../policy/p2p_messages/principal_messages');
-const PRINCIPAL_CONSTANTS = require('../../common/constants').PRINCIPAL_NODE;
 const retry = require('retry');
+const EventEmitter = require('events').EventEmitter;
 
-class PrincipalNode {
+const constants = require('../../common/constants');
+const MsgPrincipal = require('../../policy/p2p_messages/principal_messages');
+const PRINCIPAL_CONSTANTS = constants.PRINCIPAL_NODE;
+
+
+class PrincipalNode extends EventEmitter {
   constructor(config, logger) {
+    super();
+
     if (config && config.uri) {
       this._uri = config.uri;
     } else {
@@ -13,6 +19,25 @@ class PrincipalNode {
 
     this._logger = logger;
     this._client = jayson.client.http(this._uri);
+    this._pttInProgress = false;
+  }
+
+  startPTT() {
+    if (this._pttInProgress) {
+      this._logger.error("PTT is already in progress, cannot initiate a new one");
+      return false;
+    }
+    this._pttInProgress = true;
+    return true;
+  }
+
+  onPTTEnd() {
+    this._pttInProgress = false;
+    this.emit(constants.PTT_END_EVENT);
+  }
+
+  isInPTT() {
+    return this._pttInProgress;
   }
 
   async getStateKeys(msg) {
