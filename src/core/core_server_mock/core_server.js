@@ -277,6 +277,9 @@ class MockCoreServer {
           if (this._tmpDB instanceof Object) {
             this._writeTmpDB(msg);
           }
+        case MsgTypes.RemoveContract:
+        case MsgTypes.RemoveDeltas:
+          // TODO: add remove from TmpDB, once required for UT
           MockCoreServer._send(this._socket, {
             type: msg.type,
             id: msg.id,
