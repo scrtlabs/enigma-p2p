@@ -331,7 +331,7 @@ class CLI {
           coerce: (strPort) => Parsers.port(strPort, this._globalWrapper),
         })
         .option('i', {
-          alias: 'path',
+          alias: 'idpath',
           describe: 'id path',
           type: 'string',
           coerce: (theIdPath) => Parsers.idPath(theIdPath, this._globalWrapper),

@@ -1,0 +1,1 @@
+docker build --rm -t enigmampc/cluster-enigma-p2p:latest .
