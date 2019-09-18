@@ -111,6 +111,13 @@
     "required": ["address", "bytecode", "delta"],
     "additionalProperties": false
   },
+  "RemoveContract": {
+    "properties": {
+      "address": {"type": "string"}
+    },
+    "required": ["address"],
+    "additionalProperties": false
+  },
   "UpdateDeltas": {
     "properties": {
       "deltas":{
@@ -134,6 +141,25 @@
       }
     },
     "required": ["deltas"],
+    "additionalProperties": false
+  },
+  "RemoveDeltas": {
+    "properties": {
+      "input": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "address": {"type": "string"},
+            "from": {"type": "number"},
+            "to": {"type": "number"}
+          },
+          "required": ["address", "from", "to"],
+          "additionalProperties": false
+        }
+      }
+    },
+    "required": ["input"],
     "additionalProperties": false
   },
   "NewTaskEncryptionKey": {
