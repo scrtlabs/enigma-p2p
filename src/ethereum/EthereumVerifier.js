@@ -29,6 +29,7 @@ class EthereumVerifier {
     this._workerParamArrayMaxSize = 5;
     this._unverifiedCreateTasks = {};
     this._unverifiedSubmitTasks = {};
+    this._taskTimeoutInBlocks = 0;
   }
 
   /**
@@ -37,9 +38,14 @@ class EthereumVerifier {
   async init() {
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.NewEpoch, this._newEpochEventCallback.bind(this));
     await this._updateWorkerParamNow();
+    this._taskTimeoutInBlocks = await this._contractApi.getTaskTimeout();
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCreation, this._taskCreationEventCallback.bind(this));
+    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCancelled, this._taskCreationEventCallback.bind(this));
+    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.NewEpoch, this._taskCreationEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskSuccessSubmission, this._taskSubmissionEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskFailureSubmission, this._taskSubmissionEventCallback.bind(this));
+    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB, this._taskSubmissionEventCallback.bind(this));
+    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.NewEpoch, this._taskSubmissionEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.SecretContractDeployment, this._taskDeployedContractEventCallback.bind(this));
   }
 
@@ -146,7 +152,17 @@ class EthereumVerifier {
 
   _createTaskCreationListener(task, workerAddress, resolve) {
     const taskId = task.getTaskId();
+    const blockNumber = this._contractApi.getEthereumBlockNumber();
     this._setTaskCreationListener(taskId, async (event) => {
+      // If the new-epoch event was piped here, it mena
+      //if (event.type === constants.ETHEREUM_EVENTS.NewEpoch) {
+      //  if (event.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
+      //    const err = new errors.TaskTimeoutErr('Task ' + taskId + ' timed out');
+      //    return resolve({error: err, isVerified: false, gasLimit: null, blockNumber: null});
+       // }
+      //}
+      // Check if the task was cancelled
+      //else if (task.type === constants)
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
         let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);

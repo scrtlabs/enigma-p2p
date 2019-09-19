@@ -211,6 +211,8 @@ module.exports.ETHEREUM_EVENTS = {
   TaskCreation: 'TaskCreation',
   TaskSuccessSubmission: 'TaskSuccessSubmission',
   TaskFailureSubmission: 'TaskFailureSubmission',
+  TaskFailureDueToEthereumCB: 'TaskFailureDueToEthereumCB',
+  TaskCancelled: 'TaskCancelled',
   SecretContractDeployment: 'SecretContractDeployment',
 };
 
