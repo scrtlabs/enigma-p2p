@@ -4,6 +4,7 @@ class EnigmaContractMock {
     this._taskRecords = {};
     this._contracts = {};
     this._epochSize = null;
+    this._taskTimeout = 0;
     this._eventListeners = {};
     this._workersParams = [];
     this._except = false;
@@ -28,6 +29,10 @@ class EnigmaContractMock {
 
   setWorkerParams(workerParams) {
     this._workersParams = workerParams;
+  }
+
+  setTaskTimeout(blocks) {
+    this._taskTimeout = blocks;
   }
 
   getTaskParams(taskId) {
@@ -59,6 +64,10 @@ class EnigmaContractMock {
 
   triggerException() {
     this._except = true;
+  }
+
+  getTaskTimeout() {
+    return this._taskTimeout;
   }
 }
 

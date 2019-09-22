@@ -184,6 +184,7 @@ describe('Verifier tests', function() {
     let taskData = testUtils.createDataForTaskSubmission();
     const logger = new Logger();
     const ethereumAPI = new EthereumAPIMock(logger);
+    ethereumAPI.api().setTaskTimeout(100);
     await ethereumAPI.init();
 
     return defaultsDeep({apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier()}, taskData);
@@ -196,6 +197,7 @@ describe('Verifier tests', function() {
     const ethereumAPI = new EthereumAPIMock(logger);
     ethereumAPI.api().setEpochSize(epochSize);
     ethereumAPI.api().setWorkerParams(Array.from(params));
+    ethereumAPI.api().setTaskTimeout(100);
     await ethereumAPI.init();
 
     return {apiMock: ethereumAPI.api(), services: ethereumAPI.services(), verifier: ethereumAPI.verifier(), params: params, expectedAddress: expectedAddress,

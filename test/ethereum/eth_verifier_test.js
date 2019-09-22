@@ -92,6 +92,8 @@ describe('Eth verifier tests', function() {
     const coreServer = builder.coreServer;
     coreServer.setSigningKey(expectedAddress);
 
+    ethereumAPI.api().setTaskTimeout(100);
+
     return {
       controller: controller,
       coreServer: coreServer,

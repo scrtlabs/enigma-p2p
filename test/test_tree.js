@@ -25,7 +25,7 @@ module.exports.TEST_TREE = {
     '#1' : true
   },
   'ethereum' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -50,7 +50,7 @@ module.exports.TEST_TREE = {
     '#4' : true,
   },
   'sync_basic':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -58,7 +58,7 @@ module.exports.TEST_TREE = {
     '#5' : true,
   },
   'sync_network':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
   },
   'jsonrpc_basic':{
@@ -134,7 +134,7 @@ module.exports.TEST_TREE = {
     '#43' : true,
   },
   'ethereum_integration':{
-    'all' : true,
+    'all' : false,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -151,11 +151,11 @@ module.exports.TEST_TREE = {
     '#3' : true,
   },
   'healthcheck' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
   },
   'init_worker' : {
-    'all' : true,
+    'all' : false,
     '#1' : true,
   },
 };
