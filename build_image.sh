@@ -1,1 +1,1 @@
-docker build --rm -t enigmampc/cluster-enigma-p2p:latest .
+docker build --rm -t enigmampc/enigma-cluster-p2p:latest .
