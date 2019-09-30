@@ -1475,30 +1475,29 @@ describe('Verifier tests', function() {
       a.apiMock.triggerEvent('WorkersParameterized', event);
     });
   });
-  //
-  // it('Deploy task submission failed due to ethereum', async function() {
-  //   const tree = TEST_TREE.verifier;
-  //   if (!tree['all'] || !tree['#49']) {
-  //     this.skip();
-  //   }
-  //
-  //   return new Promise(async function(resolve) {
-  //     let a = await initStuffForTaskSubmission();
-  //     let task = new DeployResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: 0},
-  //       5, "ethereumPayload", "ethereumAddress", "signature", "preCodeHash");
-  //     let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-  //     const nextEpochBlock = a.apiMock.getTaskTimeout() + a.blockNumber;
-  //
-  //     a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-  //     a.verifier.verifyTaskSubmission(task, a.taskId, null).then( (res)=> {
-  //       assert.strictEqual(res.isVerified, false);
-  //       assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
-  //       resolve();
-  //     });
-  //
-  //     let event = {seed: 78587678687, firstBlockNumber: nextEpochBlock, workers: [], balances: [], nonce: 10};
-  //     a.apiMock.triggerEvent('WorkersParameterized', event);
-  //   });
-  // });
 
+  it('Check deploy task submission timeout', async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree['all'] || !tree['#49']) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskSubmission();
+      let task = new DeployResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, a.output, {data: a.delta, key: 0},
+        5, "ethereumPayload", "ethereumAddress", "signature", "preCodeHash");
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+      const nextEpochBlock = a.apiMock.getTaskTimeout() + a.blockNumber;
+
+      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then( (res)=> {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
+        resolve();
+      });
+
+      let event = {seed: 78587678687, firstBlockNumber: nextEpochBlock, workers: [], balances: [], nonce: 10};
+      a.apiMock.triggerEvent('WorkersParameterized', event);
+    });
+  });
 });
