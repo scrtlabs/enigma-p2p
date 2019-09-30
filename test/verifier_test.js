@@ -108,49 +108,14 @@ describe('Verifier tests', function() {
       assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
     }
 
-    // No output
-    status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
-    if (isComputeTask) {
-      task = new ComputeResult(taskId, constants.TASK_STATUS.UNVERIFIED, null, {data: delta, key: 1},
-        5, "ethereumPayload", "ethereumAddress", "signature");
-
-      apiMock.setContractParams(contractAddress, null, [web3Utils.randomHex(32), deltaHash]);
-      apiMock.setTaskParams(taskId, blockNumber, status, null, null, constants.ETHEREUM_EMPTY_HASH);
-      // ok
-      res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-    }
-    else {
-      task = new DeployResult(taskId, constants.TASK_STATUS.UNVERIFIED, null, {data: delta, key: 0},
-        5, "ethereumPayload", "ethereumAddress", "signature", "preCodeHash");
-
-      contractAddress = taskId;
-      apiMock.setContractParams(contractAddress, outputHash, [deltaHash]);
-      apiMock.setTaskParams(taskId, blockNumber, status, null, null, constants.ETHEREUM_EMPTY_HASH);
-      // error
-      res = await verifier.verifyTaskSubmission(task, 0, taskId, null);
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
-    }
-
     // No Delta
+    status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
     if (isComputeTask) {
       task = new ComputeResult(taskId, constants.TASK_STATUS.UNVERIFIED, output,
         5, "ethereumPayload", "ethereumAddress", "signature");
 
       apiMock.setContractParams(contractAddress, null,  [deltaHash]);
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
-      // ok
-      res = await verifier.verifyTaskSubmission(task, 0, contractAddress, {key:0, data:delta});
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-      // and no output
-      task = new ComputeResult(taskId, constants.TASK_STATUS.UNVERIFIED, null,
-        5, "ethereumPayload", "ethereumAddress", "signature");
-
-      apiMock.setContractParams(contractAddress, null,  [deltaHash]);
-      apiMock.setTaskParams(taskId, blockNumber, status, null, null, constants.ETHEREUM_EMPTY_HASH);
       // ok
       res = await verifier.verifyTaskSubmission(task, 0, contractAddress, {key:0, data:delta});
       assert.strictEqual(res.isVerified, true);
@@ -792,6 +757,7 @@ describe('Verifier tests', function() {
     });
   });
 
+
   it('Compute task creation post-mined', async function() {
     const tree = TEST_TREE.verifier;
     if (!tree['all'] || !tree['#23']) {
@@ -939,7 +905,6 @@ describe('Verifier tests', function() {
     });
   });
 
-
   it('Wrong deploy task creation pre-mined due to selection algorithm', async function() {
     const tree = TEST_TREE.verifier;
     if (!tree['all'] || !tree['#29']) {
@@ -1056,7 +1021,7 @@ describe('Verifier tests', function() {
 
   it('Wrong deploy task creation post-mined due to wrong delta key', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#32']) {
+    if (!tree['all'] || !tree['#34']) {
       this.skip();
     }
 
@@ -1079,7 +1044,7 @@ describe('Verifier tests', function() {
 
   it('Wrong task creation post-mined due to wrong task type', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#33']) {
+    if (!tree['all'] || !tree['#35']) {
       this.skip();
     }
 
@@ -1096,7 +1061,7 @@ describe('Verifier tests', function() {
 
   it('Wrong deploy task creation post-mined due to wrong inputs hash', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#34']) {
+    if (!tree['all'] || !tree['#36']) {
       this.skip();
     }
 
@@ -1119,7 +1084,7 @@ describe('Verifier tests', function() {
 
   it('Wrong compute task creation post-mined due to wrong inputs hash', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#35']) {
+    if (!tree['all'] || !tree['#37']) {
       this.skip();
     }
 
@@ -1142,7 +1107,7 @@ describe('Verifier tests', function() {
 
   it('Wrong compute task submission pre-mined due to wrong key', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#36']) {
+    if (!tree['all'] || !tree['#38']) {
       this.skip();
     }
 
@@ -1167,36 +1132,9 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Good compute task submission pre-mined - no output', async function() {
-    const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#37']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const key = 2;
-
-      let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, null, {data: a.delta, key: key},
-        5, "ethereumPayload", "ethereumAddress", "signature");
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
-      // ok
-      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then( (res)=> {
-        assert.strictEqual(res.isVerified, true);
-        assert.strictEqual(res.error, null);
-        resolve();
-      });
-
-      const event = {stateDeltaHash: a.deltaHash, stateDeltaHashIndex: key, outputHash: constants.ETHEREUM_EMPTY_HASH, taskId: a.taskId};
-      a.apiMock.triggerEvent('ReceiptVerified', event);
-    });
-  });
-
   it('Good compute task submission pre-mined - no delta', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#38']) {
+    if (!tree['all'] || !tree['#39']) {
       this.skip();
     }
 
@@ -1221,63 +1159,9 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Good compute task submission pre-mined - no delta and no output', async function() {
-    const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#39']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const key = 2;
-
-      let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, null, {key: 0},
-        5, "ethereumPayload", "ethereumAddress", "signature");
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
-      // ok
-      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then( (res)=> {
-        assert.strictEqual(res.isVerified, true);
-        assert.strictEqual(res.error, null);
-        resolve();
-      });
-
-      const event = {stateDeltaHash: constants.ETHEREUM_EMPTY_HASH, stateDeltaHashIndex: 0, outputHash: constants.ETHEREUM_EMPTY_HASH, taskId: a.taskId};
-      a.apiMock.triggerEvent('ReceiptVerified', event);
-    });
-  });
-
-  it('Wrong compute task submission pre-mined - no output and wrong delta', async function() {
-    const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#40']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const key = 2;
-
-      let a = await initStuffForTaskSubmission();
-      let task = new ComputeResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, null, {data: [200], key: key},
-        5, "ethereumPayload", "ethereumAddress", "signature");
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
-      // ok
-      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then( (res)=> {
-        assert.strictEqual(res.isVerified, false);
-        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
-        resolve();
-      });
-
-      const event = {stateDeltaHash: a.deltaHash, stateDeltaHashIndex: key, outputHash: constants.ETHEREUM_EMPTY_HASH, taskId: a.taskId};
-      a.apiMock.triggerEvent('ReceiptVerified', event);
-    });
-  });
-
   it('Wrong compute task submission pre-mined - no delta and wrong output', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#38']) {
+    if (!tree['all'] || !tree['#40']) {
       this.skip();
     }
 
@@ -1302,34 +1186,10 @@ describe('Verifier tests', function() {
     });
   });
 
-  it('Wrong deploy task submission pre-mined - no output', async function() {
-    const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#42']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      let a = await initStuffForTaskSubmission();
-      let task = new DeployResult(a.taskId, constants.TASK_STATUS.UNVERIFIED, null, {data: a.delta, key: 0},
-        5, "ethereumPayload", "ethereumAddress", "signature", "preCodeHash");
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
-
-      // ok
-      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then( (res)=> {
-        assert.strictEqual(res.isVerified, false);
-        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
-        resolve();
-      });
-
-      const event = {stateDeltaHash: a.deltaHash, codeHash: a.outputHash, secretContractAddress: a.taskId};
-      a.apiMock.triggerEvent('SecretContractDeployed', event);
-    });
-  });
 
   it('Wrong deploy task submission pre-mined - no delta', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#43']) {
+    if (!tree['all'] || !tree['#41']) {
       this.skip();
     }
 
@@ -1354,7 +1214,7 @@ describe('Verifier tests', function() {
 
   it('Compute task submission failed due to ethereum', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#44']) {
+    if (!tree['all'] || !tree['#42']) {
       this.skip();
     }
 
@@ -1378,7 +1238,7 @@ describe('Verifier tests', function() {
 
   it('Deploy task submission failed due to ethereum', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#45']) {
+    if (!tree['all'] || !tree['#43']) {
       this.skip();
     }
 
@@ -1402,7 +1262,7 @@ describe('Verifier tests', function() {
 
   it('Check deploy creation timeout', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#46']) {
+    if (!tree['all'] || !tree['#44']) {
       this.skip();
     }
 
@@ -1428,7 +1288,7 @@ describe('Verifier tests', function() {
 
   it('Check compute creation timeout', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#47']) {
+    if (!tree['all'] || !tree['#45']) {
       this.skip();
     }
 
@@ -1453,7 +1313,7 @@ describe('Verifier tests', function() {
 
   it('Check compute task submission timeout', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#48']) {
+    if (!tree['all'] || !tree['#46']) {
       this.skip();
     }
 
@@ -1478,7 +1338,7 @@ describe('Verifier tests', function() {
 
   it('Check deploy task submission timeout', async function() {
     const tree = TEST_TREE.verifier;
-    if (!tree['all'] || !tree['#49']) {
+    if (!tree['all'] || !tree['#47']) {
       this.skip();
     }
 

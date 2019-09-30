@@ -168,7 +168,9 @@ module.exports.CORE_REQUESTS = {
   GetContract: 'GetContract',
   UpdateNewContract: 'UpdateNewContract',
   UpdateNewContractOnDeployment: 'UpdateNewContractOnDeployment',
+  RemoveContract: 'RemoveContract',
   UpdateDeltas: 'UpdateDeltas',
+  RemoveDeltas: 'RemoveDeltas',
   UpdateDb: 'UpdateDb',
   NewTaskEncryptionKey: 'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
   DeploySecretContract: 'DeploySecretContract', // jsonrpc request from remote use for deploying
