@@ -93,6 +93,7 @@ describe('Eth verifier tests', function() {
     coreServer.setSigningKey(expectedAddress);
 
     ethereumAPI.api().setTaskTimeout(100);
+    ethereumAPI.api().setEthereumBlockNumber(100);
 
     return {
       controller: controller,

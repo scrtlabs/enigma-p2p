@@ -120,6 +120,14 @@ class TaskCancelledErr extends Error{
   }
 }
 
+class TaskEthereumFailureErr extends Error{
+  constructor(message){
+    super(message);
+    Error.captureStackTrace(this,this.constructor);
+    this.name = this.constructor.name;
+  }
+}
+
 class EnigmaContractDataError extends Error{
   constructor(message){
     super(message);
@@ -144,3 +152,4 @@ module.exports.SyncReceiverNoMissingDataErr = SyncReceiverNoMissingDataErr;
 module.exports.InputErr = InputErr;
 module.exports.TaskTimeoutErr = TaskTimeoutErr;
 module.exports.TaskCancelledErr = TaskCancelledErr;
+module.exports.TaskEthereumFailureErr = TaskEthereumFailureErr;

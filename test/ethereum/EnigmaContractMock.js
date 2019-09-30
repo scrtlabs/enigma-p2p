@@ -5,6 +5,7 @@ class EnigmaContractMock {
     this._contracts = {};
     this._epochSize = null;
     this._taskTimeout = 0;
+    this._ethereumBlockNumber = 0;
     this._eventListeners = {};
     this._workersParams = [];
     this._except = false;
@@ -35,6 +36,10 @@ class EnigmaContractMock {
     this._taskTimeout = blocks;
   }
 
+  setEthereumBlockNumber(number) {
+    this._ethereumBlockNumber = number;
+  }
+
   getTaskParams(taskId) {
     if (this._except) {
       throw Error("Ethereum Mock exception");
@@ -54,6 +59,14 @@ class EnigmaContractMock {
     return this._contracts[contractAddress];
   }
 
+  getTaskTimeout() {
+    return this._taskTimeout;
+  }
+
+  getEthereumBlockNumber() {
+    return this._ethereumBlockNumber;
+  }
+
   subscribe(eventName, filter, callback) {
     this._eventListeners[eventName] = callback;
   }
@@ -64,10 +77,6 @@ class EnigmaContractMock {
 
   triggerException() {
     this._except = true;
-  }
-
-  getTaskTimeout() {
-    return this._taskTimeout;
   }
 }
 

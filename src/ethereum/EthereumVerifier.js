@@ -40,23 +40,24 @@ class EthereumVerifier {
     await this._updateWorkerParamNow();
     this._taskTimeoutInBlocks = await this._contractApi.getTaskTimeout();
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCreation, this._taskCreationEventCallback.bind(this));
-    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCancelled, this._taskCreationEventCallback.bind(this));
+    this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCancelled, this._taskCreationEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskSuccessSubmission, this._taskSubmissionEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskFailureSubmission, this._taskSubmissionEventCallback.bind(this));
-    //this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB, this._taskSubmissionEventCallback.bind(this));
+    this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB, this._taskSubmissionEventCallback.bind(this));
     this._ethereumServices.on(constants.ETHEREUM_EVENTS.SecretContractDeployment, this._taskDeployedContractEventCallback.bind(this));
   }
 
   /**
    * Verify task creation
    * @param {Task} task to verify
+   * @param {integer} block number representing the timestamp of the received task
    * @param {string} workerAddress
    * @return {Promise} returning {JSON} {Boolean} isVerified - true/false if the task verified,
    *                                    {Error} error
    *                                    {Integer} blockNumber
    *                                    {Integer} gasLimit
    */
-  verifyTaskCreation(task, workerAddress) {
+  verifyTaskCreation(task, blockNumber, workerAddress) {
     return new Promise((resolve) => {
       let result = {isVerified: false, gasLimit: null, blockNumber: null, error: null};
       if (!(task instanceof Task)) {
@@ -67,7 +68,7 @@ class EthereumVerifier {
         result.error = new errors.TypeErr('Worker address is not a valid Ethereum address');
         return resolve(result);
       }
-      this._createTaskCreationListener(task, workerAddress, resolve);
+      this._createTaskCreationListener(task, blockNumber, workerAddress, resolve);
       this._verifyTaskCreationNow(task).then(async (res) => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
@@ -95,16 +96,15 @@ class EthereumVerifier {
    * @return {Promise} returning {JSON} {Boolean} isVerified - true/false if the task verified,
    *                                    {Error} error
    */
-  verifyTaskSubmission(task, contractAddress, localTip) {
+  verifyTaskSubmission(task, blockNumber, contractAddress, localTip) {
     return new Promise((resolve) => {
       let result = {isVerified: false, error: null};
       if (!(task instanceof Result)) {
         result.error = new errors.TypeErr('Wrong task result type');
         return resolve(result);
       }
-      const blockNumber = this._getBlockNumberForSubmittedTask(task);
       this._createTaskSubmissionListener(task, blockNumber, resolve);
-      this._verifyTaskSubmissionNow(task, contractAddress, localTip).then( (res) => {
+      this._verifyTaskSubmissionNow(task, contractAddress, localTip).then((res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
           resolve({error: res.error, isVerified: res.isVerified});
@@ -149,17 +149,19 @@ class EthereumVerifier {
     });
   }
 
-  _createTaskCreationListener(task, workerAddress, resolve) {
+  _createTaskCreationListener(task, blockNumber, workerAddress, resolve) {
     const taskId = task.getTaskId();
-    const blockNumber = this._contractApi.getEthereumBlockNumber();
     this._setTaskCreationListener(taskId, blockNumber, async (event) => {
       // Check if the new epoch event was sent, if so, it means that the task callback has timed out
       if (event.type === constants.ETHEREUM_EVENTS.NewEpoch) {
-          const err = new errors.TaskTimeoutErr('Task ' + taskId + ' timed out');
-          return resolve({error: err, isVerified: false, gasLimit: null, blockNumber: null});
+        const err = new errors.TaskTimeoutErr('Task ' + taskId + ' timed out');
+        return resolve({error: err, isVerified: false, gasLimit: null, blockNumber: null});
       }
       // Check if the task was cancelled
-      //else if (task.type === constants)
+      if (event.type === constants.ETHEREUM_EVENTS.TaskCancelled) {
+        const err = new errors.TaskCancelledErr('Task ' + taskId + ' was cancelled');
+        return resolve({error: err, isVerified: false, gasLimit: null, blockNumber: null});
+      }
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
         let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
@@ -187,13 +189,17 @@ class EthereumVerifier {
       // First check if the new epoch event was sent, if so, it means that the task callback has timed out
       if (event.type === constants.ETHEREUM_EVENTS.NewEpoch) {
         const err = new errors.TaskTimeoutErr('Task ' + taskId + ' timed out');
-        return resolve({error: err, isVerified: false});
+        resolve({error: err, isVerified: false});
+      }
+      // then check if its an event indicating of an Ethereum callback failure
+      else if (event.type === constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB) {
+        const err = new errors.TaskEthereumFailureErr('Task ' + taskId + ' was failed due to Ethereum');
+        resolve({error: err, isVerified: false});
       }
       // Verify the case of a FailedResult
-      if (task instanceof FailedResult) {
+      else if (task instanceof FailedResult) {
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
           resolve({error: null, isVerified: true});
-          return true;
         }
         else {
           const err = new errors.TaskValidityErr('Task ' + taskId + ' did not fail');
@@ -350,6 +356,13 @@ class EthereumVerifier {
           }
         }
         else {
+          // If the task was created already, use its mined block number instead for the timeout calculations
+          if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
+            if (taskId in this._getAllTaskSubmissionIds()) {
+              let {listener, blockNumber} = this._getTaskSubmissionListener(taskId);
+              this._setTaskSubmissionListener(taskId, taskParams.blockNumber, listener);
+            }
+          }
           res.canBeVerified = false;
           res.isVerified = null;
           res.error = null;
@@ -589,8 +602,8 @@ class EthereumVerifier {
         if (this._workerParamArray.length > this._workerParamArrayMaxSize) {
           this._workerParamArray.shift();
         }
+        this._checkTimeouts(event);
       }
-      this._checkTimeouts(event);
     }
   }
 
@@ -700,10 +713,10 @@ class EthereumVerifier {
     let res = {};
     let paramsArray = [];
     if (task instanceof DeployTask) {
-      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
+      paramsArray = [task.getEncryptedFn(), task.getEncryptedArgs(), cryptography.hash(task.getPreCode()), task.getUserDHKey()];
     }
     else {
-      paramsArray = [task.getEncryptedFn(), task.getEncyptedArgs(), task.getContractAddr(), task.getUserDHKey()];
+      paramsArray = [task.getEncryptedFn(), task.getEncryptedArgs(), task.getContractAddr(), task.getUserDHKey()];
     }
     if (cryptography.hashArray(paramsArray) === inputsHash) {
       res.isVerified = true;
@@ -732,6 +745,7 @@ class EthereumVerifier {
     // Unverified submission task
     unverifiedTaskIds = this._getAllTaskSubmissionIds();
     for (let taskId of unverifiedTaskIds) {
+
       let {blockNumber, listener} = this._getTaskSubmissionListener(taskId);
       if (newEpochEvent.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
         this.deleteTaskSubmissionListener(taskId);
@@ -740,16 +754,18 @@ class EthereumVerifier {
     }
   }
 
-  async _getBlockNumberForSubmittedTask(task) {
-    const taskParams = await this._contractApi.getTaskParams(task.getTaskId());
-
-    if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
-      return this._contractApi.getEthereumBlockNumber();
-    }
-    else {
-      return taskParams.blockNumber;
-    }
-  }
+  // async _getBlockNumberForTaskSubmission(task) {
+  //   const taskParams = await this._contractApi.getTaskParams(task.getTaskId());
+  //
+  //   console.log("taskParams=", JSON.stringify(taskParams));
+  //
+  //   if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
+  //     return this._contractApi.getEthereumBlockNumber();
+  //   }
+  //   else {
+  //     return taskParams.blockNumber;
+  //   }
+  // }
 
   /**
    * Verify hash

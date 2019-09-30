@@ -38,7 +38,7 @@ class DeployTask extends Task {
   getPreCode() {
     return this._preCode;
   }
-  getEncyptedArgs() {
+  getEncryptedArgs() {
     return this._encryptedArgs;
   }
   getEncryptedFn() {
@@ -52,7 +52,7 @@ class DeployTask extends Task {
       status: this.getStatus(),
       taskId: this.getTaskId(),
       preCode: this.getPreCode(),
-      encryptedArgs: this.getEncyptedArgs(),
+      encryptedArgs: this.getEncryptedArgs(),
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
@@ -67,7 +67,7 @@ class DeployTask extends Task {
   toCoreJson() {
     return {
       preCode: this.getPreCode(),
-      encryptedArgs: this.getEncyptedArgs(),
+      encryptedArgs: this.getEncryptedArgs(),
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
