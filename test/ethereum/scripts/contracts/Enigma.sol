@@ -201,11 +201,13 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * Deploy secret contract from user, called by the worker.
     *
     * @param _taskId Task ID of corresponding deployment task (taskId == scAddr)
+    * @param _codeHash Deployed bytecode hash
     * @param _gasUsed Gas used for task
     * @param _sig Worker's signature for deployment
     */
     function deploySecretContractFailure(
         bytes32 _taskId,
+        bytes32 _codeHash,
         uint64 _gasUsed,
         bytes memory _sig
     )
@@ -213,7 +215,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     workerLoggedIn(msg.sender)
     contractUndefined(_taskId)
     {
-        TaskImpl.deploySecretContractFailureImpl(state, _taskId, _gasUsed, _sig);
+        TaskImpl.deploySecretContractFailureImpl(state, _taskId, _codeHash, _gasUsed, _sig);
     }
 
     /**
@@ -373,48 +375,19 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     }
 
     /**
-   * Commit the computation task results on chain by first verifying the receipts and then the worker's signature.
-   * The task records are finalized and the worker is credited with the tasks' fees.
-   *
-   * @param _scAddr Secret contract address
-   * @param _taskIds Unique taskId
-   * @param _stateDeltaHashes Input state delta hashes
-   * @param _outputHashes Output state hashes
-   * @param _optionalEthereumData Output state hashes
-   * @param _optionalEthereumContractAddress Output state hashes
-   * @param _gasesUsed Output state hashes
-   * @param _sig Worker's signature
-   */
-    function commitReceipts(
-        bytes32 _scAddr,
-        bytes32[] memory _taskIds,
-        bytes32[] memory _stateDeltaHashes,
-        bytes32[] memory _outputHashes,
-        bytes memory _optionalEthereumData,
-        address _optionalEthereumContractAddress,
-        uint64[] memory _gasesUsed,
-        bytes memory _sig
-    )
-    public
-    workerLoggedIn(msg.sender)
-    contractDeployed(_scAddr)
-    {
-        TaskImpl.commitReceiptsImpl(state, _scAddr, _taskIds, _stateDeltaHashes, _outputHashes, _optionalEthereumData,
-            _optionalEthereumContractAddress, _gasesUsed, _sig);
-    }
-
-    /**
     * Commit the computation task failure on chain - the task fee is transfered to the worker and the status is
     * updated to indicate task failure.
     *
     * @param _scAddr Secret contract address
     * @param _taskId Unique taskId
+    * @param _outputHash Output state hash
     * @param _gasUsed Gas used for task computation
     * @param _sig Worker's signature
     */
     function commitTaskFailure(
         bytes32 _scAddr,
         bytes32 _taskId,
+        bytes32 _outputHash,
         uint64 _gasUsed,
         bytes memory _sig
     )
@@ -422,7 +395,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     workerLoggedIn(msg.sender)
     contractDeployed(_scAddr)
     {
-        TaskImpl.commitTaskFailureImpl(state, _scAddr, _taskId, _gasUsed, _sig);
+        TaskImpl.commitTaskFailureImpl(state, _scAddr, _taskId, _outputHash, _gasUsed, _sig);
     }
 
     /**
