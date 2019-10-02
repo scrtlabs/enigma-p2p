@@ -726,19 +726,6 @@ class EthereumVerifier {
     }
   }
 
-  // async _getBlockNumberForTaskSubmission(task) {
-  //   const taskParams = await this._contractApi.getTaskParams(task.getTaskId());
-  //
-  //   console.log("taskParams=", JSON.stringify(taskParams));
-  //
-  //   if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
-  //     return this._contractApi.getEthereumBlockNumber();
-  //   }
-  //   else {
-  //     return taskParams.blockNumber;
-  //   }
-  // }
-
   /**
    * Verify hash
    * @param {string} hash
