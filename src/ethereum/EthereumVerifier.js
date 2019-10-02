@@ -718,7 +718,6 @@ class EthereumVerifier {
     // Unverified submission task
     unverifiedTaskIds = this._getAllTaskSubmissionIds();
     for (let taskId of unverifiedTaskIds) {
-
       let {blockNumber, listener} = this._getTaskSubmissionListener(taskId);
       if (newEpochEvent.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
         this.deleteTaskSubmissionListener(taskId);

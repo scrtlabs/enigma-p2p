@@ -105,16 +105,11 @@ class EnigmaContractReaderAPI {
           reject(error);
         }
         if (data) {
-          if (Array.isArray(data)) {
-              let newScAddressesArray = [];
-              data.forEach((scAddress) => {
-                newScAddressesArray.push(nodeUtils.remove0x(scAddress));
-              });
-              resolve(newScAddressesArray);
-          }
-          else {
-            resolve(nodeUtils.remove0x(data));
-          }
+          let newScAddressesArray = [];
+          data.forEach((scAddress) => {
+            newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+          });
+          resolve(newScAddressesArray);
         }
         else {
           resolve(data);
@@ -133,16 +128,11 @@ class EnigmaContractReaderAPI {
           reject(error);
         }
         if (data) {
-          if (Array.isArray(data)) {
-            let newScAddressesArray = [];
-            data.forEach((scAddress) => {
-              newScAddressesArray.push(nodeUtils.remove0x(scAddress));
-            });
-            resolve(newScAddressesArray);
-          }
-          else {
-            resolve(nodeUtils.remove0x(data));
-          }
+          let newScAddressesArray = [];
+          data.forEach((scAddress) => {
+            newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+          });
+          resolve(newScAddressesArray);
         }
         else {
           resolve(data);

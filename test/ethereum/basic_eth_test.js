@@ -90,6 +90,12 @@ describe('Ethereum tests', function() {
       const countBefore = await api.countSecretContracts();
       assert.strictEqual(countBefore, 0);
 
+      let observedAddresses = await api.getSecretContractAddresses(0, 0);
+      assert.strictEqual(observedAddresses.length, 0);
+
+      observedAddresses = await api.getAllSecretContractAddresses();
+      assert.strictEqual(observedAddresses.length, 0);
+
       await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
 
       // Verify the number of secret-accounts after deploying one
@@ -100,8 +106,12 @@ describe('Ethereum tests', function() {
       observedCodeHash = observedCodeHash.codeHash;
       assert.strictEqual(observedCodeHash, codeHash);
 
-      const observedAddresses = await api.getSecretContractAddresses(0, 1);
+      observedAddresses = await api.getSecretContractAddresses(0, 1);
       assert.strictEqual(observedAddresses[0], secretContractAddress);
+
+      observedAddresses = await api.getAllSecretContractAddresses();
+      assert.strictEqual(observedAddresses[0], secretContractAddress);
+      assert.strictEqual(observedAddresses.length, 1);
 
       api.unsubscribeAll();
 
