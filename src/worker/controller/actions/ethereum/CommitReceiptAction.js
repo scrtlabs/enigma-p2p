@@ -80,10 +80,7 @@ class CommitReceiptAction {
 
     // Deploy task
     if(task instanceof DeployTask) {
-      if (!output) {
-        err = new errors.InputErr(`No output for deploy task ${task.getTaskId()}`);
-      }
-      else if (!isDelta) {
+      if (!isDelta) {
         err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       }
       else {
@@ -107,12 +104,8 @@ class CommitReceiptAction {
     }
     // Compute task
     else {
-      let outputHash = constants.ETHEREUM_EMPTY_HASH;
       let deltaHash = constants.ETHEREUM_EMPTY_HASH;
 
-      if (output) {
-        outputHash = cryptography.hash(output);
-      }
       if (isDelta) {
         deltaHash = cryptography.hash(task.getResult().getDelta().data);
       }
@@ -121,7 +114,7 @@ class CommitReceiptAction {
           task.getContractAddr(),
           task.getTaskId(),
           deltaHash,
-          outputHash,
+          cryptography.hash(task.getResult().getOutput()),
           task.getResult().getEthPayload(),
           task.getResult().getEthAddr(),
           task.getResult().getUsedGas(),

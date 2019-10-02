@@ -353,9 +353,6 @@ class EthereumVerifier {
     if (!task.hasDelta()) {
       res.error = new errors.TaskVerificationErr("No delta in task result " + task.getTaskId());
     }
-    else if (!task.getOutput()) {
-      res.error = new errors.TaskVerificationErr("No output in task result " + task.getTaskId());
-    }
     else {
       const deltaKey = task.getDelta().key;
       if (deltaKey !== 0) {
@@ -404,23 +401,11 @@ class EthereumVerifier {
     // All fine by now...
     if (!error) {
       let output = task.getOutput();
-      // Output
-      if (output) {
-        if (!EthereumVerifier._verifyHash(taskParams.outputHash, output)) {
-          error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
-        }
-        else {
-          isVerified = true;
-        }
+      if (!EthereumVerifier._verifyHash(taskParams.outputHash, output)) {
+        error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       }
-      // No output
       else {
-        if (taskParams.outputHash !== constants.ETHEREUM_EMPTY_HASH) {
-          error = new errors.TaskVerificationErr("Mismatch in output in task result " + task.getTaskId());
-        }
-        else {
-          isVerified = true;
-        }
+        isVerified = true;
       }
     }
     return {
@@ -452,23 +437,11 @@ class EthereumVerifier {
     // All fine by now...
     if (!error) {
       let output = task.getOutput();
-      // Output
-      if (output) {
-        if (!EthereumVerifier._verifyHash(outputHash, output)) {
-          error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
-        }
-        else {
-          isVerified = true;
-        }
+      if (!EthereumVerifier._verifyHash(outputHash, output)) {
+        error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       }
-      // No output
       else {
-        if (outputHash !== constants.ETHEREUM_EMPTY_HASH) {
-          error = new errors.TaskVerificationErr("Mismatch in output in task result " + task.getTaskId());
-        }
-        else {
-          isVerified = true;
-        }
+        isVerified = true;
       }
     }
     return {
