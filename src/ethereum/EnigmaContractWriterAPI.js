@@ -309,12 +309,13 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * Worker commits the failed task result on-chain
    * @param {string} secretContractAddress
    * @param {string} taskId
+   * @param {string} outputHash
    * @param {Integer} gasUsed
    * @param {string} signature
    * @param {JSON} txParams
    * @return {Promise} receipt
    * */
-  commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams=null) {
+  commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
       let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
@@ -328,6 +329,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       this._enigmaContract.methods.commitTaskFailure(
         utils.add0x(secretContractAddress),
         utils.add0x(taskId),
+        utils.add0x(outputHash),
         gasUsed,
         utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
@@ -341,12 +343,13 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   /**
    * Worker commits the failed deploy task result on-chain
    * @param {string} taskId == secretContractAddress
+   * @param {string} outputHash
    * @param {Integer} gasUsed
    * @param {string} signature
    * @param {JSON} txParams
    * @return {Promise} receipt
    * */
-  deploySecretContractFailure(taskId, gasUsed, signature, txParams=null) {
+  deploySecretContractFailure(taskId, outputHash, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
       let transactionOptions = this._defaultTrxOptions;
       if (txParams !== undefined && txParams !== null) {
@@ -359,6 +362,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       }
       this._enigmaContract.methods.deploySecretContractFailure(
         utils.add0x(taskId),
+        utils.add0x(outputHash),
         gasUsed,
         utils.add0x(signature))
         .send(transactionOptions, (error, receipt)=> {
