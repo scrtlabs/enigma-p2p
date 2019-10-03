@@ -718,7 +718,6 @@ class EthereumVerifier {
     // Unverified submission task
     unverifiedTaskIds = this._getAllTaskSubmissionIds();
     for (let taskId of unverifiedTaskIds) {
-
       let {blockNumber, listener} = this._getTaskSubmissionListener(taskId);
       if (newEpochEvent.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
         this.deleteTaskSubmissionListener(taskId);
@@ -726,19 +725,6 @@ class EthereumVerifier {
       }
     }
   }
-
-  // async _getBlockNumberForTaskSubmission(task) {
-  //   const taskParams = await this._contractApi.getTaskParams(task.getTaskId());
-  //
-  //   console.log("taskParams=", JSON.stringify(taskParams));
-  //
-  //   if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
-  //     return this._contractApi.getEthereumBlockNumber();
-  //   }
-  //   else {
-  //     return taskParams.blockNumber;
-  //   }
-  // }
 
   /**
    * Verify hash
