@@ -156,10 +156,6 @@ module.exports.TEST_TREE = {
     '#2' : true,
     '#3' : true,
   },
-  'healthcheck' : {
-    'all' : true,
-    '#1' : true,
-  },
   'init_worker' : {
     'all' : true,
     '#1' : true,

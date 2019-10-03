@@ -550,36 +550,4 @@ describe('Ethereum tests', function() {
       resolve();
     });
   });
-
-  it('Test health check ', async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree['all'] || !tree['#6']) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      const builder = new EnigmaContractAPIBuilder();
-      let res = await builder.createNetwork().deploy().build();
-
-      let ethereumApi = new EthereumAPI(new Logger({'cli': true}));
-      await ethereumApi.init({enigmaContractAddress: builder.enigmaContractAddress});
-
-      // sunny day
-      let data = await ethereumApi.healthCheck();
-      assert.strictEqual(data.isConnected, true);
-      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
-      assert.strictEqual(data.enigmaContractAddress, builder.enigmaContractAddress);
-
-      // rainy day
-      await ethereumApi.destroy();
-
-      data = await ethereumApi.healthCheck();
-      assert.strictEqual(data.isConnected, false);
-      assert.strictEqual(data.url, 'ws://127.0.0.1:9545');
-      assert.strictEqual(data.enigmaContractAddress, builder.enigmaContractAddress);
-
-      await res.environment.destroy();
-      resolve();
-    });
-  });
 });
