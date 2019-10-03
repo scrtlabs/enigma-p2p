@@ -33,7 +33,7 @@ class ComputeTask extends Task {
     this._encryptedFn = encryptedFn;
     this._userDHKey = userDHKey;
   }
-  getEncyptedArgs() {
+  getEncryptedArgs() {
     return this._encryptedArgs;
   }
   getEncryptedFn() {
@@ -46,7 +46,7 @@ class ComputeTask extends Task {
     const output = {
       status: this.getStatus(),
       taskId: this.getTaskId(),
-      encryptedArgs: this.getEncyptedArgs(),
+      encryptedArgs: this.getEncryptedArgs(),
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
@@ -60,7 +60,7 @@ class ComputeTask extends Task {
   }
   toCoreJson() {
     return {
-      encryptedArgs: this.getEncyptedArgs(),
+      encryptedArgs: this.getEncryptedArgs(),
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),

@@ -235,52 +235,6 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
           });
     });
   }
-  // /**
-  //    * Irrelevant for workers -> users create tasks with it
-  //    * */
-  // createTaskRecord(taskId, fee, txParams) {
-  //   return new Promise((resolve, reject) => {
-  //     const defaultOptions = config.default;
-  //     let transactionOptions = defaultOptions;
-  //     if (txParams !== undefined && txParams !== null) {
-  //       const error = this._validateTxParams(txParams);
-  //       if (error !== null) {
-  //         reject(error);
-  //         return;
-  //       }
-  //       transactionOptions = defaultsDeep(txParams, defaultOptions);
-  //     }
-  //     this._enigmaContract.methods.createTaskRecord(taskId, fee).send(transactionOptions, (error, receipt)=> {
-  //       if (error) {
-  //         reject(error);
-  //       }
-  //       resolve(receipt);
-  //     });
-  //   });
-  // }
-  // /**
-  //    * Same as above
-  //    * */
-  // createTaskRecords(taskIds, fees, txParams) {
-  //   return new Promise((resolve, reject) => {
-  //     const defaultOptions = config.default;
-  //     let transactionOptions = defaultOptions;
-  //     if (txParams !== undefined && txParams !== null) {
-  //       const error = this._validateTxParams(txParams);
-  //       if (error !== null) {
-  //         reject(error);
-  //         return;
-  //       }
-  //       transactionOptions = defaultsDeep(txParams, defaultOptions);
-  //     }
-  //     this._enigmaContract.methods.createTaskRecords(taskIds, fees).send(transactionOptions, (error, receipt)=> {
-  //       if (error) {
-  //         reject(error);
-  //       }
-  //       resolve(receipt);
-  //     });
-  //   });
-  // }
   /**
      * Worker commits the results on-chain
      * @param {string} secretContractAddress

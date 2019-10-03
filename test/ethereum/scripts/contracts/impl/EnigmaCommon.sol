@@ -16,8 +16,8 @@ library EnigmaCommon {
 
     struct TaskRecord {
         address sender; // Sender of TaskRecord
-        bytes32 inputsHash; // Inputs hash of encryptedFn, encryptedArgs, and contract address/preCodeHash)
-        bytes32 outputHash; // Output hash
+        bytes32 inputsHash; // Inputs hash of encryptedFn, encryptedArgs, and contract address/preCodeHash
+        bytes32 outputHash; // Output hash of task computation
         uint gasLimit; // ENG gas limit units
         uint gasPx; // ENG gas px in grains (10 ** 8) amount
         uint blockNumber; // Block number TaskRecord was mined
@@ -29,8 +29,8 @@ library EnigmaCommon {
         address signer; // Enclave address
         WorkerStatus status; // Unregistered: 0, LoggedIn: 1, LoggedOut: 2
         bytes report; // Decided to store this as one  RLP encoded attribute for easier external storage in the future
-        uint256 balance; // ENG balance
-        WorkerLog[] workerLogs;
+        uint256 balance; // ENG balance of worker
+        WorkerLog[] workerLogs; // Logs containing info regarding updates in worker status
     }
 
     /**
@@ -61,7 +61,8 @@ library EnigmaCommon {
 
     // ========================================== Enums ==========================================
 
-    enum TaskStatus {RecordUndefined, RecordCreated, ReceiptVerified, ReceiptFailed}
+    enum TaskStatus {RecordUndefined, RecordCreated, ReceiptVerified, ReceiptFailedENG, ReceiptFailedETH,
+        ReceiptFailedReturn}
 
     enum WorkerStatus {Unregistered, LoggedIn, LoggedOut}
 
@@ -71,17 +72,33 @@ library EnigmaCommon {
 
     // ========================================== Shared Functions ==========================================
 
+    /**
+    * Append the length of a variable and the variable to an existing bytes buffer
+    *
+    * @param _message Bytes buffer being appended to
+    * @param _var Bytes representation of value that needs to be concatenated to existing buffer
+    * @return New bytes buffer
+    */
     function appendMessage(bytes memory _message, bytes memory _var)
     internal
+    pure
     returns (bytes memory)
     {
         return (_message.concat(uint64(_var.length).toBytesFromUint64())).concat(_var);
     }
 
-    function appendMessageArrayLength(uint256 arrayLength, bytes memory _message)
+    /**
+    * Append the length of an array to an existing bytes buffer
+    *
+    * @param _message Bytes buffer being appended to
+    * @param _arraylength Length of array
+    * @return New bytes buffer
+    */
+    function appendMessageArrayLength(uint256 _arraylength, bytes memory _message)
     internal
+    pure
     returns (bytes memory)
     {
-        return _message.concat(uint64(arrayLength).toBytesFromUint64());
+        return _message.concat(uint64(_arraylength).toBytesFromUint64());
     }
 }

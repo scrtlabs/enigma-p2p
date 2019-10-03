@@ -17,7 +17,8 @@ class VerifyNewTaskAction {
         if(this._controller.hasEthereum()){
           isVerified = false;
           try {
-            let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, regParams.result.signingKey);
+            const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
+            let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, currentBlockNumber, regParams.result.signingKey);
             if (res.error) {
               this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${res.error}`);
             }

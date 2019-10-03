@@ -148,7 +148,8 @@ class VerifyAndStoreResultAction {
         }
       }
       try {
-        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress, localTip);
+        const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, currentBlockNumber, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
           error = res.error;
