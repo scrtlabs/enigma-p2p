@@ -292,7 +292,7 @@ describe('Ethereum tests', function() {
           }));
 
 
-      // Login the worker before commmitting receipts
+      // Login the worker before committing receipts
       await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
         optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
 

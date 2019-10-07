@@ -6,6 +6,10 @@ const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
+const ETHEREUM_CONFIRMATION_EVENT = 'confirmation';
+const ETHEREUM_RECEIPT_EVENT = 'receipt';
+const ETHEREUM_ERROR_EVENT = 'error';
+
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
@@ -17,7 +21,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {string} report , worker
      * @param {string} signature
      * @param {JSON} txParams
-     * @return {Promise} receipt
+     * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
   register(signerAddress, report, signature, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -34,12 +38,19 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(signerAddress),
         utils.add0x(report),
         utils.add0x(signature))
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
+          .send(transactionOptions)
+          // .on('confirmation', (confirmationNumber, receipt) => {
+          //   console.log("at register confirmation. number=", confirmationNumber);
+          //   resolve(receipt);
+          // })
+          .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+            reject(error);
+          })
+          .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+            //console.log("reciept=", JSON.stringify(receipt));
+            let events = this._parseEvents(receipt);
+            resolve(events);
+          })
     });
   }
   /**
@@ -47,6 +58,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {string} custodian - the worker address
      * @param {Integer} amount
      * @param {JSON} txParams
+     * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
   deposit(custodian, amount, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -59,18 +71,25 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.deposit(custodian, amount).send(transactionOptions, (error, receipt)=> {
-        if (error) {
+      this._enigmaContract.methods.deposit(custodian, amount).send(transactionOptions)
+        // .on(ETHEREUM_CONFIRMATION_EVENT, (confirmationNumber, receipt) => {
+        //   console.log("at deposit confirmation. number=", confirmationNumber);
+        //   resolve(receipt);
+        // })
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
    * Step 2 in registration : stake ENG's of the current worker(TO DA MOON)
    * @param {Integer} amount
    * @param {JSON} txParams
+   * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   selfDeposit(amount, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -87,18 +106,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       if (!workerAddress) {
         reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
       }
-      this._enigmaContract.methods.deposit(workerAddress, amount).send(transactionOptions, (error, receipt)=> {
-        if (error) {
+      this._enigmaContract.methods.deposit(workerAddress, amount).send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
    * Withdraw worker's stake (full or partial)
    * @param {Integer} amount
    * @param {JSON} txParams
+   * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   withdraw(amount, txParams) {
     return new Promise((resolve, reject) => {
@@ -111,13 +133,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.withdraw(amount).send(transactionOptions, (error, receipt)=> {
-        if (error) {
-          console.log(error);
+      this._enigmaContract.methods.withdraw(amount).send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
@@ -131,7 +154,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {Integer} gasUsed
      * @param {string} signature //TODO:: since it expects bytes maybe here it will be bytes as well (Json-san)
      * @param {JSON} txParams
-     * @return {Promise} receipt //TODO:: we want to turn all the Json's into real classes.
+     * @return @return {Promise} in success: Enigma contract emitted events, in failure: error //TODO:: we want to turn all the Json's into real classes.
      * */
   deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -158,17 +181,19 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(optionalEthereumContractAddress),
         gasUsed,
         utils.add0x(signature))
-        .send(transactionOptions, (error, receipt)=> {
-        if (error) {
+        .send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
      * login a worker
-     * @return {Promise} receipt
+     * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
   login(txParams=null) {
     return new Promise((resolve, reject) => {
@@ -181,17 +206,23 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.login().send(transactionOptions, (error, receipt)=> {
-        if (error) {
+      this._enigmaContract.methods.login().send(transactionOptions)
+        // .on('confirmation', (confirmationNumber, receipt) => {
+        //   console.log("at login confirmation. number=", confirmationNumber);
+        //   resolve(receipt);
+        // })
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        });
     });
   }
   /**
      * login a worker
-     * @return {Promise} receipt
+     * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
   logout(txParams=null) {
     return new Promise((resolve, reject) => {
@@ -204,12 +235,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         }
         transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
       }
-      this._enigmaContract.methods.logout().send(transactionOptions, (error, receipt)=> {
-        if (error) {
+      this._enigmaContract.methods.logout().send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
-        }
-        resolve(receipt);
-      });
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
@@ -246,7 +279,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {Integer} gasUsed
      * @param {string} signature
      * @param {JSON} txParams
-     * @return {Promise} receipt
+     * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
   commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -273,38 +306,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(optionalEthereumData),
         utils.add0x(optionalEthereumContractAddress),
         gasUsed,
-        utils.add0x(signature))
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
+        utils.add0x(signature)).send(transactionOptions)
+          .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
-            }
-            resolve(receipt);
-          });
+          })
+          .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+            let events = this._parseEvents(receipt);
+            resolve(events);
+          })
     });
   }
-  /** same as above but for a batch */
-  // commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
-  //                optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
-  //   return new Promise((resolve, reject) => {
-  //     let transactionOptions = this._defaultTrxOptions;
-  //     if (txParams !== undefined && txParams !== null) {
-  //       const error = this._validateTxParams(txParams);
-  //       if (error !== null) {
-  //         reject(error);
-  //         return;
-  //       }
-  //       transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
-  //     }
-  //     this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
-  //       optionalEthereumContractAddress, gasUsed, signature)
-  //         .send(transactionOptions, (error, receipt)=> {
-  //           if (error) {
-  //             reject(error);
-  //           }
-  //           resolve(receipt);
-  //         });
-  //   });
-  // }
   /**
    * Worker commits the failed task result on-chain
    * @param {string} secretContractAddress
@@ -312,7 +323,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {Integer} gasUsed
    * @param {string} signature
    * @param {JSON} txParams
-   * @return {Promise} receipt
+   * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   commitTaskFailure(secretContractAddress, taskId, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -330,12 +341,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(taskId),
         gasUsed,
         utils.add0x(signature))
-        .send(transactionOptions, (error, receipt)=> {
-          if (error) {
-            reject(error);
-          }
-          resolve(receipt);
-        });
+        .send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+          reject(error);
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
   /**
@@ -344,7 +357,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {Integer} gasUsed
    * @param {string} signature
    * @param {JSON} txParams
-   * @return {Promise} receipt
+   * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   deploySecretContractFailure(taskId, gasUsed, signature, txParams=null) {
     return new Promise((resolve, reject) => {
@@ -361,34 +374,21 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(taskId),
         gasUsed,
         utils.add0x(signature))
-        .send(transactionOptions, (error, receipt)=> {
-          if (error) {
-            reject(error);
-          }
-          resolve(receipt);
-        });
+        .send(transactionOptions)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+          reject(error);
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = this._parseEvents(receipt);
+          resolve(events);
+        })
     });
   }
-  /** used by the principal node to commit a random number === new epoch */
-  setWorkersParams(seed, signature, txParams=null) {
-    return new Promise((resolve, reject) => {
-      let transactionOptions = this._defaultTrxOptions;
-      if (txParams !== undefined && txParams !== null) {
-        const error = this._validateTxParams(txParams);
-        if (error !== null) {
-          reject(error);
-          return;
-        }
-        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
-      }
-      this._enigmaContract.methods.setWorkersParams(seed, signature)
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
-    });
+  _parseEvents(txReceipt) {
+    let parsedEvents = {};
+    for (let eventName of Object.keys(txReceipt.events)) {
+      parsedEvents[eventName] = this._eventParsers[eventName](txReceipt.events[eventName]);
+    }
   }
   _validateTxParams(txParams) {
     if ('gas' in txParams) {
