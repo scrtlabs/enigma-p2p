@@ -6,9 +6,11 @@ const EVENTS = constants.ETHEREUM_EVENTS;
 let servicesMap = {};
 
 servicesMap[EVENTS.NewEpoch] = ['WorkersParameterized'];
-servicesMap[EVENTS.TaskCreation] = ['TaskRecordCreated', 'TaskRecordsCreated'];
-servicesMap[EVENTS.TaskSuccessSubmission] = ['ReceiptVerified', 'ReceiptsVerified'];
+servicesMap[EVENTS.TaskCreation] = ['TaskRecordCreated'];
+servicesMap[EVENTS.TaskSuccessSubmission] = ['ReceiptVerified'];
 servicesMap[EVENTS.TaskFailureSubmission] = ['ReceiptFailed'];
+servicesMap[EVENTS.TaskFailureDueToEthereumCB] = ['ReceiptFailedETH'];
+servicesMap[EVENTS.TaskCancelled] = ['TaskFeeReturned'];
 servicesMap[EVENTS.SecretContractDeployment] = ['SecretContractDeployed'];
 
 

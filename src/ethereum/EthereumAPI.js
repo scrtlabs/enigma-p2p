@@ -32,7 +32,7 @@ class EthereumAPI {
     this._enigmaContractAddress = res.enigmaContractAddress;
 
     this._services = new EthereumServices(this._api);
-    this._services.initServices();
+    this._services.initServices(null);
 
     this._verifier = new EthereumVerifier(this._api, this._services, this._logger);
     await this._verifier.init();
