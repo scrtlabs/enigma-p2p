@@ -4,12 +4,16 @@ steps:
 
   - name: p2p
     image: node:10
+    environment:
+      CODECOV_TOKEN:
+        from_secret: CODECOV_TOKEN
     commands:
       - apt-get update && apt-get install build-essential
       - npm install -g truffle@5.0.15
       - npm install
       - npm test
-      - if [ ${DRONE_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then echo $DRONE_BRANCH ; npm run test-tree; fi
+      - if [[ "${DRONE_BRANCH}" == "develop" ]] || [[ "${DRONE_BRANCH}" == "master" ]]; then echo $DRONE_BRANCH ; npm run test-tree; fi
+      - npm run report-coverage
 
   - name: integration
     image: enigmampc/docker-client
@@ -25,59 +29,59 @@ steps:
       - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_${DRONE_BUILD_NUMBER}/" .env
       - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
+      - export DOCKER_TAG=p2p_${DRONE_BUILD_NUMBER}
+      - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
       - |
         if [[ "${DRONE_BRANCH}" == "master" ]]; then
-          export TAG=latest;
-          docker-compose pull
+          docker pull enigmampc/enigma_contract:latest
+          docker pull enigmampc/enigma_core_hw:latest
+          docker pull enigmampc/enigma_km_hw:latest
+          docker tag enigmampc/enigma_contract:latest enigmampc/enigma_contract:$DOCKER_TAG
+          docker tag enigmampc/enigma_core_hw:latest enigmampc/enigma_core_hw:$DOCKER_TAG
+          docker tag enigmampc/enigma_km_hw:latest enigmampc/enigma_km_hw:$DOCKER_TAG
         else
-          if [ $MATCHING_BRANCH_CONTRACT -eq 0 ] &&  [ $MATCHING_BRANCH_CORE -eq 0 ]; then
-            export TAG=develop;
-            sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=develop/" .env;
-            docker-compose pull
+          if [ $MATCHING_BRANCH_CONTRACT -eq 0 ] && [ $MATCHING_BRANCH_CORE -eq 0 ]; then
+            docker pull enigmampc/enigma_contract:develop
+            docker pull enigmampc/enigma_core_hw:develop
+            docker pull enigmampc/enigma_km_hw:develop
+            docker tag enigmampc/enigma_contract:develop enigmampc/enigma_contract:$DOCKER_TAG
+            docker tag enigmampc/enigma_core_hw:develop enigmampc/enigma_core_hw:$DOCKER_TAG
+            docker tag enigmampc/enigma_km_hw:develop enigmampc/enigma_km_hw:$DOCKER_TAG
           else
-            export TAG=${DRONE_BRANCH};
-            sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${TAG}/" .env;
             if [ $MATCHING_BRANCH_CONTRACT -eq 1 ] && [ $MATCHING_BRANCH_CORE -eq 0 ]; then
-              cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$TAG --no-cache . && cd ..
+              cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$DOCKER_TAG --no-cache . && cd ..
               docker pull enigmampc/enigma_core_hw:develop
-              docker tag enigmampc/enigma_core_hw:develop enigmampc/enigma_core_hw:$TAG
+              docker tag enigmampc/enigma_core_hw:develop enigmampc/enigma_core_hw:$DOCKER_TAG
               docker pull enigmampc/enigma_km_hw:develop
-              docker tag enigmampc/enigma_km_hw:develop enigmampc/enigma_km_hw:$TAG
+              docker tag enigmampc/enigma_km_hw:develop enigmampc/enigma_km_hw:$DOCKER_TAG
             else
               if [ $MATCHING_BRANCH_CONTRACT -eq 0 ] && [ $MATCHING_BRANCH_CORE -eq 1 ]; then
                 cd enigma-core
-                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$TAG --no-cache .
-                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$TAG --no-cache .
+                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$DOCKER_TAG --no-cache .
+                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$DOCKER_TAG --no-cache .
                 cd ..
                 docker pull enigmampc/enigma_contract:develop
-                docker tag enigmampc/enigma_contract:develop enigmampc/enigma_contract:$TAG
+                docker tag enigmampc/enigma_contract:develop enigmampc/enigma_contract:$DOCKER_TAG
               else
-                cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$TAG --no-cache . && cd ..
+                cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$DOCKER_TAG --no-cache . && cd ..
                 cd enigma-core
-                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$TAG --no-cache .
-                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$TAG --no-cache .
+                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$DOCKER_TAG --no-cache .
+                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$DOCKER_TAG --no-cache .
                 cd ..
               fi
             fi
           fi
         fi
-      - cd enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$TAG --no-cache . && cd ..
+      - cd enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache . && cd ..
       - export NODES=3
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml -f docker-compose.test.yml up --scale core=$NODES --scale p2p=$NODES --exit-code-from client && export RESULT=$? || export RESULT=$?
-      - if [[ "${DRONE_BRANCH}" == "$TAG" ]]; then docker-compose down -v --rmi all; else docker-compose down -v; fi
-      - if [ $RESULT -ne 0 ]; exit 1; fi
-
-  - name: coverage
-    image: node:10
-    depends_on: 
-      - integration
-    commands:
-      - npm run report-coverage
+      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
+      - if [ $RESULT -ne 0 ]; then exit 1; fi
 
   - name: deploy
     image: enigmampc/docker-client
     depends_on:
-      - coverage
+      - integration
     when:
       branch:
         - develop
@@ -94,9 +98,9 @@ steps:
     commands:
       - cd discovery-docker-network/enigma-p2p
       - echo $PASSWORD | docker login -u $USERNAME --password-stdin
-      - if [[ ${DRONE_BRANCH} == "master" ]]; then export TAG=latest; else export TAG=develop; fi
-      - docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$TAG --no-cache .
-      - docker push enigmampc/enigma_p2p:$TAG
+      - if [[ ${DRONE_BRANCH} == "master" ]]; then export DOCKER_TAG=latest; else export DOCKER_TAG=develop; fi
+      - docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache .
+      - docker push enigmampc/enigma_p2p:$DOCKER_TAG
 
 volumes:
   - name: sock
