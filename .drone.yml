@@ -2,24 +2,9 @@ kind: pipeline
 name: default
 steps:
 
-  - name: p2p
-    image: node:10
-    environment:
-      CODECOV_TOKEN:
-        from_secret: CODECOV_TOKEN
-    commands:
-      - apt-get update && apt-get install build-essential
-      - npm install -g truffle@5.0.15
-      - npm install
-      - npm test
-      - if [[ "${DRONE_BRANCH}" == "develop" ]] || [[ "${DRONE_BRANCH}" == "master" ]]; then echo $DRONE_BRANCH ; npm run test-tree; fi
-      - npm run report-coverage
-
   - name: integration
     image: enigmampc/docker-client
     privileged: true
-    depends_on: 
-      - p2p
     volumes:
       - name: sock
         path: /var/run/docker.sock
@@ -27,51 +12,37 @@ steps:
       - git clone https://github.com/enigmampc/discovery-docker-network.git
       - cd discovery-docker-network && cp .env-template .env
       - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_${DRONE_BUILD_NUMBER}/" .env
-      - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
+      - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
       - export DOCKER_TAG=p2p_${DRONE_BUILD_NUMBER}
       - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
       - |
-        if [[ "${DRONE_BRANCH}" == "master" ]]; then
-          docker pull enigmampc/enigma_contract:latest
-          docker pull enigmampc/enigma_core_hw:latest
-          docker pull enigmampc/enigma_km_hw:latest
-          docker tag enigmampc/enigma_contract:latest enigmampc/enigma_contract:$DOCKER_TAG
-          docker tag enigmampc/enigma_core_hw:latest enigmampc/enigma_core_hw:$DOCKER_TAG
-          docker tag enigmampc/enigma_km_hw:latest enigmampc/enigma_km_hw:$DOCKER_TAG
-        else
-          if [ $MATCHING_BRANCH_CONTRACT -eq 0 ] && [ $MATCHING_BRANCH_CORE -eq 0 ]; then
-            docker pull enigmampc/enigma_contract:develop
-            docker pull enigmampc/enigma_core_hw:develop
-            docker pull enigmampc/enigma_km_hw:develop
-            docker tag enigmampc/enigma_contract:develop enigmampc/enigma_contract:$DOCKER_TAG
-            docker tag enigmampc/enigma_core_hw:develop enigmampc/enigma_core_hw:$DOCKER_TAG
-            docker tag enigmampc/enigma_km_hw:develop enigmampc/enigma_km_hw:$DOCKER_TAG
+        /bin/bash -c '
+        declare -a PROJECTS=(core km contract)
+        declare -A DOCKER_IMAGES=([core]=enigma_core_hw [km]=enigma_km_hw [contract]=enigma_contract)
+        declare -A GIT_BRANCH_ARG=([core]=GIT_BRANCH_CORE [km]=GIT_BRANCH_CORE [contract]=GIT_BRANCH_CONTRACT)
+        declare -A PROJECT_DIRECTORY=([core]=enigma-core [km]=enigma-core [contract]=enigma-contract)
+        declare -A PROJECT_BRANCH_FOUND=([core]=$MATCHING_BRANCH_CORE [km]=$MATCHING_BRANCH_CORE [contract]=$MATCHING_BRANCH_CONTRACT)
+        for project in $${PROJECTS[@]}; do
+          DOCKER_IMAGE="enigmampc/$${DOCKER_IMAGES[$project]}"
+          if [[ "$DRONE_BRANCH" == "master" ]]; then
+            docker pull "$DOCKER_IMAGE:latest"
+            docker tag "$DOCKER_IMAGE:latest" "$DOCKER_IMAGE:$DOCKER_TAG"
+          elif [ "$${PROJECT_BRANCH_FOUND[$project]}" -eq 0 ]; then
+            docker pull "$DOCKER_IMAGE:develop"
+            docker tag "$DOCKER_IMAGE:develop" "$DOCKER_IMAGE:$DOCKER_TAG"
           else
-            if [ $MATCHING_BRANCH_CONTRACT -eq 1 ] && [ $MATCHING_BRANCH_CORE -eq 0 ]; then
-              cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$DOCKER_TAG --no-cache . && cd ..
-              docker pull enigmampc/enigma_core_hw:develop
-              docker tag enigmampc/enigma_core_hw:develop enigmampc/enigma_core_hw:$DOCKER_TAG
-              docker pull enigmampc/enigma_km_hw:develop
-              docker tag enigmampc/enigma_km_hw:develop enigmampc/enigma_km_hw:$DOCKER_TAG
+            cd "$${PROJECT_DIRECTORY[$project]}"
+            if [[ "$project" == "km" ]]; then
+              docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+            elif [[ "$project" == "core" ]]; then
+              docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
             else
-              if [ $MATCHING_BRANCH_CONTRACT -eq 0 ] && [ $MATCHING_BRANCH_CORE -eq 1 ]; then
-                cd enigma-core
-                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$DOCKER_TAG --no-cache .
-                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$DOCKER_TAG --no-cache .
-                cd ..
-                docker pull enigmampc/enigma_contract:develop
-                docker tag enigmampc/enigma_contract:develop enigmampc/enigma_contract:$DOCKER_TAG
-              else
-                cd enigma-contract && docker build --build-arg GIT_BRANCH_CONTRACT=${DRONE_BRANCH} -t enigmampc/enigma_contract:$DOCKER_TAG --no-cache . && cd ..
-                cd enigma-core
-                docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_core_hw:$DOCKER_TAG --no-cache .
-                docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t enigmampc/enigma_km_hw:$DOCKER_TAG --no-cache .
-                cd ..
-              fi
+              docker build --build-arg "$${GIT_BRANCH_ARG[$project]}=${DRONE_BRANCH}" -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
             fi
+            cd ..
           fi
-        fi
+        done'
       - cd enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache . && cd ..
       - export NODES=3
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml -f docker-compose.test.yml up --scale core=$NODES --scale p2p=$NODES --exit-code-from client && export RESULT=$? || export RESULT=$?
