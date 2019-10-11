@@ -136,7 +136,7 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
 
       //await api.deploySecretContract(secretContractAddress3, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
-      await api.deploySecretContractFailure(taskId1, gasUsed, signature, {from: workerAddress});
+      await api.deploySecretContractFailure(taskId1, codeHash, gasUsed, signature, {from: workerAddress});
 
       observedCount = await api.countSecretContracts();
       assert.strictEqual(observedCount, 2);
@@ -302,7 +302,7 @@ describe('Ethereum tests', function() {
       await api.commitReceipt(secretContractAddress, taskId3, stateDeltaHash3, outputHash3,
         optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
 
-      await api.commitTaskFailure(secretContractAddress, taskId4, gasUsed, signature);
+      await api.commitTaskFailure(secretContractAddress, outputHash1, taskId4, gasUsed, signature);
 
       api.unsubscribeAll();
       await api.logout();
