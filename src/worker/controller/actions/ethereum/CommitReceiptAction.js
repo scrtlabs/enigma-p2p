@@ -39,11 +39,14 @@ class CommitReceiptAction {
     let err = null;
     let method = null;
 
+    const output = task.getResult().getOutput();
+
     // Deploy task
     if(task instanceof DeployTask) {
       try {
         txReceipt = await this._controller.ethereum().api().deploySecretContractFailure(
           task.getTaskId(),
+          cryptography.hash(output),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
@@ -59,6 +62,7 @@ class CommitReceiptAction {
         txReceipt = this._controller.ethereum().api().commitTaskFailure(
           task.getContractAddr(),
           task.getTaskId(),
+          cryptography.hash(output),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
