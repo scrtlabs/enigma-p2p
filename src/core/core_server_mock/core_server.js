@@ -49,23 +49,21 @@ class MockCoreServer {
     };
   }
 
-  static get GET_PTT_NO_ADDRESSES_REQUEST_MOCK() {
+  static get GET_PTT_REQUEST_MOCK() {
     return 'no addresses';
+  }
+
+  static get GET_DEPLOY_BYTECODE_MOCK() {
+    return '88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc';
   }
 
   static _getPTTRequest(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetPTTRequest)) {
-      let request;
-      if (msg.input && msg.input.addresses) {
-        request = msg.input.addresses;
-      } else {
-        request = MockCoreServer.GET_PTT_NO_ADDRESSES_REQUEST_MOCK;
-      }
       return {
         id: msg.id,
         type: msg.type,
         result: {
-          request: request,
+          request: MockCoreServer.GET_PTT_REQUEST_MOCK,
           workerSig: 'the-worker-sig',
         },
       };
@@ -94,7 +92,7 @@ class MockCoreServer {
         id: msg.id,
         type: msg.type,
         result: {
-          output: [22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99], // AKA exeCode
+          output: MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, // AKA exeCode
           preCodeHash: 'hash-of-the-precode-bytecode',
           delta: {key: 0, data: [11, 2, 3, 5, 41, 44]},
           usedGas: 'amount-of-gas-used',
@@ -269,6 +267,7 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, contract);
           break;
         case MsgTypes.UpdateNewContract:
+        case MsgTypes.UpdateNewContractOnDeployment:
         case MsgTypes.UpdateDeltas:
           if (this._tmpDB instanceof Object) {
             this._writeTmpDB(msg);
@@ -276,7 +275,7 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, {
             type: msg.type,
             id: msg.id,
-            success: true,
+            status: constants.CORE_RESPONSE_STATUS_CODES.OK,
           });
           break;
         case MsgTypes.NewTaskEncryptionKey:

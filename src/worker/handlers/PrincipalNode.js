@@ -30,16 +30,20 @@ class PrincipalNode {
             this._logger.debug('Connecting to principal node: ' + this._uri);
           }
           // Check if there was an error and the operation can be retried
-          if (err && operation.retry(err)) return;
+          if ((err || (response.error && response.error.code && response.error.code === PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE))
+            && operation.retry(true))
+          {
+            this._logger.debug('Error received from KM, will retry..');
+            return;
+          }
 
           // Check if there was an error (after the retries have done) and reject
-          if (err) return reject(response.error);
+          if (err) return reject(err);
 
           // Check the response and reject/resolve accordingly
           if (response.error) return reject(response.error);
           resolve(response.result);
         });
-
       })
 
     });

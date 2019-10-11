@@ -15,11 +15,11 @@ class CommitReceiptAction {
 
     let result = await this._commitTask(task);
     if (result.error) {
-      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${e}`);
+      this._controller.logger().error(`[COMMIT_RECEIPT] error for task ${task.getTaskId()} error=  ${result.error}`);
       err = result.error;
     }
     else {
-      this._controller.logger().info(`[COMMIT_RECEIPT] success for task ${task.getTaskId()} receipt = ${result.txReceipt}`);
+      this._controller.logger().info(`[COMMIT_RECEIPT] success for ${result.method} of task ${task.getTaskId()} receipt = ${result.txReceipt}`);
     }
     if (callback) {
       callback(err);
@@ -37,6 +37,7 @@ class CommitReceiptAction {
   async _commitFailedTask(task) {
     let txReceipt = null;
     let err = null;
+    let method = null;
 
     // Deploy task
     if(task instanceof DeployTask) {
@@ -46,6 +47,7 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "deploySecretContractFailure";
       }
       catch (e) {
         err = e;
@@ -60,17 +62,20 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "commitTaskFailure";
       }
       catch (e) {
         err = e;
       }
     }
-    return {error: err, txReceipt: txReceipt};
+    return {error: err, txReceipt: txReceipt, method: method};
   }
   async _commitSuccessTask(task) {
     let txReceipt = null;
     let err = null;
-    const delta = task.getResult().getDelta();
+    let method = null;
+
+    const isDelta = task.getResult().hasDelta();
     const output = task.getResult().getOutput();
 
     // Deploy task
@@ -78,7 +83,7 @@ class CommitReceiptAction {
       if (!output) {
         err = new errors.InputErr(`No output for deploy task ${task.getTaskId()}`);
       }
-      else if (!delta || (!`data` in delta) || !(delta.data)) {
+      else if (!isDelta) {
         err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       }
       else {
@@ -87,12 +92,13 @@ class CommitReceiptAction {
             task.getTaskId(),
             task.getResult().getPreCodeHash(),
             cryptography.hash(output),
-            cryptography.hash(delta.data),
+            cryptography.hash(task.getResult().getDelta().data),
             task.getResult().getEthPayload(),
             task.getResult().getEthAddr(),
             task.getResult().getUsedGas(),
             task.getResult().getSignature(),
           );
+          method = "deploySecretContract";
         }
         catch (e) {
           err = e;
@@ -107,8 +113,8 @@ class CommitReceiptAction {
       if (output) {
         outputHash = cryptography.hash(output);
       }
-      if (delta && parseInt(delta.key) !== 0) {
-        deltaHash = cryptography.hash(delta.data);
+      if (isDelta) {
+        deltaHash = cryptography.hash(task.getResult().getDelta().data);
       }
       try {
         txReceipt = await this._controller.ethereum().api().commitReceipt(
@@ -121,12 +127,13 @@ class CommitReceiptAction {
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
+        method = "commitReceipt";
       }
       catch (e) {
         err = e;
       }
     }
-    return {error: err, txReceipt: txReceipt};
+    return {error: err, txReceipt: txReceipt, method: method};
   }
 }
 

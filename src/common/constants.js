@@ -170,6 +170,7 @@ module.exports.CORE_REQUESTS = {
   GetDeltas: 'GetDeltas',
   GetContract: 'GetContract',
   UpdateNewContract: 'UpdateNewContract',
+  UpdateNewContractOnDeployment: 'UpdateNewContractOnDeployment',
   UpdateDeltas: 'UpdateDeltas',
   UpdateDb: 'UpdateDb',
   NewTaskEncryptionKey: 'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
@@ -178,6 +179,11 @@ module.exports.CORE_REQUESTS = {
   FailedTask: 'FailedTask', // failed task returned FROM core as a response to deploy/compute -> valid response should be commited.
   GetPTTRequest: 'GetPTTRequest', // Get The PTT request from core with addresses.
   PTTResponse: 'PTTResponse', // Give Core the response from the principal node.
+};
+
+// Status codes returned from core
+module.exports.CORE_RESPONSE_STATUS_CODES = {
+  OK: 0
 };
 
 /** Default configuration for JSON RPC Server
@@ -252,4 +258,5 @@ module.exports.PRINCIPAL_NODE = {
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
+  EPOCH_STATE_TRANSITION_ERROR_CODE: -32002
 };

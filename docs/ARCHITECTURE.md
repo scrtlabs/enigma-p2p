@@ -319,7 +319,18 @@ There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/m
 # Running the Node
 * TBD
 # Running the tests
-* TBD
+
+```bash
+sudo npm install -g truffle
+git clone git@github.com:enigmampc/enigma-p2p.git
+cd enigma-p2p
+npm install
+npm run test
+```
+
+## Troubleshooting
+If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the ports `5555`, `5556`, `5557`, `5558`, `6785`, `7890` (from `./test/ipc_test.js`).
+
 # How it works
 
 ## Overview on start 

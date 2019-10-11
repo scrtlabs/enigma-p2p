@@ -6,6 +6,15 @@ const cryptography = require('../common/cryptography');
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
 
+/*
+Using "Ox" in hexadecimal strings: (not sure this belongs here but don't have a better place at the moment)
+Ethereum by default uses "0x" when representing hexadecimal strings, while Javascript dismisses the "0x".
+So in Enigma-P2P most hexadecimal strings are represented without "0x":
+TaskId and secretContractAddresses are thus treated everywhere without "0x" but hashes are represented the way Ethereum does,
+because we use web3 for the hash calculation. This inconsistency is misleading and should be addressed properly. TODO(lenak)
+ */
+
+
 class EnigmaContractReaderAPI {
   /**
    * {string} enigmaContractAddress
@@ -95,7 +104,21 @@ class EnigmaContractReaderAPI {
         if (error) {
           reject(error);
         }
-        resolve(data);
+        if (data) {
+          if (Array.isArray(data)) {
+              let newScAddressesArray = [];
+              data.forEach((scAddress) => {
+                newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+              });
+              resolve(newScAddressesArray);
+          }
+          else {
+            resolve(nodeUtils.remove0x(data));
+          }
+        }
+        else {
+          resolve(data);
+        }
       });
     });
   }
@@ -384,7 +407,7 @@ class EnigmaContractReaderAPI {
        * */
       'ReceiptVerified': (event) => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           stateDeltaHash: event.returnValues.stateDeltaHash,
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
           outputHash: event.returnValues.outputHash,
@@ -412,7 +435,7 @@ class EnigmaContractReaderAPI {
        * */
       'ReceiptFailed': (event) => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           signature: event.returnValues.sig,
         };
       },
@@ -443,13 +466,13 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} initDeltaHash
+       * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} stateDeltaHash
        * */
       'SecretContractDeployed': (event) => {
         return {
-          secretContractAddress: event.returnValues.scAddr,
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.scAddr),
           codeHash: event.returnValues.codeHash,
-          initDeltaHash: event.returnValues.initDeltaHash,
+          stateDeltaHash: event.returnValues.initStateDeltaHash,
         };
       },
     };

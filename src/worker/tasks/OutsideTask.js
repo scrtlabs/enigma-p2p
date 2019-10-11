@@ -1,6 +1,5 @@
 const Task = require('./Task');
 const Result = require('./Result').Result;
-const constants = require('../../common/constants');
 const nodeUtils = require('../../common/utils');
 
 class OutsideTask extends Task{

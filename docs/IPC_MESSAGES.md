@@ -190,7 +190,28 @@ Response:
     }
 }
 ```
-
+### `UpdateNewContractOnDeployment` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : UpdateNewContractOnDeployment,
+    address : ...,
+    bytecode : 'the-bytecode'
+    delta : [key, data : []]
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : UpdateNewContractOnDeployment,
+    address : ...,
+    result : {
+        status : 0 or err code
+    }
+}
+```
 ### `UpdateDeltas` message
 Request:
 ```
@@ -219,10 +240,7 @@ Request:
 ```
 {
     id: <unique_request_id>,
-    type: GetPTTRequest,
-    input: {
-        addresses: [addrress]
-    }
+    type: GetPTTRequest
 }
 ```
 
@@ -241,7 +259,6 @@ The request is a signed messagepack that looks like this:
 ```
 {
     prefix: b"Enigma Message",
-    data: [addresses],
     pubkey: 'DH pubkey',
     id: '12-bytes-msgID',
 }

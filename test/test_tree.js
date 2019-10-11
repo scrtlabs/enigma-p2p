@@ -13,7 +13,6 @@ module.exports.TEST_TREE = {
     '#4': true,
     '#5': true,
     '#6': true,
-    '#7': true,
   },
   'coverage' :{
     'all' : true,
@@ -46,6 +45,9 @@ module.exports.TEST_TREE = {
   'task_flow' : {
     'all' :true,
     '#1' : true,
+    '#2' : true,
+    '#3' : true,
+    '#4' : true,
   },
   'sync_basic':{
     'all' : true,

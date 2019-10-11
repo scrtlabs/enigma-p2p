@@ -88,6 +88,29 @@
     "required": ["address", "bytecode"],
     "additionalProperties": false
   },
+  "UpdateNewContractOnDeployment": {
+    "properties": {
+      "address": {"type": "string"},
+      "bytecode": {"type": "string"},
+      "delta":{
+        "type": "object",
+        "properties": {
+          "key": {"type": "number"},
+          "data": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minItems": 1
+            }
+          }
+        },
+        "required": ["key", "data"],
+        "additionalProperties": false
+      }
+    },
+    "required": ["address", "bytecode", "delta"],
+    "additionalProperties": false
+  },
   "UpdateDeltas": {
     "properties": {
       "deltas":{
@@ -163,21 +186,7 @@
     "required": ["input"],
     "additionalProperties": false
   },
-  "GetPTTRequest": {
-    "properties": {
-      "input": {
-        "type": "object",
-        "properties": {
-          "addresses": {
-            "type": "array",
-            "minItems": 1
-          }
-        },
-        "additionalProperties": false
-      }
-    },
-    "additionalProperties": false
-  },
+  "GetPTTRequest": {},
   "PTTResponse": {
     "properties": {
       "input": {

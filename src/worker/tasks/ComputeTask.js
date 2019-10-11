@@ -8,7 +8,7 @@ class ComputeTask extends Task {
    * @return {ComputeTask} task
    * */
   static buildTask(computeReqMsg) {
-    const expected = ['taskId', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress'];
+    const expected = ['taskId', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress', 'blockNumber'];
     const isMissing = expected.some((attr)=>{
       return !(attr in computeReqMsg);
     });
@@ -22,20 +22,16 @@ class ComputeTask extends Task {
           computeReqMsg.encryptedFn,
           computeReqMsg.userDHKey,
           computeReqMsg.gasLimit,
-          computeReqMsg.contractAddress
+          computeReqMsg.contractAddress,
+          computeReqMsg.blockNumber
       );
     }
   }
-  constructor(taskId, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr) {
-    super(taskId, constants.CORE_REQUESTS.ComputeTask);
+  constructor(taskId, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr, blockNumber) {
+    super(taskId, constants.CORE_REQUESTS.ComputeTask, contractAddr, gasLimit, blockNumber);
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
     this._userDHKey = userDHKey;
-    this._gasLimit = gasLimit;
-    this._contractAddr = contractAddr;
-  }
-  setGasLimit(gasLimit) {
-    this._gasLimit = gasLimit;
   }
   getEncyptedArgs() {
     return this._encryptedArgs;
@@ -46,12 +42,6 @@ class ComputeTask extends Task {
   getUserDHKey() {
     return this._userDHKey;
   }
-  getGasLimit() {
-    return this._gasLimit;
-  }
-  getContractAddr() {
-    return this._contractAddr;
-  }
   toDbJson() {
     const output = {
       status: this.getStatus(),
@@ -61,6 +51,7 @@ class ComputeTask extends Task {
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
+      blockNumber: this.getBlockNumber()
     };
     if (this.isFinished()) {
       output.result = this._result.toDbJson();

@@ -44,7 +44,7 @@ class VerifyAndStoreResultAction {
             await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
           }
           catch (e) {
-            this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+            this._controller.logger().error(`[UPDATE_CORE] can't update core with outside task results -> ${e}`);
             if (optionalCallback) {
               optionalCallback(e);
             }
@@ -72,16 +72,17 @@ class VerifyAndStoreResultAction {
           }
         }
         catch (e) {
-          this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+          this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
           error = e;
         }
       }
-      this._controller.logger().debug(`[UPDATE_DB] : is_err ?  ${error}`);
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished : is_err ?  ${error}`);
       if (optionalCallback) {
         return optionalCallback(error);
       }
     }
     else { // if (err)
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished with an error:  ${err}`);
       if(optionalCallback){
         return optionalCallback(err);
       }
@@ -99,7 +100,8 @@ class VerifyAndStoreResultAction {
       return {
         address: contractAddr,
         bytecode: taskResult.getOutput(),
-        type: constants.CORE_REQUESTS.UpdateNewContract,
+        type: constants.CORE_REQUESTS.UpdateNewContractOnDeployment,
+        delta: taskResult.getDelta(),
       };
     }
     // ComputeResult
@@ -130,7 +132,7 @@ class VerifyAndStoreResultAction {
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
           let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
-          if (!tips || tips[0].address !== contractAddress) {
+          if (!tips || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
           }
           else {

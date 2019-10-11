@@ -49,10 +49,12 @@ class EthereumVerifier {
    * @param {string} workerAddress
    * @return {Promise} returning {JSON} {Boolean} isVerified - true/false if the task verified,
    *                                    {Error} error
+   *                                    {Integer} blockNumber
+   *                                    {Integer} gasLimit
    */
   verifyTaskCreation(task, workerAddress) {
     return new Promise((resolve) => {
-      let result = {isVerified: false, gasLimit: null, error: null};
+      let result = {isVerified: false, gasLimit: null, blockNumber: null, error: null};
       if (!(task instanceof Task)) {
         result.error = new errors.TypeErr('Wrong task type');
         return resolve(result);
@@ -70,6 +72,7 @@ class EthereumVerifier {
             result.error = res2.error;
             result.isVerified = res2.isVerified;
             result.gasLimit = res.taskParams.gasLimit;
+            result.blockNumber = res.taskParams.blockNumber;
           }
           else {
             result.error = res.error;
@@ -95,7 +98,7 @@ class EthereumVerifier {
         result.error = new errors.TypeErr('Wrong task result type');
         return resolve(result);
       }
-      this._createTaskSubmissionListener(task, localTip, resolve);
+      this._createTaskSubmissionListener(task, resolve);
       this._verifyTaskSubmissionNow(task, contractAddress, localTip).then( (res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
@@ -147,9 +150,9 @@ class EthereumVerifier {
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
         let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
-        return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: event.gasLimit});
+        return resolve({error: res2.error, isVerified: res2.isVerified, gasLimit: event.gasLimit, blockNumber: event.blockNumber});
       }
-      return resolve({error: res.error, isVerified: res.isVerified, gasLimit: null});
+      return resolve({error: res.error, isVerified: res.isVerified, gasLimit: null, blockNumber: null});
     });
   }
 
@@ -165,7 +168,7 @@ class EthereumVerifier {
     return Object.keys(this._unverifiedCreateTasks);
   }
 
-  _createTaskSubmissionListener(task, localTip, resolve) {
+  _createTaskSubmissionListener(task, resolve) {
     const taskId = task.getTaskId();
     this._setTaskSubmissionListener(taskId, (event) => {
       // First verify the case of a FailedResult
@@ -191,7 +194,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash)
+              const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -201,7 +204,7 @@ class EthereumVerifier {
               resolve({error:err, isVerified: false});
             }
             else {
-              const res = this._checkComputeResultEvent(task, event.outputHash, event.stateDeltaHash, event.stateDeltaHashIndex)
+              const res = this._checkComputeResultEvent(task, event.outputHash, event.stateDeltaHash, event.stateDeltaHashIndex);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -390,8 +393,12 @@ class EthereumVerifier {
     }
     // No delta
     else {
-      if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[contractParams.deltaHashes.length-1], localTip)) {
-        error = new errors.TaskVerificationErr("Mismatch in last local tip hash - no state change for task " + task.getTaskId());
+      const lastDeltaIndex = contractParams.deltaHashes.length-1;
+      if (lastDeltaIndex !== localTip.key) {
+        error = new errors.TaskVerificationErr("Mismatch in last local tip index (no state change) for task " + task.getTaskId());
+      }
+      else if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[lastDeltaIndex], localTip.data)) {
+        error = new errors.TaskVerificationErr("Mismatch in last local tip hash (no state change) for task " + task.getTaskId());
       }
     }
     // All fine by now...

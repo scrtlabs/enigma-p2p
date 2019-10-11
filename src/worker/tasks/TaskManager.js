@@ -277,6 +277,17 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
+   * promise based version of onFinishTask
+   * */
+  async asyncGetTaskStatus(taskId) {
+    return new Promise((res, rej)=>{
+      this.getTask(taskId, (err, task)=>{
+        if (err) rej(err);
+        else res(task.getStatus());
+      });
+    });
+  }
+  /**
    * callback by an action that finished computation
    * update db
    * notify

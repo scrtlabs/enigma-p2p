@@ -23,6 +23,7 @@ class VerifyNewTaskAction {
             }
             else if (res.isVerified) {
               unverifiedTask.setGasLimit(res.gasLimit);
+              unverifiedTask.setBlockNumber(res.blockNumber);
               this._controller.logger().debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`);
               isVerified = true;
             }

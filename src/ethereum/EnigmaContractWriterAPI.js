@@ -329,28 +329,28 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   /** same as above but for a batch */
-  commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
-                 optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
-    return new Promise((resolve, reject) => {
-      let transactionOptions = this._defaultTrxOptions;
-      if (txParams !== undefined && txParams !== null) {
-        const error = this._validateTxParams(txParams);
-        if (error !== null) {
-          reject(error);
-          return;
-        }
-        transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
-      }
-      this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
-        optionalEthereumContractAddress, gasUsed, signature)
-          .send(transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
-    });
-  }
+  // commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
+  //                optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
+  //   return new Promise((resolve, reject) => {
+  //     let transactionOptions = this._defaultTrxOptions;
+  //     if (txParams !== undefined && txParams !== null) {
+  //       const error = this._validateTxParams(txParams);
+  //       if (error !== null) {
+  //         reject(error);
+  //         return;
+  //       }
+  //       transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
+  //     }
+  //     this._enigmaContract.methods.commitReceipts(secretContractAddresses, taskIds, stateDeltaHashes, outputHashes, optionalEthereumData,
+  //       optionalEthereumContractAddress, gasUsed, signature)
+  //         .send(transactionOptions, (error, receipt)=> {
+  //           if (error) {
+  //             reject(error);
+  //           }
+  //           resolve(receipt);
+  //         });
+  //   });
+  // }
   /**
    * Worker commits the failed task result on-chain
    * @param {string} secretContractAddress
