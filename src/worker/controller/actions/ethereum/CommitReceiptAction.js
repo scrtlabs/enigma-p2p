@@ -7,11 +7,15 @@ class CommitReceiptAction {
   constructor(controller) {
     this._controller = controller;
   }
-  async execute(params) {
+  async asyncExecute(params) {
     const task = params.task;
-    const callback = params.callback;
-    if (!task) return;
     let err = null;
+
+    if (!task) {
+      err = new errors.InputErr(`No task supplied for CommitReceiptAction`);
+      return err;
+    }
+
     let result;
 
     if (task instanceof DeployTask) {
@@ -32,18 +36,16 @@ class CommitReceiptAction {
         this._controller.logger().info(`[COMMIT_RECEIPT] success for compute of task ${task.getTaskId()}`);
       }
     }
-    if (callback) {
-      callback(err);
-    }
+    return err;
   }
 
   async _commitDeployTask(task) {
     let err = null;
 
-    const isDelta = task.getResult().hasDelta();
-
     if (task.getResult().isSuccess()) {
-      if (!isDelta) {
+      let revertRequired = false;
+
+      if (!task.getResult().hasDelta()) {
         err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       }
       else {
@@ -62,12 +64,14 @@ class CommitReceiptAction {
           //TODO: improve this: use services concept instead of the raw Enigma contract events
           if (constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH in events) {
             this._controller.logger().info(`[COMMIT_RECEIPT] received ReceiptFailedETH event after committing deploy task ${task.getTaskId()}.. Reverting state`);
-            let res = await this._revertState(task, true);
-            err = res.error;
+            revertRequired = true;
           }
         }
         catch (e) {
           this._controller.logger().info(`[COMMIT_RECEIPT] received an error while trying to commit deployment of task ${task.getTaskId()} error=${e}.. Reverting state`);
+          revertRequired = true;
+        }
+        if (revertRequired) {
           let res = await this._revertState(task, true);
           err = res.error;
         }
@@ -92,14 +96,11 @@ class CommitReceiptAction {
   async _commitComputeTask(task) {
     let err = null;
 
-    const isDelta = task.getResult().hasDelta();
-
     if (task.getResult().isSuccess()) {
-      let deltaHash = constants.ETHEREUM_EMPTY_HASH;
+      const isDelta = task.getResult().hasDelta();
+      let deltaHash = isDelta ? cryptography.hash(task.getResult().getDelta().data) : constants.ETHEREUM_EMPTY_HASH;
+      let revertRequired = false;
 
-      if (isDelta) {
-        deltaHash = cryptography.hash(task.getResult().getDelta().data);
-      }
       try {
         let events = await this._controller.ethereum().api().commitReceipt(
           task.getContractAddr(),
@@ -115,20 +116,17 @@ class CommitReceiptAction {
         //TODO: improve this: use services concept instead of the raw Enigma contract events
         if (constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH in events) {
           this._controller.logger().info(`[COMMIT_RECEIPT] received ReceiptFailedETH event after committing compute task ${task.getTaskId()}`);
-          if (isDelta) {
-            this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
-            let res = await this._revertState(task, true);
-            err = res.error;
-          }
+          revertRequired = true;
         }
       }
       catch (e) {
         this._controller.logger().info(`[COMMIT_RECEIPT] received an error while trying to commit compute task ${task.getTaskId()} error=${e}`);
-        if (isDelta) {
-          this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
-          let res = await this._revertState(task, true);
-          err = res.error;
-        }
+        revertRequired = true;
+      }
+      if (revertRequired && isDelta) {
+        this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
+        let res = await this._revertState(task, false);
+        err = res.error;
       }
     }
     else {
