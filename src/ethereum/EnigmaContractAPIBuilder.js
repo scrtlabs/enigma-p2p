@@ -164,6 +164,10 @@ class EnigmaContractAPIBuilder {
       if (options.ethereumUrlProvider) {
         config.url = options.ethereumUrlProvider;
       }
+      if (options.ethereumContractAbiPath) {
+        const rawdata = fs.readFileSync(options.ethereumContractAbiPath);
+        config.enigmaContractABI = JSON.parse(rawdata).abi;
+      }
       res = await this.useDeployed(config).setEthereumAddress(ethereumAddress).build();
     } else {
       res = await this.createNetwork().deploy().setEthereumAddress(ethereumAddress).build();
