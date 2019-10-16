@@ -124,6 +124,7 @@ if set to `true` will return the `output` of the task if and only if the task st
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
 - `SUCCESS`: Success
 - `FAILED`: Failure
+- `ETHEREUMFAILURE`: Task failed due to an Ethereum callback failure
 
 `output` - byte array representing the output of the computation
 
