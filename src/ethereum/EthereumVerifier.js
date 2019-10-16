@@ -355,14 +355,24 @@ class EthereumVerifier {
             res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
           }
         }
-        else {
+        else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_ETH) {
+          res.canBeVerified = true;
+          res.isVerified = false;
+          res.error = new errors.TaskEthereumFailureErr('Task ' + taskId + ' was failed due to Ethereum');
+        }
+        else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_CANCELLED) {
+          res.canBeVerified = true;
+          res.isVerified = false;
+          res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: task was cancelled by the user`);
+        }
+        else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
           // If the task was created already, use its mined block number instead for the timeout calculations
-          if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
-            if (taskId in this._getAllTaskSubmissionIds()) {
-              let {listener, blockNumber} = this._getTaskSubmissionListener(taskId);
-              this._setTaskSubmissionListener(taskId, taskParams.blockNumber, listener);
-            }
+          if (taskId in this._getAllTaskSubmissionIds()) {
+            let {listener, blockNumber} = this._getTaskSubmissionListener(taskId);
+            this._setTaskSubmissionListener(taskId, taskParams.blockNumber, listener);
           }
+        }
+        else { // taskParams.status === RECORD_UNDEFINED
           res.canBeVerified = false;
           res.isVerified = null;
           res.error = null;

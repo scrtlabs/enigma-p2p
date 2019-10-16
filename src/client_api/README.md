@@ -163,6 +163,7 @@ Queries the node for the potential result of a given Task identified by its `tas
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
 - `SUCCESS`: Success
 - `FAILED`: Failure
+- `ETHEREUMFAILURE`: Task failed due to an Ethereum callback failure
 
 `output` - byte array representing the output of the computation.
 

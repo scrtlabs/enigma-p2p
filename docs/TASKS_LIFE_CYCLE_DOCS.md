@@ -32,6 +32,10 @@ Every task is identified by its unique global id both in the system and in the n
   <summary>Failed</summary>
   <p>Indicates that the task execution failed. Always includes an error message.</p>
 </details>
+<details>
+  <summary>Ethereum-Failure</summary>
+  <p>Indicates that the task failed due to a failure in the Ethereum callback..</p>
+</details>
 
 # Task Result Propagation in the network
 All the task results are either `Failed` or `Success`, and the result is published to a topic called `/task_status/0.1`. 
