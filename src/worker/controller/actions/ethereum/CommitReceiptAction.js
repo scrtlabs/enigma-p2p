@@ -81,6 +81,7 @@ class CommitReceiptAction {
       try {
         await this._controller.ethereum().api().deploySecretContractFailure(
           task.getTaskId(),
+          cryptography.hash(task.getResult().getOutput()),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
@@ -134,6 +135,7 @@ class CommitReceiptAction {
         await this._controller.ethereum().api().commitTaskFailure(
           task.getContractAddr(),
           task.getTaskId(),
+          cryptography.hash(task.getResult().getOutput()),
           task.getResult().getUsedGas(),
           task.getResult().getSignature(),
         );
