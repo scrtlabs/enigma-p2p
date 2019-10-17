@@ -3,10 +3,8 @@ const assert = require('assert');
 const TEST_TREE = require(path.join(__dirname, '../test_tree')).TEST_TREE;
 const EnigmaContractAPIBuilder = require(path.join(__dirname, '../../src/ethereum/EnigmaContractAPIBuilder'));
 const EthereumServices = require(path.join(__dirname, '../../src/ethereum/EthereumServices'));
-const EthereumAPI = require(path.join(__dirname, '../../src/ethereum/EthereumAPI'));
 const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 const testParameters = require('./test_parameters.json');
-const Logger = require('../../src/common/logger');
 const constants = require('../../src/common/constants');
 const utils = require('../../src/common/utils');
 
@@ -46,34 +44,35 @@ describe('Ethereum tests', function() {
       const gasUsed = 10;
       const zeroAddress = '0x0000000000000000000000000000000000000000';
 
-      eventSubscribe(api, 'Registered', {}, getEventRecievedFunc('Registered',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.Registered, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Registered,
         (result)=> {
           assert.strictEqual(result.signer, workerEnclaveSigningAddress);
           assert.strictEqual(result.workerAddress, workerAddress);
         }));
 
-      eventSubscribe(api, 'DepositSuccessful', {}, getEventRecievedFunc('DepositSuccessful',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.DepositSuccessful, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
         (result)=> {
           assert.strictEqual(result.from, workerAddress);
           assert.strictEqual(result.value, depositValue);
         }));
 
-      eventSubscribe(api, 'SecretContractDeployed', {}, getEventRecievedFunc('SecretContractDeployed',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
         (result)=> {
           assert.strictEqual(result.secretContractAddress, secretContractAddress);
           assert.strictEqual(result.codeHash, codeHash);
         }));
 
-      eventSubscribe(api, 'WithdrawSuccessful', {}, getEventRecievedFunc('WithdrawSuccessful',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful,
         (result)=> {
           assert.strictEqual(result.to, workerAddress);
           assert.strictEqual(result.value, depositValue);
         }));
 
-      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-      await api.deposit(workerAddress, depositValue, {from: workerAddress});
+      let events = await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
+      assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.Registered in events, true);
+      events = await api.deposit(workerAddress, depositValue, {from: workerAddress});
+      assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful in events, true);
       await api.login({from: workerAddress});
-
 
       let workerState = await api.getWorker(workerAddress);
 
@@ -96,7 +95,8 @@ describe('Ethereum tests', function() {
       observedAddresses = await api.getAllSecretContractAddresses();
       assert.strictEqual(observedAddresses.length, 0);
 
-      await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+      events = await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+      assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed in events, true);
 
       // Verify the number of secret-accounts after deploying one
       const countAfter = await api.countSecretContracts();
@@ -226,7 +226,7 @@ describe('Ethereum tests', function() {
 
       const mock_taskId ="0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
 
-      eventSubscribe(api, 'TaskRecordCreated', {}, getEventRecievedFunc('TaskRecordCreated',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated,
         (result)=> {
           assert.strictEqual(result.taskId, mock_taskId);
           assert.strictEqual(result.gasLimit, gasLimit);
@@ -253,7 +253,7 @@ describe('Ethereum tests', function() {
 
       let count = 0;
 
-      eventSubscribe(api, 'ReceiptVerified', {}, getEventRecievedFunc('ReceiptVerified',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
           (result)=> {
             switch (count){
               case 0:
@@ -285,7 +285,7 @@ describe('Ethereum tests', function() {
           }));
 
 
-      eventSubscribe(api, 'ReceiptFailed', {}, getEventRecievedFunc('ReceiptFailed',
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
           (result)=> {
             assert.strictEqual(result.taskId, taskId4);
             assert.strictEqual(result.signature, signature);

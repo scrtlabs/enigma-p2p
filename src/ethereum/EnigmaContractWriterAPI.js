@@ -393,6 +393,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     for (let eventName of Object.keys(txReceipt.events)) {
       parsedEvents[eventName] = this._eventParsers[eventName](txReceipt.events[eventName]);
     }
+    return parsedEvents;
   }
   _validateTxParams(txParams) {
     if ('gas' in txParams) {

@@ -19,7 +19,7 @@ class CommitReceiptAction {
     let result;
 
     if (task instanceof DeployTask) {
-      result = await this._commitDeployTask();
+      result = await this._commitDeployTask(task);
       if (result.error) {
         err = result.error;
       }
@@ -28,7 +28,7 @@ class CommitReceiptAction {
       }
     }
     else {
-      result = await this._commitComputeTask();
+      result = await this._commitComputeTask(task);
       if (result.error) {
         err = result.error;
       }
