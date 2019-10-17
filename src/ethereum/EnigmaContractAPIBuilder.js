@@ -8,7 +8,6 @@ const fs = require('fs');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
 TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
-const truffleConfig = require(path.join(TRUFFLE_DIR, 'truffle'));
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
@@ -215,6 +214,8 @@ class EnigmaContractAPIBuilder {
 
     await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
+
+    const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
 
     const networkId = truffleConfig.networks.development.network_id;
     const rawdata = fs.readFileSync((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
