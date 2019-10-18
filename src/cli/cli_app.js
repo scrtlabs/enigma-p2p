@@ -29,6 +29,7 @@ class CLI {
     // Ethereum stuff
     this._initEthereum = false;
     this._enigmaContractAddress = null;
+    this._enigmaContractAbiPath = null;
     this._ethereumWebsocketProvider = null;
     this._ethereumAddress = null;
     this._autoInit = false;
@@ -466,6 +467,7 @@ class CLI {
         ethereumUrlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
         ethereumAddress: this._ethereumAddress,
+        ethereumContractAbiPath: this._enigmaContractAbiPath
       });
     }
     const nodeConfig = this._getFinalConfig();
