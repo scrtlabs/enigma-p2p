@@ -34,7 +34,7 @@ Every task is identified by its unique global id both in the system and in the n
 </details>
 <details>
   <summary>Ethereum-Failure</summary>
-  <p>Indicates that the task failed due to a failure in the Ethereum callback..</p>
+  <p>Indicates that the task failed due to a failure in the Ethereum callback.</p>
 </details>
 
 # Task Result Propagation in the network
