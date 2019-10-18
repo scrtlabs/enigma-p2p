@@ -143,6 +143,30 @@ describe('Verifier tests', function() {
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
     }
+
+    // status == RECEIPT_FAILED_ETH
+    status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_ETH;
+    if (isComputeTask) {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
+    }
+    else {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
+    }
+    res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.TaskEthereumFailureErr, true);
+
+    // status == RECEIPT_FAILED_CANCELLED
+    status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_CANCELLED;
+    if (isComputeTask) {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
+    }
+    else {
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
+    }
+    res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
   }
 
   async function initStuffForTaskSubmission() {

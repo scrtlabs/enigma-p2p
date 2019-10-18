@@ -1,17 +1,16 @@
 const EventEmitter = require('events');
 
 const constants = require('../common/constants');
-const EVENTS = constants.ETHEREUM_EVENTS;
 
 let servicesMap = {};
 
-servicesMap[EVENTS.NewEpoch] = ['WorkersParameterized'];
-servicesMap[EVENTS.TaskCreation] = ['TaskRecordCreated'];
-servicesMap[EVENTS.TaskSuccessSubmission] = ['ReceiptVerified'];
-servicesMap[EVENTS.TaskFailureSubmission] = ['ReceiptFailed'];
-servicesMap[EVENTS.TaskFailureDueToEthereumCB] = ['ReceiptFailedETH'];
-servicesMap[EVENTS.TaskCancelled] = ['TaskFeeReturned'];
-servicesMap[EVENTS.SecretContractDeployment] = ['SecretContractDeployed'];
+servicesMap[constants.ETHEREUM_EVENTS.NewEpoch] = [constants.RAW_ETHEREUM_EVENTS.WorkersParameterized];
+servicesMap[constants.ETHEREUM_EVENTS.TaskCreation] = [constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated];
+servicesMap[constants.ETHEREUM_EVENTS.TaskSuccessSubmission] = [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified];
+servicesMap[constants.ETHEREUM_EVENTS.TaskFailureSubmission] = [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed];
+servicesMap[constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB] = [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH];
+servicesMap[constants.ETHEREUM_EVENTS.TaskCancelled] = [constants.RAW_ETHEREUM_EVENTS.TaskFeeReturned];
+servicesMap[constants.ETHEREUM_EVENTS.SecretContractDeployment] = [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed];
 
 
 class EthereumServices extends EventEmitter {

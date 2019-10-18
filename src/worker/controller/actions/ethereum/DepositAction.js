@@ -11,8 +11,8 @@ class DepositAction {
     let err = null;
 
     try {
-      const txReceipt = await this._controller.ethereum().api().selfDeposit(amount);
-      this._controller.logger().info(`[DEPOSIT] successful deposit, receipt = ${txReceipt}`);
+      await this._controller.ethereum().api().selfDeposit(amount);
+      this._controller.logger().info(`[DEPOSIT] successful deposit`);
       success = true;
     } catch (e) {
       this._controller.logger().error(`[DEPOSIT] error=  ${e}`);

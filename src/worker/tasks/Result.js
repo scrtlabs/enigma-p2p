@@ -12,6 +12,9 @@ class Result {
   getStatus() {
     return this._status;
   }
+  setStatus(status) {
+    this._status = status;
+  }
   isSuccess() {
     return this._status === constants.TASK_STATUS.SUCCESS;
   }

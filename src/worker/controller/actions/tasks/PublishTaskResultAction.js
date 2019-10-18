@@ -7,6 +7,7 @@
 const constants = require('../../../../common/constants');
 const DeployTask = require('../../../tasks/DeployTask');
 const EngCid = require('../../../../common/EngCID');
+
 class PublishTaskResultAction {
   constructor(controller) {
     this._controller = controller;
@@ -14,6 +15,7 @@ class PublishTaskResultAction {
   async execute(params) {
     const task = params.task;
     let taskType;
+    let err = null;
 
     if (task.isSuccess()) {
       taskType = task.getTaskType();
@@ -30,24 +32,31 @@ class PublishTaskResultAction {
         type: taskType,
       }),
     });
-    // announce as provider if its deployment and successfull
-    if (task instanceof DeployTask && task.getResult().isSuccess()){
-      let ecid = EngCid.createFromSCAddress(task.getContractAddr());
-      if(ecid){
-        try{
-          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-        }catch(e){
-          this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
-        }
-      }else{
-        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
-      }
-    }
-    // commit to ethereum
+
+    // commit to Ethereum
     if (this._controller.hasEthereum()) {
-      this._controller.execCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
+      err = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
         task: task,
       });
+      if (err) {
+        this._controller.logger().info(`[PUBLISH_ANNOUNCE_TASK] error occurred in task ${task.getTaskId()} commit`);
+      }
+    }
+
+    // announce as provider if its deployment and successful and no error occurred in task's commit
+    if (task instanceof DeployTask && task.getResult().isSuccess() && !err){ //
+      let ecid = EngCid.createFromSCAddress(task.getContractAddr());
+      if (ecid) {
+        try {
+          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
+        }
+        catch(e) {
+          this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
+        }
+      }
+      else {
+        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
+      }
     }
   }
 }

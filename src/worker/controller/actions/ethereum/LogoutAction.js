@@ -10,8 +10,8 @@ class LogoutAction {
     let err = null;
 
     try {
-      const txReceipt = await this._controller.ethereum().api().logout();
-      this._controller.logger().info(`[LOGOUT] successful logout, receipt = ${txReceipt}`);
+      await this._controller.ethereum().api().logout();
+      this._controller.logger().info(`[LOGOUT] successful logout`);
       logoutSuccess = true;
     } catch (e) {
       this._controller.logger().error(`[LOGOUT] error in logout error=  ${e}`);
