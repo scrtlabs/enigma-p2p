@@ -61,7 +61,6 @@ it('#1 run init and healthCheck', async function() {
     const testPeer = await testBuilder.createNode({withEth : true, ethWorkerAddress: workerAddress, stateful: true});
     await testUtils.sleep(1000);
 
-    const controller = testPeer.mainController;
     const coreServer = testPeer.coreServer;
 
     let noTipsReceiver = [];
@@ -69,20 +68,20 @@ it('#1 run init and healthCheck', async function() {
     await bNodeController.getNode().asynctryAnnounce();
     coreServer.setReceiverTips(noTipsReceiver);
     await testPeer.mainController.getNode().asyncInitializeWorkerProcess({amount: 50000});
-    // await testUtils.sleep(2000);
-    let hc = await testPeer.mainController.healthCheck();
+
     // assertion checks
-    assert.strictEqual(hc.status, true);
+    // we check what was previously the health check:
+    // receiving the registration params + checking the missing states
 
-    assert.strictEqual(hc.connection.outbound, 8);
-    assert.strictEqual(hc.connection.status, true);
+    let coreUri = testPeer.mainController.getIpcClient().getUri();
+    let regParams = await testPeer.mainController.getNode().asyncGetRegistrationParams();
 
-    assert.strictEqual(hc.core.status, true);
-    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
-    assert.strictEqual(hc.ethereum.status, true);
+    assert.strictEqual(coreUri != null, true);
+    assert.strictEqual(regParams.result.signingKey.length, 42);
 
-    assert.strictEqual(Object.keys(hc.state.missing).length, 0);
-    assert.strictEqual(hc.state.status, true);
+    let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
+
+    assert.strictEqual(Object.keys(missingStates["missingStatesMap"]).length, 0);
 
     // STOP EVERYTHING
     peers.push(testPeer);

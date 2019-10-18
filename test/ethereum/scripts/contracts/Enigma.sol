@@ -88,7 +88,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     modifier canWithdraw(address _user) {
         EnigmaCommon.Worker memory worker = state.workers[_user];
         require(worker.status == EnigmaCommon.WorkerStatus.LoggedOut, "Worker not registered or not logged out");
-        EnigmaCommon.WorkerLog memory workerLog = WorkersImpl.getLatestWorkerLogImpl(state, worker, block.number);
+        EnigmaCommon.WorkerLog memory workerLog = WorkersImpl.getLatestWorkerLogImpl(worker, block.number);
         require(workerLog.workerEventType == EnigmaCommon.WorkerLogType.LogOut,
             "Worker's last log is not of LogOut type");
         // MOCK
@@ -201,11 +201,13 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * Deploy secret contract from user, called by the worker.
     *
     * @param _taskId Task ID of corresponding deployment task (taskId == scAddr)
+    * @param _codeHash Deployed bytecode hash
     * @param _gasUsed Gas used for task
     * @param _sig Worker's signature for deployment
     */
     function deploySecretContractFailure(
         bytes32 _taskId,
+        bytes32 _codeHash,
         uint64 _gasUsed,
         bytes memory _sig
     )
@@ -213,7 +215,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     workerLoggedIn(msg.sender)
     contractUndefined(_taskId)
     {
-        TaskImpl.deploySecretContractFailureImpl(state, _taskId, _gasUsed, _sig);
+        TaskImpl.deploySecretContractFailureImpl(state, _taskId, _codeHash, _gasUsed, _sig);
     }
 
     /**
@@ -343,7 +345,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
 
     /**
     * Commit the computation task results on chain by first verifying the receipt and then the worker's signature.
-    * The task record is finalized and the worker is credited with the task's fee.
+    * The task record is finalized and the worker is credited with the task fee.
     *
     * @param _scAddr Secret contract address
     * @param _taskId Unique taskId
@@ -373,48 +375,19 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     }
 
     /**
-   * Commit the computation task results on chain by first verifying the receipts and then the worker's signature.
-   * The task records are finalized and the worker is credited with the tasks' fees.
-   *
-   * @param _scAddr Secret contract address
-   * @param _taskIds Unique taskId
-   * @param _stateDeltaHashes Input state delta hashes
-   * @param _outputHashes Output state hashes
-   * @param _optionalEthereumData Output state hashes
-   * @param _optionalEthereumContractAddress Output state hashes
-   * @param _gasesUsed Output state hashes
-   * @param _sig Worker's signature
-   */
-    function commitReceipts(
-        bytes32 _scAddr,
-        bytes32[] memory _taskIds,
-        bytes32[] memory _stateDeltaHashes,
-        bytes32[] memory _outputHashes,
-        bytes memory _optionalEthereumData,
-        address _optionalEthereumContractAddress,
-        uint64[] memory _gasesUsed,
-        bytes memory _sig
-    )
-    public
-    workerLoggedIn(msg.sender)
-    contractDeployed(_scAddr)
-    {
-        TaskImpl.commitReceiptsImpl(state, _scAddr, _taskIds, _stateDeltaHashes, _outputHashes, _optionalEthereumData,
-            _optionalEthereumContractAddress, _gasesUsed, _sig);
-    }
-//
-    /**
-    * Commit the computation task results on chain by first verifying the receipt and then the worker's signature.
-    * After this, the task record is finalized and the worker is credited with the task's fee.
+    * Commit the computation task failure on chain - the task fee is transfered to the worker and the status is
+    * updated to indicate task failure.
     *
     * @param _scAddr Secret contract address
     * @param _taskId Unique taskId
+    * @param _outputHash Output state hash
     * @param _gasUsed Gas used for task computation
     * @param _sig Worker's signature
     */
     function commitTaskFailure(
         bytes32 _scAddr,
         bytes32 _taskId,
+        bytes32 _outputHash,
         uint64 _gasUsed,
         bytes memory _sig
     )
@@ -422,9 +395,14 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     workerLoggedIn(msg.sender)
     contractDeployed(_scAddr)
     {
-        TaskImpl.commitTaskFailureImpl(state, _scAddr, _taskId, _gasUsed, _sig);
+        TaskImpl.commitTaskFailureImpl(state, _scAddr, _taskId, _outputHash, _gasUsed, _sig);
     }
 
+    /**
+    * Return the task fee to the task creator when too many blocks have elapsed without task resolution.
+    *
+    * @param _taskId Unique taskId
+    */
     function returnFeesForTask(bytes32 _taskId)
     public
     taskWaiting(_taskId)
@@ -436,8 +414,9 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * Reparameterizing workers with a new seed
     * This should be called for each epoch by the Principal node
     *
+    * @param _blockNumber Block number principal node is attempting to set worker params
     * @param _seed The random integer generated by the enclave
-    * @param _sig The random integer signed by the the principal node's enclave
+    * @param _sig Principal node's signature
     */
     function setWorkersParams(uint _blockNumber, uint _seed, bytes memory _sig)
     public
@@ -459,6 +438,12 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         return PrincipalImpl.getActiveWorkersImpl(state, _blockNumber);
     }
 
+    /**
+    * Get the first block number of an epoch that a given block number belongs to
+    *
+    * @param _blockNumber Block number
+    * @return Block number
+    */
     function getFirstBlockNumber(uint _blockNumber)
     public
     view
@@ -466,6 +451,15 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         return WorkersImpl.getFirstBlockNumberImpl(state, _blockNumber);
     }
 
+    /**
+    * Get worker params for an epoch given a particular block number
+    *
+    * @param _blockNumber Block number
+    * @return Epoch's first block number
+    * @return Seed
+    * @return Array of worker's signing addresses
+    * @return Array of worker's stakes
+    */
     function getWorkerParams(uint _blockNumber)
     public
     view

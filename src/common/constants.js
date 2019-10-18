@@ -48,8 +48,9 @@ module.exports.NODE_NOTIFICATIONS = {
   // task computation related
   'GET_TASK_RESULT': 'gltresult', // get local task result given a task id
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
-  'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask tasks.
+  'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask task
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
+  'EXEC_TASK' : 'etask', // execute the task
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
   'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status
@@ -167,7 +168,9 @@ module.exports.CORE_REQUESTS = {
   GetContract: 'GetContract',
   UpdateNewContract: 'UpdateNewContract',
   UpdateNewContractOnDeployment: 'UpdateNewContractOnDeployment',
+  RemoveContract: 'RemoveContract',
   UpdateDeltas: 'UpdateDeltas',
+  RemoveDeltas: 'RemoveDeltas',
   UpdateDb: 'UpdateDb',
   NewTaskEncryptionKey: 'NewTaskEncryptionKey', // jsonrpc request from remote user for encryption key
   DeploySecretContract: 'DeploySecretContract', // jsonrpc request from remote use for deploying
@@ -200,17 +203,36 @@ module.exports.TASK_STATUS = {
   IN_PROGRESS: 'INPROGRESS',
   SUCCESS: 'SUCCESS',
   FAILED: 'FAILED',
+  FAILED_ETHEREUM_CB: 'ETHEREUMFAILURE',
 };
 
 /**
- * Ethereum events, defined by the different services exposed by the EthereumServices
+ * Ethereum Enigma contract events, defined by the different services exposed by the EthereumServices
  * */
 module.exports.ETHEREUM_EVENTS = {
   NewEpoch: 'NewEpoch',
   TaskCreation: 'TaskCreation',
   TaskSuccessSubmission: 'TaskSuccessSubmission',
   TaskFailureSubmission: 'TaskFailureSubmission',
+  TaskFailureDueToEthereumCB: 'TaskFailureDueToEthereumCB',
+  TaskCancelled: 'TaskCancelled',
   SecretContractDeployment: 'SecretContractDeployment',
+};
+
+/**
+ * The raw Ethereum Enigma contract events
+ * */
+module.exports.RAW_ETHEREUM_EVENTS = {
+  WorkersParameterized: 'WorkersParameterized',
+  TaskRecordCreated: 'TaskRecordCreated',
+  ReceiptVerified: 'ReceiptVerified',
+  ReceiptFailed: 'ReceiptFailed',
+  ReceiptFailedETH: 'ReceiptFailedETH',
+  TaskFeeReturned: 'TaskFeeReturned',
+  SecretContractDeployed: 'SecretContractDeployed',
+  Registered: 'Registered',
+  DepositSuccessful: 'DepositSuccessful',
+  WithdrawSuccessful: 'WithdrawSuccessful',
 };
 
 /**
@@ -221,6 +243,8 @@ module.exports.ETHEREUM_TASK_STATUS = {
   RECORD_CREATED: 1,
   RECEIPT_VERIFIED: 2,
   RECEIPT_FAILED: 3,
+  RECEIPT_FAILED_ETH: 4,
+  RECEIPT_FAILED_CANCELLED: 5,
 };
 
 /**
@@ -256,3 +280,5 @@ module.exports.PRINCIPAL_NODE = {
   },
   EPOCH_STATE_TRANSITION_ERROR_CODE: -32002
 };
+
+module.exports.PTT_END_EVENT = "PTT";

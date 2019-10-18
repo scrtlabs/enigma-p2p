@@ -212,6 +212,26 @@ Response:
     }
 }
 ```
+### `RemoveContract` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : RemoveContract,
+    address : ...,
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : RemoveContract,
+    address : ...,
+    result : {
+        status : 0 or err code
+    }
+}
+```
 ### `UpdateDeltas` message
 Request:
 ```
@@ -228,11 +248,30 @@ Response:
     type : UpdateDeltas,
     result : {
         status: 0 or err code,
-        errors: [{address,key,status : }, ...]
+        errors: [{address, key, status : }, ...]
     }
 }
 ```
-
+### `RemoveDeltas` message
+Request:
+```
+{
+    id : <unique_request_id>,
+    type : RemoveDeltas,
+    input : [{address, from:key, to:key}, ...]   
+}
+```
+Response:
+```
+{
+    id : <unique_request_id>,
+    type : RemoveDeltas,
+    result : {
+        status: 0 or err code,
+        errors: [{address, key, status : }, ...]
+    }
+}
+```
 ## Master Node Key-Exchange related
 
 ### `GetPTTRequest` message

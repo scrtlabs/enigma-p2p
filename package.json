@@ -1,6 +1,6 @@
 {
   "name": "enigma-p2p",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
   "bin": {
@@ -18,6 +18,10 @@
   },
   "author": "isan rivkin",
   "license": "AGPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/enigmampc/enigma-p2p.git"
+  },
   "dependencies": {
     "@nodeutils/defaults-deep": "^1.1.0",
     "async": "^2.6.1",

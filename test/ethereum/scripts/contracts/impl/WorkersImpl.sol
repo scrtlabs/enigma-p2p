@@ -286,10 +286,9 @@ library WorkersImpl {
         return selectedWorkers;
     }
 
-    function getLatestWorkerLogImpl(EnigmaState.State storage state, EnigmaCommon.Worker memory worker,
-        uint _blockNumber)
+    function getLatestWorkerLogImpl(EnigmaCommon.Worker memory worker, uint _blockNumber)
     public
-    view
+    pure
     returns (EnigmaCommon.WorkerLog memory) {
         EnigmaCommon.WorkerLog memory workerLog;
         for (uint i = worker.workerLogs.length; i > 0; i--) {

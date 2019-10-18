@@ -17,8 +17,8 @@ class RegisterAction {
           const report = regParams.result.report;
           const signature = regParams.result.signature;
           try {
-            const txReceipt = await this._controller.ethereum().api().register(signerAddress, report, signature);
-            this._controller.logger().info(`[REGISTER] successful registration, receipt = ${txReceipt}`);
+            await this._controller.ethereum().api().register(signerAddress, report, signature);
+            this._controller.logger().info(`[REGISTER] successful registration`);
             success = true;
           } catch (e) {
             this._controller.logger().error(`[REGISTER] error=  ${e}`);

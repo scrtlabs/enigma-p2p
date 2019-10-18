@@ -1,0 +1,79 @@
+kind: pipeline
+name: default
+steps:
+
+  - name: integration
+    image: enigmampc/docker-client
+    privileged: true
+    volumes:
+      - name: sock
+        path: /var/run/docker.sock
+    commands:
+      - git clone https://github.com/enigmampc/discovery-docker-network.git
+      - cd discovery-docker-network && cp .env-template .env
+      - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_${DRONE_BUILD_NUMBER}/" .env
+      - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
+      - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
+      - export DOCKER_TAG=p2p_${DRONE_BUILD_NUMBER}
+      - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
+      - |
+        /bin/bash -c '
+        declare -a PROJECTS=(core km contract)
+        declare -A DOCKER_IMAGES=([core]=enigma_core_hw [km]=enigma_km_hw [contract]=enigma_contract)
+        declare -A GIT_BRANCH_ARG=([core]=GIT_BRANCH_CORE [km]=GIT_BRANCH_CORE [contract]=GIT_BRANCH_CONTRACT)
+        declare -A PROJECT_DIRECTORY=([core]=enigma-core [km]=enigma-core [contract]=enigma-contract)
+        declare -A PROJECT_BRANCH_FOUND=([core]=$MATCHING_BRANCH_CORE [km]=$MATCHING_BRANCH_CORE [contract]=$MATCHING_BRANCH_CONTRACT)
+        for project in $${PROJECTS[@]}; do
+          DOCKER_IMAGE="enigmampc/$${DOCKER_IMAGES[$project]}"
+          if [[ "$DRONE_BRANCH" == "master" ]]; then
+            docker pull "$DOCKER_IMAGE:latest"
+            docker tag "$DOCKER_IMAGE:latest" "$DOCKER_IMAGE:$DOCKER_TAG"
+          elif [ "$${PROJECT_BRANCH_FOUND[$project]}" -eq 0 ]; then
+            docker pull "$DOCKER_IMAGE:develop"
+            docker tag "$DOCKER_IMAGE:develop" "$DOCKER_IMAGE:$DOCKER_TAG"
+          else
+            cd "$${PROJECT_DIRECTORY[$project]}"
+            if [[ "$project" == "km" ]]; then
+              docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+            elif [[ "$project" == "core" ]]; then
+              docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+            else
+              docker build --build-arg "$${GIT_BRANCH_ARG[$project]}=${DRONE_BRANCH}" -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+            fi
+            cd ..
+          fi
+        done'
+      - cd enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache . && cd ..
+      - export NODES=3
+      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml -f docker-compose.test.yml up --scale core=$NODES --scale p2p=$NODES --exit-code-from client && export RESULT=$? || export RESULT=$?
+      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
+      - if [ $RESULT -ne 0 ]; then exit 1; fi
+
+  - name: deploy
+    image: enigmampc/docker-client
+    depends_on:
+      - integration
+    when:
+      branch:
+        - develop
+        - master
+    privileged: true
+    volumes:
+      - name: sock
+        path: /var/run/docker.sock
+    environment:
+      USERNAME:
+        from_secret: username
+      PASSWORD:
+        from_secret: password
+    commands:
+      - cd discovery-docker-network/enigma-p2p
+      - echo $PASSWORD | docker login -u $USERNAME --password-stdin
+      - if [[ ${DRONE_BRANCH} == "master" ]]; then export DOCKER_TAG=latest; else export DOCKER_TAG=develop; fi
+      - docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache .
+      - docker push enigmampc/enigma_p2p:$DOCKER_TAG
+
+volumes:
+  - name: sock
+    host:
+      path: /var/run/docker.sock

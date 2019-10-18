@@ -124,6 +124,7 @@ if set to `true` will return the `output` of the task if and only if the task st
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
 - `SUCCESS`: Success
 - `FAILED`: Failure
+- `ETHEREUMFAILURE`: Task failed due to an Ethereum callback failure
 
 `output` - byte array representing the output of the computation
 
@@ -163,6 +164,7 @@ Queries the node for the potential result of a given Task identified by its `tas
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
 - `SUCCESS`: Success
 - `FAILED`: Failure
+- `ETHEREUMFAILURE`: Task failed due to an Ethereum callback failure
 
 `output` - byte array representing the output of the computation.
 
@@ -192,9 +194,12 @@ curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0","id":1,"method":"
 		 "taskId":"0x0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538",
 		 "status":"SUCCESS",
 		 "preCodeHash":"hash-of-the-precode-bytecode",
-		 "output":[22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99],"delta":{"key":0,"data":[11,2,3,5,41,44]},"usedGas":"amount-of-gas-used",
+		 "output":[22,22,22,22,22,33,44,44,44,44,44,44,44,55,66,77,88,99],
+		 "delta":{"key":0,"data":[11,2,3,5,41,44]},
+		 "usedGas":"amount-of-gas-used",
 		 "ethereumPayload":"hex of payload",
-		 "ethereumAddress":"address of the payload","signature":"enclave-signature"
+		 "ethereumAddress":"address of the payload",
+		 "signature":"enclave-signature"
 		}
 	}
 }
