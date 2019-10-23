@@ -203,10 +203,11 @@ module.exports.TASK_STATUS = {
   IN_PROGRESS: 'INPROGRESS',
   SUCCESS: 'SUCCESS',
   FAILED: 'FAILED',
+  FAILED_ETHEREUM_CB: 'ETHEREUMFAILURE',
 };
 
 /**
- * Ethereum events, defined by the different services exposed by the EthereumServices
+ * Ethereum Enigma contract events, defined by the different services exposed by the EthereumServices
  * */
 module.exports.ETHEREUM_EVENTS = {
   NewEpoch: 'NewEpoch',
@@ -219,6 +220,22 @@ module.exports.ETHEREUM_EVENTS = {
 };
 
 /**
+ * The raw Ethereum Enigma contract events
+ * */
+module.exports.RAW_ETHEREUM_EVENTS = {
+  WorkersParameterized: 'WorkersParameterized',
+  TaskRecordCreated: 'TaskRecordCreated',
+  ReceiptVerified: 'ReceiptVerified',
+  ReceiptFailed: 'ReceiptFailed',
+  ReceiptFailedETH: 'ReceiptFailedETH',
+  TaskFeeReturned: 'TaskFeeReturned',
+  SecretContractDeployed: 'SecretContractDeployed',
+  Registered: 'Registered',
+  DepositSuccessful: 'DepositSuccessful',
+  WithdrawSuccessful: 'WithdrawSuccessful',
+};
+
+/**
  * Enigma Contract task status
  * */
 module.exports.ETHEREUM_TASK_STATUS = {
@@ -226,6 +243,8 @@ module.exports.ETHEREUM_TASK_STATUS = {
   RECORD_CREATED: 1,
   RECEIPT_VERIFIED: 2,
   RECEIPT_FAILED: 3,
+  RECEIPT_FAILED_ETH: 4,
+  RECEIPT_FAILED_CANCELLED: 5,
 };
 
 /**
