@@ -9,6 +9,7 @@ const multiaddr = require('multiaddr');
 const timestamp = require('unix-timestamp');
 const rimraf = require('rimraf');
 const zlib = require('zlib');
+const fs = require('fs');
 
 /**
  * Simply sleep
@@ -18,6 +19,24 @@ const zlib = require('zlib');
 module.exports.sleep = function(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 };
+
+/**
+ * A promisified version of readFile
+ * @param {String} path - file path
+ * @return {Promise}
+ * */
+module.exports.readFile = function(path) {
+  return new Promise((resolve, reject) => {
+    fs.readFile(path, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      else {
+        resolve(data);
+      }
+    });
+  });
+}
 
 /** turn peerbook into parsed obj
  * @param {peerInfo} rawPeerBook
@@ -292,7 +311,7 @@ module.exports.remove0x = function(hexString) {
   } else {
     return null;
   }
-}
+};
 
 /**
  * Adds '0x' to a hex string, if not present
@@ -310,7 +329,7 @@ module.exports.add0x = function(hexString) {
   } else {
     return null;
   }
-}
+};
 
 /** Compress using GZIP
  *  @param {Buffer} buffer to compress
@@ -327,7 +346,7 @@ module.exports.gzip = function gzip(buffer) {
       }
     });
   });
-}
+};
 
 /** Unzip using GZIP
  *  @param {Buffer} compressed buffer
@@ -344,4 +363,4 @@ module.exports.gunzip = function gunzip(buffer) {
       }
     });
   });
-}
+};
