@@ -183,8 +183,8 @@ class EnigmaContractAPIBuilder {
       if (options.urlProvider) {
         config.url = options.urlProvider;
       }
-      if (options.ethereumContractAbi) {
-        config.enigmaContractABI = options.ethereumContractAbi;
+      if (options.enigmaContractAbi) {
+        config.enigmaContractABI = options.enigmaContractAbi;
       }
       res = await this.useDeployed(config).setEthereumAddress(ethereumAddress).build();
     }
