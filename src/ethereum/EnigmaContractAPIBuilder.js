@@ -180,7 +180,7 @@ class EnigmaContractAPIBuilder {
 
     if (options.enigmaContractAddress) {
       let config = {enigmaContractAddress: options.enigmaContractAddress};
-      if (options.ethereumUrlProvider) {
+      if (options.urlProvider) {
         config.url = options.urlProvider;
       }
       if (options.ethereumContractAbi) {

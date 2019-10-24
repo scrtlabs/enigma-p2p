@@ -412,7 +412,7 @@ class CLI {
       if (this._enigmaContractAbiPath) {
         try {
           let raw = await utils.readFile(this._enigmaContractAbiPath);
-          enigmaContractAbi = JSON.parse(raw);
+          enigmaContractAbi = JSON.parse(raw).abi;
         }
         catch(e) {
           console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
