@@ -430,8 +430,8 @@ class CLI {
         urlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
         accountAddress: this._ethereumAddress,
-        enigmaContractAbi: enigmaContractAbi,
-        accountKey: accountKey
+        enigmaContractAbi,
+        accountKey
       });
     }
     const nodeConfig = this._getFinalConfig();
