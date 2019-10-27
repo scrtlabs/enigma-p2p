@@ -158,7 +158,7 @@ class CommitReceiptAction {
     }
     else {
       let deltaKey = task.getResult().getDelta().key;
-      coreMsg = {input: [{address: task.getContractAddr(), from: deltaKey, to: deltaKey+1}], type: constants.CORE_REQUESTS.RemoveContract};
+      coreMsg = {input: [{address: task.getContractAddr(), from: deltaKey, to: deltaKey+1}], type: constants.CORE_REQUESTS.RemoveDeltas};
       this._controller.logger().debug(`[COMMIT_RECEIPT] reverting delta ${deltaKey} of contract ${task.getContractAddr()}`);
     }
     try {
