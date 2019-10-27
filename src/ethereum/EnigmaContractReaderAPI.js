@@ -24,6 +24,7 @@ class EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
+    this._enigmaContractAddress = enigmaContractAddress;
     this._activeEventSubscriptions = {};
     this._initEventParsers();
 

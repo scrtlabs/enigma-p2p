@@ -1,23 +1,21 @@
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
+const EnigmaContractProductionWriterAPI = require('./EnigmaContractProductionWriterAPI');
 const Logger = require('../common/logger');
 const path = require('path');
 const {exec, spawn} = require('child_process');
 const Web3 = require('web3');
-const fs = require('fs');
+const utils = require('../common/utils');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
 TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
-const truffleConfig = require(path.join(TRUFFLE_DIR, 'truffle'));
 
-function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 const defaultConfig = {
   url: 'ws://127.0.0.1:9545',
   truffleDirectory: TRUFFLE_DIR,
 };
+
 
 class EnigmaContractAPIBuilder {
   constructor(logger) {
@@ -28,7 +26,8 @@ class EnigmaContractAPIBuilder {
     this.web3 = null;
     this.api = null;
     this.ethereumAddress = null;
-    this.environment ={};
+    this.accountKey = null;
+    this.environment = {};
     this.config = defaultConfig;
 
     if (logger) {
@@ -91,11 +90,6 @@ class EnigmaContractAPIBuilder {
     if (config !== undefined && config !== null) {
       this.config = defaultsDeep(config, this.config);
     }
-    if (this.config.enigmaContractABI === undefined) {
-      const rawdata = fs.readFileSync((path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json')));//require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
-      const EnigmaContractJson = JSON.parse(rawdata);
-      this.config.enigmaContractABI = EnigmaContractJson.abi;
-    }
     return this;
   }
   /**
@@ -124,14 +118,27 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.useDeployedFlag) {
+      if (this.config.enigmaContractABI === undefined) {
+        const rawdata = await utils.readFile((path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json')));//require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
+        const EnigmaContractJson = JSON.parse(rawdata);
+        this.config.enigmaContractABI = EnigmaContractJson.abi;
+      }
       await this._connectToContract();
     } else if (this.deployFlag) {
       await this._initEnv();
     }
 
     if (this.apiWriterFlag) {
-      this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
-    } else {
+      if (this.accountKey) {
+        this.api = await new EnigmaContractProductionWriterAPI(this.enigmaContractAddress,
+          this.enigmaContractABI, this.web3, this.logger(),
+          this.ethereumAddress, this.accountKey);
+      }
+      else {
+        this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
+      }
+    }
+    else {
       this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
     }
 
@@ -146,30 +153,42 @@ class EnigmaContractAPIBuilder {
   /**
    * configuring and building the api instance
    * @param {JSON} options
-   *  {ethereumAddress - wallet address,
+   *  {accountAddress - wallet address
    *   enigmaContractAddress - the deployed Enigma contract to connect to
-   *   ethereumUrlProvider - the transport url
+   *   urlProvider - the transport url
+   *   enigmaContractAbi - Enigma contract ABI
+   *   accountKey - wallet key
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
   async setConfigAndBuild(options) {
     let res;
     let ethereumAddress = null;
 
-    if (options.ethereumAddress) {
-      ethereumAddress = options.ethereumAddress;
+    // urlProvider: this._ethereumWebsocketProvider,
+    // enigmaContractAddress: this._enigmaContractAddress,
+    // accountAddress: this._ethereumAddress,
+    // enigmaContractAbiPath: this._enigmaContractAbiPath,
+    // accountKeyPath: this._ethereumKeyPath
+
+    if (options.accountAddress) {
+      ethereumAddress = options.accountAddress;
+    }
+
+    if (options.accountKey) {
+      this.accountKey = options.accountKey;
     }
 
     if (options.enigmaContractAddress) {
       let config = {enigmaContractAddress: options.enigmaContractAddress};
-      if (options.ethereumUrlProvider) {
-        config.url = options.ethereumUrlProvider;
+      if (options.urlProvider) {
+        config.url = options.urlProvider;
       }
-      if (options.ethereumContractAbiPath) {
-        const rawdata = fs.readFileSync(options.ethereumContractAbiPath);
-        config.enigmaContractABI = JSON.parse(rawdata).abi;
+      if (options.enigmaContractAbi) {
+        config.enigmaContractABI = options.enigmaContractAbi;
       }
       res = await this.useDeployed(config).setEthereumAddress(ethereumAddress).build();
-    } else {
+    }
+    else {
       res = await this.createNetwork().deploy().setEthereumAddress(ethereumAddress).build();
     }
     return res;
@@ -216,8 +235,10 @@ class EnigmaContractAPIBuilder {
     await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
+    const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
+
     const networkId = truffleConfig.networks.development.network_id;
-    const rawdata = fs.readFileSync((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
+    const rawdata = await utils.readFile((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
     let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
@@ -234,7 +255,7 @@ class EnigmaContractAPIBuilder {
     this.enigmaContractAddress = this.config.enigmaContractAddress;
     this.enigmaContractABI = this.config.enigmaContractABI;
 
-    this.logger().info('Connecting to the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
+    this.logger().info('Connecting to the Enigma Contract in the following address: ' + this.enigmaContractAddress);
   }
 
   _initWeb3() {
@@ -262,7 +283,7 @@ class EnigmaContractAPIBuilder {
 
     this.environment.subprocess.unref();
     this.logger().debug('Network started');
-    await sleep(3000);
+    await utils.sleep(3000);
   }
 
   async _stop() {
