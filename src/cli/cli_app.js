@@ -67,16 +67,14 @@ class CLI {
     this._node = null;
     this._mainController = null;
     this._commands = {
-      'init': (args)=>{
+      'init': async (args)=>{
         const amount = args[1];
-        this._node.initializeWorkerProcess(amount, (err)=>{
-          if (err) {
-            console.log('[-] ERROR $init ', err);
-          }
-          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
-          console.log("----------------------- ATTENTION --------------------------");
-          console.log('please visit %s for more info', uri);
-        });
+        try {
+          await this._node.asyncInitializeWorkerProcess({amount: amount});
+        }
+        catch (err) {
+          console.log('[-] ERROR $init ', err);
+        }
       },
       'addPeer': (args)=>{
         const ma = args[1];
@@ -457,16 +455,23 @@ class CLI {
       process.exit();
     });
 
-    this._setup();
-  }
-  _setup() {
-    if (this._autoInit) {
-      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
-        if (err) {
-          console.log('[-] ERROR with automatic worker initialization: ', err);
-        }
-      });
+    let err = await this._setup();
+    if (err) {
+      process.exit();
     }
+  }
+  async _setup() {
+    let err = null;
+    if (this._autoInit) {
+      try {
+        await this._node.asyncInitializeWorkerProcess({amount: this._depositValue});
+      }
+      catch (e) {
+        console.log('[-] ERROR with automatic worker initialization: ', err);
+        err = e;
+      }
+    }
+    return err;
   }
   start() {
     console.log(Parsers.opener);

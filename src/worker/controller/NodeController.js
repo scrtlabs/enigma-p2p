@@ -318,8 +318,7 @@ class NodeController {
   }
 
   async asyncInitializeWorkerProcess(params) {
-    let result = await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
-    return result;
+    await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
   }
   /** set Ethereum API
    * @param {EthereumAPI} api
