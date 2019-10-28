@@ -57,6 +57,11 @@ class MockCoreServer {
     return '88987af7d35eabcad95915b93bfd3d2bc3308f06b7197478b0dfca268f0497dc';
   }
 
+  static get GET_COMPUTE_OUTPUT_MOCK() {
+    return '5678867878978978789789787878979845656666666abygjkljkljkj';
+  }
+
+
   static _getPTTRequest(msg) {
     if (MockCoreServer._validate(msg, SCHEMES.GetPTTRequest)) {
       return {
@@ -112,7 +117,7 @@ class MockCoreServer {
         id: msg.id,
         type: msg.type,
         result: {
-          output: 'the-output-of-the-execution',
+          output: MockCoreServer.GET_COMPUTE_OUTPUT_MOCK,
           delta: {key: 0, data: [11, 2, 3, 5, 41, 44]},
           usedGas: 'amount-of-gas-used',
           ethereumPayload: 'hex of payload',
@@ -272,10 +277,13 @@ class MockCoreServer {
           if (this._tmpDB instanceof Object) {
             this._writeTmpDB(msg);
           }
+        case MsgTypes.RemoveContract:
+        case MsgTypes.RemoveDeltas:
+          // TODO: add remove from TmpDB, once required for UT
           MockCoreServer._send(this._socket, {
             type: msg.type,
             id: msg.id,
-            success: true,
+            status: constants.CORE_RESPONSE_STATUS_CODES.OK,
           });
           break;
         case MsgTypes.NewTaskEncryptionKey:

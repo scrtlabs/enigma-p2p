@@ -105,7 +105,6 @@ class InitWorkerAction {
       cb(null);
     };
     const registerAndLoginWorker = async ()=>{
-      console.log('---> should register with Ethereum, use $getRegistration cmd to get the required params');
       if (this._controller.hasEthereum()) {
         let workerParams = null;
         let registered = false;
@@ -190,8 +189,13 @@ class InitWorkerAction {
   async asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
-      params.callback = function(status, result) {
-        resolve({status:status,result : result});
+      params.callback = function(err) {
+        if (err) {
+          reject(err);
+        }
+        else {
+          resolve();
+        }
       };
       action.execute(params);
     });

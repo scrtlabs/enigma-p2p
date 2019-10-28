@@ -11,8 +11,8 @@ class WithdrawAction {
 
     let err = null;
     try {
-      const txReceipt = await this._controller.ethereum().api().withdraw(amount);
-      this._controller.logger().info(`[WITHDRAW] successful withdrawal, receipt = ${txReceipt}`);
+      await this._controller.ethereum().api().withdraw(amount);
+      this._controller.logger().info(`[WITHDRAW] successful withdrawal`);
       success = true;
     } catch (e) {
       this._controller.logger().error(`[WITHDRAW] error=  ${e}`);

@@ -10,8 +10,8 @@ class LoginAction {
     let err = null;
 
     try {
-      const txReceipt = await this._controller.ethereum().api().login();
-      this._controller.logger().info(`[LOGIN] successful login, receipt = ${txReceipt}`);
+      await this._controller.ethereum().api().login();
+      this._controller.logger().info(`[LOGIN] successful login`);
       loginSuccess = true;
     } catch (e) {
       this._controller.logger().error(`[LOGIN] error in login error=  ${e}`);

@@ -41,7 +41,8 @@ const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDisc
 const GetResultAction = require('./actions/tasks/GetResultAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
 const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
-const ExecuteVerifiedAction = require('./actions/tasks/ExecuteVerifiedAction');
+const HandleVerifiedTaskAction = require('./actions/tasks/HandleVerifiedTaskAction');
+const ExecuteTaskAction = require('./actions/tasks/ExecuteTaskAction');
 const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
 const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
 // db
@@ -125,7 +126,8 @@ class NodeController {
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
-      [NOTIFICATION.TASK_VERIFIED]: new ExecuteVerifiedAction(this), // once verified, pass to core the task/deploy
+      [NOTIFICATION.TASK_VERIFIED]: new HandleVerifiedTaskAction(this), // once verified, check if it can be executed
+      [NOTIFICATION.EXEC_TASK]: new ExecuteTaskAction(this), // pass to core the task/deploy
       [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
       [NOTIFICATION.GET_TASK_RESULT] : new GetResultAction(this), // get the task result given a taskId
@@ -242,6 +244,9 @@ class NodeController {
       conf = this._extraConfig.principal;
     }
     this._principal = new PrincipalNode(conf, this.logger());
+    this._principal.on(constants.PTT_END_EVENT, ()=> {
+      this._logger.info('Finished PTT');
+    })
   }
   _initEnigmaNode() {
     this._engNode.on('notify', (params)=>{
@@ -313,8 +318,7 @@ class NodeController {
   }
 
   async asyncInitializeWorkerProcess(params) {
-    let result = await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
-    return result;
+    await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
   }
   /** set Ethereum API
    * @param {EthereumAPI} api

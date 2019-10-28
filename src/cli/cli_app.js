@@ -10,6 +10,7 @@ const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = main.cryptography
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
+const utils = require('../common/utils');
 
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
@@ -26,7 +27,10 @@ class CLI {
     // Ethereum stuff
     this._initEthereum = false;
     this._enigmaContractAddress = null;
+    this._enigmaContractAbiPath = null;
     this._ethereumWebsocketProvider = null;
+    this._ethereumKeyPath = null;
+    this._ethereumKey = null;
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
@@ -63,16 +67,14 @@ class CLI {
     this._node = null;
     this._mainController = null;
     this._commands = {
-      'init': (args)=>{
+      'init': async (args)=>{
         const amount = args[1];
-        this._node.initializeWorkerProcess(amount, (err)=>{
-          if (err) {
-            console.log('[-] ERROR $init ', err);
-          }
-          const uri ='https://github.com/enigmampc/enigma-p2p/blob/master/docs/ARCHITECTURE.md#overview-on-start';
-          console.log("----------------------- ATTENTION --------------------------");
-          console.log('please visit %s for more info', uri);
-        });
+        try {
+          await this._node.asyncInitializeWorkerProcess({amount: amount});
+        }
+        catch (err) {
+          console.log('[-] ERROR $init ', err);
+        }
       },
       'addPeer': (args)=>{
         const ma = args[1];
@@ -345,12 +347,24 @@ class CLI {
       this._initEthereum = true;
       this._enigmaContractAddress = address;
     })
+    .option('--ethereum-contract-abi-path [value]', 'specify the Enigma contract ABI path', (path)=>{
+      this._initEthereum = true;
+      this._enigmaContractAbiPath = path;
+    })
     .option('-E, --init-ethereum', 'init Ethereum', ()=>{
       this._initEthereum = true;
     })
-    .option('--ethereum-address [value]', 'specify the Ethereum wallet address', (address)=>{
+    .option('--ethereum-address [value]', 'specify the Ethereum public address', (address)=>{
       this._initEthereum = true;
       this._ethereumAddress = address;
+    })
+    .option('--ethereum-key-path [value]', 'specify the Ethereum key path', (path)=>{
+      this._initEthereum = true;
+      this._ethereumKeyPath = path;
+    })
+    .option('--ethereum-key [value]', 'specify the Ethereum key', (key)=>{
+      this._initEthereum = true;
+      this._ethereumKey = key;
     })
     .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
       this._principalNode = addrPortstr;
@@ -391,10 +405,33 @@ class CLI {
     /** init Ethereum API
      * */
     if (this._initEthereum) {
+      let enigmaContractAbi = null;
+      let accountKey = this._ethereumKey;
+      if (this._enigmaContractAbiPath) {
+        try {
+          let raw = await utils.readFile(this._enigmaContractAbiPath);
+          enigmaContractAbi = JSON.parse(raw).abi;
+        }
+        catch(e) {
+          console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
+          return;
+        }
+      }
+      if (this._ethereumKeyPath) {
+        try {
+          accountKey = await utils.readFile(this._ethereumKeyPath);
+        }
+        catch(e) {
+          console.log(`Error in reading account key ${this._ethereumKeyPath}`);
+          return;
+        }
+      }
       builder.setEthereumConfig({
-        ethereumUrlProvider: this._ethereumWebsocketProvider,
+        urlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
-        ethereumAddress: this._ethereumAddress
+        accountAddress: this._ethereumAddress,
+        enigmaContractAbi,
+        accountKey
       });
     }
     const nodeConfig = this._getFinalConfig();
@@ -418,16 +455,23 @@ class CLI {
       process.exit();
     });
 
-    this._setup();
-  }
-  _setup() {
-    if (this._autoInit) {
-      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
-        if (err) {
-          console.log('[-] ERROR with automatic worker initialization: ', err);
-        }
-      });
+    let err = await this._setup();
+    if (err) {
+      process.exit();
     }
+  }
+  async _setup() {
+    let err = null;
+    if (this._autoInit) {
+      try {
+        await this._node.asyncInitializeWorkerProcess({amount: this._depositValue});
+      }
+      catch (e) {
+        console.log('[-] ERROR with automatic worker initialization: ', err);
+        err = e;
+      }
+    }
+    return err;
   }
   start() {
     console.log(Parsers.opener);

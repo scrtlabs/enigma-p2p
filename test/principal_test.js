@@ -7,6 +7,7 @@ const PrincipalNode = require('../src/worker/handlers/PrincipalNode');
 const MsgPrincipal = require('../src/policy/p2p_messages/principal_messages');
 const MockCoreServer = require('../src/core/core_server_mock/core_server');
 const constants = require('../src/common/constants');
+const Logger = require('../src//common/logger');
 const expect = require('expect');
 
 const fakeResponse = '0061d93b5412c0c9';
@@ -76,6 +77,31 @@ it('#2 Should Simulate the principal node and run GetStateKeysAction', async fun
     principalMock.destroy(server);
     assert(receivedRequest, 'The principal mock never received a message');
     resolve();
+  });
+});
+
+it('#3 Should test PTT flag', async function() {
+  const tree = TEST_TREE.principal;
+  if (!tree['all'] || !tree['#3']) {
+    this.skip();
+  }
+  return new Promise(async (resolve) => {
+    const dummyPort = 100; // will not be used, just for initializing
+    const logger = new Logger({'cli': false});
+    const principalClient = new PrincipalNode({uri: uri + dummyPort}, logger);
+
+    principalClient.on(constants.PTT_END_EVENT, ()=> {
+      expect(principalClient.isInPTT()).toEqual(false);
+      resolve();
+    });
+
+    let res = principalClient.startPTT();
+    expect(res).toEqual(true);
+    expect(principalClient.isInPTT()).toEqual(true);
+    res = principalClient.startPTT();
+    expect(res).toEqual(false);
+    expect(principalClient.isInPTT()).toEqual(true);
+    principalClient.onPTTEnd();
   });
 });
 

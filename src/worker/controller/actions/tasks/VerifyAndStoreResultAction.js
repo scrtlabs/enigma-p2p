@@ -6,6 +6,7 @@
  * - update local storage
  * */
 const constants = require('../../../../common/constants');
+const errors = require('../../../../common/errors');
 const EngCid = require('../../../../common/EngCID');
 const DeployResult  = require('../../../tasks/Result').DeployResult;
 const ComputeResult  = require('../../../tasks/Result').ComputeResult;
@@ -19,7 +20,7 @@ class VerifyAndStoreResultAction {
   /**
    * params {
    * notification,
-   * params : Buffer -> {the actuall object from publish that contains from,data,,...}
+   * params : Buffer -> {the actual object from publish that contains from,data,,...}
    * }
    * */
   async execute(params) {
@@ -31,12 +32,15 @@ class VerifyAndStoreResultAction {
     const resultObj = JSON.parse(msgObj.result);
     const contractAddress = msgObj.contractAddress;
     const type = msgObj.type;
-    const log = '[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}';
-    this._controller.logger().debug(log);
+    let error = null;
+
+    this._controller.logger().debug('[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}');
 
     let {taskResult, err} = this._buildTaskResult(type, resultObj);
     if (!err) {
       let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
+      let verifyError = error;
+
       if (isVerified) {
         const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
         if (coreMsg) {
@@ -44,7 +48,7 @@ class VerifyAndStoreResultAction {
             await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
           }
           catch (e) {
-            this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+            this._controller.logger().error(`[UPDATE_CORE] can't update core with outside task results -> ${e}`);
             if (optionalCallback) {
               optionalCallback(e);
             }
@@ -64,27 +68,35 @@ class VerifyAndStoreResultAction {
             }
           }
         }
+      }
+      // outside task is saved if this is legit task or if the task was failed due to an Ethereum callback.
+      // In case of the later, we update the task status to signal that the task failed due to Ethereum callback.
+      if (isVerified || verifyError instanceof errors.TaskEthereumFailureErr) {
         try {
-          // store result in TaskManager mapped with taskId
           let outsideTask = OutsideTask.buildTask(type, resultObj);
           if (outsideTask) {
+            if (verifyError instanceof errors.TaskEthereumFailureErr) {
+              outsideTask.setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB)
+            }
+            // store result in TaskManager mapped with taskId
             await this._controller.taskManager().addOutsideResult(type, outsideTask);
           }
         }
         catch (e) {
-          this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] can't save outside task  -> ${e}`);
+          this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
           error = e;
         }
       }
+
       this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished : is_err ?  ${error}`);
       if (optionalCallback) {
-        return optionalCallback(error);
+        optionalCallback(error);
       }
     }
     else { // if (err)
       this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished with an error:  ${err}`);
-      if(optionalCallback){
-        return optionalCallback(err);
+      if (optionalCallback) {
+        optionalCallback(err);
       }
     }
   }
@@ -148,7 +160,8 @@ class VerifyAndStoreResultAction {
         }
       }
       try {
-        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, contractAddress, localTip);
+        const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
+        let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, currentBlockNumber, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
           error = res.error;

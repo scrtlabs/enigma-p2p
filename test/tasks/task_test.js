@@ -42,7 +42,7 @@ it('#1 Should test computeTask', function(done){
       task.setFailedStatus().getStatus(),'status not failure');
 
   assert.strictEqual(userTaskId,task.getTaskId(),'taskId dont match');
-  assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
+  assert.strictEqual(encryptedArgs,task.getEncryptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
   assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
   assert.strictEqual(gasLimit,task.getGasLimit(),'gasLimit dont match');
@@ -78,7 +78,7 @@ it('#2 Should test DeployTask', function(done){
       task.setFailedStatus().getStatus(),'status not failure');
 
   assert.strictEqual(userTaskId,task.getTaskId(),'taskId dont match');
-  assert.strictEqual(encryptedArgs,task.getEncyptedArgs(),'encArgs dont match');
+  assert.strictEqual(encryptedArgs,task.getEncryptedArgs(),'encArgs dont match');
   assert.strictEqual(encryptedFn,task.getEncryptedFn(),'encFn dont match');
   assert.strictEqual(userPubKey,task.getUserDHKey(),'userKey dont match');
   assert.strictEqual(gasLimit,task.getGasLimit(),'gasLimit dont match');
