@@ -40,12 +40,15 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
 
       this._web3.eth.accounts.signTransaction(tx, this._privateKey)
         .then((signedTx) => {
-          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-              reject(error);
-            })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (receipt) => {
-              resolve(null);
+          const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+          signedTransaction.on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+            reject(error);
+          })
+            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
+              if (confNumber > 11) {
+                signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
+                resolve();
+              }
             })
         })
         .catch((error) => {
@@ -79,7 +82,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
               //let events = this._parseEvents(receipt);
               resolve(null);
             })
@@ -115,7 +118,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
               //let events = this._parseEvents(receipt);
               resolve(null);
             })
@@ -147,7 +150,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
               //let events = this._parseEvents(receipt);
               resolve(null);
             })
@@ -197,7 +200,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
               let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, { scAddr: utils.add0x(taskId) });
               if (deployedEvents) {
                 resolve(deployedEvents);
@@ -233,7 +236,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
               resolve(null);
             });
         });
@@ -262,7 +265,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
               resolve(null);
             })
         });
@@ -314,7 +317,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
               let events = await this._parsePastEvents('allEvents', { taskId: utils.add0x(taskId) });
               resolve(events);
             });
@@ -355,7 +358,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
               let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) });
               resolve(events);
             })
@@ -394,7 +397,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);
             })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (receipt) => {
+            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
               let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) });
               resolve(events);
             })
