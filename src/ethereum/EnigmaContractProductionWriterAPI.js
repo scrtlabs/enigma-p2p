@@ -401,12 +401,42 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         });
     });
   }
+  /**
+   * Irrelevant for workers -> users create deployment tasks with it
+   * */
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams=null) {
+    return new Promise((resolve, reject) => {
+      let res = this.getTransactionOptions(txParams);
+      if (res.error) {
+        reject(res.error);
+        return;
+      }
+      const tx = {
+        from: res.transactionOptions.from,
+        to: this._enigmaContractAddress,
+        gas: res.transactionOptions.gas,
+        data: this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce).encodeABI()
+      };
+      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+        .then((signedTx)=> {
+          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+              reject(error);
+            })
+            .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
+              resolve(null);
+            });
+        });
+    });
+  }
+
   async _parsePastEvents(eventName, filter) {
     let rawEvents = await this._enigmaContract.getPastEvents(eventName, {filter: filter});
     let events = null;
     if (rawEvents) {
       events = {};
-      events[eventName] = rawEvents[0];
+      const currentEvent = rawEvents[0];
+      events[currentEvent.event] = currentEvent;
       events = this._parseEvents(events);
     }
     return events;
