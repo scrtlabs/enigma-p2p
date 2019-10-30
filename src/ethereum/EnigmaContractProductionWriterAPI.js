@@ -45,9 +45,10 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             reject(error);
           })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
+              console.log(`Got conf number ${confNumber}`);
               if (confNumber > 11) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-                resolve();
+                resolve(null);
               }
             })
         })
