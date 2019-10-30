@@ -4,23 +4,21 @@
  * This class supports sequential zeromq messages and Channels implementation of sequence.
  * Each message to Core is identified with a unique ID.
  * */
-const IpcClient = require('./ipc');
-const constants = require('../common/constants');
+const IpcClient = require("./ipc");
+const constants = require("../common/constants");
 
 //actions
-const PreParseAction = require('./actions/PreParseAction');
-const GetDbAction = require('./actions/DbRead/GetDbAction');
-const SendToCoreAction = require('./actions/SendToCoreAction');
-const UpdateDbAction = require('./actions/DbWrite/UpdateDbAction');
+const PreParseAction = require("./actions/PreParseAction");
+const GetDbAction = require("./actions/DbRead/GetDbAction");
+const SendToCoreAction = require("./actions/SendToCoreAction");
+const UpdateDbAction = require("./actions/DbWrite/UpdateDbAction");
 
-class CoreRuntime{
-  constructor(config, logger){
-    if(config.uri){
+class CoreRuntime {
+  constructor(config, logger) {
+    if (config.uri) {
       this._ipcClient = new IpcClient(config.uri, logger);
       this._config = config;
-    }
-    else
-      throw new Error("Must pass uri to CoreRuntime");
+    } else throw new Error("Must pass uri to CoreRuntime");
 
     this._initIpcClient();
     this._communicator = null;
@@ -29,69 +27,69 @@ class CoreRuntime{
     let preParseAction = new PreParseAction(this);
     let getDbAction = new GetDbAction(this);
     this._actions = {
-      [constants.CORE_REQUESTS.CORE_DB_ACTION] : sendToCoreAction,
-      [constants.CORE_REQUESTS.DeploySecretContract] : preParseAction,
-      [constants.CORE_REQUESTS.ComputeTask] : preParseAction,
-      [constants.CORE_REQUESTS.GetRegistrationParams] : preParseAction,
-      [constants.CORE_REQUESTS.NewTaskEncryptionKey] : preParseAction,
-      [constants.CORE_REQUESTS.GetAllTips] : getDbAction,
-      [constants.CORE_REQUESTS.GetAllAddrs] : getDbAction,
-      [constants.CORE_REQUESTS.GetDeltas] : getDbAction,
-      [constants.CORE_REQUESTS.GetContract] :getDbAction,
-      [constants.CORE_REQUESTS.UpdateDb] : new UpdateDbAction(this),
-      [constants.CORE_REQUESTS.GetDelta] : null,
-      [constants.CORE_REQUESTS.GetTips] : getDbAction,
+      [constants.CORE_REQUESTS.CORE_DB_ACTION]: sendToCoreAction,
+      [constants.CORE_REQUESTS.DeploySecretContract]: preParseAction,
+      [constants.CORE_REQUESTS.ComputeTask]: preParseAction,
+      [constants.CORE_REQUESTS.GetRegistrationParams]: preParseAction,
+      [constants.CORE_REQUESTS.NewTaskEncryptionKey]: preParseAction,
+      [constants.CORE_REQUESTS.GetAllTips]: getDbAction,
+      [constants.CORE_REQUESTS.GetAllAddrs]: getDbAction,
+      [constants.CORE_REQUESTS.GetDeltas]: getDbAction,
+      [constants.CORE_REQUESTS.GetContract]: getDbAction,
+      [constants.CORE_REQUESTS.UpdateDb]: new UpdateDbAction(this),
+      [constants.CORE_REQUESTS.GetDelta]: null,
+      [constants.CORE_REQUESTS.GetTips]: getDbAction,
       [constants.CORE_REQUESTS.GetPTTRequest]: getDbAction,
-      [constants.CORE_REQUESTS.PTTResponse]: getDbAction,
+      [constants.CORE_REQUESTS.PTTResponse]: getDbAction
     };
   }
   /**
    * Connects to core
    * */
-  _initIpcClient(){
+  _initIpcClient() {
     this._ipcClient.connect();
-    this._ipcClient.setResponseHandler((msg)=>{
+    this._ipcClient.setResponseHandler(msg => {
       //TODO:: this is being called everytime a message comes from core.
       //TODO:: BUT, messages from core are responses so this is irrelevant
       //TODO:: each Action handles the message inside the class with a ref to socket
       //TODO:: so think if this even nessceary, maybe logging?
     });
   }
-  disconnect(){
+  disconnect() {
     this.getIpcClient().disconnect();
   }
-  getIpcClient(){
+  getIpcClient() {
     return this._ipcClient;
   }
   /**
    * Returns the Channel commiunicator, used by Actions
    * @return {Communicator} this._communicator
    * */
-  getCommunicator(){
+  getCommunicator() {
     return this._communicator;
   }
   /** MUST for runtime manager (main controller)*/
-  type(){
+  type() {
     return constants.RUNTIME_TYPE.Core;
   }
   /** MUST for runtime manager (main controller)*/
-  setChannel(communicator){
+  setChannel(communicator) {
     this._communicator = communicator;
-    this._communicator.setOnMessage((envelop)=>{
+    this._communicator.setOnMessage(envelop => {
       let concreteCmd = envelop.content().type;
       let action = this._actions[concreteCmd];
-      if(action){
+      if (action) {
         action.execute(envelop);
       }
     });
   }
-  execCmd(cmd,params){
+  execCmd(cmd, params) {
     let action = this._actions[cmd];
-    if(action) {
+    if (action) {
       action.execute(params);
     }
   }
-  getUri(){
+  getUri() {
     return this._config.uri;
   }
 }
@@ -99,7 +97,6 @@ class CoreRuntime{
 module.exports = CoreRuntime;
 
 // mini tests
-
 
 // async function test1(){
 //   //start the server

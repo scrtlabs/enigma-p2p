@@ -1,11 +1,11 @@
 {
-"default" : {
-    "gas" : 3000000
+  "default": {
+    "gas": 3000000
   },
-  "valid" : {
-      "gasMin" : 21000,
-      "gasMax" : 8000000,
-      "gasPriceMin" : 3,
-      "gasPriceMax" : 100
+  "valid": {
+    "gasMin": 21000,
+    "gasMax": 8000000,
+    "gasPriceMin": 3,
+    "gasPriceMax": 100
   }
 }

@@ -72,66 +72,66 @@ class ActionNameErr extends Error {
     this.name = this.constructor.name;
   }
 }
-class TaskFailedErr extends Error{
-  constructor(message){
+class TaskFailedErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class TaskValidityErr extends Error{
-  constructor(message){
+class TaskValidityErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class TaskVerificationErr extends Error{
-  constructor(message){
+class TaskVerificationErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class WorkerSelectionVerificationErr extends Error{
-  constructor(message){
+class WorkerSelectionVerificationErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class TaskTimeoutErr extends Error{
-  constructor(message){
+class TaskTimeoutErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class TaskCancelledErr extends Error{
-  constructor(message){
+class TaskCancelledErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class TaskEthereumFailureErr extends Error{
-  constructor(message){
+class TaskEthereumFailureErr extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }
 
-class EnigmaContractDataError extends Error{
-  constructor(message){
+class EnigmaContractDataError extends Error {
+  constructor(message) {
     super(message);
-    Error.captureStackTrace(this,this.constructor);
+    Error.captureStackTrace(this, this.constructor);
     this.name = this.constructor.name;
   }
 }

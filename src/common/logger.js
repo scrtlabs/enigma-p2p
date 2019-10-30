@@ -1,6 +1,6 @@
-const fs = require('fs');
-const Log = require('log');
-const constants = require('./constants');
+const fs = require("fs");
+const Log = require("log");
+const constants = require("./constants");
 const LOG_CONFIG = constants.LOG_CONFIG;
 
 class Logger {
@@ -9,7 +9,7 @@ class Logger {
     this._options.level = LOG_CONFIG.level;
     this._options.cli = LOG_CONFIG.cli;
     this._options.file = LOG_CONFIG.file;
-    this._options.pretty =false;
+    this._options.pretty = false;
 
     if (options != undefined) {
       if (options.level !== undefined) {
@@ -35,8 +35,10 @@ class Logger {
       this._cliLogger = new Log(this._options.level);
     }
     if (this._options.file) {
-      this._fileLogger = new Log(this._options.level,
-          fs.createWriteStream(this._options.file));
+      this._fileLogger = new Log(
+        this._options.level,
+        fs.createWriteStream(this._options.file)
+      );
     }
   }
   _log(content, type) {
@@ -49,16 +51,15 @@ class Logger {
   }
 
   debug(content) {
-    this._log(content, 'debug');
+    this._log(content, "debug");
   }
   info(content) {
-    this._log(content, 'info');
+    this._log(content, "info");
   }
   error(content) {
-    this._log(content, 'error');
+    this._log(content, "error");
   }
 }
-
 
 module.exports = Logger;
 

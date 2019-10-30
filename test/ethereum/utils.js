@@ -1,17 +1,25 @@
-const JSBI = require('jsbi');
-const abi = require('ethereumjs-abi');
-const web3Utils = require('web3-utils');
-const crypto = require('../../src/common/cryptography');
-const DB_PROVIDER = require('../../src/core/core_server_mock/data/provider_db');
-const DbUtils = require('../../src/common/DbUtils');
-const nodeUtils = require('../../src/common/utils');
+const JSBI = require("jsbi");
+const abi = require("ethereumjs-abi");
+const web3Utils = require("web3-utils");
+const crypto = require("../../src/common/cryptography");
+const DB_PROVIDER = require("../../src/core/core_server_mock/data/provider_db");
+const DbUtils = require("../../src/common/DbUtils");
+const nodeUtils = require("../../src/common/utils");
 
-
-function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
-  const hash = crypto.hash(abi.rawEncode(
-          ['uint256', 'bytes32', 'uint256'],
-          [seed, nodeUtils.add0x(secretContractAddress), nonce]
-        ));
+function runSelectionAlgo(
+  secretContractAddress,
+  seed,
+  nonce,
+  balancesSum,
+  balances,
+  workers
+) {
+  const hash = crypto.hash(
+    abi.rawEncode(
+      ["uint256", "bytes32", "uint256"],
+      [seed, nodeUtils.add0x(secretContractAddress), nonce]
+    )
+  );
   // Find random number between [0, tokenCpt)
   let randVal = JSBI.remainder(JSBI.BigInt(hash), JSBI.BigInt(balancesSum));
 
@@ -62,47 +70,104 @@ module.exports.createDataForTaskSubmission = function() {
     delta: delta,
     deltaHash: deltaHash,
     outputHash: outputHash,
-    output:output,
+    output: output,
     blockNumber: blockNumber,
     usedGas: usedGas,
     ethereumPayload: ethereumPayload,
     ethereumAddress: ethereumAddress,
     signature: signature,
     preCodeHash: preCodeHash,
-    status: status};
-}
+    status: status
+  };
+};
 
 module.exports.createDataForSelectionAlgorithm = function() {
-  const workersA = [nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+  const workersA = [
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
-    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())];
-  const workersB = [nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())
+  ];
+  const workersB = [
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
-    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())];
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase()),
+    nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())
+  ];
 
-  const balancesA = [crypto.toBN(1), crypto.toBN(2), crypto.toBN(3), crypto.toBN(4), crypto.toBN(5)];
-  const balancesB = [crypto.toBN(5), crypto.toBN(4), crypto.toBN(3), crypto.toBN(2), crypto.toBN(1)];
+  const balancesA = [
+    crypto.toBN(1),
+    crypto.toBN(2),
+    crypto.toBN(3),
+    crypto.toBN(4),
+    crypto.toBN(5)
+  ];
+  const balancesB = [
+    crypto.toBN(5),
+    crypto.toBN(4),
+    crypto.toBN(3),
+    crypto.toBN(2),
+    crypto.toBN(1)
+  ];
   const seed = 10;
   const nonce = 0;
   const epochSize = 100;
 
-  let params = [{workers: workersA, balances: balancesA, seed: seed, nonce: nonce, firstBlockNumber: 300},
-    {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 400},
-    {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 0},
-    {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 100},
-    {workers: workersB, balances: balancesB, seed: seed, nonce: nonce, firstBlockNumber: 200}];
+  let params = [
+    {
+      workers: workersA,
+      balances: balancesA,
+      seed: seed,
+      nonce: nonce,
+      firstBlockNumber: 300
+    },
+    {
+      workers: workersB,
+      balances: balancesB,
+      seed: seed,
+      nonce: nonce,
+      firstBlockNumber: 400
+    },
+    {
+      workers: workersB,
+      balances: balancesB,
+      seed: seed,
+      nonce: nonce,
+      firstBlockNumber: 0
+    },
+    {
+      workers: workersB,
+      balances: balancesB,
+      seed: seed,
+      nonce: nonce,
+      firstBlockNumber: 100
+    },
+    {
+      workers: workersB,
+      balances: balancesB,
+      seed: seed,
+      nonce: nonce,
+      firstBlockNumber: 200
+    }
+  ];
 
   let balancesSum = balancesA.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
 
   const secretContractAddress = nodeUtils.remove0x(web3Utils.randomHex(32));
 
-  const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA);
+  const expected = runSelectionAlgo(
+    secretContractAddress,
+    seed,
+    nonce,
+    balancesSum,
+    balancesA,
+    workersA
+  );
 
-  return {params: params,
+  return {
+    params: params,
     expectedAddress: expected,
     expectedParams: params[0],
     secretContractAddress: secretContractAddress,
@@ -110,7 +175,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
   };
 };
 
-module.exports.transformStatesListToMap = (statesList) =>  {
+module.exports.transformStatesListToMap = statesList => {
   const statesMap = {};
   for (let i = 0; i < statesList.length; ++i) {
     const address = statesList[i].address;
@@ -127,22 +192,37 @@ module.exports.transformStatesListToMap = (statesList) =>  {
 module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
 // add the whole DB_PROVIDER as a state in ethereum. ethereum must be running for this worker
-module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclaveSigningAddress) => {
+module.exports.setEthereumState = async (
+  api,
+  web3,
+  workerAddress,
+  workerEnclaveSigningAddress
+) => {
   for (const address in this.PROVIDERS_DB_MAP) {
     const secretContractData = this.PROVIDERS_DB_MAP[address];
-    const addressInByteArray = address.split(',').map(function(item) {
+    const addressInByteArray = address.split(",").map(function(item) {
       return parseInt(item, 10);
     });
 
-    const hexString = '0x' + DbUtils.toHexString(addressInByteArray);
+    const hexString = "0x" + DbUtils.toHexString(addressInByteArray);
     const codeHash = crypto.hash(secretContractData[-1]);
     const firstDeltaHash = crypto.hash(secretContractData[0]);
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
-    const optionalEthereumData = '0x00';
-    const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
-    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
-      optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+    const optionalEthereumData = "0x00";
+    const optionalEthereumContractAddress =
+      "0x0000000000000000000000000000000000000000";
+    await api.deploySecretContract(
+      hexString,
+      codeHash,
+      codeHash,
+      firstDeltaHash,
+      optionalEthereumData,
+      optionalEthereumContractAddress,
+      gasUsed,
+      workerEnclaveSigningAddress,
+      { from: workerAddress }
+    );
 
     let i = 1;
 
@@ -150,8 +230,17 @@ module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclave
       const taskId = web3.utils.randomHex(32);
       const delta = secretContractData[i];
       const stateDeltaHash = crypto.hash(delta);
-      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
-        workerEnclaveSigningAddress, {from: workerAddress});
+      await api.commitReceipt(
+        hexString,
+        taskId,
+        stateDeltaHash,
+        outputHash,
+        optionalEthereumData,
+        optionalEthereumContractAddress,
+        gasUsed,
+        workerEnclaveSigningAddress,
+        { from: workerAddress }
+      );
       i++;
     }
   }

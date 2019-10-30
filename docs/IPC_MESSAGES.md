@@ -1,14 +1,15 @@
 # Communication type
+
 `enigma-core` and `enigma-p2p` communicate via `zeromq` architechture.
 The communication is done with `REQ` and `REP` sockets.
 `enigma-p2p` is the `REQ` (requester) and `enigma-core` is the `REP` (responder).
 
 # Message type
 
-
 ## Enclave identity related
 
 ### `GetRegistrationParams` message
+
 Request:
 
 ```
@@ -17,7 +18,9 @@ Request:
     type : GetRegistrationParams
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -33,7 +36,9 @@ Response:
 ## Enclave Read only Database related
 
 ### `GetTip` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -41,7 +46,9 @@ Request:
     input : [Secret Contract Address]
 }
 ```
+
 Response:
+
 ```
 {
    id : <unique_request_id>,
@@ -52,9 +59,11 @@ Response:
    }
 }
 ```
+
 ### `GetTips` message
 
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -62,7 +71,9 @@ Request:
     input : [Array<Secret Contract Address>]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -72,15 +83,20 @@ Response:
     }
 }
 ```
+
 ### `GetAllTips` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
     type : GetAllTips
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -90,15 +106,20 @@ Response:
     }
 }
 ```
+
 ### `GetAllAddrs` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
     type : GetAllAddrs
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -108,8 +129,11 @@ Response:
     }
 }
 ```
+
 ### `GetDelta` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -117,7 +141,9 @@ Request:
     input : [{address, key}]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -127,8 +153,11 @@ Response:
     }
 }
 ```
+
 ### `GetDeltas` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -136,7 +165,9 @@ Request:
     input : [{address, from:key, to:key}, ...]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -146,8 +177,11 @@ Response:
     }
 }
 ```
+
 ### `GetContract` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -155,7 +189,9 @@ Request:
     input : address
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -170,7 +206,9 @@ Response:
 ## Enclave Write only Database related
 
 ### `UpdateNewContract` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -179,7 +217,9 @@ Request:
     bytecode : [Secret Contract Address]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -190,8 +230,11 @@ Response:
     }
 }
 ```
+
 ### `UpdateNewContractOnDeployment` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -201,7 +244,9 @@ Request:
     delta : [key, data : []]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -212,8 +257,11 @@ Response:
     }
 }
 ```
+
 ### `RemoveContract` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -221,7 +269,9 @@ Request:
     address : ...,
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -232,8 +282,11 @@ Response:
     }
 }
 ```
+
 ### `UpdateDeltas` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -241,7 +294,9 @@ Request:
     deltas : [{address, key, data : []}, ...]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -252,16 +307,21 @@ Response:
     }
 }
 ```
+
 ### `RemoveDeltas` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
     type : RemoveDeltas,
-    input : [{address, from:key, to:key}, ...]   
+    input : [{address, from:key, to:key}, ...]
 }
 ```
+
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -272,10 +332,13 @@ Response:
     }
 }
 ```
+
 ## Master Node Key-Exchange related
 
 ### `GetPTTRequest` message
+
 Request:
+
 ```
 {
     id: <unique_request_id>,
@@ -284,6 +347,7 @@ Request:
 ```
 
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -294,7 +358,9 @@ Response:
     }
 }
 ```
+
 The request is a signed messagepack that looks like this:
+
 ```
 {
     prefix: b"Enigma Message",
@@ -304,7 +370,9 @@ The request is a signed messagepack that looks like this:
 ```
 
 ### `PTTResponse` message
+
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -314,7 +382,9 @@ Request:
     }
 }
 ```
+
 The response is a signed messagepack that looks like this:
+
 ```
 {
     prefix: b"Enigma Message",
@@ -324,8 +394,8 @@ The response is a signed messagepack that looks like this:
 }
 ```
 
-
 Response:
+
 ```
 {
     id : <unique_request_id>,
@@ -343,6 +413,7 @@ Response:
 The result of the rpc call `GetWorkerEncryptionKey`.
 
 Request:
+
 ```
 {
     id : <unique_request_id>,
@@ -365,7 +436,9 @@ Response:
 ```
 
 ### `DeploySecretContract` messages
+
 Request:
+
 ```
 {
     id: <unique_request_id>,
@@ -382,6 +455,7 @@ Request:
 ```
 
 Response:
+
 ```
 {
     id: <unique_request_id>,
@@ -400,7 +474,9 @@ Response:
 ```
 
 ### `ComputeTask` message
+
 Request:
+
 ```
 {
     id: <unique_request_id>,
@@ -416,6 +492,7 @@ Request:
 ```
 
 Response:
+
 ```
 {
     id: <unique_request_id>,
@@ -433,7 +510,9 @@ Response:
 ```
 
 ### `FailedTask` error message
+
 If a `ComputeTask` or `DeployTask` fails on the protocol level this message will be returned.
+
 ```
 {
     id: <unique_request_id>,

@@ -1,5 +1,5 @@
-const nodeUtils = require('../../common/utils');
-const pickRandom = require('pick-random');
+const nodeUtils = require("../../common/utils");
+const pickRandom = require("pick-random");
 // const PeerInfo = require('peer-info');
 
 class PeerBank {
@@ -25,7 +25,7 @@ class PeerBank {
    * @param {Array<PeerInfo>} peers
    */
   addPeers(peers) {
-    throw Error('addPeers is deprecated, use addPeersNoActive instead.');
+    throw Error("addPeers is deprecated, use addPeersNoActive instead.");
     // peers.forEach(p=>{
     //     this.addPeer(p);
     // });
@@ -37,8 +37,8 @@ class PeerBank {
    * @param {Array<String>} activeConnections , b58 ids
    */
   addPeersNoActive(peers, activeConnections) {
-    const filterd = peers.filter((p) => !activeConnections.includes(p.peerId.id));
-    filterd.forEach((p)=>{
+    const filterd = peers.filter(p => !activeConnections.includes(p.peerId.id));
+    filterd.forEach(p => {
       this.addPeer(p);
     });
   }
@@ -46,7 +46,7 @@ class PeerBank {
     delete this._peerBank[peerId];
   }
   inBank(peerId) {
-    return (peerId in this._peerBank);
+    return peerId in this._peerBank;
   }
   /** get a random amount of potential peers from the peer bank.
    * if num > current peer bank size then num = peer_bank_size-1
@@ -55,14 +55,14 @@ class PeerBank {
    */
   getRandomPeers(num) {
     const list = nodeUtils.dictToList(this._peerBank);
-    if (num<0) {
+    if (num < 0) {
       return [];
-    } else if (num >= list.length ) {
+    } else if (num >= list.length) {
       return list;
     } else {
-      return pickRandom(list, {count: num});
+      return pickRandom(list, { count: num });
     }
-  };
+  }
   /**
    * Mark peers as searched previously - used for not repeating
    * @param {String} peerId, Base 58
@@ -78,7 +78,7 @@ class PeerBank {
    * @param {Array} peersId, list of b58 id's
    */
   markPeers(peersId) {
-    peersId.forEach((pid)=>{
+    peersId.forEach(pid => {
       this.markPeer(pid);
     });
   }
@@ -91,7 +91,6 @@ class PeerBank {
 }
 
 module.exports = PeerBank;
-
 
 // let list = [
 //     {

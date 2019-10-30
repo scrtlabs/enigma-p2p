@@ -1,7 +1,7 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
-const StoppableTask = require('../../../../common/StoppableTask');
+const StoppableTask = require("../../../../common/StoppableTask");
 
 class ConsistentDiscoveryAction {
   constructor(controller) {
@@ -36,49 +36,53 @@ class ConsistentDiscoveryAction {
     // The results is == [{peerInfo,err,ping,pong},...]
     const options = this._getStoppableTaskOptions(params);
 
-    const task = (stopper) =>{
+    const task = stopper => {
       // flag process start
       this._controller.connectionManager().onStartPersistentDiscovery();
 
-      this._controller.connectionManager().tryConnect((err, results)=>{
+      this._controller.connectionManager().tryConnect((err, results) => {
         if (err) {
           if (err === STATUS.ERR_EMPTY_PEER_BANK) {
-            console.log('[-] EMPTY PEER BANK');
+            console.log("[-] EMPTY PEER BANK");
             // expand peer bank and retry
-            this._controller.connectionManager().expandPeerBank((err, info)=>{
+            this._controller.connectionManager().expandPeerBank((err, info) => {
               if (err) {
                 // some fatal error
-                stopper.done({'success': false, 'error': err}, info);
+                stopper.done({ success: false, error: err }, info);
               } else {
-                stopper.done({'success': false, 'error': 'retryExpand'}, info);
+                stopper.done({ success: false, error: "retryExpand" }, info);
               }
             });
           } else {
             // some fatal error
-            stopper.done({'success': false, 'error': err}, results);
+            stopper.done({ success: false, error: err }, results);
           }
         } else {
           // if True => stop
           if (this._controller.connectionManager()._isOptimalDht()) {
-            stopper.done({'success': true}, {});
+            stopper.done({ success: true }, {});
           } else {
             // repeat
-            stopper.done({'success': false, 'error': 'retryMoreConnections'}, {});
+            stopper.done({ success: false, error: "retryMoreConnections" }, {});
           }
         }
       });
     };
-    const onFinish = (status, result)=>{
-      console.log('------------------- SUMMARY  ------------------');
-      console.log('status => ', JSON.stringify(status, null, 2));
-      console.log('result => ', JSON.stringify(result, null, 2));
-      console.log('------------------- FINISHED STOPPABLE TASK ------------------');
+    const onFinish = (status, result) => {
+      console.log("------------------- SUMMARY  ------------------");
+      console.log("status => ", JSON.stringify(status, null, 2));
+      console.log("result => ", JSON.stringify(result, null, 2));
+      console.log(
+        "------------------- FINISHED STOPPABLE TASK ------------------"
+      );
 
       if (options.callback) {
         options.callback(status, result);
       }
 
-      this._controller.connectionManager().onDonePersistentDiscovery(status, result);
+      this._controller
+        .connectionManager()
+        .onDonePersistentDiscovery(status, result);
     };
 
     const stopabbleTask = new StoppableTask(options, task, onFinish);
@@ -89,7 +93,7 @@ class ConsistentDiscoveryAction {
     const action = this;
     return new Promise((resolve, reject) => {
       params.callback = function(status, result) {
-        resolve({status:status,result : result});
+        resolve({ status: status, result: result });
       };
       action.execute(params);
     });

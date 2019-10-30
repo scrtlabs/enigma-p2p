@@ -1,15 +1,15 @@
-const Messages = require('../policy/p2p_messages/messages');
-const PeerId = require('peer-id');
-const PeerInfo = require('peer-info');
-const randomize = require('randomatic');
-const defaultsDeep = require('@nodeutils/defaults-deep');
-const pickRandom = require('pick-random');
-const mafmt = require('mafmt');
-const multiaddr = require('multiaddr');
-const timestamp = require('unix-timestamp');
-const rimraf = require('rimraf');
-const zlib = require('zlib');
-const fs = require('fs');
+const Messages = require("../policy/p2p_messages/messages");
+const PeerId = require("peer-id");
+const PeerInfo = require("peer-info");
+const randomize = require("randomatic");
+const defaultsDeep = require("@nodeutils/defaults-deep");
+const pickRandom = require("pick-random");
+const mafmt = require("mafmt");
+const multiaddr = require("multiaddr");
+const timestamp = require("unix-timestamp");
+const rimraf = require("rimraf");
+const zlib = require("zlib");
+const fs = require("fs");
 
 /**
  * Simply sleep
@@ -17,7 +17,7 @@ const fs = require('fs');
  * @example `await sleep(1000)` will sleep for a second and block.
  * */
 module.exports.sleep = function(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 };
 
 /**
@@ -30,13 +30,12 @@ module.exports.readFile = function(path) {
     fs.readFile(path, (err, data) => {
       if (err) {
         reject(err);
-      }
-      else {
+      } else {
         resolve(data);
       }
     });
   });
-}
+};
 
 /** turn peerbook into parsed obj
  * @param {peerInfo} rawPeerBook
@@ -47,7 +46,7 @@ module.exports.parsePeerBook = function(rawPeerBook) {
     return null;
   }
   const parsed = [];
-  rawPeerBook.forEach((rp)=>{
+  rawPeerBook.forEach(rp => {
     const pp = _parsePeerInfo(rp);
     if (pp != null) {
       parsed.push(pp);
@@ -70,21 +69,23 @@ function _parsePeerInfo(rawPeerInfo) {
   }
 
   const multiAddrs = [];
-  rawPeerInfo.multiaddrs.forEach((ma)=>{
+  rawPeerInfo.multiaddrs.forEach(ma => {
     multiAddrs.push(ma.toString());
   });
-  const parsedPeerInfo = {peerId: rawPeerInfo.id.toJSON(),
+  const parsedPeerInfo = {
+    peerId: rawPeerInfo.id.toJSON(),
     connectedMultiaddr: rawPeerInfo._connectedMultiaddr.toString(),
-    multiAddrs: multiAddrs};
+    multiAddrs: multiAddrs
+  };
   return parsedPeerInfo;
-};
+}
 
 /** Generate a random id out of Aa0 in len 12
  * for the JSONRPC id parameter.
  * @return {String} random
  * */
 module.exports.randId = function() {
-  return randomize('Aa0', 12);
+  return randomize("Aa0", 12);
 };
 
 /** Map a connection stream to a Ping Message
@@ -92,7 +93,7 @@ module.exports.randId = function() {
  * @return {PingMsg} ping
  * */
 module.exports.toPingMsg = function(data) {
-  let ping = data.toString('utf8').replace('\n', '');
+  let ping = data.toString("utf8").replace("\n", "");
   ping = JSON.parse(ping);
   return new Messages.PingMsg(ping);
 };
@@ -102,7 +103,7 @@ module.exports.toPingMsg = function(data) {
  * @return {PongMsg} pong
  * */
 module.exports.toPongMsg = function(data) {
-  const pong = data.toString('utf8').replace('\n', '');
+  const pong = data.toString("utf8").replace("\n", "");
   return new Messages.PongMsg(pong);
 };
 /** Map a connection stream to a HeartBeat response Message
@@ -110,7 +111,7 @@ module.exports.toPongMsg = function(data) {
  * @return {HeartBeatResMsg} hb response
  * */
 module.exports.toHeartBeatResMsg = function(data) {
-  const hb = data.toString('utf8').replace('\n', '');
+  const hb = data.toString("utf8").replace("\n", "");
   return new Messages.HeartBeatResMsg(hb);
 };
 /** Map a connection stream to a HeartBeat request Message
@@ -118,7 +119,7 @@ module.exports.toHeartBeatResMsg = function(data) {
  * @return {HeartBeatReqMsg} hb request
  * */
 module.exports.toHeartBeatReqMsg = function(data) {
-  const hb = data.toString('utf8').replace('\n', '');
+  const hb = data.toString("utf8").replace("\n", "");
   return new Messages.HeartBeatReqMsg(hb);
 };
 
@@ -126,16 +127,15 @@ module.exports.toHeartBeatReqMsg = function(data) {
  * @param {Buffer} data ,
  * @return {HeartBeatReqMsg}*/
 module.exports.toFindPeersReqMsg = function(data) {
-  const fp = data.toString('utf8').replace('\n', '');
+  const fp = data.toString("utf8").replace("\n", "");
   return new Messages.FindPeersReqMsg(fp);
 };
-
 
 /** Map a connection stream to a findpeers response msg
  * @param {Buffer} data ,
  * @return {FindPeersResMsg}*/
 module.exports.toFindPeersResMsg = function(data) {
-  const fp = data.toString('utf8').replace('\n', '');
+  const fp = data.toString("utf8").replace("\n", "");
   return new Messages.FindPeersResMsg(fp);
 };
 
@@ -152,18 +152,20 @@ module.exports.extractId = function(url) {
 };
 
 module.exports.isString = function(x) {
-  return Object.prototype.toString.call(x) === '[object String]';
+  return Object.prototype.toString.call(x) === "[object String]";
 };
 
 module.exports.isFunction = function(functionToCheck) {
-  return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
+  return (
+    functionToCheck && {}.toString.call(functionToCheck) === "[object Function]"
+  );
 };
 /** update the delta patch to a json object from a smaller json
  * @param {Json} main
  * @param {Json} patch
  * @return {Json} updated, the result with the patch
  * */
-module.exports.applyDelta= function(main, patch) {
+module.exports.applyDelta = function(main, patch) {
   const updated = defaultsDeep(patch, main);
   return updated;
 };
@@ -177,7 +179,7 @@ module.exports.unixTimestamp = function() {
 /**
  * get 24 hours in unixtimes stamp
  * */
-module.exports.unixDay = ()=>{
+module.exports.unixDay = () => {
   return timestamp.Day;
 };
 /** Turn a 1 level distionary to a list
@@ -192,17 +194,16 @@ module.exports.dictToList = function(dictionary) {
   return list;
 };
 
-
 /** pick a random number of elements from a list
  * @param {Array} list - list of elements to chose from
  * @param {Integer} num - if num =0 || num> list size return all list
  * @return {Array}
  */
 module.exports.pickRandomFromList = function(list, num) {
-  if (num <=0 || num >= list.length) {
+  if (num <= 0 || num >= list.length) {
     return list;
   }
-  return pickRandom(list, {count: num});
+  return pickRandom(list, { count: num });
 };
 
 /** check if a connection string is an IPFS address
@@ -222,13 +223,13 @@ module.exports.peerBankSeedtoPeerInfo = function(seed, callback) {
   if (PeerInfo.isPeerInfo(seed)) {
     callback(null, seed);
   } else {
-    PeerInfo.create(seed.peerId, (err, peerInfo)=>{
+    PeerInfo.create(seed.peerId, (err, peerInfo) => {
       if (err) {
         callback(err, null);
       }
 
       if (seed.multiAddrs) {
-        seed.multiAddrs.forEach((ma)=>{
+        seed.multiAddrs.forEach(ma => {
           if (_isIpfs(ma)) {
             peerInfo.multiaddrs.add(ma);
           }
@@ -248,19 +249,17 @@ module.exports.connectionStrToPeerInfo = function(addr, onResult) {
   _connectionStrToPeerInfo(addr, onResult);
 };
 
-
 function _isIpfs(addr) {
   try {
     return mafmt.IPFS.matches(addr);
   } catch (e) {
     return false;
   }
-};
-
+}
 
 function _connectionStrToPeerInfo(candidate, onResult) {
   if (!_isIpfs(candidate)) {
-    onResult(new Error('Invalid multiaddr'), null);
+    onResult(new Error("Invalid multiaddr"), null);
   }
 
   const ma = multiaddr(candidate);
@@ -275,8 +274,7 @@ function _connectionStrToPeerInfo(candidate, onResult) {
       onResult(err, peerInfo);
     }
   });
-};
-
+}
 
 /**
  * same as rm -rf <some folder>
@@ -293,7 +291,9 @@ module.exports.deleteFolderFromOSRecursive = function(path, callback) {
  *  @return {PeerId} peerId
  * */
 
-module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)};
+module.exports.b58ToPeerId = b58Id => {
+  return PeerId.createFromB58String(b58Id);
+};
 
 /**
  * Removes '0x' from a hex string, if present
@@ -303,7 +303,7 @@ module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)
  */
 module.exports.remove0x = function(hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) == "0x") {
       return hexString.substring(2);
     } else {
       return hexString;
@@ -321,10 +321,10 @@ module.exports.remove0x = function(hexString) {
  */
 module.exports.add0x = function(hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) == "0x") {
       return hexString;
     } else {
-      return '0x' + hexString;
+      return "0x" + hexString;
     }
   } else {
     return null;
@@ -336,12 +336,11 @@ module.exports.add0x = function(hexString) {
  *  @return {Promise}
  * */
 module.exports.gzip = function gzip(buffer) {
-  return new Promise((resolve, reject)=> {
-    zlib.gzip(buffer, (error, result)=>{
+  return new Promise((resolve, reject) => {
+    zlib.gzip(buffer, (error, result) => {
       if (error) {
         reject(error);
-      }
-      else {
+      } else {
         resolve(result);
       }
     });
@@ -357,8 +356,7 @@ module.exports.gunzip = function gunzip(buffer) {
     zlib.gunzip(buffer, (error, result) => {
       if (error) {
         reject(error);
-      }
-      else {
+      } else {
         resolve(result);
       }
     });

@@ -1,7 +1,7 @@
 /**
  * verify a task
  * */
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class VerifyNewTaskAction {
   constructor(controller) {
@@ -11,39 +11,63 @@ class VerifyNewTaskAction {
     let onResult = params.onResponse;
     const unverifiedTask = params.task;
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
+      onResponse: async (err, regParams) => {
         // TODO: remove this default!!!!
         let isVerified = true;
-        if(this._controller.hasEthereum()){
+        if (this._controller.hasEthereum()) {
           isVerified = false;
           try {
-            const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
-            let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, currentBlockNumber, regParams.result.signingKey);
+            const currentBlockNumber = await this._controller
+              .ethereum()
+              .api()
+              .getEthereumBlockNumber();
+            let res = await this._controller
+              .ethereum()
+              .verifier()
+              .verifyTaskCreation(
+                unverifiedTask,
+                currentBlockNumber,
+                regParams.result.signingKey
+              );
             if (res.error) {
-              this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${res.error}`);
-            }
-            else if (res.isVerified) {
+              this._controller
+                .logger()
+                .info(
+                  `[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${
+                    res.error
+                  }`
+                );
+            } else if (res.isVerified) {
               unverifiedTask.setGasLimit(res.gasLimit);
               unverifiedTask.setBlockNumber(res.blockNumber);
-              this._controller.logger().debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`);
+              this._controller
+                .logger()
+                .debug(
+                  `[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`
+                );
               isVerified = true;
             }
-          }
-          catch (err) {
-            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.getTaskId()}`);
+          } catch (err) {
+            this._controller
+              .logger()
+              .error(
+                `[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.getTaskId()}`
+              );
           }
         }
-        await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
-        if(onResult){
+        await this._controller
+          .taskManager()
+          .asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
+        if (onResult) {
           onResult(null, isVerified);
         }
-      },
+      }
     });
   }
 
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);
@@ -53,9 +77,6 @@ class VerifyNewTaskAction {
   }
 }
 module.exports = VerifyNewTaskAction;
-
-
-
 
 // let c = nodeController;
 // let isVerified= await c.asyncExecCmd('verify aeubesiuhf', {task: Task});

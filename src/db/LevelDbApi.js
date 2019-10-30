@@ -1,5 +1,5 @@
-const level = require('level');
-const nodeUtils = require('../common/utils');
+const level = require("level");
+const nodeUtils = require("../common/utils");
 class LevelDbApi {
   constructor(dbName) {
     this._dbName = dbName;
@@ -12,85 +12,87 @@ class LevelDbApi {
     return false;
   }
   open() {
-      this._db = level(this._dbName);
+    this._db = level(this._dbName);
   }
   close(callback) {
-    return this._db.close((err)=>{
+    return this._db.close(err => {
       if (callback) {
         callback(err);
-      } else if(err){
-        console.log('[-] err closing db', err);
-      }else{
-        console.log('[+] success closing db.');
+      } else if (err) {
+        console.log("[-] err closing db", err);
+      } else {
+        console.log("[+] success closing db.");
       }
     });
   }
-  delete(key,callback){
-    if(this._isOpen()){
-      this._db.del(key,(err)=>{callback(err)});
-    }else{
-      callback('db closed');
+  delete(key, callback) {
+    if (this._isOpen()) {
+      this._db.del(key, err => {
+        callback(err);
+      });
+    } else {
+      callback("db closed");
     }
   }
   put(key, value, callback) {
     if (this._isOpen()) {
-      this._db.put(key, value, (err)=>{
+      this._db.put(key, value, err => {
         callback(err);
       });
     } else {
-      callback('db closed');
+      callback("db closed");
     }
   }
   get(key, callback) {
     if (this._isOpen()) {
-      this._db.get(key, (err, value)=>{
+      this._db.get(key, (err, value) => {
         if (err) {
           callback(err, value);
         } else {
-          if(nodeUtils.isString(value)){
+          if (nodeUtils.isString(value)) {
             value = JSON.parse(value);
           }
           callback(err, value);
         }
       });
     } else {
-      callback('db closed');
+      callback("db closed");
     }
   }
   // put value only if it doesn't exist.
   safePut(key, value, callback) {
     if (this._isOpen()) {
-      this.get(key, (err, value)=>{
+      this.get(key, (err, value) => {
         if (err) {
           // value dont exist
-          this.put(key, value, (err)=>{
+          this.put(key, value, err => {
             callback(err);
           });
         } else {
           // value exists
-          callback('value exists');
+          callback("value exists");
         }
       });
     } else {
-      callback('db closed');
+      callback("db closed");
     }
   }
   putBatch(objs, callback) {
     const operations = [];
-    objs.forEach((o)=>{
-      operations.push({type: 'put', key: o.key, value: o.value});
+    objs.forEach(o => {
+      operations.push({ type: "put", key: o.key, value: o.value });
     });
-    this._batch(operations, (err)=>{
+    this._batch(operations, err => {
       callback(err);
     });
   }
   _batch(operations, callback) {
     if (this._isOpen()) {
-      this._db.batch(operations, (err)=> {
+      this._db.batch(operations, err => {
         callback(err);
       });
     } else {
-      callback('db closed');
+      callback("db closed");
     }
   }
 }
@@ -131,5 +133,3 @@ module.exports = LevelDbApi;
 //         });
 //     })
 // });
-
-

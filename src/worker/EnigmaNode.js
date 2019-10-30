@@ -1,22 +1,21 @@
-const EventEmitter = require('events').EventEmitter;
-const waterfall = require('async/waterfall');
-const parallel = require('async/parallel');
-const PeerId = require('peer-id');
-const PeerInfo = require('peer-info');
-const pull = require('pull-stream');
-const PeerBundle = require('./libp2p-bundle');
-const constants = require('../common/constants');
+const EventEmitter = require("events").EventEmitter;
+const waterfall = require("async/waterfall");
+const parallel = require("async/parallel");
+const PeerId = require("peer-id");
+const PeerInfo = require("peer-info");
+const pull = require("pull-stream");
+const PeerBundle = require("./libp2p-bundle");
+const constants = require("../common/constants");
 const PROTOCOLS = constants.PROTOCOLS;
 const MSG_STATUS = constants.MSG_STATUS;
-const Policy = require('../policy/policy');
-const Messages = require('../policy/p2p_messages/messages');
-const nodeUtils = require('../common/utils');
-const Logger = require('../common/logger');
-const errors = require('../common/errors');
+const Policy = require("../policy/policy");
+const Messages = require("../policy/p2p_messages/messages");
+const nodeUtils = require("../common/utils");
+const Logger = require("../common/logger");
+const errors = require("../common/errors");
 // const EngCID = require('../common/EngCID');
 // const CIDUtil = require('../common/CIDUtil');
 // const CID = require('cids');
-
 
 class EnigmaNode extends EventEmitter {
   constructor(config, protocolHandler, logger) {
@@ -28,8 +27,8 @@ class EnigmaNode extends EventEmitter {
       this._logger = logger;
     } else {
       this._logger = new Logger({
-        'level': 'debug',
-        'cli': true,
+        level: "debug",
+        cli: true
       });
     }
 
@@ -38,7 +37,11 @@ class EnigmaNode extends EventEmitter {
     this.isDiscover = config.isDiscover;
     this.dnsNodes = config.dnsNodes;
     this._pathPeerId = null;
-    if ('pathPeerId' in config && config['pathPeerId'] != null && config['pathPeerId'] != undefined) {
+    if (
+      "pathPeerId" in config &&
+      config["pathPeerId"] != null &&
+      config["pathPeerId"] != undefined
+    ) {
       this._pathPeerId = config.pathPeerId;
     }
     this.started = false;
@@ -53,7 +56,7 @@ class EnigmaNode extends EventEmitter {
     return this._handler;
   }
   isBootstrapNode(id) {
-    return this.dnsNodes.some((ma)=>{
+    return this.dnsNodes.some(ma => {
       const bid = ma.substr(ma.length - constants.ID_LEN, ma.length);
       return bid == id;
     });
@@ -68,7 +71,7 @@ class EnigmaNode extends EventEmitter {
       if (err) throw err;
 
       const peerInfo = new PeerInfo(idListener);
-      this.multiAddrs.forEach((addr)=>{
+      this.multiAddrs.forEach(addr => {
         peerInfo.multiaddrs.add(addr);
       });
       this.node = new PeerBundle({
@@ -77,10 +80,10 @@ class EnigmaNode extends EventEmitter {
           peerDiscovery: {
             bootstrap: {
               enabled: this.isDiscover,
-              list: this.dnsNodes,
-            },
-          },
-        },
+              list: this.dnsNodes
+            }
+          }
+        }
       });
       setTimeout(callback, 100);
     });
@@ -90,34 +93,37 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} callback - empty callback with no params
    */
   createNode(callback) {
-    waterfall([
-      (cb) => PeerInfo.create(cb),
-      (peerInfo, cb) => {
-        this.multiAddrs.forEach((addr)=>{
-          peerInfo.multiaddrs.add(addr);
-        });
-        this.node = new PeerBundle({
-          peerInfo,
-          config: {
-            peerDiscovery: {
-              bootstrap: {
-                enabled: this.isDiscover,
-                list: this.dnsNodes,
-              },
-            },
-          },
-        });
-        setTimeout(cb, 100);
-      },
-    ], (err) => callback(err));
+    waterfall(
+      [
+        cb => PeerInfo.create(cb),
+        (peerInfo, cb) => {
+          this.multiAddrs.forEach(addr => {
+            peerInfo.multiaddrs.add(addr);
+          });
+          this.node = new PeerBundle({
+            peerInfo,
+            config: {
+              peerDiscovery: {
+                bootstrap: {
+                  enabled: this.isDiscover,
+                  list: this.dnsNodes
+                }
+              }
+            }
+          });
+          setTimeout(cb, 100);
+        }
+      ],
+      err => callback(err)
+    );
   }
   /** Promise
    * Create a random peerInfo and initialize a node instance
    * @return {Promise}
    */
   syncCreateNode() {
-    return new Promise((res, rej)=>{
-      this.createNode((err)=>{
+    return new Promise((res, rej) => {
+      this.createNode(err => {
         if (err) rej(err);
         res(this);
       });
@@ -129,8 +135,8 @@ class EnigmaNode extends EventEmitter {
    * @return {Promise}
    */
   syncLoadNode(path) {
-    return new Promise((res, rej)=>{
-      this.loadNode(path, ()=>{
+    return new Promise((res, rej) => {
+      this.loadNode(path, () => {
         res(this);
       });
     });
@@ -143,22 +149,37 @@ class EnigmaNode extends EventEmitter {
   addHandlers() {
     const protocols = this._handler.getProtocolsList();
 
-    if ((!this.started )) {
-      throw Error('not all protocols are satisfied, check constants.js for more info.');
+    if (!this.started) {
+      throw Error(
+        "not all protocols are satisfied, check constants.js for more info."
+      );
     }
-    this.node.on(PROTOCOLS['PEER_DISCOVERY'], (peer) => {
-      this._handler.handle(PROTOCOLS['PEER_DISCOVERY'], this.node, {peer: peer, worker: this});
+    this.node.on(PROTOCOLS["PEER_DISCOVERY"], peer => {
+      this._handler.handle(PROTOCOLS["PEER_DISCOVERY"], this.node, {
+        peer: peer,
+        worker: this
+      });
     });
 
-    this.node.on(PROTOCOLS['PEER_CONNECT'], (peer) => {
-      this._handler.handle(PROTOCOLS['PEER_CONNECT'], this.node, {peer: peer, worker: this});
+    this.node.on(PROTOCOLS["PEER_CONNECT"], peer => {
+      this._handler.handle(PROTOCOLS["PEER_CONNECT"], this.node, {
+        peer: peer,
+        worker: this
+      });
     });
-    this.node.on(PROTOCOLS['PEER_DISCONNECT'], (peer) => {
-      this._handler.handle(PROTOCOLS['PEER_DISCONNECT'], this.node, {peer: peer, worker: this});
+    this.node.on(PROTOCOLS["PEER_DISCONNECT"], peer => {
+      this._handler.handle(PROTOCOLS["PEER_DISCONNECT"], this.node, {
+        peer: peer,
+        worker: this
+      });
     });
-    protocols.forEach((protocolName)=>{
-      this.node.handle(protocolName, (protocol, conn)=>{
-        this._handler.handle(protocolName, this.node, {protocol: protocol, connection: conn, worker: this});
+    protocols.forEach(protocolName => {
+      this.node.handle(protocolName, (protocol, conn) => {
+        this._handler.handle(protocolName, this.node, {
+          protocol: protocol,
+          connection: conn,
+          worker: this
+        });
       });
     });
   }
@@ -175,7 +196,7 @@ class EnigmaNode extends EventEmitter {
 
     try {
       const peer = this.getSelfPeerBook().get(strId);
-      if (peer!= null) {
+      if (peer != null) {
         found = true;
       }
     } catch (err) {
@@ -191,21 +212,29 @@ class EnigmaNode extends EventEmitter {
    */
   subscribe(subscriptions) {
     if (!this.started) {
-      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr(
+        "Please start the Worker before subscribing"
+      );
     }
-    subscriptions.forEach((sub)=>{
+    subscriptions.forEach(sub => {
       this._topicHandlersMap[sub.topic] = sub.topic_handler;
-      this.node.pubsub.subscribe(sub.topic, sub.topic_handler, sub.final_handler);
+      this.node.pubsub.subscribe(
+        sub.topic,
+        sub.topic_handler,
+        sub.final_handler
+      );
     });
   }
   /*
-  * Unsubscribe from topic
-  * **/
+   * Unsubscribe from topic
+   * **/
   unsubscribe(topic, handler) {
     if (!this.started) {
-      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr(
+        "Please start the Worker before subscribing"
+      );
     }
-    this.node.pubsub.unsubscribe(topic, handler, (err) => {
+    this.node.pubsub.unsubscribe(topic, handler, err => {
       if (err) {
         return this._logger.error(`failed to unsubscribe from ${topic}` + err);
       }
@@ -217,8 +246,8 @@ class EnigmaNode extends EventEmitter {
    * @param {Promise<Array<string>>} Calls back with an error or a list of topicIDs that this peer is subscribed to.
    * */
   async getTopics() {
-    return new Promise((res, rej)=>{
-      this.node.pubsub.ls((err, topics)=>{
+    return new Promise((res, rej) => {
+      this.node.pubsub.ls((err, topics) => {
         if (err) return rej(err);
         res(topics);
       });
@@ -226,21 +255,27 @@ class EnigmaNode extends EventEmitter {
   }
   defaultSubscribe() {
     if (!this.started) {
-      throw new errors.InitPipelinesErr('Please start the Worker before subscribing');
+      throw new errors.InitPipelinesErr(
+        "Please start the Worker before subscribing"
+      );
     }
 
     const subscriptions = this._handler.getSubscriptionsList();
 
-    subscriptions.forEach((topic)=>{
-      this.node.pubsub.subscribe(topic, (message)=>{
-        const params = {
-          'worker': this,
-        };
+    subscriptions.forEach(topic => {
+      this.node.pubsub.subscribe(
+        topic,
+        message => {
+          const params = {
+            worker: this
+          };
 
-        this._handler.handleTopic(params, message);
-      }, ()=>{
-        this._logger.debug('subscribed ' + topic);
-      });
+          this._handler.handleTopic(params, message);
+        },
+        () => {
+          this._logger.debug("subscribed " + topic);
+        }
+      );
     });
   }
   /**
@@ -261,7 +296,7 @@ class EnigmaNode extends EventEmitter {
    * @return {Integer} intervalID , the ID of the interval to be shutdown in another context
    */
   broadcastLoop(topic, interval, content, oncePublishedCallback) {
-    const intervalID = setInterval(()=>{
+    const intervalID = setInterval(() => {
       this.broadcast(topic, content, oncePublishedCallback);
     }, interval);
     return intervalID;
@@ -273,7 +308,7 @@ class EnigmaNode extends EventEmitter {
   // maStr = '/ip4/127.0.0.1/tcp/36601/ipfs/QmdvtnrtdzgXreTPRWfDbPguNsLC7vq4MK4AULKxfHU73F/';
   getListeningAddrs() {
     const strAddrs = [];
-    this.node.peerInfo.multiaddrs.forEach((addr)=>{
+    this.node.peerInfo.multiaddrs.forEach(addr => {
       strAddrs.push(addr.toString());
     });
     return strAddrs;
@@ -313,11 +348,11 @@ class EnigmaNode extends EventEmitter {
     const peers = this.getAllPeersIds();
     const result = [];
     // get peers info by id
-    peers.forEach((peer)=>{
+    peers.forEach(peer => {
       try {
         result.push(this.node.peerBook.get(peer));
       } catch (err) {
-        this._logger.error('[-] Error finding peer' + err);
+        this._logger.error("[-] Error finding peer" + err);
       }
     });
     return result;
@@ -327,14 +362,14 @@ class EnigmaNode extends EventEmitter {
    * @return {Array<PeerInfo>} peersInfo
    */
   getPeersInfoList(idList) {
-    const peers =idList;
+    const peers = idList;
     const result = [];
     // get peers info by id
-    peers.forEach((peer)=>{
+    peers.forEach(peer => {
       try {
         result.push(this.node.peerBook.get(peer));
       } catch (err) {
-        this._logger.error('[-] Error finding peer ' + err);
+        this._logger.error("[-] Error finding peer " + err);
       }
     });
     return result;
@@ -345,7 +380,7 @@ class EnigmaNode extends EventEmitter {
    * where err is an Error in case starting the node fails.
    */
   start(callback) {
-    this.node.start((err)=>{
+    this.node.start(err => {
       this.started = true;
       callback();
     });
@@ -356,7 +391,7 @@ class EnigmaNode extends EventEmitter {
    * @return {Promise}
    */
   syncRun() {
-    return new Promise(async (resolve, reject)=>{
+    return new Promise(async (resolve, reject) => {
       // load node
       await this.syncInit(this._pathPeerId);
       // start the node
@@ -376,9 +411,11 @@ class EnigmaNode extends EventEmitter {
    * @return {Promise}
    */
   syncStart() {
-    return new Promise((res, rej)=>{
-      this.start(()=>{
-        this._logger.info(this.nickName() + ' has started. id = ' + this.getSelfIdB58Str());
+    return new Promise((res, rej) => {
+      this.start(() => {
+        this._logger.info(
+          this.nickName() + " has started. id = " + this.getSelfIdB58Str()
+        );
         res(this);
       });
     });
@@ -409,8 +446,8 @@ class EnigmaNode extends EventEmitter {
    * @return {Promise}
    */
   syncStop() {
-    return new Promise((res, rej)=>{
-      this.stop((err)=>{
+    return new Promise((res, rej) => {
+      this.stop(err => {
         if (err) rej(err);
         res(this);
       });
@@ -424,7 +461,7 @@ class EnigmaNode extends EventEmitter {
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
-      this._logger.error('[-] Error : ' + MSG_STATUS.ERR_SELF_DIAL);
+      this._logger.error("[-] Error : " + MSG_STATUS.ERR_SELF_DIAL);
       return;
     } else {
       this.node.dialProtocol(peerInfo, protocolName, onConnection);
@@ -437,25 +474,25 @@ class EnigmaNode extends EventEmitter {
    * @param {JSON} reqMsg - request
    * @return {Promise<Json>} response
    * */
-  oneShotDial(peerInfo, protocolName,reqMsg) {
-    return new Promise((resolve,reject)=>{
+  oneShotDial(peerInfo, protocolName, reqMsg) {
+    return new Promise((resolve, reject) => {
       if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
         reject(new errors.P2PErr(MSG_STATUS.ERR_SELF_DIAL));
       } else {
-        this.node.dialProtocol(peerInfo, protocolName, (err,connection)=>{
-          if(err){
+        this.node.dialProtocol(peerInfo, protocolName, (err, connection) => {
+          if (err) {
             return reject(err);
           }
           pull(
-              pull.values([reqMsg]),
-              connection,
-              pull.collect((err,responseMsg)=>{
-                console.log(responseMsg);
-                if(err){
-                  return reject(err);
-                }
-                return resolve(responseMsg);
-              })
+            pull.values([reqMsg]),
+            connection,
+            pull.collect((err, responseMsg) => {
+              console.log(responseMsg);
+              if (err) {
+                return reject(err);
+              }
+              return resolve(responseMsg);
+            })
           );
         });
       }
@@ -468,18 +505,18 @@ class EnigmaNode extends EventEmitter {
    * @param {JSON} reqMsg - request
    * @return {Promise<Json>} response
    * */
-  async oneShotDialAndClose(peerInfo, protocolName,reqMsg){
+  async oneShotDialAndClose(peerInfo, protocolName, reqMsg) {
     let response = null;
-    return new Promise(async (resolve,reject)=>{
-      try{
-        response = await this.oneShotDial(peerInfo,protocolName,reqMsg);
-      }catch(e){
+    return new Promise(async (resolve, reject) => {
+      try {
+        response = await this.oneShotDial(peerInfo, protocolName, reqMsg);
+      } catch (e) {
         this._logger.error(`[oneShotDialClose] on protocol ${protocolName}`);
         reject(e);
-      }finally{
+      } finally {
         // drop connection
-        this.node.hangUp(peerInfo,(err)=>{
-          if(err){
+        this.node.hangUp(peerInfo, err => {
+          if (err) {
             reject(err);
           }
           resolve(response);
@@ -494,7 +531,7 @@ class EnigmaNode extends EventEmitter {
    */
   handshake(peerInfo, withPeerList, onHandshake) {
     if (!PeerInfo.isPeerInfo(peerInfo)) {
-      nodeUtils.peerBankSeedtoPeerInfo(peerInfo, (err, parsedPeerInfo)=>{
+      nodeUtils.peerBankSeedtoPeerInfo(peerInfo, (err, parsedPeerInfo) => {
         if (err) {
           onHandshake(err, null, null);
         } else {
@@ -513,45 +550,50 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} onHandshake
    */
   _afterParseHandshake(peerInfo, withPeerList, onHandshake) {
-    this.node.dialProtocol(peerInfo, PROTOCOLS['HANDSHAKE'], (connectionErr, connection)=>{
-      if (connectionErr) {
-        onHandshake(connectionErr, null, null, null); ;
-        return;
-      }
-      const selfId = this.getSelfIdB58Str();
-      const ping = new Messages.PingMsg({
-        'from': selfId,
-        'to': peerInfo.id.toB58String(),
-        'findpeers': withPeerList});
-      pull(
+    this.node.dialProtocol(
+      peerInfo,
+      PROTOCOLS["HANDSHAKE"],
+      (connectionErr, connection) => {
+        if (connectionErr) {
+          onHandshake(connectionErr, null, null, null);
+          return;
+        }
+        const selfId = this.getSelfIdB58Str();
+        const ping = new Messages.PingMsg({
+          from: selfId,
+          to: peerInfo.id.toB58String(),
+          findpeers: withPeerList
+        });
+        pull(
           pull.values([ping.toNetworkStream()]),
           connection,
-          pull.collect((err, response)=>{
+          pull.collect((err, response) => {
             if (err) {
-              this._logger.error('[-] Err ' + err);
+              this._logger.error("[-] Err " + err);
               return onHandshake(err, null, null, null);
             }
             const data = response;
             const pongMsg = nodeUtils.toPongMsg(data);
             if (!pongMsg.isValidMsg()) {
-              err = '[-] Err bad pong msg recieved.';
+              err = "[-] Err bad pong msg recieved.";
             }
             // TODO:: REPLACE THAT with normal notify,
             // TODO:: The question is - where do I notify forall inbound/outbound handshakes
             // see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
-            this.emit('notify', pongMsg);
+            this.emit("notify", pongMsg);
             onHandshake(err, peerInfo, ping, pongMsg);
             return pongMsg.toNetworkStream();
           })
-      );
-    });
+        );
+      }
+    );
   }
   /**
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAINT notification field
    */
   notify(params) {
-    this.emit('notify', params);
+    this.emit("notify", params);
   }
 
   /**
@@ -560,24 +602,28 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} onResult signature (err,PeerBook) =>{}
    */
   getPeersPeerBook(peerInfo, onResult) {
-    this.dialProtocol(peerInfo, PROTOCOLS.PEERS_PEER_BOOK, (connectionErr, connection)=>{
-      if (connectionErr) {
-        this._logger.error('[-] err connection to peer');
-        return onResult(connectionErr, null);
-      }
-      let peersPeerBook = null;
-      const err = null;
-      pull(
+    this.dialProtocol(
+      peerInfo,
+      PROTOCOLS.PEERS_PEER_BOOK,
+      (connectionErr, connection) => {
+        if (connectionErr) {
+          this._logger.error("[-] err connection to peer");
+          return onResult(connectionErr, null);
+        }
+        let peersPeerBook = null;
+        const err = null;
+        pull(
           connection,
-          pull.map((data) => {
-            peersPeerBook = data.toString('utf8').replace('\n', '');
+          pull.map(data => {
+            peersPeerBook = data.toString("utf8").replace("\n", "");
             peersPeerBook = JSON.parse(peersPeerBook);
             onResult(err, peersPeerBook);
             return peersPeerBook;
           }),
           pull.drain()
-      );
-    });
+        );
+      }
+    );
   }
   /**
    * Post a findpeers msg protocol request to another peer
@@ -590,9 +636,9 @@ class EnigmaNode extends EventEmitter {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
       return onResult(MSG_STATUS.ERR_SELF_DIAL, null, null);
     }
-    this.dialProtocol(peerInfo, PROTOCOLS.FIND_PEERS, (connErr, connection)=>{
+    this.dialProtocol(peerInfo, PROTOCOLS.FIND_PEERS, (connErr, connection) => {
       if (connErr) {
-        this._logger.error('[-] err connection to peer');
+        this._logger.error("[-] err connection to peer");
         return onResult(connErr, null);
       }
 
@@ -600,30 +646,36 @@ class EnigmaNode extends EventEmitter {
       const findPeersReq = new Messages.FindPeersReqMsg({
         from: this.getSelfIdB58Str(),
         to: peerInfo.id.toB58String(),
-        maxpeers: maxPeers,
+        maxpeers: maxPeers
       });
 
       if (!findPeersReq.isValidMsg()) {
-        this._logger.error('[-] err creating findpeer request msg.');
-        return onResult(new errors.P2PErr('err creating findpeer request msg.'), null);
+        this._logger.error("[-] err creating findpeer request msg.");
+        return onResult(
+          new errors.P2PErr("err creating findpeer request msg."),
+          null
+        );
       }
       // post msg
       pull(
-          pull.values([findPeersReq.toNetworkStream()]),
-          connection,
-          pull.collect((err, response)=>{
-            if (err) {
-              this._logger.error('[-] err parsing findpeers response msg.');
-              return onResult(err, null);
-            }
-            const findPeersResponseMsg = nodeUtils.toFindPeersResMsg(response);
-            // validate the msg (same id as request, structure etc)
-            if (!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)) {
-              this._logger.error('[-] err parsing findpeers response msg.');
-              return onResult(new errors.P2PErr('Invalid find peers response msg'), null);
-            }
-            onResult(null, findPeersReq, findPeersResponseMsg);
-          })
+        pull.values([findPeersReq.toNetworkStream()]),
+        connection,
+        pull.collect((err, response) => {
+          if (err) {
+            this._logger.error("[-] err parsing findpeers response msg.");
+            return onResult(err, null);
+          }
+          const findPeersResponseMsg = nodeUtils.toFindPeersResMsg(response);
+          // validate the msg (same id as request, structure etc)
+          if (!findPeersResponseMsg.isCompatibleWithMsg(findPeersReq)) {
+            this._logger.error("[-] err parsing findpeers response msg.");
+            return onResult(
+              new errors.P2PErr("Invalid find peers response msg"),
+              null
+            );
+          }
+          onResult(null, findPeersReq, findPeersResponseMsg);
+        })
       );
     });
   }
@@ -633,11 +685,13 @@ class EnigmaNode extends EventEmitter {
    */
   provideContent(engCid, callback) {
     if (!this.started) {
-      throw new errors.InitPipelinesErr('Please start the Worker before providing content');
+      throw new errors.InitPipelinesErr(
+        "Please start the Worker before providing content"
+      );
     }
     if (engCid) {
       const cid = engCid.getCID();
-      this.node.contentRouting.provide(cid, (err)=>{
+      this.node.contentRouting.provide(cid, err => {
         callback(err, engCid);
       });
     }
@@ -650,8 +704,8 @@ class EnigmaNode extends EventEmitter {
    * @return {Promise}, peersbook || err
    */
   syncGetPeersPeerBook(peerInfo) {
-    return new Promise((res, rej)=>{
-      this.getPeersPeerBook(peerInfo, (err, peerBook)=>{
+    return new Promise((res, rej) => {
+      this.getPeersPeerBook(peerInfo, (err, peerBook) => {
         if (err) rej(err);
         res(peerBook);
       });
@@ -663,15 +717,15 @@ class EnigmaNode extends EventEmitter {
    * @param {string} b58Id
    * @return {Promise<PeerInfo>} peerInfo
    * */
-  async lookUpPeer(b58Id){
-    return new Promise((resolve,reject)=>{
+  async lookUpPeer(b58Id) {
+    return new Promise((resolve, reject) => {
       let peerId = nodeUtils.b58ToPeerId(b58Id);
-      if(!peerId){
+      if (!peerId) {
         reject(new errors.TypeErr(`cant generate PeerId from ${b58Id}`));
       }
-      this.node.peerRouting.findPeer(peerId,(err,peer)=>{
-        if(err) reject(err);
-        else{
+      this.node.peerRouting.findPeer(peerId, (err, peer) => {
+        if (err) reject(err);
+        else {
           resolve(peer);
         }
       });
@@ -681,23 +735,31 @@ class EnigmaNode extends EventEmitter {
    * get the local state of a remote peer
    * if not connected already -> hang-up after message exchange
    * */
-  getLocalStateOfRemote(peerInfo){
-    return new Promise(async (resolve,reject)=>{
-      if(!peerInfo instanceof PeerInfo){
+  getLocalStateOfRemote(peerInfo) {
+    return new Promise(async (resolve, reject) => {
+      if (!peerInfo instanceof PeerInfo) {
         reject(new errors.TypeErr(`peerInfo is not PeerInfo`));
       }
       let protocol = constants.PROTOCOLS.LOCAL_STATE_EXCHAGNE;
       let isConnected = this.isConnected(peerInfo.id.toB58String());
       let response = null;
-      try{
-        if(isConnected){
-          response = await this.oneShotDial(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
-        }else{
-          response = await this.oneShotDialAndClose(peerInfo,protocol,Buffer.from(this.getSelfIdB58Str()));
+      try {
+        if (isConnected) {
+          response = await this.oneShotDial(
+            peerInfo,
+            protocol,
+            Buffer.from(this.getSelfIdB58Str())
+          );
+        } else {
+          response = await this.oneShotDialAndClose(
+            peerInfo,
+            protocol,
+            Buffer.from(this.getSelfIdB58Str())
+          );
         }
-        response = JSON.parse(response.toString('utf8').replace('\n', ''));
+        response = JSON.parse(response.toString("utf8").replace("\n", ""));
         resolve(response);
-      }catch(e){
+      } catch (e) {
         reject(e);
       }
     });
@@ -710,7 +772,7 @@ class EnigmaNode extends EventEmitter {
    */
   findContentProvider(engCid, timeout, callback) {
     const cid = engCid.getCID();
-    this.node.contentRouting.findProviders(cid, timeout, (err, providers)=>{
+    this.node.contentRouting.findProviders(cid, timeout, (err, providers) => {
       callback(err, providers);
     });
   }
@@ -719,9 +781,13 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} connectionHandler (protocol,connection) =>{}
    */
   startStateSyncRequest(peerInfo, connectionHandler) {
-    this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
-      connectionHandler(protocol, connection);
-    });
+    this.dialProtocol(
+      peerInfo,
+      PROTOCOLS.STATE_SYNC,
+      (protocol, connection) => {
+        connectionHandler(protocol, connection);
+      }
+    );
   }
   /** TEMPORARY method
    * @param {String} protocolName
@@ -730,7 +796,7 @@ class EnigmaNode extends EventEmitter {
    */
   groupDial(protocolName, onEachResponse) {
     const peersInfo = this.getAllPeersInfo();
-    peersInfo.forEach((peer)=>{
+    peersInfo.forEach(peer => {
       this.dialProtocol(peer, protocolName, onEachResponse);
     });
   }
@@ -741,36 +807,34 @@ class EnigmaNode extends EventEmitter {
    * @promise Heartbeat result
    */
   sendHeartBeat(peerInfo, heartBeatRequest, onResult) {
-    this.dialProtocol(peerInfo, PROTOCOLS['HEARTBEAT'], (protocol, conn)=>{
+    this.dialProtocol(peerInfo, PROTOCOLS["HEARTBEAT"], (protocol, conn) => {
       pull(
-          pull.values([heartBeatRequest.toNetworkStream()]),
-          conn,
-          pull.collect((err, response)=>{
-            if (err) {
-              // TODO:: add Logger
-              this._logger.error('[-] Err in collecting HBRes msg' + err);
-              onResult(err, null);
+        pull.values([heartBeatRequest.toNetworkStream()]),
+        conn,
+        pull.collect((err, response) => {
+          if (err) {
+            // TODO:: add Logger
+            this._logger.error("[-] Err in collecting HBRes msg" + err);
+            onResult(err, null);
+          } else {
+            // validate HeartBeat Message response
+            const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
+            if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {
+              // TODO:: validate ID equals in response, valid connection (possibly do nothing)
+              // TODO:: Add to stats (?)
+              onResult(null, heartBeatRes);
             } else {
-              // validate HeartBeat Message response
-              const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
-              if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {
-                // TODO:: validate ID equals in response, valid connection (possibly do nothing)
-                // TODO:: Add to stats (?)
-                onResult(null, heartBeatRes);
-              } else {
-                // TODO:: The heartbeat message failed (weird) why? wrong id?
-                // TODO:: anyway, drop the message and do something in response.
-                // TODO:: maybe drop the peer (?)
-                // TODO:: add Logger
-                onResult(err, null);
-              }
+              // TODO:: The heartbeat message failed (weird) why? wrong id?
+              // TODO:: anyway, drop the message and do something in response.
+              // TODO:: maybe drop the peer (?)
+              // TODO:: add Logger
+              onResult(err, null);
             }
-          })
+          }
+        })
       );
     });
   }
 }
 
-
 module.exports = EnigmaNode;
-

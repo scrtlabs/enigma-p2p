@@ -1,6 +1,5 @@
-const constants = require('../../../common/constants');
+const constants = require("../../../common/constants");
 const TOPICS = constants.PUBSUB_TOPICS;
-
 
 class PubsubSubscribeAction {
   constructor(controller) {
@@ -18,13 +17,13 @@ class PubsubSubscribeAction {
     this._controller.engNode().subscribe([
       {
         topic: topic,
-        topic_handler: (msg)=>{
+        topic_handler: msg => {
           topicHandler(msg);
         },
-        final_handler: ()=>{
+        final_handler: () => {
           finalHandler();
-        },
-      },
+        }
+      }
     ]);
   }
 }

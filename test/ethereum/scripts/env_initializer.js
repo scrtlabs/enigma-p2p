@@ -1,18 +1,18 @@
-const {exec, spawn} = require('child_process');
-const Web3 = require('web3');
+const { exec, spawn } = require("child_process");
+const Web3 = require("web3");
 
-const testUtils = require('../../testUtils/utils');
-const path = require('path');
+const testUtils = require("../../testUtils/utils");
+const path = require("path");
 
 let subprocess; // Global `trufffle develop` "child process" object
 
-
 function buildEnv(truffleDirectory) {
   return new Promise((resolve, reject) => {
-    const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
+    const command =
+      "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        reject('env_initializer.buildEnv ' + err);
+        reject("env_initializer.buildEnv " + err);
       }
       //console.log(stdout);
       resolve(stderr, stdout);
@@ -22,10 +22,14 @@ function buildEnv(truffleDirectory) {
 
 function resetEnv(truffleDirectory) {
   return new Promise((resolve, reject) => {
-    const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
+    const command =
+      "cd " +
+      truffleDirectory +
+      " && truffle migrate --reset && cd " +
+      process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
-        reject('env_initalizer.resetEnv ' + err);
+        reject("env_initalizer.resetEnv " + err);
       }
       //console.log(stdout);
       resolve(stderr, stdout);
@@ -33,18 +37,17 @@ function resetEnv(truffleDirectory) {
   });
 }
 
-
 async function init(truffleDirectory) {
   await buildEnv(truffleDirectory);
   await resetEnv(truffleDirectory);
 
   //await testUtils.sleep(3000);
 
-  const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
-  const EnigmaContractJson = require('./build/contracts/Enigma.json');//require('./build/contracts/EnigmaMock.json');
+  const truffleConfig = require(path.join(truffleDirectory, "truffle"));
+  const EnigmaContractJson = require("./build/contracts/Enigma.json"); //require('./build/contracts/EnigmaMock.json');
   //const EnigmaTokenContractJson = require('./build/contracts/EnigmaToken.json');
 
-  const websocketProvider = 'ws://127.0.0.1:9545';
+  const websocketProvider = "ws://127.0.0.1:9545";
   const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
   // from https://github.com/ethereum/web3.js/issues/1354
@@ -84,15 +87,18 @@ async function init(truffleDirectory) {
 
   const networkId = truffleConfig.networks.development.network_id;
 
-  return {contractAddress: EnigmaContractJson.networks[networkId].address, contractABI: EnigmaContractJson.abi, web3: web3};
+  return {
+    contractAddress: EnigmaContractJson.networks[networkId].address,
+    contractABI: EnigmaContractJson.abi,
+    web3: web3
+  };
 }
 
-
 async function startNetwork(truffleDirectory) {
-  const command = 'cd ' + truffleDirectory + ' && truffle develop';
+  const command = "cd " + truffleDirectory + " && truffle develop";
   subprocess = spawn(command, {
     shell: true,
-    detached: true,
+    detached: true
   });
 
   subprocess.unref();
@@ -100,20 +106,21 @@ async function startNetwork(truffleDirectory) {
   await testUtils.sleep(3000);
 }
 
-
 async function start(truffleDirectory) {
   await startNetwork(truffleDirectory);
 }
-
 
 function stop() {
   subprocess.kill();
 }
 
-
 function disconnect(web3) {
   web3.currentProvider.disconnect();
 }
 
-
-module.exports = {start: start, stop: stop, init: init, disconnect: disconnect};
+module.exports = {
+  start: start,
+  stop: stop,
+  init: init,
+  disconnect: disconnect
+};

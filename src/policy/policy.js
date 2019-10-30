@@ -1,23 +1,24 @@
 /** Policy class that handles messages policy*/
-const EventEmitter = require('events').EventEmitter;
-const constants = require('../common/constants');
+const EventEmitter = require("events").EventEmitter;
+const constants = require("../common/constants");
 const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy extends EventEmitter {
-  constructor(isStrict){
+  constructor(isStrict) {
     super();
 
     this._isStrict = true;
-    if(isStrict === false){
+    if (isStrict === false) {
       this._isStrict = false;
     }
-    this._version = '0.1';
+    this._version = "0.1";
     // TODO:: define from config
     this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE;
     this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS.OPTIMAL_DHT_SIZE;
     this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS.CRITICAL_HIGH_DHT_SIZE;
-    this._TIMEOUT_FIND_PROVIDERS = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
+    this._TIMEOUT_FIND_PROVIDERS =
+      constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
   }
   /** get the optimal number of outbound connections
    * @return {Integer}
@@ -54,7 +55,7 @@ class Policy extends EventEmitter {
       return false;
     }
 
-    const missingValue = shouldExist.some((p)=>{
+    const missingValue = shouldExist.some(p => {
       if (registeredProtocols.indexOf(p) < 0) {
         return true;
       }
@@ -91,23 +92,25 @@ class Policy extends EventEmitter {
    * @return {Boolean} isValid
    */
   validJsonRpc(msg) {
-    return 'jsonrpc' in msg &&
-                (('method' in msg && 'params') || 'result' in msg ) &&
-                'id' in msg;
+    return (
+      "jsonrpc" in msg &&
+      (("method" in msg && "params") || "result" in msg) &&
+      "id" in msg
+    );
   }
   /** check if the number of connected bootstrap nodes is satifying
    * @param {Integer} n, number of handshaked bootstrap nodes
    * @return {Boolean} bool, True => Enough, False => Otherwise
    */
   isEnoughBNodes(n) {
-    if (n>0) {
+    if (n > 0) {
       return true;
     }
   }
   /**
    * non- Strict mode - no ethereum
    * */
-  isStrict(){
+  isStrict() {
     return this._isStrict;
   }
 }

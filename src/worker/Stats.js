@@ -1,5 +1,5 @@
-const nodeUtils = require('../common/utils');
-const constants = require('../common/constants');
+const nodeUtils = require("../common/utils");
+const constants = require("../common/constants");
 const STAT_TYPES = constants.STAT_TYPES;
 
 /**
@@ -13,26 +13,24 @@ const STAT_TYPES = constants.STAT_TYPES;
  * */
 
 const statTypeValidator = {
-
-  [STAT_TYPES.CONNECTION_SUCCESS]: (param)=>{
-    return ('peerInfo' in param);
+  [STAT_TYPES.CONNECTION_SUCCESS]: param => {
+    return "peerInfo" in param;
   },
-  [STAT_TYPES.CONNECTION_FAILURE]: (param)=>{
-    return ('peerInfo' in param);
+  [STAT_TYPES.CONNECTION_FAILURE]: param => {
+    return "peerInfo" in param;
   },
-  [STAT_TYPES.HANDSHAKE_SUCCESS]: (param)=>{
-    return ('peerInfo' in param);
+  [STAT_TYPES.HANDSHAKE_SUCCESS]: param => {
+    return "peerInfo" in param;
   },
-  [STAT_TYPES.HANDSHAKE_FAILURE]: (param)=>{
-    return ('peerInfo' in param);
+  [STAT_TYPES.HANDSHAKE_FAILURE]: param => {
+    return "peerInfo" in param;
   },
-  [STAT_TYPES.BLACKLIST]: (param)=>{
-    return ('peerInfo' in param);
+  [STAT_TYPES.BLACKLIST]: param => {
+    return "peerInfo" in param;
   },
-  [STAT_TYPES.DEBLACKLIST]: (param)=>{
-    return ('peerInfo' in param);
-  },
-
+  [STAT_TYPES.DEBLACKLIST]: param => {
+    return "peerInfo" in param;
+  }
 };
 class StatUpdate {
   constructor(type, params) {
@@ -40,7 +38,7 @@ class StatUpdate {
     this._type = null;
     this._params = null;
     if (StatUpdate._validStat(type, params)) {
-      params['timestamp'] = nodeUtils.unixTimestamp();
+      params["timestamp"] = nodeUtils.unixTimestamp();
       this._type = type;
       this._params = params;
       this._valid = true;
@@ -59,8 +57,10 @@ class StatUpdate {
     return this._valid;
   }
   isHandshake() {
-    return (this._type === STAT_TYPES.HANDSHAKE_FAILURE) ||
-            (this._type === STAT_TYPES.HANDSHAKE_SUCCESS);
+    return (
+      this._type === STAT_TYPES.HANDSHAKE_FAILURE ||
+      this._type === STAT_TYPES.HANDSHAKE_SUCCESS
+    );
   }
 
   static buildStatUpdate(type, params) {
@@ -89,7 +89,7 @@ class StatUpdate {
     return stat;
   }
   static _validStat(type, params) {
-    const typeExist = (type.toString() in STAT_TYPES);
+    const typeExist = type.toString() in STAT_TYPES;
 
     if (!typeExist) {
       return false;
@@ -127,8 +127,8 @@ class StatUpdate {
 class Stats {
   constructor() {
     this._peerStats = {};
-    this._INBOUND = 'inbound';
-    this._OUTBOUND = 'outbound';
+    this._INBOUND = "inbound";
+    this._OUTBOUND = "outbound";
   }
   addStat(type, peerB58Id, params) {
     const stat = StatUpdate.buildStatUpdate(type, params);
@@ -153,7 +153,10 @@ class Stats {
     let handshaked = false;
 
     if (stats) {
-      const grouped = this.getOrderdStatsByType(STAT_TYPES.HANDSHAKE_SUCCESS, peerB58Id);
+      const grouped = this.getOrderdStatsByType(
+        STAT_TYPES.HANDSHAKE_SUCCESS,
+        peerB58Id
+      );
 
       if (grouped.length > 0) {
         handshaked = true;
@@ -163,25 +166,25 @@ class Stats {
     return handshaked;
   }
   /** get all the peers that asked to handshake => inbound
-     * @return {Array} inBound, String idb58 each
-     * */
+   * @return {Array} inBound, String idb58 each
+   * */
   getAllInBoundHandshakes() {
     return this._getAllBoundTypeHandshakes(this._INBOUND);
   }
   /** get all the peers that were ashed to handshake -> outbound
-     * @return {Array} outBound, String idb58 each
-     * */
+   * @return {Array} outBound, String idb58 each
+   * */
   getAllOutBoundHandshakes() {
     return this._getAllBoundTypeHandshakes(this._OUTBOUND);
   }
   /** internal - get all outbound,inbound connections
-     * @param {String} type, inbound,outbound
-     * @return {Array} @returns {Array} boundPeers, String idb58 each
-     * */
+   * @param {String} type, inbound,outbound
+   * @return {Array} @returns {Array} boundPeers, String idb58 each
+   * */
   _getAllBoundTypeHandshakes(type) {
     const hsPeers = this.getAllHandshakedPeers();
     const boundPeers = [];
-    hsPeers.forEach((pid)=>{
+    hsPeers.forEach(pid => {
       if (this.isConnectionTypeHSPeer(pid, type)) {
         boundPeers.push(pid);
       }
@@ -189,29 +192,31 @@ class Stats {
     return boundPeers;
   }
   /** check weather a peer is inbound/outbound connection or none.
-     * @param {String} peerIdb58 ,
-     * @param {String} type -inbound/outbound
-     * @return {Boolean} true -> equal to type, false otherwise
-    */
+   * @param {String} peerIdb58 ,
+   * @param {String} type -inbound/outbound
+   * @return {Boolean} true -> equal to type, false otherwise
+   */
   isConnectionTypeHSPeer(peerIdb58, type) {
     let isBound = false;
     const stats = this._peerStats[peerIdb58];
     if (stats) {
-      isBound = stats.some((s)=>{
-        return (s.isHandshake() &&
-                    'connectionType' in s.getParams() &&
-                    s.getParams()['connectionType'] === type);
+      isBound = stats.some(s => {
+        return (
+          s.isHandshake() &&
+          "connectionType" in s.getParams() &&
+          s.getParams()["connectionType"] === type
+        );
       });
       return isBound;
     }
     return isBound;
   }
   /** get all the id's of the peers that performed handshake
-     *  @return {Array} handshaked, array of Strings (b58Id's)
-     * */
+   *  @return {Array} handshaked, array of Strings (b58Id's)
+   * */
   getAllHandshakedPeers() {
     const handshakedPeers = [];
-    Object.keys(this._peerStats).forEach((peerIdB58)=> {
+    Object.keys(this._peerStats).forEach(peerIdB58 => {
       if (this.isHandshaked(peerIdB58)) {
         handshakedPeers.push(peerIdB58);
       }
@@ -219,19 +224,19 @@ class Stats {
     return handshakedPeers;
   }
   /** get all the id's of the peers that performed handshake and are currently connected
-     *  @param {Array<String>} activeConnectionsIds , b58 ids
-     *  @return {Array} handshaked, array of Strings (b58Id's)
-     * */
+   *  @param {Array<String>} activeConnectionsIds , b58 ids
+   *  @return {Array} handshaked, array of Strings (b58Id's)
+   * */
   getAllActiveHandshakedPeers(activeConnectionsIds) {
     const all = this.getAllHandshakedPeers();
-    const intersection = all.filter((p)=> activeConnectionsIds.includes(p));
+    const intersection = all.filter(p => activeConnectionsIds.includes(p));
     return intersection;
   }
   getOrderdStatsByType(type, peerB58Id) {
     const stats = this.getPeersStats(peerB58Id);
     if (stats) {
       const result = [];
-      stats.forEach((s)=>{
+      stats.forEach(s => {
         if (s.getType() === type) {
           result.push(s);
         }
@@ -241,19 +246,19 @@ class Stats {
     return null;
   }
   isPeerExist(peerIdB58) {
-    return (peerIdB58 in this._peerStats);
+    return peerIdB58 in this._peerStats;
   }
   /** get all the active inbound connections with handshake
-     * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
-     * @return {Array} peerIds
-     * */
+   * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
+   * @return {Array} peerIds
+   * */
   getAllActiveInbound(activeConnectionsIds) {
     return this._getAllActiveBoundType(this._INBOUND, activeConnectionsIds);
   }
   /** get all the active outbound connections with handshake
-     * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
-     * @return {Array} peerIds
-     * */
+   * @param {Array} activeConnectionsIds, list of peer b58 id's from the live dht
+   * @return {Array} peerIds
+   * */
   getAllActiveOutbound(activeConnectionsIds) {
     return this._getAllActiveBoundType(this._OUTBOUND, activeConnectionsIds);
   }
@@ -264,12 +269,11 @@ class Stats {
 
     const all = this._getAllBoundTypeHandshakes(type);
 
-    const intersection = all.filter((x) => activeConnectionsIds.includes(x));
+    const intersection = all.filter(x => activeConnectionsIds.includes(x));
 
     return intersection;
   }
 }
-
 
 module.exports = Stats;
 //

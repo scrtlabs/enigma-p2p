@@ -1,9 +1,8 @@
-const EthereumServices = require('./EthereumServices');
-const EthereumVerifier = require('./EthereumVerifier');
-const EnigmaContractAPIBuilder = require('./EnigmaContractAPIBuilder');
+const EthereumServices = require("./EthereumServices");
+const EthereumVerifier = require("./EthereumVerifier");
+const EnigmaContractAPIBuilder = require("./EnigmaContractAPIBuilder");
 
 class EthereumAPI {
-
   constructor(logger) {
     this._logger = logger;
     this._environment = null;
@@ -34,7 +33,11 @@ class EthereumAPI {
     this._services = new EthereumServices(this._api);
     this._services.initServices(null);
 
-    this._verifier = new EthereumVerifier(this._api, this._services, this._logger);
+    this._verifier = new EthereumVerifier(
+      this._api,
+      this._services,
+      this._logger
+    );
     await this._verifier.init();
   }
 

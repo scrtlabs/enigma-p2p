@@ -3,9 +3,10 @@
  * it contains all the information about WHAT needs to be received from other peers
  * in the network.
  * */
-const EngCid = require('../../../common/EngCID');
-const SyncMsgBuilder = require('../../../policy/p2p_messages/sync_messages').SyncMsgBuilder;
-const constants = require('../../../common/constants');
+const EngCid = require("../../../common/EngCID");
+const SyncMsgBuilder = require("../../../policy/p2p_messages/sync_messages")
+  .SyncMsgBuilder;
+const constants = require("../../../common/constants");
 
 // TODO:: come to conclusion that this function is unnesceary and delete it.
 //   /**
@@ -34,8 +35,8 @@ function isBCodeRequest(contractData) {
   return contractData.deltas[0].index === 0;
 }
 function sortAll(missingList) {
-  missingList.forEach((contractData)=>{
-    contractData.deltas.sort((d1, d2)=>{
+  missingList.forEach(contractData => {
+    contractData.deltas.sort((d1, d2) => {
       return d1.index - d2.index;
     });
   });
@@ -58,18 +59,18 @@ function parseStateReqMsgs(contractData) {
   const deltas = contractData.deltas;
   const bucketSize = constants.CONTENT_ROUTING.RANGE_LIMIT;
   const totalAmount = deltas.length;
-  const bucketsNum = Math.ceil((totalAmount / bucketSize));
+  const bucketsNum = Math.ceil(totalAmount / bucketSize);
   let begin = 0;
-  for (let i=0; i<bucketsNum; ++i) {
-    const end = Math.min(begin+bucketSize, totalAmount);
+  for (let i = 0; i < bucketsNum; ++i) {
+    const end = Math.min(begin + bucketSize, totalAmount);
     const slice = deltas.slice(begin, end);
     // build request
     parsedReqs.push({
       contractAddress: contractData.address,
       fromIndex: slice[0].index,
       fromHash: slice[0].deltaHash,
-      toIndex: slice[slice.length-1].index,
-      toHash: slice[slice.length-1].deltaHash,
+      toIndex: slice[slice.length - 1].index,
+      toHash: slice[slice.length - 1].deltaHash
     });
     begin = end;
   }
@@ -86,7 +87,9 @@ function buildP2ReqPMsgsOneContract(contractData) {
   const reqMsgs = parseStateReqMsgs(contractData);
   result.deltasReq = SyncMsgBuilder.batchStateReqFromObjsNoValidation(reqMsgs);
   if (isBCodeRequest(contractData)) {
-    result.bcodeReq = SyncMsgBuilder.bCodeReqFromObjNoValidation({contractAddress: contractData.address});
+    result.bcodeReq = SyncMsgBuilder.bCodeReqFromObjNoValidation({
+      contractAddress: contractData.address
+    });
   }
   return result;
 }
@@ -97,9 +100,9 @@ function buildP2ReqPMsgsOneContract(contractData) {
  * - result param definition:
  *  - EngCID.hash() => {bcodeReq: SyncBcodeReqMsg, deltasReq : [Array<SyncStateResMsg>]}
  * */
-module.exports.createP2PReqMsgsMap = (missingList)=>{
+module.exports.createP2PReqMsgsMap = missingList => {
   const output = {};
-  for (let i=0; i<missingList.length; ++i) {
+  for (let i = 0; i < missingList.length; ++i) {
     const reqMsgs = buildP2ReqPMsgsOneContract(missingList[i]);
     output[missingList[i].address] = reqMsgs;
   }

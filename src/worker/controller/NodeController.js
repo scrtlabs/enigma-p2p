@@ -7,77 +7,83 @@
  * - setBootstrapPeers
  * - ...TBD
  * */
-const errors = require('../../common/errors');
-const constants = require('../../common/constants');
+const errors = require("../../common/errors");
+const constants = require("../../common/constants");
 const TOPICS = constants.PUBSUB_TOPICS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
-const nodeUtils = require('../../common/utils');
-const WorkerBuilder = require('../builder/WorkerBuilder');
-const Provider = require('../../worker/state_sync/provider/Provider');
-const Receiver = require('../../worker/state_sync/receiver/Receiver');
-const ConnectionManager = require('../handlers/ConnectionManager');
-const Stats = require('../Stats');
-const Logger = require('../../common/logger');
-const Policy = require('../../policy/policy');
-const PersistentStateCache = require('../../db/StateCache');
-const TaskManager = require('../tasks/TaskManager');
-const PrincipalNode = require('../handlers/PrincipalNode');
+const nodeUtils = require("../../common/utils");
+const WorkerBuilder = require("../builder/WorkerBuilder");
+const Provider = require("../../worker/state_sync/provider/Provider");
+const Receiver = require("../../worker/state_sync/receiver/Receiver");
+const ConnectionManager = require("../handlers/ConnectionManager");
+const Stats = require("../Stats");
+const Logger = require("../../common/logger");
+const Policy = require("../../policy/policy");
+const PersistentStateCache = require("../../db/StateCache");
+const TaskManager = require("../tasks/TaskManager");
+const PrincipalNode = require("../handlers/PrincipalNode");
 // actions
-const InitWorkerAction = require('./actions/InitWorkerAction');
-const PubsubPublishAction = require('./actions/PubsubPublishAction');
-const PubsubSubscribeAction = require('./actions/PubsubSubscribeAction');
-const GetRegistrationParamsAction = require('./actions/GetRegistrationParamsAction');
-const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction');
-const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
-const GetStateKeysAction = require('./actions/GetStateKeysAction');
+const InitWorkerAction = require("./actions/InitWorkerAction");
+const PubsubPublishAction = require("./actions/PubsubPublishAction");
+const PubsubSubscribeAction = require("./actions/PubsubSubscribeAction");
+const GetRegistrationParamsAction = require("./actions/GetRegistrationParamsAction");
+const NewTaskEncryptionKeyAction = require("./actions/NewTaskEncryptionKeyAction");
+const SubscribeSelfSignKeyTopicPipelineAction = require("./actions/SubscribeSelfSignKeyTopicPipelineAction");
+const GetStateKeysAction = require("./actions/GetStateKeysAction");
 // connectivity
-const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
-const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
-const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
-const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
-const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
-const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
+const AfterOptimalDHTAction = require("./actions/connectivity/AfterOptimalDHTAction");
+const SendFindPeerRequestAction = require("./actions/connectivity/SendFindPeerRequestAction");
+const HandshakeUpdateAction = require("./actions/connectivity/HandshakeUpdateAction");
+const DoHandshakeAction = require("./actions/connectivity/DoHandshakeAction");
+const BootstrapFinishAction = require("./actions/connectivity/BootstrapFinishAction");
+const ConsistentDiscoveryAction = require("./actions/connectivity/ConsistentDiscoveryAction");
 //tasks
-const GetResultAction = require('./actions/tasks/GetResultAction');
-const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
-const VerifyNewTaskAction = require('./actions/tasks/VerifyNewTaskAction');
-const HandleVerifiedTaskAction = require('./actions/tasks/HandleVerifiedTaskAction');
-const ExecuteTaskAction = require('./actions/tasks/ExecuteTaskAction');
-const PublishTaskResultAction = require('./actions/tasks/PublishTaskResultAction');
-const VerifyAndStoreResultAction = require('./actions/tasks/VerifyAndStoreResultAction');
+const GetResultAction = require("./actions/tasks/GetResultAction");
+const StartTaskExecutionAction = require("./actions/tasks/StartTaskExecutionAction");
+const VerifyNewTaskAction = require("./actions/tasks/VerifyNewTaskAction");
+const HandleVerifiedTaskAction = require("./actions/tasks/HandleVerifiedTaskAction");
+const ExecuteTaskAction = require("./actions/tasks/ExecuteTaskAction");
+const PublishTaskResultAction = require("./actions/tasks/PublishTaskResultAction");
+const VerifyAndStoreResultAction = require("./actions/tasks/VerifyAndStoreResultAction");
 // db
-const DbRequestAction = require('./actions/db/DbRequestAction');
-const GetAllTipsAction = require('./actions/db/read/GetAllTipsAction');
-const GetTipsAction = require('./actions/db/read/GetTipsAction');
-const GetAllAddrsAction = require('./actions/db/read/GetAllAddrsAction');
-const GetDeltasAction = require('./actions/db/read/GetDeltasAction');
-const GetContractCodeAction = require('./actions/db/read/GetContractCodeAction');
-const UpdateDbAction = require('./actions/db/write/UpdateDbAction');
+const DbRequestAction = require("./actions/db/DbRequestAction");
+const GetAllTipsAction = require("./actions/db/read/GetAllTipsAction");
+const GetTipsAction = require("./actions/db/read/GetTipsAction");
+const GetAllAddrsAction = require("./actions/db/read/GetAllAddrsAction");
+const GetDeltasAction = require("./actions/db/read/GetDeltasAction");
+const GetContractCodeAction = require("./actions/db/read/GetContractCodeAction");
+const UpdateDbAction = require("./actions/db/write/UpdateDbAction");
 //sync related
-const AnnounceLocalStateAction = require('./actions/sync/AnnounceLocalStateAction');
-const IdentifyMissingStatesAction = require('./actions/sync/IdentifyMissingStatesAction');
-const ProvideStateSyncAction = require('./actions/sync/ProvideSyncStateAction');
-const FindContentProviderAction = require('./actions/sync/FindContentProviderAction');
-const GetLocalTipsOfRemote = require('./actions/sync/GetLocalTipsOfRemote');
-const TryReceiveAllAction = require('./actions/sync/TryReceiveAllAction');
-const ReceiveAllPipelineAction = require('./actions/sync/ReceiveAllPipelineAction');
-const AnnounceContentAction = require('./actions/sync/AnnounceContentAction');
+const AnnounceLocalStateAction = require("./actions/sync/AnnounceLocalStateAction");
+const IdentifyMissingStatesAction = require("./actions/sync/IdentifyMissingStatesAction");
+const ProvideStateSyncAction = require("./actions/sync/ProvideSyncStateAction");
+const FindContentProviderAction = require("./actions/sync/FindContentProviderAction");
+const GetLocalTipsOfRemote = require("./actions/sync/GetLocalTipsOfRemote");
+const TryReceiveAllAction = require("./actions/sync/TryReceiveAllAction");
+const ReceiveAllPipelineAction = require("./actions/sync/ReceiveAllPipelineAction");
+const AnnounceContentAction = require("./actions/sync/AnnounceContentAction");
 // gateway jsonrpc
-const ProxyRequestDispatcher = require('./actions/proxy/ProxyDispatcherAction');
-const RouteRpcBlockingAction = require('./actions/proxy/RouteRpcBlockingAction');
-const RouteRpcNonBlockingAction = require('./actions/proxy/RouteRpcNonBlockingAction');
-const GetStatusProxyAction = require('./actions/proxy/GetStatusProxyAction');
+const ProxyRequestDispatcher = require("./actions/proxy/ProxyDispatcherAction");
+const RouteRpcBlockingAction = require("./actions/proxy/RouteRpcBlockingAction");
+const RouteRpcNonBlockingAction = require("./actions/proxy/RouteRpcNonBlockingAction");
+const GetStatusProxyAction = require("./actions/proxy/GetStatusProxyAction");
 // ethereum
-const RegisterAction = require('./actions/ethereum/RegisterAction');
-const LoginAction = require('./actions/ethereum/LoginAction');
-const LogoutAction = require('./actions/ethereum/LogoutAction');
-const DepositAction = require('./actions/ethereum/DepositAction');
-const WithdrawAction = require('./actions/ethereum/WithdrawAction');
-const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
-const GetWorkerParamsAction =  require('./actions/ethereum/GetWorkerParamsAction');
+const RegisterAction = require("./actions/ethereum/RegisterAction");
+const LoginAction = require("./actions/ethereum/LoginAction");
+const LogoutAction = require("./actions/ethereum/LogoutAction");
+const DepositAction = require("./actions/ethereum/DepositAction");
+const WithdrawAction = require("./actions/ethereum/WithdrawAction");
+const CommitReceiptAction = require("./actions/ethereum/CommitReceiptAction");
+const GetWorkerParamsAction = require("./actions/ethereum/GetWorkerParamsAction");
 
 class NodeController {
-  constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
+  constructor(
+    enigmaNode,
+    protocolHandler,
+    connectionManager,
+    logger,
+    extraConfig
+  ) {
     this._policy = new Policy();
     // extra config (currently dbPath for taskManager)
     this._extraConfig = extraConfig;
@@ -113,7 +119,9 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
       [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
-      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(
+        this
+      ), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // connectivity
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
@@ -123,14 +131,16 @@ class NodeController {
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       // tasks
-      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(
+        this
+      ), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.TASK_VERIFIED]: new HandleVerifiedTaskAction(this), // once verified, check if it can be executed
       [NOTIFICATION.EXEC_TASK]: new ExecuteTaskAction(this), // pass to core the task/deploy
       [NOTIFICATION.START_TASK_EXEC]: new StartTaskExecutionAction(this), // start task execution (worker)
       [NOTIFICATION.VERIFY_NEW_TASK]: new VerifyNewTaskAction(this), // verify new task
-      [NOTIFICATION.GET_TASK_RESULT] : new GetResultAction(this), // get the task result given a taskId
+      [NOTIFICATION.GET_TASK_RESULT]: new GetResultAction(this), // get the task result given a taskId
       // db
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
@@ -142,17 +152,19 @@ class NodeController {
       // sync
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
-      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(this),
+      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(
+        this
+      ),
       [NOTIFICATION.TRY_RECEIVE_ALL]: new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE]: new AnnounceLocalStateAction(this),
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE]: new ReceiveAllPipelineAction(this), // sync receiver pipeline
-      [NOTIFICATION.GET_REMOTE_TIPS] : new GetLocalTipsOfRemote(this), // get the local tips of a remote peer
-      [NOTIFICATION.ANNOUNCE_ENG_CIDS] : new AnnounceContentAction(this), // announce some general content given cids, async
+      [NOTIFICATION.GET_REMOTE_TIPS]: new GetLocalTipsOfRemote(this), // get the local tips of a remote peer
+      [NOTIFICATION.ANNOUNCE_ENG_CIDS]: new AnnounceContentAction(this), // announce some general content given cids, async
       // jsonrpc related
       [NOTIFICATION.PROXY]: new ProxyRequestDispatcher(this), // dispatch the requests proxy side=== gateway node
       [NOTIFICATION.ROUTE_BLOCKING_RPC]: new RouteRpcBlockingAction(this), // route a blocking request i.e getRegistrationParams, getStatus
       [NOTIFICATION.ROUTE_NON_BLOCK_RPC]: new RouteRpcNonBlockingAction(this), // routing non blocking i.e deploy/compute
-      [NOTIFICATION.DISPATCH_STATUS_REQ_RPC] : new GetStatusProxyAction(this), // dispatch get status request
+      [NOTIFICATION.DISPATCH_STATUS_REQ_RPC]: new GetStatusProxyAction(this), // dispatch get status request
       // ethereum
       [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
       [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
@@ -160,7 +172,7 @@ class NodeController {
       [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
       [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
-      [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this), // get worker params set in enigma contract
+      [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this) // get worker params set in enigma contract
     };
   }
   /**
@@ -192,7 +204,13 @@ class NodeController {
     // create ConnectionManager
     const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger, options.extraConfig);
+    return new NodeController(
+      enigmaNode,
+      enigmaNode.getProtocolHandler(),
+      connectionManager,
+      _logger,
+      options.extraConfig
+    );
   }
   _initController() {
     this._initPrincipalNode();
@@ -207,7 +225,7 @@ class NodeController {
   _initConnectionManager() {
     this._connectionManager.addNewContext(this._stats);
 
-    this._connectionManager.on('notify', (params)=>{
+    this._connectionManager.on("notify", params => {
       const notification = params.notification;
 
       const action = this._actions[notification];
@@ -222,10 +240,14 @@ class NodeController {
    * TODO:: because of tests and multiple instances and path collision.
    * */
   _initTaskManager() {
-    if (this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath) {
+    if (
+      this._extraConfig &&
+      this._extraConfig.tm &&
+      this._extraConfig.tm.dbPath
+    ) {
       const dbPath = this._extraConfig.tm.dbPath;
       this._taskManager = new TaskManager(dbPath, this.logger());
-      this._taskManager.on('notify', (params)=>{
+      this._taskManager.on("notify", params => {
         const notification = params.notification;
         const action = this._actions[notification];
         if (action !== undefined) {
@@ -237,24 +259,30 @@ class NodeController {
   _initCache() {
     // TODO:: start the cache service
     // this._cache.start()
-  };
+  }
   _initPrincipalNode() {
     let conf = {};
     if (this._extraConfig) {
       conf = this._extraConfig.principal;
     }
     this._principal = new PrincipalNode(conf, this.logger());
-    this._principal.on(constants.PTT_END_EVENT, ()=> {
-      this._logger.info('Finished PTT');
-    })
+    this._principal.on(constants.PTT_END_EVENT, () => {
+      this._logger.info("Finished PTT");
+    });
   }
   _initEnigmaNode() {
-    this._engNode.on('notify', (params)=>{
-      this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
+    this._engNode.on("notify", params => {
+      this._logger.info(
+        "[+] handshake with " +
+          params.from() +
+          " done, #" +
+          params.seeds().length +
+          " seeds."
+      );
     });
   }
   _initProtocolHandler() {
-    this._protocolHandler.on('notify', (params)=>{
+    this._protocolHandler.on("notify", params => {
       const notification = params.notification;
       const action = this._actions[notification];
       if (action !== undefined) {
@@ -264,7 +292,7 @@ class NodeController {
   }
   _initContentProvider() {
     this._provider = new Provider(this._engNode, this._logger);
-    this._provider.on('notify', (params)=>{
+    this._provider.on("notify", params => {
       const notification = params.notification;
       const action = this._actions[notification];
       if (action !== undefined) {
@@ -274,7 +302,7 @@ class NodeController {
   }
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
-    this._receiver.on('notify', (params)=>{
+    this._receiver.on("notify", params => {
       const notification = params.notification;
       const action = this._actions[notification];
       if (action !== undefined) {
@@ -313,7 +341,7 @@ class NodeController {
   initializeWorkerProcess(amount, callback) {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
       callback: callback,
-      amount: amount,
+      amount: amount
     });
   }
 
@@ -331,9 +359,13 @@ class NodeController {
     await this.engNode().syncStop();
     await this._stopEthereum();
     // using some random path for testing (pre tmp feature)
-    if (this._taskManager && this._extraConfig.tm.dbPath && this._extraConfig.tm.dbPath.indexOf('/tmp/') === -1) {
+    if (
+      this._taskManager &&
+      this._extraConfig.tm.dbPath &&
+      this._extraConfig.tm.dbPath.indexOf("/tmp/") === -1
+    ) {
       await this._taskManager.asyncStopAndDropDb();
-    }else if(this._taskManager && this._extraConfig.tm.dbPath ){
+    } else if (this._taskManager && this._extraConfig.tm.dbPath) {
       await this._taskManager.asyncStop();
     }
   }
@@ -352,12 +384,14 @@ class NodeController {
    * */
   setChannel(communicator) {
     this._communicator = communicator;
-    this._communicator.setOnMessage((envelop)=>{
+    this._communicator.setOnMessage(envelop => {
       const action = this._actions[envelop.type()];
       if (action) {
         action.execute(envelop);
       } else {
-        this._logger.error('[-] Err wrong type in NodeController: ' + envelop.type());
+        this._logger.error(
+          "[-] Err wrong type in NodeController: " + envelop.type()
+        );
       }
     });
   }
@@ -411,7 +445,7 @@ class NodeController {
     }
   }
   async asyncExecCmd(cmd, params) {
-    return new Promise(async (resolve, reject)=>{
+    return new Promise(async (resolve, reject) => {
       if (this._actions[cmd]) {
         try {
           const result = await this._actions[cmd].asyncExecute(params);
@@ -425,19 +459,19 @@ class NodeController {
     });
   }
   addPeer(maStr) {
-    nodeUtils.connectionStrToPeerInfo(maStr, (err, peerInfo)=>{
-      const action = NOTIFICATION['DISCOVERED'];
+    nodeUtils.connectionStrToPeerInfo(maStr, (err, peerInfo) => {
+      const action = NOTIFICATION["DISCOVERED"];
       if (err) {
-        this._logger.error('[-] Err: ' + err);
+        this._logger.error("[-] Err: " + err);
       } else {
-        this.execCmd(action, {'params': {'peer': peerInfo}});
+        this.execCmd(action, { params: { peer: peerInfo } });
       }
     });
   }
   async getTopics() {
     return await this.engNode().getTopics();
   }
-  getSelfB58Id(){
+  getSelfB58Id() {
     return this.engNode().getSelfIdB58Str();
   }
   getSelfAddrs() {
@@ -449,23 +483,25 @@ class NodeController {
    * @param {string} b58Id
    * @return {Promise<PeerInfo>} peerInfo
    * */
-  async lookUpPeer(b58Id){
-    try{
+  async lookUpPeer(b58Id) {
+    try {
       return await this.engNode().lookUpPeer(b58Id);
-    }catch(e){
+    } catch (e) {
       this._logger.error(`error looking up peer ${e}`);
       return null;
     }
   }
-  async getLocalStateOfRemote(b58Id){
-    try{
-      return await this._actions[NOTIFICATION.GET_REMOTE_TIPS].execute({peerB58Id : b58Id});
-    }catch(e){
+  async getLocalStateOfRemote(b58Id) {
+    try {
+      return await this._actions[NOTIFICATION.GET_REMOTE_TIPS].execute({
+        peerB58Id: b58Id
+      });
+    } catch (e) {
       return null;
     }
   }
   getLocalTips() {
-    return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, {useCache: false});
+    return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, { useCache: false });
   }
   getAllOutboundHandshakes() {
     const currentPeerIds = this.engNode().getAllPeersIds();
@@ -487,18 +523,18 @@ class NodeController {
   // temp function for testing
   // TODO:: read params from constants
   tryConsistentDiscovery(callback) {
-    this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
-      'delay': 500,
-      'maxRetry': 10,
-      'timeout': 100000,
-      'callback': callback,
+    this._actions[NOTIFICATION["CONSISTENT_DISCOVERY"]].execute({
+      delay: 500,
+      maxRetry: 10,
+      timeout: 100000,
+      callback: callback
     });
   }
-  async asyncTryConsistentDiscovery(){
-    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
-      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
-      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
-      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
+  async asyncTryConsistentDiscovery() {
+    let result = await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY, {
+      delay: constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
+      maxRetry: constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
+      timeout: constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
     });
     return result;
   }
@@ -518,15 +554,21 @@ class NodeController {
   monitorSubscribe(topic) {
     this._actions[NOTIFICATION.PUBSUB_SUB].execute({
       topic: topic,
-      onPublish: (msg)=>{
+      onPublish: msg => {
         const from = msg.from;
         const data = JSON.parse(msg.data);
-        const out = '->MONITOR published on:' + topic + '\n->from: ' + from + '\n->payload: ' + JSON.stringify(data);
+        const out =
+          "->MONITOR published on:" +
+          topic +
+          "\n->from: " +
+          from +
+          "\n->payload: " +
+          JSON.stringify(data);
         this._logger.info(out);
       },
-      onSubscribed: ()=>{
-        this._logger.info('Monitor subscribed to [' + topic +']');
-      },
+      onSubscribed: () => {
+        this._logger.info("Monitor subscribed to [" + topic + "]");
+      }
     });
   }
   hasEthereum() {
@@ -538,32 +580,34 @@ class NodeController {
   publish(topic, message) {
     this._actions[NOTIFICATION.PUBSUB_PUB].execute({
       topic: topic,
-      message: message,
+      message: message
     });
   }
   /** temp run self subscribe command */
   async selfSubscribeAction() {
-    return new Promise((res, rej)=>{
-      this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({onResponse: (err, signKey)=>{
-        if (err) {
-          return rej(signKey);
-        } else {
-          res(signKey);
+    return new Promise((res, rej) => {
+      this._actions[NOTIFICATION.SELF_KEY_SUBSCRIBE].execute({
+        onResponse: (err, signKey) => {
+          if (err) {
+            return rej(signKey);
+          } else {
+            res(signKey);
+          }
         }
-      }});
+      });
     });
   }
   /**
    * @return {Promise<string>} signingKey of the sub topic
    * */
   async getSelfSubscriptionKey() {
-    return new Promise((res, rej)=>{
-      this.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS,
-          {onResponse: (err, regParams)=>{
-            if (err) return rej(err);
-            else return res(regParams.result.signingKey);
-          }}
-      );
+    return new Promise((res, rej) => {
+      this.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
+        onResponse: (err, regParams) => {
+          if (err) return rej(err);
+          else return res(regParams.result.signingKey);
+        }
+      });
     });
   }
   /** temp should delete - is connection (no handshake related simple libp2p
@@ -571,7 +615,7 @@ class NodeController {
    */
   isSimpleConnected(nodeId) {
     const isConnected = this._engNode.isConnected(nodeId);
-    console.log('Connection test : ' + nodeId + ' ? ' + isConnected);
+    console.log("Connection test : " + nodeId + " ? " + isConnected);
   }
   /** get self Peer Book (All connected peers)
    * @return {Array}
@@ -584,8 +628,10 @@ class NodeController {
    * @param {string} taskId
    * @return {Result} result
    * */
-  async getTaskResult(taskId){
-    return await this.asyncExecCmd(NOTIFICATION.GET_TASK_RESULT,{taskId : taskId});
+  async getTaskResult(taskId) {
+    return await this.asyncExecCmd(NOTIFICATION.GET_TASK_RESULT, {
+      taskId: taskId
+    });
   }
   /** temp - findPeersRequest
    *  @param {PeerInfo} peerInfo,
@@ -596,7 +642,7 @@ class NodeController {
     this._actions[NOTIFICATION.FIND_PEERS_REQ].execute({
       peerInfo: peerInfo,
       onResponse: onResponse,
-      maxPeers: maxPeers,
+      maxPeers: maxPeers
     });
   }
   /** TODO:: add this as cli api + in the cli dump it into a file.;
@@ -609,7 +655,7 @@ class NodeController {
     this._actions[NOTIFICATION.GET_ALL_TIPS].execute({
       dbQueryType: constants.CORE_REQUESTS.GetAllTips,
       onResponse: onResponse,
-      cache: fromCache,
+      cache: fromCache
     });
   }
   /** get the registration params from core
@@ -618,14 +664,14 @@ class NodeController {
    * */
   getRegistrationParams(callback) {
     this._actions[NOTIFICATION.REGISTRATION_PARAMS].execute({
-      onResponse: (err, result)=>{
+      onResponse: (err, result) => {
         callback(err, result);
-      },
+      }
     });
   }
   async asyncGetRegistrationParams(callback) {
-    return new Promise((res, rej)=>{
-      this.getRegistrationParams((err, result)=>{
+    return new Promise((res, rej) => {
+      this.getRegistrationParams((err, result) => {
         if (err) rej(err);
         else res(result);
       });
@@ -638,30 +684,32 @@ class NodeController {
   identifyMissingStates(callback) {
     this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
       cache: false,
-      onResponse: (err, missingStatesMsgsMap) =>{
+      onResponse: (err, missingStatesMsgsMap) => {
         if (callback) {
           return callback(err, missingStatesMsgsMap);
         }
         if (err) {
-          return this._logger.error(' error identifying missing states : ' + err);
+          return this._logger.error(
+            " error identifying missing states : " + err
+          );
         }
         for (const ecidHash in missingStatesMsgsMap) {
-          this._logger.debug('----------- contract --------------');
+          this._logger.debug("----------- contract --------------");
           const contractMsgs = missingStatesMsgsMap[ecidHash];
-          for (let i=0; i<contractMsgs.length; ++i) {
-            console.log('---- msg ----- ');
+          for (let i = 0; i < contractMsgs.length; ++i) {
+            console.log("---- msg ----- ");
             console.log(contractMsgs[i].toPrettyJSON());
           }
         }
-      },
+      }
     });
   }
-  async asyncIdentifyMissingStates(){
-    return new Promise((resolve,reject)=>{
-      this.identifyMissingStates((err ,missingStatesMsgsMap)=>{
-        if(err){
+  async asyncIdentifyMissingStates() {
+    return new Promise((resolve, reject) => {
+      this.identifyMissingStates((err, missingStatesMsgsMap) => {
+        if (err) {
           return reject(err);
-        }else{
+        } else {
           resolve(missingStatesMsgsMap);
         }
       });
@@ -671,12 +719,12 @@ class NodeController {
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
       cache: false,
-      onEnd: (err, statusResult)=>{
+      onEnd: (err, statusResult) => {
         if (callback) {
           return callback(err, statusResult);
         }
-        this._logger.debug('done receiving pipeline. err? ' + err);
-      },
+        this._logger.debug("done receiving pipeline. err? " + err);
+      }
     });
   }
   /**
@@ -688,26 +736,26 @@ class NodeController {
     // AnnounceLocalStateAction
     this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
       cache: false,
-      onResponse: (error, content)=>{
+      onResponse: (error, content) => {
         if (callback) {
           return callback(error, content);
         } else if (error) {
-          this._logger.error('failed announcing ' + error);
+          this._logger.error("failed announcing " + error);
         } else {
-          content.forEach((ecid)=>{
-            this._logger.info('providing : ' + ecid.getKeccack256());
+          content.forEach(ecid => {
+            this._logger.info("providing : " + ecid.getKeccack256());
           });
         }
-      },
+      }
     });
   }
 
-  async asynctryAnnounce(){
-    return new Promise((resolve,reject)=>{
-      this.tryAnnounce((err ,ecids)=>{
-        if(err){
+  async asynctryAnnounce() {
+    return new Promise((resolve, reject) => {
+      this.tryAnnounce((err, ecids) => {
+        if (err) {
           return reject(err);
-        }else{
+        } else {
           resolve(ecids);
         }
       });
@@ -721,15 +769,15 @@ class NodeController {
     this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
       descriptorsList: ecids,
       isEngCid: true,
-      next: (findProvidersResult)=>{
+      next: findProvidersResult => {
         callback(findProvidersResult);
-      },
+      }
     });
   }
   /** promise based version of findProviders */
-  asyncFindProviders(ecids){
-    return new Promise((resolve,reject)=>{
-      this.findProviders(ecids,(findProvidersResult)=>{
+  asyncFindProviders(ecids) {
+    return new Promise((resolve, reject) => {
+      this.findProviders(ecids, findProvidersResult => {
         resolve(findProvidersResult);
       });
     });
@@ -757,14 +805,16 @@ class NodeController {
    * @return {Promise} returning boolean indicating a successful deposit
    * */
   deposit(amount) {
-    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({amount: amount});
+    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({ amount: amount });
   }
   /** Withdraw to Enigma contract
    * @param {Integer} amount
    * @return {Promise} returning boolean indicating a successful withdrawal
    * */
   withdraw(amount) {
-    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({amount: amount});
+    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({
+      amount: amount
+    });
   }
 }
 module.exports = NodeController;

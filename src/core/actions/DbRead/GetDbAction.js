@@ -1,9 +1,9 @@
-const Envelop = require('../../../main_controller/channels/Envelop');
-const nodeUtils = require('../../../common/utils');
-const Msg = require('../../../common/constants').CORE_REQUESTS;
+const Envelop = require("../../../main_controller/channels/Envelop");
+const nodeUtils = require("../../../common/utils");
+const Msg = require("../../../common/constants").CORE_REQUESTS;
 
-class GetDbAction{
-  constructor(coreRuntime){
+class GetDbAction {
+  constructor(coreRuntime) {
     this._coreRuntime = coreRuntime;
   }
 
@@ -11,11 +11,11 @@ class GetDbAction{
     const request = {
       id: envelop.content().id,
       type: envelop.content().type,
-      input: envelop.content().input,
+      input: envelop.content().input
     };
     this._coreRuntime.execCmd(Msg.CORE_DB_ACTION, {
       envelop: envelop,
-      sendMsg: request,
+      sendMsg: request
     });
     // let client = this._coreRuntime.getIpcClient();
     // client.sendJsonAndReceive(,(responseMsg)=>{

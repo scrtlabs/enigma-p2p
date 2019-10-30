@@ -1,18 +1,18 @@
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = require("events").EventEmitter;
 // const waterfall = require('async/waterfall');
-const parallel = require('async/parallel');
+const parallel = require("async/parallel");
 // const PeerId = require('peer-id');
 // const PeerInfo = require('peer-info');
 // const pull = require('pull-stream');
-const Policy = require('../../policy/policy');
-const constants = require('../../common/constants');
+const Policy = require("../../policy/policy");
+const constants = require("../../common/constants");
 // const PROTOCOLS = constants.PROTOCOLS;
 const STATUS = constants.MSG_STATUS;
 const N_NOTIFICATION = constants.NODE_NOTIFICATIONS;
-const nodeUtils = require('../../common/utils');
-const Messages = require('../../policy/p2p_messages/messages');
-const PeerBank = require('./PeerBank');
-const Logger = require('../../common/logger');
+const nodeUtils = require("../../common/utils");
+const Messages = require("../../policy/p2p_messages/messages");
+const PeerBank = require("./PeerBank");
+const Logger = require("../../common/logger");
 
 class ConnectionManager extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -23,8 +23,8 @@ class ConnectionManager extends EventEmitter {
       this._logger = logger;
     } else {
       this._logger = new Logger({
-        'level': 'debug',
-        'cli': true,
+        level: "debug",
+        cli: true
       });
     }
     this._enigmaNode = enigmaNode;
@@ -35,8 +35,8 @@ class ConnectionManager extends EventEmitter {
     this._peerBank = new PeerBank();
     this._handshakedDiscovery = [];
     // connection manager state
-    this.BOOTSTRAPPED = 'BOOTSTRAPPED';
-    this.NOT_BOOTSTRAPPED = 'NOTBOOTSTRAPPED';
+    this.BOOTSTRAPPED = "BOOTSTRAPPED";
+    this.NOT_BOOTSTRAPPED = "NOTBOOTSTRAPPED";
     this._state = this.NOT_BOOTSTRAPPED;
     // the state indicates that currently the connection manager is already in search for new peers
     // to be added to the PeerBank (not establishing connection nesscearly)
@@ -60,8 +60,8 @@ class ConnectionManager extends EventEmitter {
     this._searchState = boolState;
   }
   /**
-     * change search state => true
-     */
+   * change search state => true
+   */
   onStartPersistentDiscovery() {
     this.setSearchState(true);
   }
@@ -79,9 +79,9 @@ class ConnectionManager extends EventEmitter {
 
     const bootTime = !this._searchedBefore;
     this.notify({
-      'notification': N_NOTIFICATION.PERSISTENT_DISCOVERY_DONE,
-      'status': success,
-      'bootTime': bootTime,
+      notification: N_NOTIFICATION.PERSISTENT_DISCOVERY_DONE,
+      status: success,
+      bootTime: bootTime
     });
 
     this._searchedBefore = true;
@@ -94,19 +94,23 @@ class ConnectionManager extends EventEmitter {
    */
   groupFindPeersRequest(peersInfo, onResponse, maxPeers) {
     const jobs = [];
-    peersInfo.forEach((pi)=>{
-      jobs.push((cb)=>{
-        this.findPeersRequest(pi, (err, fpReq, fpRes)=>{
-          const resObj = {};
-          resObj.err = err;
-          resObj.fpReq = fpReq;
-          resObj.fpRes = fpRes;
+    peersInfo.forEach(pi => {
+      jobs.push(cb => {
+        this.findPeersRequest(
+          pi,
+          (err, fpReq, fpRes) => {
+            const resObj = {};
+            resObj.err = err;
+            resObj.fpReq = fpReq;
+            resObj.fpRes = fpRes;
 
-          cb(null, resObj);
-        }, maxPeers);
+            cb(null, resObj);
+          },
+          maxPeers
+        );
       });
     });
-    parallel(jobs, (err, results)=>{
+    parallel(jobs, (err, results) => {
       onResponse(err, results);
     });
   }
@@ -169,17 +173,19 @@ class ConnectionManager extends EventEmitter {
   }
   expandPeerBank(onResult) {
     const hsPeers = this._getAllHandshakedPeers();
-    this.groupFindPeersRequest(hsPeers, (err, results)=>{
+    this.groupFindPeersRequest(hsPeers, (err, results) => {
       if (err) {
         onResult(err, results);
       }
 
       const newPeers = [];
 
-      results.forEach((res)=>{
+      results.forEach(res => {
         if (res.err) {
           // TODO:: handle
-          this._logger.error('[-] Err in groupFindPeerRequest : ' + JSON.stringify(res.err));
+          this._logger.error(
+            "[-] Err in groupFindPeerRequest : " + JSON.stringify(res.err)
+          );
         } else {
           const p = res.fpRes.peers();
           newPeers.push(...p);
@@ -187,7 +193,7 @@ class ConnectionManager extends EventEmitter {
       });
 
       this._updatePeerBank(newPeers);
-      onResult(null, {'type': 'expanding'});
+      onResult(null, { type: "expanding" });
     });
   }
 
@@ -199,11 +205,11 @@ class ConnectionManager extends EventEmitter {
     const current = this._getAllOutboundPeers();
     const delta = optimal - current;
 
-    if (delta<0) {
+    if (delta < 0) {
       return false;
     }
 
-    return (this._policy.getCriticalLowDhtSize() >= delta);
+    return this._policy.getCriticalLowDhtSize() >= delta;
   }
   /** is the dht size optimal or not
    * @return {Boolean} true - optimal, false otherwise
@@ -225,13 +231,17 @@ class ConnectionManager extends EventEmitter {
    * @param {Integer} maxPeers, limit the amount of peers request
    */
   findPeersRequest(peerInfo, onResponse, maxPeers) {
-    this._enigmaNode.findPeers(peerInfo, (err, fpReq, fpRes)=>{
-      // TODO:: Continue from here.
-      // TODO:: This is a helper function to get peers.
-      // TODO:: my real function is the one that will complete the dht to optimal using
-      //        libp2p.findpeer and the PeerBank.
-      onResponse(err, fpReq, fpRes);
-    }, maxPeers);
+    this._enigmaNode.findPeers(
+      peerInfo,
+      (err, fpReq, fpRes) => {
+        // TODO:: Continue from here.
+        // TODO:: This is a helper function to get peers.
+        // TODO:: my real function is the one that will complete the dht to optimal using
+        //        libp2p.findpeer and the PeerBank.
+        onResponse(err, fpReq, fpRes);
+      },
+      maxPeers
+    );
   }
   /** get k peers from the peer bank or if k is bigger than current peer bank
    * return all existing potential peers.
@@ -242,7 +252,7 @@ class ConnectionManager extends EventEmitter {
   _getShuffledKPotentialPeers(k) {
     const potential = this._peerBank.getRandomPeers(k);
     const final = [];
-    potential.forEach((p)=>{
+    potential.forEach(p => {
       const id = p.peerId.id;
       if (!this._enigmaNode.isConnected(id)) {
         final.push(p);
@@ -264,9 +274,9 @@ class ConnectionManager extends EventEmitter {
    */
   _sendParallelHandshakes(peersInfo, withPeers, onAllHandshakes) {
     const jobs = [];
-    peersInfo.forEach((pi)=>{
-      jobs.push((cb)=>{
-        this.handshake(pi, withPeers, (err, ping, pong)=>{
+    peersInfo.forEach(pi => {
+      jobs.push(cb => {
+        this.handshake(pi, withPeers, (err, ping, pong) => {
           const resultObject = {};
           resultObject.peerInfo = pi;
           resultObject.err = err;
@@ -276,7 +286,7 @@ class ConnectionManager extends EventEmitter {
         });
       });
     });
-    parallel(jobs, (err, results)=>{
+    parallel(jobs, (err, results) => {
       onAllHandshakes(err, results);
     });
   }
@@ -286,30 +296,34 @@ class ConnectionManager extends EventEmitter {
    * @param {Function} onHandshake , (err,ping,pong)=>{}
    */
   handshake(peerInfo, withPeerList, onHandshake) {
-    this._enigmaNode.handshake(peerInfo, withPeerList, (err, dialedPeerInfo, ping, pong)=>{
-      // TODO:: open question: if it's early connected peer to DNS then it would get 0
-      // TODO:: peers, in that case another query is required.
-      if (err) {
-        // TODO:: handle the error
-        this._logger.error('[-] Err performing handshake : ' + err);
-      } else if (!err && pong != null && pong.status() == STATUS['OK']) {
-        peerInfo = dialedPeerInfo;
-        this._updateHandshakePeerBank(pong, peerInfo.id.toB58String());
-        this._handshakedDiscovery.push(pong);
-        this.notify({
-          'notification': N_NOTIFICATION['HANDSHAKE_UPDATE'],
-          'connectionType': 'outbound',
-          'status': pong.status(),
-          'pong': pong,
-          'discoverd_num': this._handshakedDiscovery.length,
-          'who': peerInfo,
-        });
-        this._updateState();
+    this._enigmaNode.handshake(
+      peerInfo,
+      withPeerList,
+      (err, dialedPeerInfo, ping, pong) => {
+        // TODO:: open question: if it's early connected peer to DNS then it would get 0
+        // TODO:: peers, in that case another query is required.
+        if (err) {
+          // TODO:: handle the error
+          this._logger.error("[-] Err performing handshake : " + err);
+        } else if (!err && pong != null && pong.status() == STATUS["OK"]) {
+          peerInfo = dialedPeerInfo;
+          this._updateHandshakePeerBank(pong, peerInfo.id.toB58String());
+          this._handshakedDiscovery.push(pong);
+          this.notify({
+            notification: N_NOTIFICATION["HANDSHAKE_UPDATE"],
+            connectionType: "outbound",
+            status: pong.status(),
+            pong: pong,
+            discoverd_num: this._handshakedDiscovery.length,
+            who: peerInfo
+          });
+          this._updateState();
+        }
+        if (nodeUtils.isFunction(onHandshake)) {
+          onHandshake(err, ping, pong);
+        }
       }
-      if (nodeUtils.isFunction(onHandshake)) {
-        onHandshake(err, ping, pong);
-      }
-    });
+    );
   }
 
   /** check and set the ConnectionManager state
@@ -325,8 +339,8 @@ class ConnectionManager extends EventEmitter {
         this._state = this.BOOTSTRAPPED;
 
         this.notify({
-          'notification': N_NOTIFICATION['BOOTSTRAP_FINISH'],
-          'connectedNodes': currentNum,
+          notification: N_NOTIFICATION["BOOTSTRAP_FINISH"],
+          connectedNodes: currentNum
         });
       }
     } else if (this._state === this.BOOTSTRAPPED) {
@@ -340,7 +354,7 @@ class ConnectionManager extends EventEmitter {
    * @param {Json} params, MUTS CONTAINT notification field
    */
   notify(params) {
-    this.emit('notify', params);
+    this.emit("notify", params);
   }
   /** Ping 0x1 message in the handshake process.
    * @param {PeerInfo} peerInfo , the peer info to handshake with
@@ -349,8 +363,8 @@ class ConnectionManager extends EventEmitter {
    * @return {Promise}
    */
   syncHandshake(peerInfo, withPeerList) {
-    return new Promise((resolve, reject)=>{
-      this._enigmaNode.handshake(peerInfo, withPeerList, (err, ping, pong)=>{
+    return new Promise((resolve, reject) => {
+      this._enigmaNode.handshake(peerInfo, withPeerList, (err, ping, pong) => {
         if (err) reject(err, ping, pong);
         resolve(err, ping, pong);
       });
@@ -362,35 +376,40 @@ class ConnectionManager extends EventEmitter {
    * @return {Promise} Heartbeat result
    */
   sendHeartBeat(peer) {
-    return new Promise((resolve, reject)=>{
+    return new Promise((resolve, reject) => {
       let peerInfo;
 
       if (nodeUtils.isString(peer)) {
         // TODO:: create PeerInfo from B58 id
-        throw new Error({name: 'NotImplementedError', message: 'too lazy to implement'});
+        throw new Error({
+          name: "NotImplementedError",
+          message: "too lazy to implement"
+        });
       } else {
         // PeerInfo
         peerInfo = peer;
       }
       // build the msg
       const heartBeatRequest = new Messages.HeartBeatReqMsg({
-        'from': this._enigmaNode.getSelfIdB58Str(),
-        'to': peerInfo.id.toB58String(),
+        from: this._enigmaNode.getSelfIdB58Str(),
+        to: peerInfo.id.toB58String()
       });
       if (!heartBeatRequest.isValidMsg()) {
         // TODO:: Add logger.
-        reject('[-] Err in HBReq msg ');
+        reject("[-] Err in HBReq msg ");
       }
       // send the request
-      this._enigmaNode.sendHeartBeat(peerInfo, heartBeatRequest, (err, hbResponse)=>{
-        if (err) reject(err);
+      this._enigmaNode.sendHeartBeat(
+        peerInfo,
+        heartBeatRequest,
+        (err, hbResponse) => {
+          if (err) reject(err);
 
-        resolve(hbResponse);
-      });
+          resolve(hbResponse);
+        }
+      );
     });
   }
 }
 
 module.exports = ConnectionManager;
-
-

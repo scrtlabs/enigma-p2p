@@ -1,4 +1,3 @@
-
 class StoppableTask {
   constructor(options, task, onFinish) {
     this._timeout = null;
@@ -30,7 +29,7 @@ class StoppableTask {
 
   start() {
     if (this._timeout) {
-      this._timerId = setTimeout(()=>{
+      this._timerId = setTimeout(() => {
         this._stop = true;
       }, this._timeout);
     }
@@ -42,7 +41,7 @@ class StoppableTask {
     this._execute();
   }
   _execute() {
-    setTimeout(()=>{
+    setTimeout(() => {
       if (this._taskInput) {
         this._task(this._taskInput, this);
       } else {
@@ -76,7 +75,7 @@ class StoppableTask {
       }
     }
 
-    return (this._stop || shouldStop);
+    return this._stop || shouldStop;
   }
 }
 
