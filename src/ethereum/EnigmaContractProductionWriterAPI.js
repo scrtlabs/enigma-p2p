@@ -8,10 +8,10 @@ const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value
 const ETHEREUM_CONFIRMATION_EVENT = 'confirmation';
 const ETHEREUM_RECEIPT_EVENT = 'receipt';
 const ETHEREUM_ERROR_EVENT = 'error';
-const MINIMUM_ETHEREUM_CONFIRMATIONS = 12;
+const DEFAULT_MINIMUM_ETHEREUM_CONFIRMATIONS = 12;
 
 class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = MINIMUM_ETHEREUM_CONFIRMATIONS) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = DEFAULT_MINIMUM_ETHEREUM_CONFIRMATIONS) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._privateKey = privateKey;
     this.minimumConfirmations = minimumConfirmations;
