@@ -365,19 +365,30 @@ class EnigmaContractReaderAPI {
     eventWatcher
       .on('data', (event) => {
         const result = this._eventParsers[eventName](event, this._web3);
-        callback(null, result);
-      })
-      .on('changed', (event) => {
-        this.logger().info('received a change of the event ' + event + '. Deleting its listener');
-        if (eventName in this._activeEventSubscriptions) {
-          delete (this._activeEventSubscriptions[eventName]);
-        }
-      })
-      .on('error', (err) => {
-        callback(err);
-      });
 
-    this._activeEventSubscriptions[eventName] = eventWatcher;
+        const startingBlockNumber = (await this.getEthereumBlockNumber());
+        const confirmedBlockNumber = startingBlockNumber + this.minimumConfirmations;
+        const subscription = this._web3.eth.subscribe("newBlockHeaders", async (error, event) => {
+          if (error) {
+            callback(err);
+            subscription.unsubscribe(/*TODO handle?*/);
+          } else if (confirmedBlockNumber <= event.number) {
+            callback(null, result);
+            subscription.unsubscribe(/*TODO handle?*/);
+          }
+        })
+          .on('changed', (event) => {
+            this.logger().info('received a change of the event ' + event + '. Deleting its listener');
+            if (eventName in this._activeEventSubscriptions) {
+              delete (this._activeEventSubscriptions[eventName]);
+            }
+          })
+          .on('error', (err) => {
+            callback(err);
+          });
+
+        this._activeEventSubscriptions[eventName] = eventWatcher;
+      })
   }
   /**
    * Unsubscribe from all the subscribed events
