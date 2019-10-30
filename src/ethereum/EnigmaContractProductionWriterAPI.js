@@ -433,7 +433,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
   async _parsePastEvents(eventName, filter) {
     let rawEvents = await this._enigmaContract.getPastEvents(eventName, {filter: filter});
     let events = null;
-    if (rawEvents) {
+    if (rawEvents && (rawEvents.length > 0)) {
       events = {};
       const currentEvent = rawEvents[0];
       events[currentEvent.event] = currentEvent;
