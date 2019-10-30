@@ -8,11 +8,13 @@ const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value
 const ETHEREUM_CONFIRMATION_EVENT = 'confirmation';
 const ETHEREUM_RECEIPT_EVENT = 'receipt';
 const ETHEREUM_ERROR_EVENT = 'error';
+const MINIMUM_ETHEREUM_CONFIRMATIONS = 12;
 
 class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = MINIMUM_ETHEREUM_CONFIRMATIONS) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._privateKey = privateKey;
+    this.minimumConfirmations = minimumConfirmations;
   }
   /**
    * Step 1 in registration
@@ -44,7 +46,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             reject(error);
           })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 resolve(null);
               }
@@ -82,7 +84,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 //let events = this._parseEvents(receipt);
                 resolve(null);
@@ -121,7 +123,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 //let events = this._parseEvents(receipt);
                 resolve(null);
@@ -156,7 +158,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 //let events = this._parseEvents(receipt);
                 resolve(null);
@@ -209,7 +211,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, { scAddr: utils.add0x(taskId) });
                 if (deployedEvents) {
@@ -248,7 +250,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 resolve(null);
               }
@@ -280,7 +282,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 resolve(null);
               }
@@ -335,7 +337,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 let events = await this._parsePastEvents('allEvents', { taskId: utils.add0x(taskId) });
                 resolve(events);
@@ -379,7 +381,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) });
                 resolve(events);
@@ -421,7 +423,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               reject(error);
             })
             .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber > 11) {
+              if (confNumber >= this.minimumConfirmations) {
                 signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
                 let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) });
                 resolve(events);
