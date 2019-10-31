@@ -379,10 +379,10 @@ class EnigmaContractReaderAPI {
     const eventWatcher = this._enigmaContract.events[eventName]({ filter: filter });
 
     eventWatcher
-      .on('data', (event) => {
+      .on('data', async event => {
         const result = this._eventParsers[eventName](event, this._web3);
 
-        const startingBlockNumber = (await this.getEthereumBlockNumber());
+        const startingBlockNumber = await this.getEthereumBlockNumber();
         const confirmedBlockNumber = startingBlockNumber + this.minimumConfirmations;
         const subscription = this._web3.eth.subscribe("newBlockHeaders", async (error, event) => {
           if (error) {
