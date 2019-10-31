@@ -72,6 +72,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getSecretContract(nodeUtils.add0x(secrectContractAddress)).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         const params = {
           owner: data.owner,
@@ -95,6 +96,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.countSecretContracts().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         resolve(parseInt(data));
       });
@@ -113,6 +115,8 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getSecretContractAddresses(from, to).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
+
         }
         if (data) {
           let newScAddressesArray = [];
@@ -138,7 +142,9 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getAllSecretContractAddresses().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
+
         if (data) {
           let newScAddressesArray = [];
           data.forEach((scAddress) => {
@@ -147,6 +153,7 @@ class EnigmaContractReaderAPI {
           resolve(newScAddressesArray);
         }
         else {
+          // Assaf: why??
           resolve(data);
         }
       });
@@ -164,6 +171,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getWorkerParams(blockNumber).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         resolve(data);
       });
@@ -180,6 +188,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getWorkersParams().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         resolve(data);
       });
@@ -195,6 +204,7 @@ class EnigmaContractReaderAPI {
   //     this._enigmaContract.methods.getWorkerParams(blockNumber, secrectContractAddress).call(this._defaultTrxOptions, confirmedBlockNumber,(error, data)=> {
   //       if (error) {
   //         reject(error);
+  //         return
   //       }
   //       resolve(data);
   //     });
@@ -213,10 +223,13 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return;
         }
+
         if (Object.keys(data).length < 4) {
           const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
           reject(err);
+          return
         }
         const params = {
           address: data.signer,
@@ -238,16 +251,20 @@ class EnigmaContractReaderAPI {
       let address = this.getWorkerAddress();
       if (!address) {
         reject(new errors.InputErr("Missing worker-address when calling getSelfWorker"));
+        return;
       }
       const currentBlockNumber = (await this.getEthereumBlockNumber());
       const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
       this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return;
         }
+
         if (Object.keys(data).length < 4) {
           const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
           reject(err);
+          return;
         }
         const report = this._web3.utils.hexToAscii(data.report);
         const params = {
@@ -272,10 +289,12 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getReport(workerAddress).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         if (Object.keys(data).length !== 2) {
           const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
           reject(err);
+          return
         }
         const params = {
           signer: data[0],
@@ -299,6 +318,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         const params = {
           inputsHash: data.inputsHash,
@@ -334,6 +354,7 @@ class EnigmaContractReaderAPI {
       this._enigmaContract.methods.getEpochSize().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
         if (error) {
           reject(error);
+          return
         }
         resolve(data);
       });
