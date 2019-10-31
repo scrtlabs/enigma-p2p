@@ -26,7 +26,7 @@ describe('Ethereum tests', function() {
   async function init() {
     const w3 = new Web3();
 
-    let workerAccount = w3.eth.accounts.create();
+    const workerAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
     const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
     const api = res.api;
@@ -184,7 +184,7 @@ describe('Ethereum tests', function() {
 
       const config = {enigmaContractAddress: builder.enigmaContractAddress, enigmaContractABI: builder.enigmaContractABI};
       const builder2 = new EnigmaContractAPIBuilder();
-      let res2 = await builder2.setAccountKey(workerAccount.privateKey).useDeployed(config).setEthereumAddress(workerAccount.address).build();
+      const res2 = await builder2.setAccountKey(workerAccount.privateKey).useDeployed(config).setEthereumAddress(workerAccount.address).build();
 
       const api = res2.api;
       const web3 = api.w3();
@@ -206,7 +206,7 @@ describe('Ethereum tests', function() {
       await api.selfDeposit(depositValue);
       await api.login();
 
-      let workerState = await api.getWorker(workerAccount.address);
+      const workerState = await api.getWorker(workerAccount.address);
 
       assert.strictEqual(workerState.report, workerReport);
       assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
@@ -217,7 +217,7 @@ describe('Ethereum tests', function() {
         optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress);
 
 
-      let contractParams = await api.getContractParams(secretContractAddress);
+      const contractParams = await api.getContractParams(secretContractAddress);
       assert.strictEqual(contractParams.preCodeHash, codeHash);
       assert.strictEqual(contractParams.codeHash, codeHash);
       assert.strictEqual(contractParams.deltaHashes.length, 1);
@@ -248,7 +248,7 @@ describe('Ethereum tests', function() {
       await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
 
 
-      let taskParams = await api.getTaskParams(mock_taskId);
+      const taskParams = await api.getTaskParams(mock_taskId);
       assert.strictEqual(inputsHash, taskParams.inputsHash);
       assert.strictEqual(gasLimit, taskParams.gasLimit);
       assert.strictEqual(gasPrice, taskParams.gasPrice);
