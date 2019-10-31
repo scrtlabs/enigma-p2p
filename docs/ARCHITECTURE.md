@@ -329,7 +329,7 @@ npm run test
 ```
 
 ## Troubleshooting
-If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the ports `5555`, `5556`, `5557`, `5558`, `6785`, `7890` (from `./test/ipc_test.js`).
+If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the port that was reported as already in use (from `./test/ipc_test.js`).
 
 # How it works
 
