@@ -109,6 +109,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       let workerAddress = this.getWorkerAddress();
       if (!workerAddress) {
         reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
+        return
       }
       const tx = {
         from: res.transactionOptions.from,
