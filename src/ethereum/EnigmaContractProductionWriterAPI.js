@@ -199,7 +199,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             })
             .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
               let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {scAddr: utils.add0x(taskId)});
-              if (deployedEvents && deployedEvents.length > 0) {
+              if (deployedEvents && Object.keys(deployedEvents).length > 0) {
                 resolve(deployedEvents);
               }
               else {
