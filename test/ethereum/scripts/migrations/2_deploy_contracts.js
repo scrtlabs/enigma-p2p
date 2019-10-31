@@ -1,9 +1,11 @@
 const EnigmaToken = artifacts.require('EnigmaToken.sol');
 const SolRsaVerify = artifacts.require('./utils/SolRsaVerify.sol');
 const SecretContractImpl = artifacts.require('./impl/SecretContractImpl.sol');
+const ExchangeRate = artifacts.require('ExchangeRate.sol');
 
 const PRINCIPAL_SIGNING_ADDRESS = '0x3078356633353161633136306365333763653066';
 const EPOCH_SIZE = 10;
+const TIMEOUT_THRESHOLD = 2;
 
 const Enigma = artifacts.require('Enigma.sol');
 const WorkersImpl = artifacts.require('./impl/WorkersImpl.sol');
@@ -11,6 +13,7 @@ const PrincipalImpl = artifacts.require('./impl/PrincipalImpl.sol');
 const TaskImpl = artifacts.require('./impl/TaskImpl.sol');
 
 async function deployProtocol(deployer) {
+
   await Promise.all([
     deployer.deploy(EnigmaToken),
     deployer.deploy(SolRsaVerify),
@@ -37,7 +40,8 @@ async function deployProtocol(deployer) {
 
   let principal = PRINCIPAL_SIGNING_ADDRESS;
   console.log('using account', principal, 'as principal signer');
-  await deployer.deploy(Enigma, EnigmaToken.address, principal, EPOCH_SIZE);
+  await deployer.deploy(ExchangeRate);
+  await deployer.deploy(Enigma, EnigmaToken.address, principal, ExchangeRate.address, EPOCH_SIZE, TIMEOUT_THRESHOLD);
 }
 
 async function doMigration(deployer) {

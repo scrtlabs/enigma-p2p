@@ -1,4 +1,5 @@
 const errors = require('../common/errors');
+const constants = require('../common/constants');
 const Logger = require('../common/logger');
 const nodeUtils = require('../common/utils');
 const cryptography = require('../common/cryptography');
@@ -368,7 +369,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} workerAddress , {string} signer
        * */
-      'Registered': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.Registered]: (event) => {
         return {
           workerAddress: event.returnValues.custodian,
           signer: event.returnValues.signer,
@@ -378,7 +379,7 @@ class EnigmaContractReaderAPI {
        * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Integer} inclusionBlockNumber, {Array<string>} workers,
        *    {Array<Integer>} balances, {Integer} nonce
        * */
-      'WorkersParameterized': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.WorkersParameterized]: (event) => {
         return {
           seed: cryptography.toBN(event.returnValues.seed),
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
@@ -391,7 +392,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
        * */
-      'TaskRecordCreated': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated]: (event) => {
         return {
           taskId: event.returnValues.taskId,
           inputsHash: event.returnValues.inputsHash,
@@ -405,21 +406,18 @@ class EnigmaContractReaderAPI {
        * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash, {integer} stateDeltaHashIndex
        *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
        * */
-      'ReceiptVerified': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified]: (event) => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.taskId),
-          stateDeltaHash: event.returnValues.stateDeltaHash,
+          taskId: nodeUtils.remove0x(event.returnValues.bytes32[1]),
+          stateDeltaHash: event.returnValues.bytes32[2],
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
-          outputHash: event.returnValues.outputHash,
-          optionalEthereumData: event.returnValues.optionalEthereumData,
-          optionalEthereumContractAddress: event.returnValues.optionalEthereumContractAddress,
-          signature: event.returnValues.sig,
+          outputHash: event.returnValues.bytes32[3],
         };
       },
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      'ReceiptFailed': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed]: (event) => {
         return {
           taskId: nodeUtils.remove0x(event.returnValues.taskId),
           signature: event.returnValues.sig,
@@ -428,7 +426,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      'ReceiptFailedETH': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH]: (event) => {
         return {
           taskId: nodeUtils.remove0x(event.returnValues.taskId),
           signature: event.returnValues.sig,
@@ -437,7 +435,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string>} taskId
        * */
-      'TaskFeeReturned': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.TaskFeeReturned]: (event) => {
         return {
           taskId: event.returnValues.taskId,
         };
@@ -445,7 +443,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} from , {Integer} value
        * */
-      'DepositSuccessful': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.DepositSuccessful]: (event) => {
         return {
           from: event.returnValues.from,
           value: parseInt(event.returnValues.value),
@@ -454,7 +452,7 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} to , {Integer} value
        * */
-      'WithdrawSuccessful': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful]: (event) => {
         return {
           to: event.returnValues.to,
           value: parseInt(event.returnValues.value),
@@ -463,11 +461,27 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} stateDeltaHash
        * */
-      'SecretContractDeployed': (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: (event) => {
         return {
-          secretContractAddress: nodeUtils.remove0x(event.returnValues.scAddr),
-          codeHash: event.returnValues.codeHash,
-          stateDeltaHash: event.returnValues.initStateDeltaHash,
+          secretContractAddress: nodeUtils.remove0x(bytes32s[0]),
+          codeHash: event.returnValues.bytes32s[2],
+          stateDeltaHash: event.returnValues.bytes32s[3],
+        };
+      },
+      /**
+       * @return {JSON}: {string} workerAddress
+      * */
+      [constants.RAW_ETHEREUM_EVENTS.LoggedIn]: (event) => {
+        return {
+          workerAddress: event.returnValues.workerAddress
+        };
+      },
+      /**
+       * @return {JSON}: {string} workerAddress
+       * */
+      [constants.RAW_ETHEREUM_EVENTS.LoggedOut]: (event) => {
+        return {
+          workerAddress: event.returnValues.workerAddress
         };
       },
     };
