@@ -323,8 +323,14 @@ class EnigmaContractReaderAPI {
    * @return {Promise} returning {Integer} : epochSize
    * */
   getTaskTimeout() {
-    // TODO!!! Once the contract is updated
-    return 50;
+    return new Promise((resolve, reject) => {
+      this._enigmaContract.methods.getTaskTimeoutSize().call(this._defaultTrxOptions, (error, data)=> {
+        if (error) {
+          reject(error);
+        }
+        resolve(data);
+      });
+    });
   }
   /**
    * Listen to events emitted by the Enigma.sol contract and trigger a callback
@@ -408,10 +414,10 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified]: (event) => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.bytes32[1]),
-          stateDeltaHash: event.returnValues.bytes32[2],
+          taskId: nodeUtils.remove0x(event.returnValues.bytes32s[1]),
+          stateDeltaHash: event.returnValues.bytes32s[2],
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
-          outputHash: event.returnValues.bytes32[3],
+          outputHash: event.returnValues.bytes32s[3],
         };
       },
       /**
@@ -463,7 +469,7 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: (event) => {
         return {
-          secretContractAddress: nodeUtils.remove0x(bytes32s[0]),
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.bytes32s[0]),
           codeHash: event.returnValues.bytes32s[2],
           stateDeltaHash: event.returnValues.bytes32s[3],
         };
