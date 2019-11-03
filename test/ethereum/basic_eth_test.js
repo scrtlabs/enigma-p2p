@@ -7,6 +7,10 @@ const StateSync = require(path.join(__dirname, '../../src/ethereum/StateSync'));
 const testParameters = require('./test_parameters.json');
 const constants = require('../../src/common/constants');
 const utils = require('../../src/common/utils');
+const Web3 = require('web3');
+
+
+const WORKER_WEI_VALUE = 100000000000000000;
 
 describe('Ethereum tests', function() {
   function eventSubscribe(api, eventName, filter, callback) {
@@ -19,25 +23,38 @@ describe('Ethereum tests', function() {
     };
   }
 
+  async function init() {
+    const w3 = new Web3();
+
+    const workerAccount = w3.eth.accounts.create();
+    const builder = new EnigmaContractAPIBuilder();
+    const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
+    const api = res.api;
+    const web3 = api.w3();
+    const accounts = await api.w3().eth.getAccounts();
+    // transfer money to worker address
+    await web3.eth.sendTransaction({from: accounts[4], to: workerAccount.address, value: WORKER_WEI_VALUE});
+    return {res, workerAccount, builder};
+  }
+
   it('Register a worker, deposit, withdraw and deploy a secret contract using the BUILDER ', async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree['all'] || !tree['#1']) {
       this.skip();
     }
     return new Promise(async function(resolve) {
-      const builder = new EnigmaContractAPIBuilder();
-      const res = await builder.createNetwork().deploy().build();
+      const {res, workerAccount} = await init();
       const api = res.api;
       const web3 = api.w3();
 
       const accounts = await api.w3().eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
-      const workerReport = testParameters.report;// "0x123456";
+      const workerAddress = workerAccount.address;
+      const workerReport = testParameters.report;
       const depositValue = 1000;
-      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32)); // accounts[5];
-      const secretContractAddress2 = utils.remove0x(api.w3().utils.randomHex(32)); // accounts[6];
-      const taskId1 = utils.remove0x(api.w3().utils.randomHex(32)); // accounts[6];
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const secretContractAddress2 = utils.remove0x(api.w3().utils.randomHex(32));
+      const taskId1 = utils.remove0x(api.w3().utils.randomHex(32));
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
       const signature = api.w3().utils.randomHex(32);
       const initStateDeltaHash = api.w3().utils.randomHex(32);
@@ -68,10 +85,8 @@ describe('Ethereum tests', function() {
           assert.strictEqual(result.value, depositValue);
         }));
 
-      let events = await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-      assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.Registered in events, true);
-      events = await api.deposit(workerAddress, depositValue, {from: workerAddress});
-      assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful in events, true);
+      await api.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
+      await api.deposit(workerAddress, depositValue, {from: workerAddress});
       await api.login({from: workerAddress});
 
       let workerState = await api.getWorker(workerAddress);
@@ -95,7 +110,7 @@ describe('Ethereum tests', function() {
       observedAddresses = await api.getAllSecretContractAddresses();
       assert.strictEqual(observedAddresses.length, 0);
 
-      events = await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
+      let events = await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
       assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed in events, true);
 
       // Verify the number of secret-accounts after deploying one
@@ -135,7 +150,6 @@ describe('Ethereum tests', function() {
       assert.strictEqual(observedAddressesArray[0], secretContractAddress);
       assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
 
-      //await api.deploySecretContract(secretContractAddress3, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, {from: workerAddress});
       await api.deploySecretContractFailure(taskId1, codeHash, gasUsed, signature, {from: workerAddress});
 
       observedCount = await api.countSecretContracts();
@@ -152,7 +166,7 @@ describe('Ethereum tests', function() {
       assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
 
       let ethereumBlockNumber = await api.getEthereumBlockNumber();
-      assert.strictEqual(ethereumBlockNumber, 18);
+      assert.strictEqual(ethereumBlockNumber, 19);
 
       await res.environment.destroy();
       resolve();
@@ -166,19 +180,16 @@ describe('Ethereum tests', function() {
     }
 
     return new Promise(async function(resolve) {
-      const builder1 = new EnigmaContractAPIBuilder();
-      let res1 = await builder1.createNetwork().deploy().build();
+      const {res, workerAccount, builder} = await init();
 
-      const web3_1 = res1.api.w3();
-      const accounts = await web3_1.eth.getAccounts();
-      const workerAddress = accounts[4];
-
-      const config = {enigmaContractAddress: builder1.enigmaContractAddress, enigmaContractABI: builder1.enigmaContractABI};
+      const config = {enigmaContractAddress: builder.enigmaContractAddress, enigmaContractABI: builder.enigmaContractABI};
       const builder2 = new EnigmaContractAPIBuilder();
-      let res2 = await builder2.useDeployed(config).setEthereumAddress(workerAddress).build();
+      const res2 = await builder2.setAccountKey(workerAccount.privateKey).useDeployed(config).setEthereumAddress(workerAccount.address).build();
 
       const api = res2.api;
       const web3 = api.w3();
+
+      const accounts = await web3.eth.getAccounts();
 
       const workerEnclaveSigningAddress = accounts[3];
       const workerReport = testParameters.report;
@@ -195,7 +206,7 @@ describe('Ethereum tests', function() {
       await api.selfDeposit(depositValue);
       await api.login();
 
-      let workerState = await api.getWorker(workerAddress);
+      const workerState = await api.getWorker(workerAccount.address);
 
       assert.strictEqual(workerState.report, workerReport);
       assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
@@ -206,7 +217,7 @@ describe('Ethereum tests', function() {
         optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress);
 
 
-      let contractParams = await api.getContractParams(secretContractAddress);
+      const contractParams = await api.getContractParams(secretContractAddress);
       assert.strictEqual(contractParams.preCodeHash, codeHash);
       assert.strictEqual(contractParams.codeHash, codeHash);
       assert.strictEqual(contractParams.deltaHashes.length, 1);
@@ -231,16 +242,17 @@ describe('Ethereum tests', function() {
           assert.strictEqual(result.taskId, mock_taskId);
           assert.strictEqual(result.gasLimit, gasLimit);
           assert.strictEqual(result.gasPrice, gasPrice);
-          assert.strictEqual(result.senderAddress, workerAddress);
+          assert.strictEqual(result.senderAddress, workerAccount.address);
         }));
 
       await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
 
-      let taskParams = await api.getTaskParams(mock_taskId);
+
+      const taskParams = await api.getTaskParams(mock_taskId);
       assert.strictEqual(inputsHash, taskParams.inputsHash);
       assert.strictEqual(gasLimit, taskParams.gasLimit);
       assert.strictEqual(gasPrice, taskParams.gasPrice);
-      assert.strictEqual(workerAddress, taskParams.senderAddress);
+      assert.strictEqual(workerAccount.address, taskParams.senderAddress);
       assert.strictEqual(constants.ETHEREUM_EMPTY_HASH, taskParams.outputHash);
       assert.strictEqual(1, taskParams.status);
 
@@ -252,7 +264,6 @@ describe('Ethereum tests', function() {
       const outputHash3 = web3.utils.randomHex(32);
 
       let count = 0;
-
       eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
           (result)=> {
             switch (count){
@@ -291,7 +302,6 @@ describe('Ethereum tests', function() {
             assert.strictEqual(result.signature, signature);
           }));
 
-
       // Login the worker before committing receipts
       await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
         optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
@@ -307,7 +317,7 @@ describe('Ethereum tests', function() {
       api.unsubscribeAll();
       await api.logout();
       await res2.environment.destroy();
-      await res1.environment.destroy();
+      await res.environment.destroy();
 
       resolve();
     });
@@ -320,14 +330,14 @@ describe('Ethereum tests', function() {
     }
 
     return new Promise(async function(resolve) {
-      const builder = new EnigmaContractAPIBuilder();
-      let res = await builder.createNetwork().deploy().build();
+      const {res, workerAccount} = await init();
+
       const api = res.api;
       const web3 = api.w3();
 
       const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
+      const workerAddress = workerAccount.address;
       const workerReport = testParameters.report;// "0x123456";
       const secretContractAddress1 = utils.remove0x(web3.utils.randomHex(32)); // accounts[5];
       const secretContractAddress2 = utils.remove0x(web3.utils.randomHex(32)); // accounts[4];
@@ -475,15 +485,14 @@ describe('Ethereum tests', function() {
     }
 
     return new Promise(async function(resolve) {
-      const builder = new EnigmaContractAPIBuilder();
-      let res = await builder.createNetwork().deploy().build();
+      const {res, workerAccount, builder} = await init();
       const api = res.api;
       const web3 = api.w3();
 
       const services = new EthereumServices(api);
       const accounts = await web3.eth.getAccounts();
       const workerEnclaveSigningAddress = accounts[3];
-      const workerAddress = accounts[4];
+      const workerAddress = workerAccount.address;
       const workerReport = testParameters.report;// "0x123456";
       const secretContractAddress = utils.remove0x(web3.utils.randomHex(32)); // accounts[5];
       const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
