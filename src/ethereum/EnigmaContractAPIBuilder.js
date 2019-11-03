@@ -60,6 +60,15 @@ class EnigmaContractAPIBuilder {
     return this;
   }
   /**
+   * set the Ethereum account key to be used in all transactions
+   * @param {string} key
+   * @return {EnigmaContractAPIBuilder} this
+   * */
+  setAccountKey(key) {
+    this.accountKey = key;
+    return this;
+  }
+  /**
    * deploy a smart contract
    *
    * {
