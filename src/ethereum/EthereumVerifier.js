@@ -82,6 +82,7 @@ class EthereumVerifier {
           else {
             result.error = res.error;
           }
+          this._logger.info(`Verified task creation ${task.getTaskId()} immediately`);
           resolve(result);
         }
       });
@@ -107,6 +108,7 @@ class EthereumVerifier {
       this._verifyTaskSubmissionNow(task, contractAddress, localTip).then((res) => {
         if (res.canBeVerified) {
           this.deleteTaskSubmissionListener(task.getTaskId());
+          this._logger.info(`Verified task submission ${task.getTaskId()} immediately`);
           resolve({error: res.error, isVerified: res.isVerified});
         }
       });
@@ -199,6 +201,7 @@ class EthereumVerifier {
       // Verify the case of a FailedResult
       else if (task instanceof FailedResult) {
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
+          this._logger.info(`Verified task submission ${task.getTaskId()} due to TaskFailureSubmission event`);
           resolve({error: null, isVerified: true});
         }
         else {
@@ -220,6 +223,7 @@ class EthereumVerifier {
             }
             else {
               const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash);
+              this._logger.info(`Verified task submission ${task.getTaskId()} due to SecretContractDeployment event`);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
@@ -230,6 +234,7 @@ class EthereumVerifier {
             }
             else {
               const res = this._checkComputeResultEvent(task, event.outputHash, event.stateDeltaHash, event.stateDeltaHashIndex);
+              this._logger.info(`Verified task submission ${task.getTaskId()} due to TaskSuccessSubmission event`);
               resolve({error: res.error, isVerified: res.isVerified});
             }
           }
