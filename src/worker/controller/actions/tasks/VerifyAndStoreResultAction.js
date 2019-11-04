@@ -88,13 +88,13 @@ class VerifyAndStoreResultAction {
         }
       }
 
-      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished : is_err ?  ${error}`);
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId}: is_err ?  ${error}`);
       if (optionalCallback) {
         optionalCallback(error);
       }
     }
     else { // if (err)
-      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished with an error:  ${err}`);
+      this._controller.logger().debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId} with an error:  ${err}`);
       if (optionalCallback) {
         optionalCallback(err);
       }
@@ -144,7 +144,7 @@ class VerifyAndStoreResultAction {
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
           let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
-          if (!tips || !tips[0].address || tips[0].address !== contractAddress) {
+          if (!Array.isArray(tips) || tips.length === 0 || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
           }
           else {
