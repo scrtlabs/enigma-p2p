@@ -147,19 +147,15 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         reject(res.error);
         return;
       }
-
       if(!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
       }
-
+      const packedParams = [utils.add0x(taskId), utils.add0x(preCodeHash), utils.add0x(codeHash), utils.add0x(initStateDeltaHash)];
       this._enigmaContract.methods.deploySecretContract(
-        utils.add0x(taskId),
-        utils.add0x(preCodeHash),
-        utils.add0x(codeHash),
-        utils.add0x(initStateDeltaHash),
-        utils.add0x(optionalEthereumData),
-        utils.add0x(optionalEthereumContractAddress),
         gasUsed,
+        utils.add0x(optionalEthereumContractAddress),
+        packedParams,
+        utils.add0x(optionalEthereumData),
         utils.add0x(signature))
         .send(res.transactionOptions)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
@@ -262,14 +258,12 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       if(!stateDeltaHash) {
         stateDeltaHash = EMPTY_HEX_STRING;
       }
+      const packedParams = [utils.add0x(secretContractAddress), utils.add0x(taskId), utils.add0x(stateDeltaHash), utils.add0x(outputHash)];
       this._enigmaContract.methods.commitReceipt(
-        utils.add0x(secretContractAddress),
-        utils.add0x(taskId),
-        utils.add0x(stateDeltaHash),
-        utils.add0x(outputHash),
-        utils.add0x(optionalEthereumData),
-        utils.add0x(optionalEthereumContractAddress),
         gasUsed,
+        utils.add0x(optionalEthereumContractAddress),
+        packedParams,
+        utils.add0x(optionalEthereumData),
         utils.add0x(signature)).send(res.transactionOptions)
           .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
               reject(error);

@@ -22,11 +22,13 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
 
     // ========================================== Constructor ==========================================
 
-    constructor(address _tokenAddress, address _principal, uint _epochSize) public {
+    constructor(address _tokenAddress, address _principal, address _exchangeRate, uint _epochSize,
+        uint _timeoutThreshold) public {
         state.engToken = ERC20(_tokenAddress);
         state.epochSize = _epochSize;
-        state.taskTimeoutSize = 200;
+        state.taskTimeoutSize = _timeoutThreshold * state.epochSize;
         state.principal = _principal;
+        state.exchangeRate = _exchangeRate;
         state.stakingThreshold = 1;
         state.workerGroupSize = 1;
     }
@@ -156,7 +158,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     {
         WorkersImpl.registerImpl(state, _signer, _report, _signature);
     }
-//
+
     /**
     * Deposits ENG stake into contract from worker. Worker must be registered to do so.
     *
@@ -221,31 +223,25 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     /**
     * Deploy secret contract from user, called by the worker.
     *
-    * @param _taskId Task ID of corresponding deployment task (taskId == scAddr)
-    * @param _preCodeHash Predeployed bytecode hash
-    * @param _codeHash Deployed bytecode hash
-    * @param _initStateDeltaHash Initial state delta hash as a result of the contract's constructor
-    * @param _optionalEthereumData Initial state delta hash as a result of the contract's constructor
-    * @param _optionalEthereumContractAddress Initial state delta hash as a result of the contract's constructor
     * @param _gasUsed Gas used for task
+    * @param _optionalEthereumContractAddress Initial state delta hash as a result of the contract's constructor
+    * @param _bytes32s (taskId, preCodeHash, codeHash, initStateDeltaHash)
+    * @param _optionalEthereumData Initial state delta hash as a result of the contract's constructor
     * @param _sig Worker's signature for deployment
     */
     function deploySecretContract(
-        bytes32 _taskId,
-        bytes32 _preCodeHash,
-        bytes32 _codeHash,
-        bytes32 _initStateDeltaHash,
-        bytes memory _optionalEthereumData,
-        address _optionalEthereumContractAddress,
         uint64 _gasUsed,
+        address _optionalEthereumContractAddress,
+        bytes32[4] memory _bytes32s,
+        bytes memory _optionalEthereumData,
         bytes memory _sig
     )
     public
     workerLoggedIn(msg.sender)
-    contractUndefined(_taskId)
+    contractUndefined(_bytes32s[0])
     {
-        TaskImpl.deploySecretContractImpl(state, _taskId, _preCodeHash, _codeHash, _initStateDeltaHash,
-            _optionalEthereumData, _optionalEthereumContractAddress, _gasUsed, _sig);
+        TaskImpl.deploySecretContractImpl(state, _gasUsed, _optionalEthereumContractAddress, _bytes32s,
+            _optionalEthereumData, _sig);
     }
 
     /**
@@ -291,8 +287,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     */
     function createDeploymentTaskRecord(
         bytes32 _inputsHash,
-        uint _gasLimit,
-        uint _gasPx,
+        uint64 _gasLimit,
+        uint64 _gasPx,
         uint _firstBlockNumber,
         uint _nonce
     )
@@ -313,8 +309,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     */
     function createTaskRecord(
         bytes32 _inputsHash,
-        uint _gasLimit,
-        uint _gasPx,
+        uint64 _gasLimit,
+        uint64 _gasPx,
         uint _firstBlockNumber
     )
     public
@@ -323,55 +319,28 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     }
 
     /**
-    * Create task records for tasks (either contract deployment or regular tasks). This is necessary for
-    * transferring task fee from sender to contract, generating the unique taskId, saving the block number
-    * when the record was mined, and incrementing the user's task deployment counter nonce.
-    *
-    * @param _inputsHashes Hashes of encrypted fn sig, encrypted ABI-encoded args, and contract address
-    * @param _gasLimits ENG gas limit
-    * @param _gasPxs ENG gas price in grains format (10 ** 8)
-    * @param _firstBlockNumber Locally-computed first block number of epoch
-    */
-    function createTaskRecords(
-        bytes32[] memory _inputsHashes,
-        uint[] memory _gasLimits,
-        uint[] memory _gasPxs,
-        uint _firstBlockNumber
-    )
-    public
-    {
-        TaskImpl.createTaskRecordsImpl(state, _inputsHashes, _gasLimits, _gasPxs, _firstBlockNumber);
-    }
-
-    /**
     * Commit the computation task results on chain by first verifying the receipt and then the worker's signature.
     * The task record is finalized and the worker is credited with the task fee.
     *
-    * @param _scAddr Secret contract address
-    * @param _taskId Unique taskId
-    * @param _stateDeltaHash Input state delta hash
-    * @param _outputHash Output state hash
-    * @param _optionalEthereumData Output state hash
-    * @param _optionalEthereumContractAddress Output state hash
     * @param _gasUsed Gas used for task computation
+    * @param _optionalEthereumContractAddress Output state hash
+    * @param _bytes32s [scAddr, taskId, stateDeltaHash, outputHash]
+    * @param _optionalEthereumData Output state hash
     * @param _sig Worker's signature
     */
     function commitReceipt(
-        bytes32 _scAddr,
-        bytes32 _taskId,
-        bytes32 _stateDeltaHash,
-        bytes32 _outputHash,
-        bytes memory _optionalEthereumData,
-        address _optionalEthereumContractAddress,
         uint64 _gasUsed,
+        address _optionalEthereumContractAddress,
+        bytes32[4] memory _bytes32s,
+        bytes memory _optionalEthereumData,
         bytes memory _sig
     )
     public
     workerLoggedIn(msg.sender)
-    contractDeployed(_scAddr)
+    contractDeployed(_bytes32s[0])
     {
-        TaskImpl.commitReceiptImpl(state, _scAddr, _taskId, _stateDeltaHash, _outputHash, _optionalEthereumData,
-            _optionalEthereumContractAddress, _gasUsed, _sig);
+        TaskImpl.commitReceiptImpl(state, _gasUsed, _optionalEthereumContractAddress,
+            _bytes32s, _optionalEthereumData, _sig);
     }
 
     /**

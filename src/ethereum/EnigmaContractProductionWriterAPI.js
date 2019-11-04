@@ -186,18 +186,16 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       if(!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
       }
+      const packedParams = [utils.add0x(taskId), utils.add0x(preCodeHash), utils.add0x(codeHash), utils.add0x(initStateDeltaHash)];
       const tx = {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.deploySecretContract(
-          utils.add0x(taskId),
-          utils.add0x(preCodeHash),
-          utils.add0x(codeHash),
-          utils.add0x(initStateDeltaHash),
-          utils.add0x(optionalEthereumData),
-          utils.add0x(optionalEthereumContractAddress),
           gasUsed,
+          utils.add0x(optionalEthereumContractAddress),
+          packedParams,
+          utils.add0x(optionalEthereumData),
           utils.add0x(signature)).encodeABI()
       };
       this._web3.eth.accounts.signTransaction(tx, this._privateKey)
@@ -312,18 +310,16 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       if(!stateDeltaHash) {
         stateDeltaHash = EMPTY_HEX_STRING;
       }
+      const packedParams = [utils.add0x(secretContractAddress), utils.add0x(taskId), utils.add0x(stateDeltaHash), utils.add0x(outputHash)];
       const tx = {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.commitReceipt(
-          utils.add0x(secretContractAddress),
-          utils.add0x(taskId),
-          utils.add0x(stateDeltaHash),
-          utils.add0x(outputHash),
-          utils.add0x(optionalEthereumData),
-          utils.add0x(optionalEthereumContractAddress),
           gasUsed,
+          utils.add0x(optionalEthereumContractAddress),
+          packedParams,
+          utils.add0x(optionalEthereumData),
           utils.add0x(signature)).encodeABI()
       };
       this._web3.eth.accounts.signTransaction(tx, this._privateKey)
