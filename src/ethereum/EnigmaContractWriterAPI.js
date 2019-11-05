@@ -1,6 +1,7 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const utils = require('../common/utils');
 const errors = require('../common/errors');
+const constants = require('../common/constants');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 
@@ -352,7 +353,9 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   _parseEvents(events) {
     let parsedEvents = {};
     for (let eventName of Object.keys(events)) {
-      parsedEvents[eventName] = this._eventParsers[eventName](events[eventName]);
+      if (eventName in constants.RAW_ETHEREUM_EVENTS) {
+        parsedEvents[eventName] = this._eventParsers[eventName](events[eventName]);
+      }
     }
     return parsedEvents;
   }
