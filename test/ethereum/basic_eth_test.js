@@ -11,7 +11,7 @@ const testUtils = require('../testUtils/utils');
 
 const WORKER_WEI_VALUE = 100000000000000000;
 
-describe('Ethereum tests', function () {
+describe('Ethereum API tests (TODO: just use enigmejs)', function () {
   function eventSubscribe(api, eventName, filter, callback) {
     api.subscribe(eventName, filter, callback);
   }
@@ -151,6 +151,29 @@ describe('Ethereum tests', function () {
 
       jumpXConfirmations(api, accounts[9], accounts[10])
     })
+  })
+
+  it('worker login', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await registerPromise;
+
+    const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await depositPromise;
+
+    const loginPromise = api.login({ from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await loginPromise;
+
+    const worker = await api.getWorker(workerAddress)
+    assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN)
   })
 });
 
