@@ -186,38 +186,41 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       if(!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
       }
+      const packedParams = [utils.add0x(taskId), utils.add0x(preCodeHash), utils.add0x(codeHash), utils.add0x(initStateDeltaHash)];
       const tx = {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.deploySecretContract(
-          utils.add0x(taskId),
-          utils.add0x(preCodeHash),
-          utils.add0x(codeHash),
-          utils.add0x(initStateDeltaHash),
-          utils.add0x(optionalEthereumData),
-          utils.add0x(optionalEthereumContractAddress),
           gasUsed,
+          utils.add0x(optionalEthereumContractAddress),
+          packedParams,
+          utils.add0x(optionalEthereumData),
           utils.add0x(signature)).encodeABI()
       };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        .then((signedTx)=> {
-          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-              reject(error);
+      this.getEthereumBlockNumber()
+        .then((blockNumber) => {
+          this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+            .then((signedTx) => {
+              this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+                .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+                  reject(error);
+                })
+                .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
+                  let deployedEvents = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {scAddr: utils.add0x(taskId)}, blockNumber);
+                  if (deployedEvents && Object.keys(deployedEvents).length > 0) {
+                    resolve(deployedEvents);
+                  } else {
+                    let failedEvents = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH, {taskId: utils.add0x(taskId)}, blockNumber);
+                    resolve(failedEvents);
+                  }
+                });
             })
-            .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
-              let deployedEvents = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {scAddr: utils.add0x(taskId)});
-              if (deployedEvents && Object.keys(deployedEvents).length > 0) {
-                resolve(deployedEvents);
-              }
-              else {
-                let failedEvents = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH, {taskId: utils.add0x(taskId)});
-                resolve(failedEvents);
-              }
+            .catch((error) => {
+              reject(error);
             });
         })
-        .catch((error) =>{
+        .catch((error) => {
           reject(error);
         });
     });
@@ -312,42 +315,49 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       if(!stateDeltaHash) {
         stateDeltaHash = EMPTY_HEX_STRING;
       }
+      const packedParams = [utils.add0x(secretContractAddress), utils.add0x(taskId), utils.add0x(stateDeltaHash), utils.add0x(outputHash)];
       const tx = {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.commitReceipt(
-          utils.add0x(secretContractAddress),
-          utils.add0x(taskId),
-          utils.add0x(stateDeltaHash),
-          utils.add0x(outputHash),
-          utils.add0x(optionalEthereumData),
-          utils.add0x(optionalEthereumContractAddress),
           gasUsed,
+          utils.add0x(optionalEthereumContractAddress),
+          packedParams,
+          utils.add0x(optionalEthereumData),
           utils.add0x(signature)).encodeABI()
       };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        .then((signedTx)=> {
-          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-              reject(error);
-            })
-            .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
-              let rawEvents = await this._enigmaContract.getPastEvents('allEvents', {filter: {taskId: utils.add0x(taskId)}});
-              let events = {};
-              if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
-                rawEvents.forEach((event) => {
-                  if (event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH ||
-                    event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptVerified) {
-                    resolve(this._parseEvents({[event.event]: event}));
+      this.getEthereumBlockNumber()
+        .then((blockNumber) => {
+          this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+            .then((signedTx) => {
+              this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+                .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+                  reject(error);
+                })
+                .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
+                  let rawEvents = await this._enigmaContract.getPastEvents('allEvents', {fromBlock: blockNumber, filter: {taskId: utils.add0x(taskId)}});
+                  let events = {};
+                  if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
+                    rawEvents.forEach((event) => {
+                      if (event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH ||
+                        event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptVerified) {
+                        resolve(this._parseEvents({[event.event]: event}));
+                      }
+                    });
+                    resolve(events);
+                  } else {
+                    resolve(events);
                   }
                 });
-              }
+            })
+            .catch((error) => {
+              reject(error);
             });
         })
-        .catch((error) =>{
-          reject(error);
-        });
+      .catch((error) => {
+        reject(error);
+      });
     });
   }
   /**
@@ -378,18 +388,24 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           gasUsed,
           utils.add0x(signature)).encodeABI()
       };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        .then((signedTx)=> {
-          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+      this.getEthereumBlockNumber()
+        .then((blockNumber) => {
+          this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+            .then((signedTx) => {
+              this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+                .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+                  reject(error);
+                })
+                .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
+                  let events = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {taskId: utils.add0x(taskId)}, blockNumber);
+                  resolve(events);
+                })
+            })
+            .catch((error) => {
               reject(error);
-            })
-            .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
-              let events = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {taskId: utils.add0x(taskId)});
-              resolve(events);
-            })
+            });
         })
-        .catch((error) =>{
+        .catch((error) => {
           reject(error);
         });
     });
@@ -420,16 +436,22 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           gasUsed,
           utils.add0x(signature)).encodeABI()
       };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        .then((signedTx)=> {
-          this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+      this.getEthereumBlockNumber()
+        .then((blockNumber) => {
+          this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+            .then((signedTx) => {
+              this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+                .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+                  reject(error);
+                })
+                .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
+                  let events = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {taskId: utils.add0x(taskId)}, blockNumber);
+                  resolve(events);
+                })
+            })
+            .catch((error) => {
               reject(error);
-            })
-            .on(ETHEREUM_RECEIPT_EVENT, async (receipt) => {
-              let events = await this._parsePastEvent(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {taskId: utils.add0x(taskId)});
-              resolve(events);
-            })
+            });
         })
         .catch((error) =>{
           reject(error);
@@ -468,8 +490,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
     });
   }
 
-  async _parsePastEvent(eventName, filter) {
-    const rawEvents = await this._enigmaContract.getPastEvents(eventName, {filter: filter});
+  async _parsePastEvent(eventName, filter, blockNumber) {
+    const rawEvents = await this._enigmaContract.getPastEvents(eventName, {fromBlock: blockNumber, filter: filter});
     let events = {};
     if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
       if (rawEvents.length > 1) {
