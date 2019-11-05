@@ -9,10 +9,6 @@ const utils = require('../../src/common/utils');
 const Web3 = require('web3');
 const testUtils = require('../testUtils/utils');
 
-require("Enigma")
-
-
-
 const WORKER_WEI_VALUE = 100000000000000000;
 
 describe('Ethereum tests', function () {
@@ -32,54 +28,129 @@ describe('Ethereum tests', function () {
     const workerAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
     const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
-    const api = res.api;
-    const web3 = api.w3();
-    const accounts = await api.w3().eth.getAccounts();
+    const web3 = res.api.w3();
+    const accounts = await web3.eth.getAccounts();
     // transfer money to worker address
     await web3.eth.sendTransaction({ from: accounts[4], to: workerAccount.address, value: WORKER_WEI_VALUE });
     return { res, workerAccount, builder };
   }
 
-  it('Register a worker', async function () {
-    const { res, workerAccount } = await init();
-    const api = res.api;
-
-    const accounts = await api.w3().eth.getAccounts();
-    const workerEnclaveSigningAddress = accounts[3];
-    const workerAddress = workerAccount.address;
-    const workerReport = testParameters.report;
-    const signature = api.w3().utils.randomHex(32);
-
-    // eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.Registered, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Registered,
-    //   async result => {
-    //     assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-    //     assert.strictEqual(result.workerAddress, workerAddress);
-    //     api.unsubscribeAll();
-    //     await res.environment.destroy();
-    //     resolve();
-    //   }));
-
-    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-    await testUtils.sleep(100);
-
-    // Create transactions on the blockchain to reach 12 confirmations for the register event to fire
-    for (let i = 0; i < 12; i++) {
+  async function jumpXConfirmations(api, from, to, confirmations = 12) {
+    let initialEthereumBlockNumber = await api.getEthereumBlockNumber();
+    let ethereumBlockNumber = 0;
+    // +2 because this function usually starts before the api call
+    // TODO fix this somehow - need to be exact
+    while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 2) {
       await api.w3().eth.sendTransaction(
         {
-          from: accounts[9],
-          to: accounts[10],
+          from,
+          to,
           value: 1
         }, function (err, transactionHash) {
           if (err) {
-            console.log("Register: dummy transaction error:", err);
+            console.log("Dummy transaction error:", err);
           }
         });
+      ethereumBlockNumber = await api.getEthereumBlockNumber()
     }
+  }
+
+  var res, workerAccount;
+  var accounts,
+    workerEnclaveSigningAddress,
+    workerAddress,
+    workerReport,
+    signature,
+    api;
+
+  beforeEach(async () => {
+    const x = await init();
+    res = x.res;
+    workerAccount = x.workerAccount;
+
+    api = res.api;
+    accounts = await api.w3().eth.getAccounts();
+    workerEnclaveSigningAddress = accounts[3];
+    workerAddress = workerAccount.address;
+    workerReport = testParameters.report;
+    signature = api.w3().utils.randomHex(32);
+  })
+
+  afterEach(async () => {
+    api.unsubscribeAll();
+    await res.environment.destroy();
+  })
+
+  it('worker register', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
 
     await registerPromise;
     const worker = await api.getWorker(workerAddress)
     assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT)
-    return res.environment.destroy()
+  })
+
+  it('worker register event', async () => {
+    return new Promise(async resolve => {
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.Registered, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Registered,
+        async result => {
+          assert.strictEqual(result.signer, workerEnclaveSigningAddress);
+          assert.strictEqual(result.workerAddress, workerAddress);
+
+          const worker = await api.getWorker(workerAddress)
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT)
+          resolve();
+        }));
+
+      api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+    });
+  })
+
+  it('worker deposit', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await registerPromise;
+
+    const depositValue = 1000;
+    const depositPromise = api.deposit(workerAddress, depositValue, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await depositPromise;
+
+    const worker = await api.getWorker(workerAddress)
+    assert.strictEqual(worker.balance, depositValue)
+  })
+
+  it('worker deposit event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+
+      await registerPromise;
+
+      const depositValue = 1000;
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.DepositSuccessful, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
+        async (result) => {
+          assert.strictEqual(result.from, workerAddress);
+          assert.strictEqual(result.value, depositValue);
+
+          const worker = await api.getWorker(workerAddress)
+          assert.strictEqual(worker.balance, depositValue)
+          resolve();
+        }));
+
+      api.deposit(workerAddress, depositValue, { from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+    })
   })
 });
 
