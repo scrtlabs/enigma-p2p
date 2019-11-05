@@ -11,7 +11,7 @@ const testUtils = require('../testUtils/utils');
 
 const WORKER_WEI_VALUE = 100000000000000000;
 
-describe('Ethereum API tests (TODO: just use enigmejs)', function () {
+describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
   function eventSubscribe(api, eventName, filter, callback) {
     api.subscribe(eventName, filter, callback);
   }
@@ -174,6 +174,34 @@ describe('Ethereum API tests (TODO: just use enigmejs)', function () {
 
     const worker = await api.getWorker(workerAddress)
     assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN)
+  })
+
+  it('worker login event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+
+      await registerPromise;
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.LoggedIn, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.LoggedIn,
+        async (result) => {
+          assert.strictEqual(result.from, workerAddress);
+          const worker = await api.getWorker(workerAddress)
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN)
+          resolve();
+        }));
+
+      const depositePromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+
+      await depositePromise;
+
+      api.login({ from: workerAddress });
+
+      jumpXConfirmations(api, accounts[9], accounts[10])
+    })
   })
 });
 
