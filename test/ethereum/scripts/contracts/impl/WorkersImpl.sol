@@ -19,6 +19,8 @@ library WorkersImpl {
     event Registered(address custodian, address signer);
     event DepositSuccessful(address from, uint value);
     event WithdrawSuccessful(address to, uint value);
+    event LoggedIn(address workerAddress);
+    event LoggedOut(address workerAddress);
 
     uint constant internal WORD_SIZE = 32;
 
@@ -148,6 +150,7 @@ library WorkersImpl {
             blockNumber: block.number,
             balance: worker.balance
         }));
+        emit LoggedIn(msg.sender);
     }
 
     function logoutImpl(EnigmaState.State storage state) public {
@@ -158,6 +161,7 @@ library WorkersImpl {
             blockNumber: block.number,
             balance: worker.balance
         }));
+        emit LoggedOut(msg.sender);
     }
 
     function depositImpl(EnigmaState.State storage state, address _custodian, uint _amount)
