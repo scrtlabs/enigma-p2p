@@ -47,7 +47,7 @@ class EthereumServices extends EventEmitter {
           this._api.logger().error(`got an error from ${eventName} event subscription: ${err}`);
           this.emit(serviceName, err);
         } else {
-          this._api.logger().debug(`got event ${eventName}`);
+          this._api.logger().debug(`got event ${eventName}: ${JSON.stringify(event)}`);
           event.type = serviceName;
           this.emit(serviceName, null, event);
         }
