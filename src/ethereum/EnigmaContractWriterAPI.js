@@ -352,7 +352,9 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   _parseEvents(events) {
     let parsedEvents = {};
     for (let eventName of Object.keys(events)) {
-      parsedEvents[eventName] = this._eventParsers[eventName](events[eventName]);
+      if (eventName in constants.RAW_ETHEREUM_EVENTS) {
+        parsedEvents[eventName] = this._eventParsers[eventName](events[eventName]);
+      }
     }
     return parsedEvents;
   }

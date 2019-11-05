@@ -10,7 +10,7 @@ class CommitReceiptAction {
   async asyncExecute(params) {
     const task = params.task;
     let err = null;
-
+    this._controller.logger().info(`[COMMIT_RECEIPT] starting action with ${task.getTaskId()}`);
     if (!task) {
       err = new errors.InputErr(`No task supplied for CommitReceiptAction`);
       return err;
@@ -123,6 +123,7 @@ class CommitReceiptAction {
       catch (e) {
         this._controller.logger().info(`[COMMIT_RECEIPT] received an error while trying to commit compute task ${task.getTaskId()} error=${e}`);
         revertRequired = true;
+        err = e;
       }
       if (revertRequired && isDelta) {
         this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
