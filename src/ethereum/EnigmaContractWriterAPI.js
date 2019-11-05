@@ -1,6 +1,7 @@
 const defaultsDeep = require('@nodeutils/defaults-deep');
 const utils = require('../common/utils');
 const errors = require('../common/errors');
+const constants = require('../common/constants');
 
 const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
 

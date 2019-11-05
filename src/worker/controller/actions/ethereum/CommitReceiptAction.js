@@ -70,10 +70,11 @@ class CommitReceiptAction {
         catch (e) {
           this._controller.logger().info(`[COMMIT_RECEIPT] received an error while trying to commit deployment of task ${task.getTaskId()} error=${e}.. Reverting state`);
           revertRequired = true;
+          err = e;
         }
         if (revertRequired) {
           let res = await this._revertState(task, true);
-          err = res.error;
+          err = err ? err : res.error;
         }
       }
     }
@@ -128,7 +129,7 @@ class CommitReceiptAction {
       if (revertRequired && isDelta) {
         this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
         let res = await this._revertState(task, false);
-        err = res.error;
+        err = err ? err : res.error;
       }
     }
     else {
