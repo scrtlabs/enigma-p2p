@@ -203,6 +203,19 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
       jumpXConfirmations(api, accounts[9], accounts[10])
     })
   })
+
+  it('"verify" worker enclave report', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    jumpXConfirmations(api, accounts[9], accounts[10])
+
+    await registerPromise;
+
+    const worker = await api.getWorker(workerAddress)
+    const { report } = await api.getReport(workerAddress);
+    assert.strictEqual(worker.report, report)
+    assert.strictEqual(worker.report, workerReport)
+  })
 });
 
 
