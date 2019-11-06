@@ -3,7 +3,7 @@ node_modules
 
 ### Visual studio code ignore ###
 
-.vscode
+.vscode/
 
 ### Webstorm IDE ignore files ###
 

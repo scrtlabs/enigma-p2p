@@ -282,8 +282,8 @@ function syncTest(scenario) {
       'bootstrapNodes': bootstrapNodes,
       'nickname': 'peer',
     };
-    const dnsMockUri = 'tcp://127.0.0.1:4444';
-    const peerMockUri = 'tcp://127.0.0.1:5555';
+    const dnsMockUri = 'tcp://127.0.0.1:44444';
+    const peerMockUri = 'tcp://127.0.0.1:55555';
 
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
