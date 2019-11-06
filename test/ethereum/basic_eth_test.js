@@ -186,7 +186,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
       eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.LoggedIn, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.LoggedIn,
         async (result) => {
-          assert.strictEqual(result.from, workerAddress);
+          assert.strictEqual(result.workerAddress, workerAddress);
           const worker = await api.getWorker(workerAddress)
           assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN)
           resolve();
