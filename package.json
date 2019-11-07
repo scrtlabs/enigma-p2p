@@ -10,7 +10,7 @@
     "temp-dir": "/tmp/enigma-p2p"
   },
   "scripts": {
-    "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 90000",
+    "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 200000",
     "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",

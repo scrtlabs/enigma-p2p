@@ -8,6 +8,7 @@ const constants = require('../../src/common/constants');
 const utils = require('../../src/common/utils');
 const Web3 = require('web3');
 const testUtils = require('../testUtils/utils');
+const ethTestUtils = require('./utils');
 
 const WORKER_WEI_VALUE = 100000000000000000;
 
@@ -35,25 +36,6 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     return { res, workerAccount, builder };
   }
 
-  async function jumpXConfirmations(api, from, to, confirmations = 12) {
-    let initialEthereumBlockNumber = await api.getEthereumBlockNumber();
-    let ethereumBlockNumber = 0;
-    // +2 because this function usually starts before the api call
-    // TODO fix this somehow - need to be exact
-    while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 2) {
-      await api.w3().eth.sendTransaction(
-        {
-          from,
-          to,
-          value: 1
-        }, function (err, transactionHash) {
-          if (err) {
-            console.log("Dummy transaction error:", err);
-          }
-        });
-      ethereumBlockNumber = await api.getEthereumBlockNumber()
-    }
-  }
 
   var res, workerAccount;
   var accounts,
@@ -84,7 +66,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
   it('worker register', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await registerPromise;
     const worker = await api.getWorker(workerAddress)
@@ -105,21 +87,21 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
       api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
     });
   })
 
   it('worker deposit', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await registerPromise;
 
     const depositValue = 1000;
     const depositPromise = api.deposit(workerAddress, depositValue, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await depositPromise;
 
@@ -131,7 +113,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
       await registerPromise;
 
@@ -149,26 +131,26 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
       api.deposit(workerAddress, depositValue, { from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
     })
   })
 
   it('worker login', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await registerPromise;
 
     const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await loginPromise;
 
@@ -180,7 +162,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
       await registerPromise;
 
@@ -194,20 +176,20 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
       const depositePromise = api.deposit(workerAddress, 1000, { from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
       await depositePromise;
 
       api.login({ from: workerAddress });
 
-      jumpXConfirmations(api, accounts[9], accounts[10])
+      ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
     })
   })
 
   it('"verify" worker enclave report', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await registerPromise;
 
@@ -220,19 +202,19 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
   it('worker deploy secret contract', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await registerPromise;
 
     const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     await loginPromise;
 
@@ -247,7 +229,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
     const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
 
-    jumpXConfirmations(api, accounts[9], accounts[10])
+    ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
 
     const event = await deployPromise;
     assert.strictEqual(event.SecretContractDeployed.codeHash, codeHash);

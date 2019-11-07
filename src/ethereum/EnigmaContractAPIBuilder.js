@@ -3,10 +3,12 @@ const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
 const EnigmaContractProductionWriterAPI = require('./EnigmaContractProductionWriterAPI');
 const Logger = require('../common/logger');
 const path = require('path');
-const {exec, spawn} = require('child_process');
+const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 const utils = require('../common/utils');
 const defaultsDeep = require('@nodeutils/defaults-deep');
+const ethTestUtils = require('../../test/ethereum/utils');
+
 
 TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
 
@@ -33,7 +35,7 @@ class EnigmaContractAPIBuilder {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({'cli': false});
+      this._logger = new Logger({ 'cli': false });
     }
 
     return this;
@@ -188,7 +190,7 @@ class EnigmaContractAPIBuilder {
     }
 
     if (options.enigmaContractAddress) {
-      let config = {enigmaContractAddress: options.enigmaContractAddress};
+      let config = { enigmaContractAddress: options.enigmaContractAddress };
       if (options.urlProvider) {
         config.url = options.urlProvider;
       }
@@ -238,11 +240,13 @@ class EnigmaContractAPIBuilder {
     });
   }
 
+
   async _initEnv() {
     const truffleDirectory = this.config.truffleDirectory;
 
     await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
+
 
     const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
 
@@ -251,6 +255,9 @@ class EnigmaContractAPIBuilder {
     let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
+
+    const accounts = await this.web3.eth.getAccounts();
+    await ethTestUtils.jumpXConfirmations(this.web3, accounts[9], accounts[10]);
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;

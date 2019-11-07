@@ -25,26 +25,6 @@ const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncM
 
 const parallel = require('async/parallel');
 
-async function jumpXConfirmations(api, from, to, confirmations = 12) {
-  let initialEthereumBlockNumber = await api.getEthereumBlockNumber();
-  let ethereumBlockNumber = 0;
-  // +2 because this function usually starts before the api call
-  // TODO fix this somehow - need to be exact
-  while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 2) {
-    await api.w3().eth.sendTransaction(
-      {
-        from,
-        to,
-        value: 1
-      }, function (err, transactionHash) {
-        if (err) {
-          console.log("Dummy transaction error:", err);
-        }
-      });
-    ethereumBlockNumber = await api.getEthereumBlockNumber()
-  }
-}
-
 async function initEthereumStuff() {
   const builder = new EnigmaContractAPIBuilder();
   const res = await builder.createNetwork().deploy().build();
@@ -59,15 +39,15 @@ async function initEthereumStuff() {
   const depositValue = 1000;
 
   const registerPromise = enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  jumpXConfirmations(enigmaContractApi, accounts[9], accounts[10])
+  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
   await registerPromise;
 
   const depositPromise = enigmaContractApi.deposit(workerAddress, depositValue, { from: workerAddress });
-  jumpXConfirmations(enigmaContractApi, accounts[9], accounts[10])
+  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
   await depositPromise;
 
   const loginPromise = enigmaContractApi.login({ from: workerAddress });
-  jumpXConfirmations(enigmaContractApi, accounts[9], accounts[10])
+  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
   await loginPromise;
 
   return {

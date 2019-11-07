@@ -128,13 +128,18 @@ module.exports.transformStatesListToMap = (statesList) => {
 
 module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
-module.exports.jumpXConfirmations = async function jumpXConfirmations(api, from, to, confirmations = 12) {
-  let initialEthereumBlockNumber = await api.getEthereumBlockNumber();
+function getEthereumBlockNumber(web3) {
+  return new Promise((resolve, reject) => {
+    web3.eth.getBlockNumber((error, data) => error ? reject(error) : resolve(data));
+  });
+}
+module.exports.jumpXConfirmations = async function jumpXConfirmations(web3, from, to, confirmations = 12) {
+  let initialEthereumBlockNumber = await getEthereumBlockNumber(web3);
   let ethereumBlockNumber = 0;
   // +2 because this function usually starts before the api call
   // TODO fix this somehow - need to be exact
   while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 2) {
-    await api.w3().eth.sendTransaction(
+    await web3.eth.sendTransaction(
       {
         from,
         to,
@@ -144,7 +149,7 @@ module.exports.jumpXConfirmations = async function jumpXConfirmations(api, from,
           console.log("Dummy transaction error:", err);
         }
       });
-    ethereumBlockNumber = await api.getEthereumBlockNumber()
+    ethereumBlockNumber = await getEthereumBlockNumber(web3);
   }
 }
 
@@ -167,7 +172,7 @@ module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclave
 
     const deploySecretContractPromise = api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
       optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
-    module.exports.jumpXConfirmations(api, accounts[9], accounts[10])
+    module.exports.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
     await deploySecretContractPromise;
 
     let i = 1;
@@ -178,7 +183,7 @@ module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclave
       const stateDeltaHash = crypto.hash(delta);
       const commitReceiptPromise = api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
         workerEnclaveSigningAddress, { from: workerAddress });
-      module.exports.jumpXConfirmations(api, accounts[9], accounts[10])
+      module.exports.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
       await commitReceiptPromise;
 
       i++;
