@@ -29,6 +29,7 @@ class EnigmaContractAPIBuilder {
     this.api = null;
     this.ethereumAddress = null;
     this.accountKey = null;
+    this.minimunConfirmations = 12;
     this.environment = {};
     this.config = defaultConfig;
 
@@ -72,6 +73,20 @@ class EnigmaContractAPIBuilder {
     this.accountKey = key;
     return this;
   }
+
+  /**
+     * Set the minimum confirmations (ethereum blocks) a worker has to wait
+     * before knowing data is valid
+     * Writing via the API will resolve only after enough confirmations
+     * Reading via the API will return data only if it was written at least minimunConfirmations blocks ago
+     * @param {number} minimunConfirmations, defaults to 12
+     * @return {EnigmaContractAPIBuilder} this
+     * */
+  setMinimunConfirmations(minimunConfirmations = 12) {
+    this.minimunConfirmations = minimunConfirmations;
+    return this;
+  }
+
   /**
    * deploy a smart contract
    *
@@ -143,14 +158,14 @@ class EnigmaContractAPIBuilder {
       if (this.accountKey) {
         this.api = await new EnigmaContractProductionWriterAPI(this.enigmaContractAddress,
           this.enigmaContractABI, this.web3, this.logger(),
-          this.ethereumAddress, this.accountKey);
+          this.ethereumAddress, this.accountKey, this.minimunConfirmations);
       }
       else {
-        this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
+        this.api = await new F(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
       }
     }
     else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
+      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.minimunConfirmations);
     }
 
     return {

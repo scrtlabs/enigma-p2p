@@ -4,8 +4,6 @@ const Logger = require('../common/logger');
 const nodeUtils = require('../common/utils');
 const cryptography = require('../common/cryptography');
 
-const DEFAULT_MINIMUM_ETHEREUM_CONFIRMATIONS = 12; // TODO sync this with ./EnigmaContractProductionWriterAPI.js
-
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
 const config = require('./config.json');
 
@@ -24,7 +22,7 @@ class EnigmaContractReaderAPI {
    * {Json} enigmaContractABI
    * {Web3} web3
    * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, minimumConfirmations = DEFAULT_MINIMUM_ETHEREUM_CONFIRMATIONS) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, minimumConfirmations = 12) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
     this._enigmaContractAddress = enigmaContractAddress;
@@ -367,7 +365,7 @@ class EnigmaContractReaderAPI {
    * */
   getTaskTimeout() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getTaskTimeoutSize().call(this._defaultTrxOptions, (error, data)=> {
+      this._enigmaContract.methods.getTaskTimeoutSize().call(this._defaultTrxOptions, (error, data) => {
         if (error) {
           reject(error);
         }

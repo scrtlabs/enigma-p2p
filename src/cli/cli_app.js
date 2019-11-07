@@ -34,7 +34,7 @@ class CLI {
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
-
+    this._minConfirmations = 12;
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -376,6 +376,9 @@ class CLI {
       this._autoInit = true;
       this._depositValue = value;
     })
+      .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations) => {
+        this._minConfirmations = minConfirmations;
+      })
     .parse(process.argv);
   }
   _getFinalConfig() {
@@ -431,7 +434,7 @@ class CLI {
         enigmaContractAddress: this._enigmaContractAddress,
         accountAddress: this._ethereumAddress,
         enigmaContractAbi,
-        accountKey
+        minConfirmations: this._minConfirmations
       });
     }
     const nodeConfig = this._getFinalConfig();

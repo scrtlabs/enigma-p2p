@@ -23,7 +23,9 @@ class EthereumAPI {
    *  }
    * */
   async init(config) {
-    let builder = new EnigmaContractAPIBuilder(this._logger);
+    const minimunConfirmations = Number.isInteger(config.minConfirmations) ? config.minConfirmations : 12;
+
+    let builder = new EnigmaContractAPIBuilder(this._logger).setMinimunConfirmations(minimunConfirmations);
     let res = await builder.setConfigAndBuild(config);
 
     this._api = res.api;
