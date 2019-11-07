@@ -137,7 +137,7 @@ module.exports.advanceXConfirmations = async function (web3, confirmations = 12)
   let initialEthereumBlockNumber = await getEthereumBlockNumber(web3);
   let ethereumBlockNumber = 0;
 
-  const accounts = await this.web3.eth.getAccounts();
+  const accounts = await web3.eth.getAccounts();
   const from = accounts[9];
   const to = accounts[10];
 
