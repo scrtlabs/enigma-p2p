@@ -39,15 +39,15 @@ async function initEthereumStuff() {
   const depositValue = 1000;
 
   const registerPromise = enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
   await registerPromise;
 
   const depositPromise = enigmaContractApi.deposit(workerAddress, depositValue, { from: workerAddress });
-  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
   await depositPromise;
 
   const loginPromise = enigmaContractApi.login({ from: workerAddress });
-  ethTestUtils.jumpXConfirmations(enigmaContractApi.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
   await loginPromise;
 
   return {

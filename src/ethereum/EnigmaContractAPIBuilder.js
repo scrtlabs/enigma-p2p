@@ -256,8 +256,7 @@ class EnigmaContractAPIBuilder {
 
     this._initWeb3();
 
-    const accounts = await this.web3.eth.getAccounts();
-    await ethTestUtils.jumpXConfirmations(this.web3, accounts[9], accounts[10]);
+    await ethTestUtils.advanceXConfirmations(this.web3);
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;

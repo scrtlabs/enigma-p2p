@@ -37,15 +37,15 @@ async function prepareEthData(controller) {
   const workerEnclaveSigningAddress = accounts[2];
 
   const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(api.w3())
   await registerPromise;
 
   const depositPromise = api.deposit(workerAddress, depositValue, { from: workerAddress });
-  ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(api.w3())
   await depositPromise;
 
   const loginPromise = api.login({ from: workerAddress });
-  ethTestUtils.jumpXConfirmations(api.w3(), accounts[9], accounts[10])
+  ethTestUtils.advanceXConfirmations(api.w3())
   await loginPromise;
 
   await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
