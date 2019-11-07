@@ -26,14 +26,19 @@ const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncM
 const parallel = require('async/parallel');
 
 async function initEthereumStuff() {
+  const workerAccount = new Web3().eth.accounts.create();
+
   const builder = new EnigmaContractAPIBuilder();
-  const res = await builder.createNetwork().deploy().build();
+  const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
   const enigmaContractApi = res.api;
   const web3 = enigmaContractApi.w3();
 
   const accounts = await web3.eth.getAccounts();
+  const WORKER_WEI_VALUE = 100000000000000000;
+  await web3.eth.sendTransaction({ from: accounts[4], to: workerAccount.address, value: WORKER_WEI_VALUE });
+
   const workerEnclaveSigningAddress = accounts[0];
-  const workerAddress = accounts[1];
+  const workerAddress = workerAccount.address;
   const workerReport = '0x123456';
   const signature = web3.utils.randomHex(32);
   const depositValue = 1000;
