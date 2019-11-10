@@ -369,6 +369,72 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
       ethTestUtils.advanceXConfirmations(api.w3())
     })
   })
+
+  it('worker logout', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await registerPromise;
+
+    const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await depositPromise;
+
+    const loginPromise = api.login({ from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await loginPromise;
+
+    const loggedInWorker = await api.getWorker(workerAddress)
+    assert.strictEqual(loggedInWorker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN)
+
+    const logoutPromise = api.logout({ from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await logoutPromise;
+
+    const loggedOutWorker = await api.getWorker(workerAddress)
+    assert.strictEqual(loggedOutWorker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT)
+  })
+
+  it('worker logout event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+      ethTestUtils.advanceXConfirmations(api.w3())
+
+      await registerPromise;
+
+      const depositePromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+
+      ethTestUtils.advanceXConfirmations(api.w3())
+
+      await depositePromise;
+
+      const loginPromise = api.login({ from: workerAddress });
+
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await loginPromise;
+
+      api.logout({ from: workerAddress });
+
+      ethTestUtils.advanceXConfirmations(api.w3())
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.LoggedOut, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.LoggedOut,
+        async (result) => {
+          assert.strictEqual(result.workerAddress, workerAddress);
+          const worker = await api.getWorker(workerAddress)
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT)
+          resolve();
+        }));
+
+    })
+  })
 });
 
 
