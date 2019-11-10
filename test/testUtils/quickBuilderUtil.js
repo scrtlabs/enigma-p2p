@@ -172,6 +172,7 @@ const _createNode = async (options) => {
   }
   if (options.withEth) {
     builder.setEthereumConfig({
+      minConfirmations: 0,
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
       ethereumAddress: options.ethWorkerAddress

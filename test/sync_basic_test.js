@@ -29,7 +29,7 @@ async function initEthereumStuff() {
   const workerAccount = new Web3().eth.accounts.create();
 
   const builder = new EnigmaContractAPIBuilder();
-  const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
+  const res = await builder.setAccountKey(workerAccount.privateKey).setMinimunConfirmations(0).createNetwork().deploy().build();
   const enigmaContractApi = res.api;
   const web3 = enigmaContractApi.w3();
 
@@ -43,17 +43,9 @@ async function initEthereumStuff() {
   const signature = web3.utils.randomHex(32);
   const depositValue = 1000;
 
-  const registerPromise = enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
-  await registerPromise;
-
-  const depositPromise = enigmaContractApi.deposit(workerAddress, depositValue, { from: workerAddress });
-  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
-  await depositPromise;
-
-  const loginPromise = enigmaContractApi.login({ from: workerAddress });
-  ethTestUtils.advanceXConfirmations(enigmaContractApi.w3())
-  await loginPromise;
+  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+  await enigmaContractApi.deposit(workerAddress, depositValue, { from: workerAddress });
+  await enigmaContractApi.login({ from: workerAddress });
 
   return {
     enigmaContractAddress: res.enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,

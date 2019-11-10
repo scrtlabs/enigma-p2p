@@ -174,10 +174,8 @@ module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclave
     const optionalEthereumData = '0x00';
     const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
 
-    const deploySecretContractPromise = api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
+    await api.deploySecretContract(hexString, codeHash, codeHash, firstDeltaHash, optionalEthereumData,
       optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
-    module.exports.advanceXConfirmations(api.w3())
-    await deploySecretContractPromise;
 
     let i = 1;
 
@@ -185,10 +183,8 @@ module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclave
       const taskId = web3.utils.randomHex(32);
       const delta = secretContractData[i];
       const stateDeltaHash = crypto.hash(delta);
-      const commitReceiptPromise = api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
+      await api.commitReceipt(hexString, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed,
         workerEnclaveSigningAddress, { from: workerAddress });
-      module.exports.advanceXConfirmations(api.w3(), 200)
-      await commitReceiptPromise;
 
       i++;
     }

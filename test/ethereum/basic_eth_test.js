@@ -28,7 +28,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
     const workerAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
-    const res = await builder.setAccountKey(workerAccount.privateKey).createNetwork().deploy().build();
+    const res = await builder.setAccountKey(workerAccount.privateKey).setMinimunConfirmations(12).createNetwork().deploy().build();
     const web3 = res.api.w3();
     const accounts = await web3.eth.getAccounts();
     // transfer money to worker address
