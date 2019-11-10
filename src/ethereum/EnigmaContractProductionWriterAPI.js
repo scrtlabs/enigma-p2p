@@ -25,7 +25,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   register(signerAddress, report, signature, txParams = null) {
-    console.log("register", arguments, this.minimumConfirmations);
+    console.log("register", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       const res = this.getTransactionOptions(txParams);
@@ -37,7 +37,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
-        // this encodes the ABI of the method and the arguments
+        // this encodes the ABI of the method and th
         data: this._enigmaContract.methods.register(utils.add0x(signerAddress), utils.add0x(report), utils.add0x(signature)).encodeABI()
       };
 
@@ -76,7 +76,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   deposit(custodian, amount, txParams = null) {
-    console.log("deposit", arguments, this.minimumConfirmations);
+    console.log("deposit", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -116,7 +116,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   selfDeposit(amount, txParams = null) {
-    console.log("selfDeposit", arguments, this.minimumConfirmations);
+    console.log("selfDeposit", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -161,7 +161,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   withdraw(amount, txParams) {
-    console.log("withdraw", arguments, this.minimumConfirmations);
+    console.log("withdraw", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -208,7 +208,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return @return {Promise} in success: Enigma contract emitted events, in failure: error //TODO:: we want to turn all the Json's into real classes.
    * */
   deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams = null) {
-    console.log("deploySecretContract", arguments, this.minimumConfirmations);
+    console.log("deploySecretContract", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -267,7 +267,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   login(txParams = null) {
-    console.log("login", arguments, this.minimumConfirmations);
+    console.log("login", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -305,7 +305,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   logout(txParams = null) {
-    console.log("logout", arguments, this.minimumConfirmations);
+    console.log("logout", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
@@ -353,7 +353,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams = null) {
-    console.log("commitReceipt", arguments, this.minimumConfirmations);
+    console.log("commitReceipt", this.minimumConfirmations);
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -423,7 +423,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature, txParams = null) {
-    console.log("commitTaskFailure", arguments, this.minimumConfirmations);
+    console.log("commitTaskFailure", this.minimumConfirmations);
     return new Promise(async (resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -476,7 +476,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
   deploySecretContractFailure(taskId, outputHash, gasUsed, signature, txParams = null) {
-    console.log("deploySecretContractFailure", arguments, this.minimumConfirmations);
+    console.log("deploySecretContractFailure", this.minimumConfirmations);
 
     return new Promise(async (resolve, reject) => {
       const res = this.getTransactionOptions(txParams);
@@ -525,7 +525,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * Irrelevant for workers -> users create deployment tasks with it
    * */
   createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams = null) {
-    console.log("createDeploymentTaskRecord", arguments, this.minimumConfirmations);
+    console.log("createDeploymentTaskRecord", this.minimumConfirmations);
 
     return new Promise((resolve, reject) => {
       const res = this.getTransactionOptions(txParams);

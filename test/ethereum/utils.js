@@ -141,9 +141,9 @@ module.exports.advanceXConfirmations = async function (web3, confirmations = 12)
   const from = accounts[9];
   const to = accounts[10];
 
-  // +2 because this function usually starts before the api call
+  // +3 because this function usually starts before the api call
   // TODO fix this somehow - need to be exact
-  while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 2) {
+  while (ethereumBlockNumber - initialEthereumBlockNumber < confirmations + 3) {
     await web3.eth.sendTransaction(
       {
         from,
