@@ -322,6 +322,9 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
     assert.strictEqual(events.ReceiptFailed.signature, signature);
     assert.strictEqual(events.ReceiptFailed.taskId, taskId1);
+
+    const countSCsAfter = await api.countSecretContracts();
+    assert.strictEqual(countSCsAfter, 0);
   })
 
   it('worker deploy secret contract failure event', async function () {
@@ -356,6 +359,8 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
           assert.strictEqual(event.signature, signature);
           assert.strictEqual(event.taskId, taskId1);
 
+          const countSCsAfter = await api.countSecretContracts();
+          assert.strictEqual(countSCsAfter, 0);
           resolve();
         })
       );
