@@ -161,7 +161,7 @@ class EnigmaContractAPIBuilder {
           this.ethereumAddress, this.accountKey, this.minimunConfirmations);
       }
       else {
-        this.api = await new F(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
+        this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
       }
     }
     else {
