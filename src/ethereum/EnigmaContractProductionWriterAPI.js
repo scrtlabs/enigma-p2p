@@ -268,7 +268,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         reject(res.error);
         return;
       }
-      const nonce = await this._web3.eth.getTransactionCount(res.transactionOptions.from);
+      const nonce = await this._web3.eth.getTransactionCount(res.transactionOptions.from, 'pending');
+      console.log(`nonce isssssss: ${nonce}`)
       const tx = {
         nonce,
         from: res.transactionOptions.from,
