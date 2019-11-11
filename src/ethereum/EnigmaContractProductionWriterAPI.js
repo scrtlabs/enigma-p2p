@@ -276,7 +276,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.logout().encodeABI()
       };
-      this._web3.eth.signTransaction(tx, this._privateKey)
+      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
         .then((signedTx)=> {
           this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
