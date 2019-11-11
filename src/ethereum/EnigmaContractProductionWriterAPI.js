@@ -262,13 +262,15 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
    * @return {Promise} in success: null, in failure: error
    * */
   logout(txParams=null) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
       const res = this.getTransactionOptions(txParams);
       if (res.error) {
         reject(res.error);
         return;
       }
+      const nonce = await this._web3.eth.getTransactionCount(res.transactionOptions.from);
       const tx = {
+        nonce,
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
