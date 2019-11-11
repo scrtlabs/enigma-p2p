@@ -268,8 +268,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         reject(res.error);
         return;
       }
-      const nonce = await this._web3.eth.getTransactionCount(res.transactionOptions.from, 'pending');
-      console.log(`nonce isssssss: ${nonce}`)
+      let nonce = await this._web3.eth.getTransactionCount(res.transactionOptions.from, 'pending');
       const tx = {
         nonce,
         from: res.transactionOptions.from,
@@ -277,7 +276,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods.logout().encodeABI()
       };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+      this._web3.eth.signTransaction(tx, this._privateKey)
         .then((signedTx)=> {
           this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
             .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
