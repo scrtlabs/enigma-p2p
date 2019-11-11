@@ -521,48 +521,6 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
     });
   }
 
-  /**
-   * Irrelevant for workers -> users create deployment tasks with it
-   * */
-  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams = null) {
-    console.log("createDeploymentTaskRecord", this.minimumConfirmations);
-
-    return new Promise((resolve, reject) => {
-      const res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      const tx = {
-        from: res.transactionOptions.from,
-        to: this._enigmaContractAddress,
-        gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce).encodeABI()
-      };
-      this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        .then((signedTx) => {
-          const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
-            .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-              reject(error);
-            })
-            .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-              if (!this.minimumConfirmations) {
-                resolve(null);
-              }
-            })
-            .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-              if (confNumber >= this.minimumConfirmations) {
-                signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-                resolve(null);
-              }
-            });
-        })
-        .catch((error) => {
-          reject(error);
-        });
-    });
-  }
-
   async _parsePastEvents(eventName, filter, blockNumber) {
     let rawEvents = await this._enigmaContract.getPastEvents(eventName, { fromBlock: blockNumber, filter: filter });
     let events = null;
