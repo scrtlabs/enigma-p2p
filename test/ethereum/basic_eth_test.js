@@ -512,144 +512,116 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
       ethTestUtils.advanceXConfirmations(api.w3())
     });
   });
+
+  it('worker create task', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await registerPromise;
+
+    const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await depositPromise;
+
+    const loginPromise = api.login({ from: workerAddress });
+
+    ethTestUtils.advanceXConfirmations(api.w3())
+
+    await loginPromise;
+
+    const countSCsBefore = await api.countSecretContracts();
+    assert.strictEqual(countSCsBefore, 0);
+
+    const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+    const initStateDeltaHash = api.w3().utils.randomHex(32);
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
+    const gasUsed = 10;
+
+    const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await deployPromise;
+
+    const inputsHash = api.w3().utils.randomHex(32);
+    const gasLimit = 7;
+    const gasPrice = 10;
+    const firstBlockNumber = 17;
+    const nonce = 0;
+
+
+    const mock_taskId = "0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
+    // (This is hard coded into TaskImpl.sol - https://github.com/enigmampc/enigma-p2p/blob/2f9085286e849e94d13da06f34884eeec7d7d4b0/test/ethereum/scripts/contracts/impl/TaskImpl.sol#L63)
+
+    const deployTaskPromise = api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await deployTaskPromise;
+
+    const taskParams = await api.getTaskParams(mock_taskId);
+    assert.strictEqual(taskParams.inputsHash, inputsHash);
+    assert.strictEqual(taskParams.gasLimit, gasLimit);
+    assert.strictEqual(taskParams.gasPrice, gasPrice);
+    assert.strictEqual(taskParams.senderAddress, workerAccount.address);
+    assert.strictEqual(taskParams.outputHash, constants.ETHEREUM_EMPTY_HASH);
+    assert.strictEqual(taskParams.status, constants.ETHEREUM_TASK_STATUS.RECORD_CREATED);
+  });
+
+  it('worker create task event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await registerPromise;
+
+      const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await depositPromise;
+
+      const loginPromise = api.login({ from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await loginPromise;
+
+      const countSCsBefore = await api.countSecretContracts();
+      assert.strictEqual(countSCsBefore, 0);
+
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+      const initStateDeltaHash = api.w3().utils.randomHex(32);
+      const zeroAddress = '0x0000000000000000000000000000000000000000';
+      const gasUsed = 10;
+
+      const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await deployPromise;
+
+      const inputsHash = api.w3().utils.randomHex(32);
+      const gasLimit = 7;
+      const gasPrice = 10;
+      const firstBlockNumber = 17;
+      const nonce = 0;
+
+      const mock_taskId = "0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
+      // (This is hard coded into TaskImpl.sol - https://github.com/enigmampc/enigma-p2p/blob/2f9085286e849e94d13da06f34884eeec7d7d4b0/test/ethereum/scripts/contracts/impl/TaskImpl.sol#L63)
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated,
+        result => {
+          assert.strictEqual(result.taskId, mock_taskId);
+          assert.strictEqual(result.gasLimit, gasLimit);
+          assert.strictEqual(result.gasPrice, gasPrice);
+          assert.strictEqual(result.senderAddress, workerAccount.address);
+          assert.strictEqual(result.inputsHash, inputsHash);
+          resolve();
+        }));
+
+      const deployTaskPromise = api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await deployTaskPromise;
+    });
+  });
 });
 
 
-  // it('Register a worker, deposit, withdraw and deploy a secret contract using the BUILDER ', async function () {
-  //   const tree = TEST_TREE.ethereum;
-  //   if (!tree['all'] || !tree['#1']) {
-  //     this.skip();
-  //   }
-  //   return new Promise(async function (resolve) {
-  //     const { res, workerAccount } = await init();
-  //     const api = res.api;
-  //     const web3 = api.w3();
-
-  //     const accounts = await api.w3().eth.getAccounts();
-  //     const workerEnclaveSigningAddress = accounts[3];
-  //     const workerAddress = workerAccount.address;
-  //     const workerReport = testParameters.report;
-  //     const depositValue = 1000;
-  //     const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
-  //     const secretContractAddress2 = utils.remove0x(api.w3().utils.randomHex(32));
-  //     const taskId1 = utils.remove0x(api.w3().utils.randomHex(32));
-  //     const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-  //     const signature = api.w3().utils.randomHex(32);
-  //     const initStateDeltaHash = api.w3().utils.randomHex(32);
-  //     const gasUsed = 10;
-  //     const zeroAddress = '0x0000000000000000000000000000000000000000';
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.Registered, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Registered,
-  //       (result) => {
-  //         assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-  //         assert.strictEqual(result.workerAddress, workerAddress);
-  //       }));
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.DepositSuccessful, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
-  //       (result) => {
-  //         assert.strictEqual(result.from, workerAddress);
-  //         assert.strictEqual(result.value, depositValue);
-  //       }));
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-  //       (result) => {
-  //         assert.strictEqual(result.secretContractAddress, secretContractAddress);
-  //         assert.strictEqual(result.codeHash, codeHash);
-  //       }));
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful,
-  //       (result) => {
-  //         assert.strictEqual(result.to, workerAddress);
-  //         assert.strictEqual(result.value, depositValue);
-  //       }));
-
-  //     await api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  //     await api.deposit(workerAddress, depositValue, { from: workerAddress });
-  //     await api.login({ from: workerAddress });
-
-  //     let workerState = await api.getWorker(workerAddress);
-
-  //     assert.strictEqual(workerState.report, workerReport);
-  //     assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
-  //     assert.strictEqual(workerState.balance, depositValue);
-  //     assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
-
-  //     // Verify worker's report
-  //     const result = await api.getReport(workerAddress);
-  //     assert.strictEqual(result.report, workerReport);
-
-  //     // Verify the number of secret-accounts before deploying one
-  //     const countBefore = await api.countSecretContracts();
-  //     assert.strictEqual(countBefore, 0);
-
-  //     let observedAddresses = await api.getSecretContractAddresses(0, 0);
-  //     assert.strictEqual(observedAddresses.length, 0);
-
-  //     observedAddresses = await api.getAllSecretContractAddresses();
-  //     assert.strictEqual(observedAddresses.length, 0);
-
-  //     let events = await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
-  //     assert.strictEqual(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed in events, true);
-
-  //     // Verify the number of secret-accounts after deploying one
-  //     const countAfter = await api.countSecretContracts();
-  //     assert.strictEqual(countAfter, 1);
-
-  //     let observedCodeHash = await api.getContractParams(secretContractAddress);
-  //     observedCodeHash = observedCodeHash.codeHash;
-  //     assert.strictEqual(observedCodeHash, codeHash);
-
-  //     observedAddresses = await api.getSecretContractAddresses(0, 1);
-  //     assert.strictEqual(observedAddresses[0], secretContractAddress);
-
-  //     observedAddresses = await api.getAllSecretContractAddresses();
-  //     assert.strictEqual(observedAddresses[0], secretContractAddress);
-  //     assert.strictEqual(observedAddresses.length, 1);
-
-  //     api.unsubscribeAll();
-
-  //     await api.deploySecretContract(secretContractAddress2, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
-
-  //     // Verify the number of secret-accounts after deploying another one
-  //     let observedCount = await api.countSecretContracts();
-  //     assert.strictEqual(observedCount, 2);
-
-  //     const observedAddressesArray1 = await api.getSecretContractAddresses(0, 1);
-  //     assert.strictEqual(observedAddressesArray1[0], secretContractAddress);
-
-  //     const observedAddresses2 = await api.getSecretContractAddresses(1, 2);
-  //     assert.strictEqual(observedAddresses2[0], secretContractAddress2);
-
-  //     let observedAddressesArray = await api.getSecretContractAddresses(0, 2);
-  //     assert.strictEqual(observedAddressesArray[0], secretContractAddress);
-  //     assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
-
-  //     observedAddressesArray = await api.getAllSecretContractAddresses();
-  //     assert.strictEqual(observedAddressesArray[0], secretContractAddress);
-  //     assert.strictEqual(observedAddressesArray[1], secretContractAddress2);
-
-  //     await api.deploySecretContractFailure(taskId1, codeHash, gasUsed, signature, { from: workerAddress });
-
-  //     observedCount = await api.countSecretContracts();
-  //     assert.strictEqual(observedCount, 2);
-
-  //     await api.logout({ from: workerAddress });
-  //     await api.withdraw(depositValue / 2, { from: workerAddress });
-
-  //     workerState = await api.getWorker(workerAddress);
-
-  //     assert.strictEqual(workerState.report, workerReport);
-  //     assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
-  //     assert.strictEqual(workerState.balance, depositValue / 2);
-  //     assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
-
-  //     let ethereumBlockNumber = await api.getEthereumBlockNumber();
-  //     assert.strictEqual(ethereumBlockNumber > 0, true);
-
-  //     await res.environment.destroy();
-  //     resolve();
-  //   }).catch(console.log);
-  // });
 
   // it('Register, login, deploy secret contract, create tasks and commit receipts/failure using the BUILDER ', async function () {
   //   const tree = TEST_TREE.ethereum;
