@@ -450,15 +450,15 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
   it('worker commit receipt', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3())
+    ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
     const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3())
+    ethTestUtils.advanceXConfirmations(api.w3());
     await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3())
+    ethTestUtils.advanceXConfirmations(api.w3());
     await loginPromise;
 
     const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
@@ -529,152 +529,84 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
       api.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
       ethTestUtils.advanceXConfirmations(api.w3())
-    })
+    });
+  });
+
+  it('worker commit task failure', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3());
+    await registerPromise;
+
+    const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3());
+    await depositPromise;
+
+    const loginPromise = api.login({ from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3());
+    await loginPromise;
+
+    const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+    const initStateDeltaHash = api.w3().utils.randomHex(32);
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
+    const gasUsed = 10;
+
+    const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await deployPromise;
+
+    const outputHash = api.w3().utils.randomHex(32);
+    const taskId = utils.remove0x(api.w3().utils.randomHex(32));
+
+    const taskFailurePromise = api.commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature);
+    ethTestUtils.advanceXConfirmations(api.w3())
+    const receipt = await taskFailurePromise;
+
+    assert.strictEqual(receipt.ReceiptFailed.signature, signature);
+    assert.strictEqual(receipt.ReceiptFailed.taskId, taskId);
+  });
+
+  it('worker commit task failure event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3());
+      await registerPromise;
+
+      const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3());
+      await depositPromise;
+
+      const loginPromise = api.login({ from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3());
+      await loginPromise;
+
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+      const initStateDeltaHash = api.w3().utils.randomHex(32);
+      const zeroAddress = '0x0000000000000000000000000000000000000000';
+      const gasUsed = 10;
+
+      const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await deployPromise;
+
+      const outputHash = api.w3().utils.randomHex(32);
+      const taskId = utils.remove0x(api.w3().utils.randomHex(32));
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
+        async receipt => {
+          assert.strictEqual(receipt.signature, signature);
+          assert.strictEqual(receipt.taskId, taskId);
+          resolve();
+        })
+      );
+
+      api.commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature);
+      ethTestUtils.advanceXConfirmations(api.w3())
+    });
   });
 });
 
-
-
-  // it('Register, login, deploy secret contract, create tasks and commit receipts/failure using the BUILDER ', async function () {
-  //   const tree = TEST_TREE.ethereum;
-  //   if (!tree['all'] || !tree['#2']) {
-  //     this.skip();
-  //   }
-
-  //   return new Promise(async function (resolve) {
-  //     const { res, workerAccount, builder } = await init();
-
-  //     const config = { enigmaContractAddress: builder.enigmaContractAddress, enigmaContractABI: builder.enigmaContractABI };
-  //     const builder2 = new EnigmaContractAPIBuilder();
-  //     const res2 = await builder2.setAccountKey(workerAccount.privateKey).useDeployed(config).setEthereumAddress(workerAccount.address).build();
-
-  //     const api = res2.api;
-  //     const web3 = api.w3();
-
-  //     const accounts = await web3.eth.getAccounts();
-
-  //     const workerEnclaveSigningAddress = accounts[3];
-  //     const workerReport = testParameters.report;
-  //     const secretContractAddress = utils.remove0x(web3.utils.randomHex(32));
-  //     const codeHash = web3.utils.sha3(JSON.stringify(testParameters.bytecode));
-  //     const signature = web3.utils.randomHex(32);
-  //     const initStateDeltaHash = web3.utils.randomHex(32);
-  //     const gasUsed = 10;
-  //     const depositValue = 1000;
-  //     const optionalEthereumData = '0x00';
-  //     const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
-
-  //     await api.register(workerEnclaveSigningAddress, workerReport, signature);
-  //     await api.selfDeposit(depositValue);
-  //     await api.login();
-
-  //     const workerState = await api.getWorker(workerAccount.address);
-
-  //     assert.strictEqual(workerState.report, workerReport);
-  //     assert.strictEqual(workerState.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
-  //     assert.strictEqual(workerState.balance, depositValue);
-  //     assert.strictEqual(workerState.address, workerEnclaveSigningAddress);
-
-  //     await api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, optionalEthereumData,
-  //       optionalEthereumContractAddress, gasUsed, workerEnclaveSigningAddress);
-
-
-  //     const contractParams = await api.getContractParams(secretContractAddress);
-  //     assert.strictEqual(contractParams.preCodeHash, codeHash);
-  //     assert.strictEqual(contractParams.codeHash, codeHash);
-  //     assert.strictEqual(contractParams.deltaHashes.length, 1);
-  //     assert.strictEqual(contractParams.deltaHashes[0], initStateDeltaHash);
-  //     assert.strictEqual(contractParams.status, 1);
-
-  //     const taskId1 = utils.remove0x(web3.utils.randomHex(32));
-  //     const taskId2 = utils.remove0x(web3.utils.randomHex(32));
-  //     const taskId3 = utils.remove0x(web3.utils.randomHex(32));
-  //     const taskId4 = utils.remove0x(web3.utils.randomHex(32));
-
-  //     const inputsHash = web3.utils.randomHex(32);
-  //     const gasLimit = 7;
-  //     const gasPrice = 10;
-  //     const firstBlockNumber = 17;
-  //     const nonce = 0;
-
-  //     const mock_taskId = "0xf29647ec8920b552fa96de8cc3129b5ba70471b190c8ec5a4793467f12ad84e9";
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated,
-  //       (result) => {
-  //         assert.strictEqual(result.taskId, mock_taskId);
-  //         assert.strictEqual(result.gasLimit, gasLimit);
-  //         assert.strictEqual(result.gasPrice, gasPrice);
-  //         assert.strictEqual(result.senderAddress, workerAccount.address);
-  //       }));
-
-  //     await api.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce);
-
-
-  //     const taskParams = await api.getTaskParams(mock_taskId);
-  //     assert.strictEqual(inputsHash, taskParams.inputsHash);
-  //     assert.strictEqual(gasLimit, taskParams.gasLimit);
-  //     assert.strictEqual(gasPrice, taskParams.gasPrice);
-  //     assert.strictEqual(workerAccount.address, taskParams.senderAddress);
-  //     assert.strictEqual(constants.ETHEREUM_EMPTY_HASH, taskParams.outputHash);
-  //     assert.strictEqual(1, taskParams.status);
-
-  //     const stateDeltaHash1 = web3.utils.randomHex(32);
-  //     const stateDeltaHash2 = web3.utils.randomHex(32);
-  //     const stateDeltaHash3 = web3.utils.randomHex(32);
-  //     const outputHash1 = web3.utils.randomHex(32);
-  //     const outputHash2 = web3.utils.randomHex(32);
-  //     const outputHash3 = web3.utils.randomHex(32);
-
-  //     let count = 0;
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
-  //       (result) => {
-  //         switch (count) {
-  //           case 0:
-  //             assert.strictEqual(result.taskId, taskId1);
-  //             assert.strictEqual(result.stateDeltaHash, stateDeltaHash1);
-  //             assert.strictEqual(result.outputHash, outputHash1);
-  //             break;
-  //           case 1:
-  //             assert.strictEqual(result.taskId, taskId2);
-  //             assert.strictEqual(result.stateDeltaHash, stateDeltaHash2);
-  //             assert.strictEqual(result.outputHash, outputHash2);
-  //             break;
-  //           case 2:
-  //             assert.strictEqual(result.taskId, taskId3);
-  //             assert.strictEqual(result.stateDeltaHash, stateDeltaHash3);
-  //             assert.strictEqual(result.outputHash, outputHash3);
-  //             break;
-  //         }
-  //         count += 1;
-  //       }));
-
-
-  //     eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
-  //       (result) => {
-  //         assert.strictEqual(result.taskId, taskId4);
-  //         assert.strictEqual(result.signature, signature);
-  //       }));
-
-  //     // Login the worker before committing receipts
-  //     await api.commitReceipt(secretContractAddress, taskId1, stateDeltaHash1, outputHash1,
-  //       optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
-
-  //     await api.commitReceipt(secretContractAddress, taskId2, stateDeltaHash2, outputHash2,
-  //       optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
-
-  //     await api.commitReceipt(secretContractAddress, taskId3, stateDeltaHash3, outputHash3,
-  //       optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
-
-  //     await api.commitTaskFailure(secretContractAddress, taskId4, outputHash1, gasUsed, signature);
-
-  //     api.unsubscribeAll();
-  //     await api.logout();
-  //     await res2.environment.destroy();
-  //     await res.environment.destroy();
-
-  //     resolve();
-  //   });
-  // });
 
   // it('State sync: empty local tips, partial local tips, partial local tips 2, full local tips', async function () {
   //   const tree = TEST_TREE.ethereum;
