@@ -448,9 +448,89 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     });
   });
 
+  it('worker commit receipt', async function () {
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await registerPromise;
 
+    const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await depositPromise;
 
+    const loginPromise = api.login({ from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await loginPromise;
 
+    const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+    const initStateDeltaHash = api.w3().utils.randomHex(32);
+    const zeroAddress = '0x0000000000000000000000000000000000000000';
+    const gasUsed = 10;
+
+    const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3())
+    await deployPromise;
+
+    const optionalEthereumData = '0x00';
+    const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
+    const outputHash = api.w3().utils.randomHex(32);
+    const stateDeltaHash = api.w3().utils.randomHex(32);
+    const taskId = utils.remove0x(api.w3().utils.randomHex(32));
+
+    const receiptPromise = api.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
+    ethTestUtils.advanceXConfirmations(api.w3())
+    const receipt = await receiptPromise;
+
+    assert.strictEqual(receipt.ReceiptVerified.outputHash, outputHash);
+    assert.strictEqual(receipt.ReceiptVerified.stateDeltaHash, stateDeltaHash);
+    assert.strictEqual(receipt.ReceiptVerified.stateDeltaHashIndex, 1);
+    assert.strictEqual(receipt.ReceiptVerified.taskId, taskId);
+  });
+
+  it('worker commit receipt event', async function () {
+    return new Promise(async resolve => {
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await registerPromise;
+
+      const depositPromise = api.deposit(workerAddress, 1000, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await depositPromise;
+
+      const loginPromise = api.login({ from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await loginPromise;
+
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
+      const initStateDeltaHash = api.w3().utils.randomHex(32);
+      const zeroAddress = '0x0000000000000000000000000000000000000000';
+      const gasUsed = 10;
+
+      const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3())
+      await deployPromise;
+
+      const optionalEthereumData = '0x00';
+      const optionalEthereumContractAddress = '0x0000000000000000000000000000000000000000';
+      const outputHash = api.w3().utils.randomHex(32);
+      const stateDeltaHash = api.w3().utils.randomHex(32);
+      const taskId = utils.remove0x(api.w3().utils.randomHex(32));
+
+      eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
+        async receipt => {
+          assert.strictEqual(receipt.outputHash, outputHash);
+          assert.strictEqual(receipt.stateDeltaHash, stateDeltaHash);
+          assert.strictEqual(receipt.stateDeltaHashIndex, 1);
+          assert.strictEqual(receipt.taskId, taskId);
+          resolve();
+        })
+      );
+
+      api.commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature);
+      ethTestUtils.advanceXConfirmations(api.w3())
+    })
+  });
 });
 
 
