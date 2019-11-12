@@ -381,7 +381,9 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           return;
         }
 
-        const matchingEvents = possibleEvents.filter(e => e.taskId == taskId);
+        const matchingEvents = possibleEvents
+          .map(e => this._parseEvents({ [e.event]: e }))
+          .filter(e => Object.keys(e).length == 1 && e[Object.keys(e)[0]].taskId == taskId);
 
         if (matchingEvents.length == 0) {
           reject(`The commitReceipt function in the Enigma contract didn't emit a result event for taskId ${taskId}.`)
@@ -393,8 +395,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           return;
         }
 
-        const event = matchingEvents[0];
-        resolve(this._parseEvents({ [event.event]: event }));
+        resolve(matchingEvents[0]);
       }
 
       const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
