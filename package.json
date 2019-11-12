@@ -12,6 +12,7 @@
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 200000",
     "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9 || true",
+    "compile-truffle": "cd test/ethereum/scripts && rm -rf build && truffle compile",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
