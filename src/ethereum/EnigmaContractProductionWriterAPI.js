@@ -368,17 +368,34 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await this.getEthereumBlockNumber();
 
       const resolveLogic = async () => {
-        let rawEvents = await this._enigmaContract.getPastEvents('allEvents', { fromBlock: blockNumber, filter: { taskId: utils.add0x(taskId) } });
-        if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
-          rawEvents.forEach((event) => {
-            if (event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH ||
-              event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptVerified) {
-              resolve(this._parseEvents({ [event.event]: event }));
-            }
-          });
+        let possibleEvents;
+        try {
+          possibleEvents = await this._enigmaContract.getPastEvents('allEvents', { fromBlock: blockNumber });
+        } catch (e) {
+          reject(e);
+          return
         }
-      }
 
+        if (!Array.isArray(possibleEvents) || possibleEvents.length == 0) {
+          reject("The commitReceipt function in the Enigma contract didn't emit any result event.")
+          return;
+        }
+
+        const matchingEvents = possibleEvents.filter(e => e.taskId == taskId);
+
+        if (matchingEvents.length == 0) {
+          reject(`The commitReceipt function in the Enigma contract didn't emit a result event for taskId ${taskId}.`)
+          return;
+        }
+
+        if (matchingEvents.length > 1) {
+          reject(`The commitReceipt function in the Enigma contract emitted too many (${matchingEvents.length}: ${JSON.stringify(matchingEvents)}) result events for taskId ${taskId}.`)
+          return;
+        }
+
+        const event = matchingEvents[0];
+        resolve(this._parseEvents({ [event.event]: event }));
+      }
 
       const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
