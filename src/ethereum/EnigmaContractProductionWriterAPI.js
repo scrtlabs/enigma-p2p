@@ -2,6 +2,8 @@ const utils = require('../common/utils');
 const errors = require('../common/errors');
 const constants = require('../common/constants');
 const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
+const utils = require("../../test/ethereum/utils")
+
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
@@ -222,7 +224,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, { scAddr: utils.add0x(taskId) }, blockNumber);
@@ -365,7 +367,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let rawEvents = await this._enigmaContract.getPastEvents('allEvents', { fromBlock: blockNumber, filter: { taskId: utils.add0x(taskId) } });
@@ -426,7 +428,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
@@ -478,7 +480,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
