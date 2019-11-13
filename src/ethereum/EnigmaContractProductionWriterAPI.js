@@ -10,7 +10,7 @@ const ETHEREUM_RECEIPT_EVENT = 'receipt';
 const ETHEREUM_ERROR_EVENT = 'error';
 
 class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = 12) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = constants.MINIMUM_CONFIRMATIONS) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._privateKey = privateKey;
     this.minimumConfirmations = minimumConfirmations;

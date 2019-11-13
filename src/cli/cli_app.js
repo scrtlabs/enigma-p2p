@@ -11,6 +11,7 @@ const cryptography = main.cryptography
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
 const utils = require('../common/utils');
+const constants = require('../common/constants');
 
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
@@ -34,7 +35,7 @@ class CLI {
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
-    this._minConfirmations = 12;
+    this._minConfirmations = null;
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -376,7 +377,7 @@ class CLI {
         this._autoInit = true;
         this._depositValue = value;
       })
-      .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations) => {
+      .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations = constants.MINIMUM_CONFIRMATIONS) => {
         this._minConfirmations = minConfirmations;
       })
       .parse(process.argv);

@@ -29,7 +29,7 @@ class EnigmaContractAPIBuilder {
     this.api = null;
     this.ethereumAddress = null;
     this.accountKey = null;
-    this.minimunConfirmations = 12;
+    this.minimunConfirmations = null;
     this.environment = {};
     this.config = defaultConfig;
 
@@ -82,7 +82,7 @@ class EnigmaContractAPIBuilder {
      * @param {number} minimunConfirmations, defaults to 12
      * @return {EnigmaContractAPIBuilder} this
      * */
-  setMinimunConfirmations(minimunConfirmations = 12) {
+  setMinimunConfirmations(minimunConfirmations) {
     this.minimunConfirmations = minimunConfirmations;
     return this;
   }

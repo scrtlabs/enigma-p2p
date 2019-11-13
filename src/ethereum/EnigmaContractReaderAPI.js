@@ -22,7 +22,7 @@ class EnigmaContractReaderAPI {
    * {Json} enigmaContractABI
    * {Web3} web3
    * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, minimumConfirmations = 12) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, minimumConfirmations = constants.MINIMUM_CONFIRMATIONS) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
     this._enigmaContractAddress = enigmaContractAddress;
