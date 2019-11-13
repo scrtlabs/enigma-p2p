@@ -130,11 +130,12 @@ module.exports.transformStatesListToMap = (statesList) => {
 module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
 
-module.exports.getEthereumBlockNumber = function getEthereumBlockNumber(web3) {
+function getEthereumBlockNumber(web3) {
   return new Promise((resolve, reject) => {
     web3.eth.getBlockNumber((error, data) => error ? reject(error) : resolve(data));
   });
 };
+module.exports.getEthereumBlockNumber = getEthereumBlockNumber;
 
 module.exports.advanceXConfirmations = async function (web3, confirmations = constants.MINIMUM_CONFIRMATIONS) {
   let initialEthereumBlockNumber = await getEthereumBlockNumber(web3);
