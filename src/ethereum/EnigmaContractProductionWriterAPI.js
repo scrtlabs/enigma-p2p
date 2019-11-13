@@ -52,11 +52,6 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
               resolve(null);
             }
           })
-          .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-            if (!this.minimumConfirmations) {
-              resolve(null);
-            }
-          })
           .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
             if (confNumber >= this.minimumConfirmations) {
               signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
