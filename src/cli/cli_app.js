@@ -37,16 +37,17 @@ class CLI {
 
     this._principalNode = null;
 
-    this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
+    const bashPath = path.join(__dirname, '../../test/testUtils');
+    this._B1Path = path.join(bashPath, 'id-l');
     this._B1Port = '10300';
-    this._B2Path = path.join(__dirname, '../../test/testUtils/id-d');
+    this._B2Path = path.join(basePath, 'id-d');
     this._B2Port = '10301';
-    this._B3Path = path.join(__dirname, '../../test/testUtils/id-x');
+    this._B3Path = path.join(basePath, 'id-x');
     this._B3Port = '10302';
 
-    this._B1Addr = '/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm';
-    this._B2Addr = '/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP';
-    this._B3Addr = '/ip4/0.0.0.0/tcp/10302/ipfs/QmRKBp1tjfFhNN7kysBrd5zx16P4hUATpRgxPT2BVNF3MU';
+    this._B1Addr = `/ip4/0.0.0.0/tcp/${this._B1Port}/ipfs/${require(this._B1Path).id}`;
+    this._B2Addr = `/ip4/0.0.0.0/tcp/${this._B2Port}/ipfs/${require(this._B2Path).id}`;
+    this._B3Addr = `/ip4/0.0.0.0/tcp/${this._B3Port}/ipfs/${require(this._B3Path).id}`;
 
     this._configObject = {
       'bootstrapNodes': null,
