@@ -43,9 +43,10 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
 
       try {
         const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction).on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
+        const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+          .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+            reject(error);
+          })
           .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
             if (!this.minimumConfirmations) {
               resolve(null);
