@@ -8,9 +8,9 @@
 const constants = require('../../../../common/constants');
 const errors = require('../../../../common/errors');
 const EngCid = require('../../../../common/EngCID');
-const DeployResult  = require('../../../tasks/Result').DeployResult;
-const ComputeResult  = require('../../../tasks/Result').ComputeResult;
-const FailedResult  = require('../../../tasks/Result').FailedResult;
+const DeployResult = require('../../../tasks/Result').DeployResult;
+const ComputeResult = require('../../../tasks/Result').ComputeResult;
+const FailedResult = require('../../../tasks/Result').FailedResult;
 const OutsideTask = require('../../../tasks/OutsideTask');
 
 class VerifyAndStoreResultAction {
@@ -34,18 +34,18 @@ class VerifyAndStoreResultAction {
     const type = msgObj.type;
     let error = null;
 
-    this._controller.logger().debug('[RECEIVED_RESULT] taskId {' + resultObj.taskId+'} \nstatus {'+ resultObj.status + '}');
+    this._controller.logger().debug('[RECEIVED_RESULT] taskId {' + resultObj.taskId + '} \nstatus {' + resultObj.status + '}');
 
-    let {taskResult, err} = this._buildTaskResult(type, resultObj);
+    let { taskResult, err } = this._buildTaskResult(type, resultObj);
     if (!err) {
-      let {error, isVerified} = await this._verifyResult(taskResult, contractAddress);
+      let { error, isVerified } = await this._verifyResult(taskResult, contractAddress);
       let verifyError = error;
 
       if (isVerified) {
         const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
         if (coreMsg) {
           try {
-            await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, {data: coreMsg});
+            await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
           }
           catch (e) {
             this._controller.logger().error(`[UPDATE_CORE] can't update core with outside task results -> ${e}`);
@@ -60,7 +60,7 @@ class VerifyAndStoreResultAction {
             if (ecid) {
               try {
                 // announce the network
-                await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {engCids: [ecid]});
+                await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, { engCids: [ecid] });
               } catch (e) {
                 this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
                 error = e;
@@ -123,7 +123,7 @@ class VerifyAndStoreResultAction {
         let delta = taskResult.getDelta();
         return {
           type: constants.CORE_REQUESTS.UpdateDeltas,
-          deltas: [{address: contractAddr, key: delta.key, data: delta.data}],
+          deltas: [{ address: contractAddr, key: delta.key, data: delta.data }],
         };
       }
       // No delta, no need to update core..
@@ -143,7 +143,7 @@ class VerifyAndStoreResultAction {
       // If it is a compute task without delta => request tip from core to validate with Ethereum
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
-          let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {contractAddresses: contractAddress, useCache: false});
+          let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, { contractAddresses: contractAddress, useCache: false });
           if (!Array.isArray(tips) || tips.length === 0 || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
           }
@@ -156,7 +156,7 @@ class VerifyAndStoreResultAction {
         }
         if (error) {
           this._controller.logger().info(error);
-          return {error: error, isVerified: isVerified};
+          return { error: error, isVerified: isVerified };
         }
       }
       try {
@@ -176,7 +176,7 @@ class VerifyAndStoreResultAction {
         error = e;
       }
     }
-    return {error: error, isVerified: isVerified};
+    return { error: error, isVerified: isVerified };
   }
   _buildTaskResult(type, resultObj) {
     let result = null;
@@ -195,7 +195,7 @@ class VerifyAndStoreResultAction {
       error = `[VERIFY_TASK_RESULT] received unrecognized task type ${type}, task is dropped`;
       this._controller.logger().info(error);
     }
-    return {taskResult: result, err: error};
+    return { taskResult: result, err: error };
   }
 }
 module.exports = VerifyAndStoreResultAction;

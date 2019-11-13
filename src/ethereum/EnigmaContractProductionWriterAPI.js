@@ -2,6 +2,8 @@ const utils = require('../common/utils');
 const errors = require('../common/errors');
 const constants = require('../common/constants');
 const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
+const ethUtils = require("../../test/ethereum/utils")
+
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
@@ -10,7 +12,7 @@ const ETHEREUM_RECEIPT_EVENT = 'receipt';
 const ETHEREUM_ERROR_EVENT = 'error';
 
 class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = 12) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, privateKey, minimumConfirmations = constants.MINIMUM_CONFIRMATIONS) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._privateKey = privateKey;
     this.minimumConfirmations = minimumConfirmations;
@@ -39,31 +41,22 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         data: this._enigmaContract.methods.register(utils.add0x(signerAddress), utils.add0x(report), utils.add0x(signature)).encodeABI()
       };
 
-      try {
-        const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-        const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction).on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
+      const signedTransaction = this._web3.eth.sendSignedTransaction(signedTx.rawTransaction)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
         })
-          .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-            if (!this.minimumConfirmations) {
-              resolve(null);
-            }
-          })
-          .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-            if (!this.minimumConfirmations) {
-              resolve(null);
-            }
-          })
-          .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
-            if (confNumber >= this.minimumConfirmations) {
-              signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-              resolve(null);
-            }
-          })
-      }
-      catch (error) {
-        reject(error);
-      }
+        .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
+            resolve(null);
+          }
+        })
+        .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
+          if (confNumber >= this.minimumConfirmations) {
+            signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
+            resolve(null);
+          }
+        })
     })
   }
   /**
@@ -92,7 +85,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -135,7 +128,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -173,7 +166,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -222,7 +215,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, { scAddr: utils.add0x(taskId) }, blockNumber);
@@ -240,7 +233,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -276,7 +269,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -312,7 +305,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -365,7 +358,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let possibleEvents;
@@ -403,7 +396,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -444,7 +437,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
@@ -456,7 +449,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -496,7 +489,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await this.getEthereumBlockNumber();
+      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
@@ -508,7 +501,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(this.minimumConfirmations)) {
             await resolveLogic();
           }
         })

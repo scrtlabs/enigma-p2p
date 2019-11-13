@@ -20,19 +20,18 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     };
   }
 
-  async function init() {
+  async function init(minConfirmations) {
     const w3 = new Web3();
 
     const workerAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
-    const res = await builder.setAccountKey(workerAccount.privateKey).setMinimunConfirmations(12).createNetwork().deploy().build();
+    const res = await builder.setAccountKey(workerAccount.privateKey).setMinimunConfirmations(minConfirmations).createNetwork().deploy().build();
     const web3 = res.api.w3();
     const accounts = await web3.eth.getAccounts();
     // transfer money to worker address
     await web3.eth.sendTransaction({ from: accounts[4], to: workerAccount.address, value: WORKER_WEI_VALUE });
     return { res, workerAccount, builder };
   }
-
 
   var res, workerAccount;
   var accounts,
@@ -43,7 +42,7 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     api;
 
   beforeEach(async () => {
-    const x = await init();
+    const x = await init(constants.MINIMUM_CONFIRMATIONS);
     res = x.res;
     workerAccount = x.workerAccount;
 
@@ -58,6 +57,22 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
   afterEach(async () => {
     api.unsubscribeAll();
     await res.environment.destroy();
+  })
+
+  it('check default minConfirmation is set', async function () {
+    assert.strictEqual(api.minimumConfirmations, constants.MINIMUM_CONFIRMATIONS)
+  })
+
+  it('check non-default minConfirmation is set', async function () {
+    await res.environment.destroy();
+
+    const x = await init(15);
+    res = x.res;
+    api = res.api;
+
+    assert.strictEqual(api.minimumConfirmations, 15)
+
+    // await res.environment.destroy(); will be called in afterEach
   })
 
   it('worker register', async function () {
@@ -198,9 +213,11 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
     const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3())
-    const event = await deployPromise;
+    const result = await deployPromise;
 
-    assert.strictEqual(event.SecretContractDeployed.codeHash, codeHash);
+    assert.strictEqual(result.SecretContractDeployed.codeHash, codeHash);
+    assert.strictEqual(result.SecretContractDeployed.secretContractAddress, secretContractAddress);
+    assert.strictEqual(result.SecretContractDeployed.stateDeltaHash, initStateDeltaHash);
 
     const countSCsAfter = await api.countSecretContracts();
     assert.strictEqual(countSCsAfter, 1);
@@ -233,8 +250,10 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
       const gasUsed = 10;
 
       eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-        async event => {
-          assert.strictEqual(event.codeHash, codeHash);
+        async result => {
+          assert.strictEqual(result.codeHash, codeHash);
+          assert.strictEqual(result.secretContractAddress, secretContractAddress);
+          assert.strictEqual(result.stateDeltaHash, initStateDeltaHash);
 
           const countSCsAfter = await api.countSecretContracts();
           assert.strictEqual(countSCsAfter, 1);

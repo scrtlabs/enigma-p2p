@@ -5,6 +5,7 @@ const crypto = require('../../src/common/cryptography');
 const DB_PROVIDER = require('../../src/core/core_server_mock/data/provider_db');
 const DbUtils = require('../../src/common/DbUtils');
 const nodeUtils = require('../../src/common/utils');
+const constants = require('../../src/common/constants');
 
 
 function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
@@ -128,12 +129,15 @@ module.exports.transformStatesListToMap = (statesList) => {
 
 module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
+
 function getEthereumBlockNumber(web3) {
   return new Promise((resolve, reject) => {
     web3.eth.getBlockNumber((error, data) => error ? reject(error) : resolve(data));
   });
-}
-module.exports.advanceXConfirmations = async function (web3, confirmations = 12) {
+};
+module.exports.getEthereumBlockNumber = getEthereumBlockNumber;
+
+module.exports.advanceXConfirmations = async function (web3, confirmations = constants.MINIMUM_CONFIRMATIONS) {
   let initialEthereumBlockNumber = await getEthereumBlockNumber(web3);
   let ethereumBlockNumber = 0;
 
