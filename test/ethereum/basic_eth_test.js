@@ -60,6 +60,10 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
     await res.environment.destroy();
   })
 
+  it('check default minConfirmation setting', async function () {
+    assert.strictEqual(api.minimumConfirmations, constants.MINIMUM_CONFIRMATIONS)
+  })
+
   it('worker register', async function () {
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3())
