@@ -8,8 +8,8 @@ const EthereumAPI = require('../ethereum/EthereumAPI');
  * let builder = new EnvironmentBuilder();
  * let mainController = builder.setNodeConfig(nodeConfig).setIpcConfig(ipcConfig)...build();
  * */
-class EnvironmentBuilder{
-  constructor(){
+class EnvironmentBuilder {
+  constructor() {
     this._nodeConfig = false;
     this._ipcConfig = false;
     this._loggerConfig = false;
@@ -20,7 +20,7 @@ class EnvironmentBuilder{
    * build everything from a file in /configs/templateX.json
    * @return {Promise<MainController>}
    * */
-  static buildFromSingle(configFile){
+  static buildFromSingle(configFile) {
     const b = new EnvironmentBuilder();
     /** logger */
     const loggerConfig = configFile.logger;
@@ -30,12 +30,12 @@ class EnvironmentBuilder{
     b.setIpcConfig(ipcConfig);
     /** jsonrpc  */
     const jsonRpcConfig = configFile.proxy;
-    if(jsonRpcConfig.withProxy){
+    if (jsonRpcConfig.withProxy) {
       b.setJsonRpcConfig(jsonRpcConfig);
     }
     /** ethereum */
     const ethereumConfig = configFile.ethereum;
-    if(ethereumConfig.withEthereum){
+    if (ethereumConfig.withEthereum) {
       b.setEthereumConfig(ethereumConfig);
     }
     /** node */
@@ -45,12 +45,12 @@ class EnvironmentBuilder{
       port: nodeConfig.network.port,
       idPath: nodeConfig.idPath,
       extraConfig: {
-        tm : {
-          dbPath : null || nodeConfig.taskManager.dbPath,
+        tm: {
+          dbPath: null || nodeConfig.taskManager.dbPath,
         },
-        principal : {
-          uri : null || nodeConfig.principalNode.uri,
-        }
+        principal: {
+          uri: null || nodeConfig.principalNode.uri,
+        },
       },
     };
     b.setNodeConfig(nodeConfigObject);
@@ -59,7 +59,7 @@ class EnvironmentBuilder{
   /** this builder keeps state so in order to reuse it we need to clear it's data members.
    * use reuse() before building another controller.
    * i.e in tests when you want 10 nodes but want to reuse the same builder */
-  reuse(){
+  reuse() {
     this._nodeConfig = false;
     this._ipcConfig = false;
     this._loggerConfig = false;
@@ -67,70 +67,70 @@ class EnvironmentBuilder{
     this._ethereumConfig = false;
     return this;
   }
-  setEthereumConfig(ethereumConfig){
+  setEthereumConfig(ethereumConfig) {
     this._ethereumConfig = ethereumConfig;
     return this;
   }
   /**
    * TODO:: specify options
    * */
-  setNodeConfig(nodeConfig){
+  setNodeConfig(nodeConfig) {
     this._nodeConfig = nodeConfig;
     return this;
   }
-  setJsonRpcConfig(jsonRpcConfig){
+  setJsonRpcConfig(jsonRpcConfig) {
     this._jsonRpcConfig = jsonRpcConfig;
     return this;
   }
   /**
    * TODO:: specify options
    * */
-  setIpcConfig(ipcConfig){
+  setIpcConfig(ipcConfig) {
     this._ipcConfig = ipcConfig;
     return this;
   }
   /**
    * Optimal config //TODO:: specify options
    * */
-  setLoggerConfig(loggerConfig){
+  setLoggerConfig(loggerConfig) {
     this._loggerConfig = loggerConfig;
     return this;
   }
-  async build(){
-    let runtimes = [];
+  async build() {
+    const runtimes = [];
     // init logger
-    let logger = new Logger(this._loggerConfig);
+    const logger = new Logger(this._loggerConfig);
     // init node
     let nodePeerId = null;
-    if(this._nodeConfig){
+    if (this._nodeConfig) {
       let ethereumApi = null;
-      if(this._ethereumConfig){
+      if (this._ethereumConfig) {
         ethereumApi = new EthereumAPI(logger);
         await ethereumApi.init(this._ethereumConfig);
       }
-      let node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
+      const node = NodeController.initDefaultTemplate(this._nodeConfig, logger);
       await node.start();
-      if(ethereumApi){
+      if (ethereumApi) {
         node.setEthereumApi(ethereumApi);
       }
       nodePeerId = node.engNode().getSelfIdB58Str();
       runtimes.push(node);
     }
     // init ipc
-    if(this._ipcConfig){
-      let coreRuntime = new CoreRuntime(this._ipcConfig, logger);
+    if (this._ipcConfig) {
+      const coreRuntime = new CoreRuntime(this._ipcConfig, logger);
       runtimes.push(coreRuntime);
     }
     // init jsonrpc
-    if(this._jsonRpcConfig){
-      let port = this._jsonRpcConfig.port;
-      let peerId = this._jsonRpcConfig.peerId || nodePeerId;
-      let jsonRpc = new JsonRpcServer({port : port, peerId : peerId}, logger);
+    if (this._jsonRpcConfig) {
+      const port = this._jsonRpcConfig.port;
+      const peerId = this._jsonRpcConfig.peerId || nodePeerId;
+      const jsonRpc = new JsonRpcServer({port: port, peerId: peerId}, logger);
       jsonRpc.listen();
       runtimes.push(jsonRpc);
     }
     // init main controller
-    let mainController = new MainController(runtimes);
+    const mainController = new MainController(runtimes);
     mainController.start();
     return mainController;
   }
