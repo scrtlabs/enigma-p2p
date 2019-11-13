@@ -9,26 +9,12 @@ class Policy extends EventEmitter {
     super();
 
     this._isStrict = true;
-    if(isStrict === false){
+    if (isStrict === false){
       this._isStrict = false;
     }
     this._version = '0.1';
-    // TODO:: define from config
-    this._CRITICAL_LOW_DHT_SIZE = constants.DHT_STATUS.CRITICAL_LOW_DHT_SIZE;
-    this._OPTIMAL_DHT_SIZE = constants.DHT_STATUS.OPTIMAL_DHT_SIZE;
-    this._CRITICAL_HIGH_DHT_SIZE = constants.DHT_STATUS.CRITICAL_HIGH_DHT_SIZE;
     this._TIMEOUT_FIND_PROVIDERS = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
   }
-  /** get the optimal number of outbound connections
-   * @return {Integer}
-   */
-  getOptimalDhtSize() {
-    return this._OPTIMAL_DHT_SIZE;
-  }
-  getCriticalLowDhtSize() {
-    return this._CRITICAL_LOW_DHT_SIZE;
-  }
-
   getTimeoutFindProvider() {
     return this._TIMEOUT_FIND_PROVIDERS;
   }

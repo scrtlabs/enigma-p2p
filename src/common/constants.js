@@ -15,7 +15,6 @@ module.exports.NODE_NOTIFICATIONS = {
   'HANDSHAKE_INBOUND': 'hs_inbound', // performed answer to handshake // meaning responded to incoming request
   'HANDSHAKE_UPDATE': 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
   'BOOTSTRAP_FINISH': 'b_update_finish', // update of the connection manager bootstrap finished state
-  'CONSISTENT_DISCOVERY': 'c_discover', // run consistent discovery mechanism
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PUBSUB_SUB': 'subscribe', // subscribe to topic
   // TODO:: after PR https://github.com/ipfs/interface-js-ipfs-core/pull/437
@@ -73,7 +72,6 @@ module.exports.PROTOCOLS = {
   'PEERS_PEER_BOOK': '/getpeerbook',
   'FIND_PEERS': '/findpeers/0.1',
   'HANDSHAKE': '/handshake/0.1',
-  'GROUP_DIAL': '/groupdial',
   'HEARTBEAT': '/heartbeat/0.1',
   'STATE_SYNC': '/sync/0.1',
   'LOCAL_STATE_EXCHAGNE': '/localstateexchange/0.1',
@@ -92,12 +90,6 @@ module.exports.PUBSUB_TOPICS = {
   'TASK_RESULTS': '/taskresults/0.1',
 };
 
-module.exports.DHT_STATUS = {
-  CRITICAL_HIGH_DHT_SIZE: 20,
-  OPTIMAL_DHT_SIZE: 8,
-  MAX_OUTBOUND : 120,
-  CRITICAL_LOW_DHT_SIZE: 3,
-};
 module.exports.MSG_STATUS = {
   OK: 0,
   ERROR: 1,
@@ -105,14 +97,6 @@ module.exports.MSG_STATUS = {
   ERR_SELF_DIAL: 3,
 };
 
-module.exports.CONSISTENT_DISCOVERY_PARAMS = {
-  MAX_RETRY: 10, // stop if more than 10 tries
-  TIMEOUT: 100 * 1000, // stop if timeout millis
-  //TODO:: avishai add exponential backoff interval instead of StoppableTask
-  //TODO:: use 'retry' npm module with randomize flag (http://dthain.blogspot.com/2009/02/exponential-backoff-in-distributed.html)
-  //TODO: look at PRINCIPAL_NODE.retryOptions
-  DELAY: 500, // delay between each try millis
-};
 module.exports.CONTENT_ROUTING = {
   // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
   RANGE_LIMIT: 10,

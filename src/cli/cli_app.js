@@ -112,43 +112,27 @@ class CLI {
         console.log(addrs);
         console.log('>------------------------<');
       },
-      'getOutConnections': ()=>{
-        const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
-        cons.forEach((con)=>{
-          console.log(con.id.toB58String());
-        });
-        console.log('>------------------------<');
-      },
-      'getInConnections': ()=>{
-        const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
-        cons.forEach((con)=>{
-          console.log(con.id.toB58String());
-        });
-        console.log('>------------------------<');
-      },
       'peerBank': () =>{
         const peers = this._node.getAllPeerBank();
         console.log('peer bank: ');
-        for (let k=0; k<peers.lentgh; k++) {
+        for (let k=0; k<peers.length; k++) {
           console.log(k);
         }
         console.log('>------------------------<');
       },
-      'discover': () =>{
-        this._node.tryConsistentDiscovery();
-      },
-      'inCount': () =>{
-        const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
-        console.log(cons.length);
+      'getConnectedPeers': () =>{
+        let peers = this._node.getConnectedPeers();
+        console.log('getConnectedPeers: ', peers);
         console.log('>------------------------<');
       },
-      'outCount': () =>{
-        const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
-        console.log(cons.length);
+      'getPeerBookIds': () =>{
+        let peers = this._node.getSelfPeerBookIds();
+        //console.log('getPeerBookIds: ');
+        peers.forEach((p)=>{
+          console.log(p.id.toB58String());
+        });
+        //peers = this._node.getSelfPeerBookIds();
+        //console.log('getSelfPeerBookIds: ', peers);
         console.log('>------------------------<');
       },
       'broadcast': (args) =>{
@@ -193,27 +177,6 @@ class CLI {
             out.singingKey = result.result.signingKey;
             console.log(out);
           }
-        });
-      },
-      'getAllHandshakedPeers': () =>{
-        const hsPeers = this._node.getAllHandshakedPeers();
-        console.log(hsPeers);
-        // res == FindPeersResMsg inside messages.js
-        this._node.sendFindPeerRequest(hsPeers[0], (err, req, res)=>{
-          console.log('ok got response!!! ', res.peers().length);
-          nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err, peerInfo)=>{
-            if (err) {
-              console.log('ERR converting seed into peerInfo', err);
-            } else {
-              this._node.sendFindPeerRequest(peerInfo, (err, req, res)=>{
-                if (err) {
-                  console.log('error connecting to the seed peer! ', err);
-                } else {
-                  console.log('success connecting to the seed peer, his seeds len : ' + res.peers().length);
-                }
-              });
-            }
-          });
         });
       },
       'isConnected': (args)=>{
@@ -276,23 +239,17 @@ class CLI {
         console.log('announce : announce the network worker synchronized on states');
         console.log('broadcast <message> : broadcast a message to the whole network');
         console.log('deposit <amount>: deposit to Enigma contract');
-        console.log('discover : perform persistent discovery to reach optimal DHT');
         console.log('getAddr : get the multiaddress of the node. ');
-        console.log('getInConnections : get list of the inbound connections ');
-        console.log('getOutConnections : get id list of the outbound connections ');
         console.log('getRegistration : get the registration params of the node. ');
         console.log('getResult <taskId>: check locally if task result exists');
         console.log('help : help');
         console.log('identify : output to std all the missing state, i.e what needs to be synced');
-        console.log('inCount : number of inbound connections');
         console.log('init : init all the required steps for the worker');
         console.log('isConnected <PeerId>: check if some peer is connected');
         console.log('login : login to Enigma contract');
         console.log('logout : logout from Enigma contract');
         console.log('lookup <b58 address> : lookup a peer in the network');
         console.log('monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
-        console.log('outCount : number of outbound connections');
-        console.log('peerBank : get list of the potential (not connected) seeds');
         console.log('publish <topic> <str msg> : publish <str msg> on topic <topic> to the network')
         console.log('register : register to Enigma contract');
         console.log('remoteTips <b58 address> : look up the tips of some remote peer');

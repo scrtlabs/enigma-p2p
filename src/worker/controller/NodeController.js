@@ -34,7 +34,7 @@ const GetStateKeysAction = require('./actions/GetStateKeysAction');
 const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
 const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
 const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
-const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
+const BootstrapDiscoveredAction = require('./actions/connectivity/BootstrapDiscoveredAction');
 const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
 const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
 //tasks
@@ -119,7 +119,7 @@ class NodeController {
       [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
       [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
       [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
-      [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
+      [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
       [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
       [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
       // tasks
@@ -249,8 +249,8 @@ class NodeController {
     })
   }
   _initEnigmaNode() {
-    this._engNode.on('notify', (params)=>{
-      this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
+    this._engNode.on('notify', (peer)=>{
+      this._logger.info('[+] handshake with ' + peer + ' done.' );
     });
   }
   _initProtocolHandler() {
@@ -481,26 +481,17 @@ class NodeController {
 
     return this.engNode().getPeersInfoList(handshakedIds);
   }
+
+  getConnectedPeers() {
+    return this.engNode().getConnectedPeers();
+  }
+
+  getSelfPeerBookIds() {
+    return this.engNode().getSelfPeerBookIds();
+  }
+
   getAllPeerBank() {
     return this.connectionManager().getAllPeerBank();
-  }
-  // temp function for testing
-  // TODO:: read params from constants
-  tryConsistentDiscovery(callback) {
-    this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
-      'delay': 500,
-      'maxRetry': 10,
-      'timeout': 100000,
-      'callback': callback,
-    });
-  }
-  async asyncTryConsistentDiscovery(){
-    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
-      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
-      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
-      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
-    });
-    return result;
   }
   /**
    * unsubscribe form a topic

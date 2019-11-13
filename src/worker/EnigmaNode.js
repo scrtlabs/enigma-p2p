@@ -13,9 +13,6 @@ const Messages = require('../policy/p2p_messages/messages');
 const nodeUtils = require('../common/utils');
 const Logger = require('../common/logger');
 const errors = require('../common/errors');
-// const EngCID = require('../common/EngCID');
-// const CIDUtil = require('../common/CIDUtil');
-// const CID = require('cids');
 
 
 class EnigmaNode extends EventEmitter {
@@ -186,7 +183,7 @@ class EnigmaNode extends EventEmitter {
   /**
    * Subscribe to events with handlers and final handlers.
    * @param {Array} subscriptions, [{topic:name,topic_handler:Function(msg)=>{},final_handler:Function()=>{}}]
-   * - topic_handler -> what to do the message recieved from the publisher
+   * - topic_handler -> what to do the message received from the publisher
    * - final_handler -> only once when subscribed.
    */
   subscribe(subscriptions) {
@@ -311,7 +308,7 @@ class EnigmaNode extends EventEmitter {
   getSelfPeerBookIds() {
     return this.node.peerBook.getAllArray();
   }
-  /** FOR DEBUG PURPOSES ONLY !!!!!!!!
+  /** TODO: update once libp2p version is upgraded !!!!!!!!
    * @return {Map}, the current connected peers
    */
   getConnectedPeers() {
@@ -432,14 +429,27 @@ class EnigmaNode extends EventEmitter {
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
    * @param {String} protocolName , the protocl name /echo/1.0.1
-   * @param {Function} onConnection recieves (err,connection) =>{}
+   * @param {Function} onConnection receives (err,connection) =>{}
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
     if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
       this._logger.error('[-] Error : ' + MSG_STATUS.ERR_SELF_DIAL);
-      return;
-    } else {
+    }
+    else {
       this.node.dialProtocol(peerInfo, protocolName, onConnection);
+    }
+  }
+  /**
+   * Dial at some protocol and delegate the handling of that connection
+   * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
+   * @param {Function} onConnection receives (err,connection) =>{}
+   */
+  dial(peerInfo, onConnection) {
+    if (peerInfo.id.toB58String() === this.getSelfIdB58Str()) {
+      this._logger.error('[-] Error : ' + MSG_STATUS.ERR_SELF_DIAL);
+    }
+    else {
+      this.node.dial(peerInfo, onConnection);
     }
   }
   /**
@@ -499,63 +509,25 @@ class EnigmaNode extends EventEmitter {
       }
     });
   }
-  /** Ping 0x1 message in the handshake process.
-   * @param {PeerInfo} peerInfo , the peer info to handshake with
-   * @param {Boolean} withPeerList , true = request seeds from peer false otherwise
-   * @param {Function} onHandshake , (err,dialedPeerInfo,ping,pong)=>{}
+  /** Dial to a bootstrap node.
+   * @param {PeerInfo} peer, the peer to dial to
+   * @param {Function} onConnection , (err)=>{}
    */
-  handshake(peerInfo, withPeerList, onHandshake) {
+  async dialToBootstrap(peer, onConnection) {
+    let peerInfo = peer;
     if (!PeerInfo.isPeerInfo(peerInfo)) {
-      nodeUtils.peerBankSeedtoPeerInfo(peerInfo, (err, parsedPeerInfo)=>{
-        if (err) {
-          onHandshake(err, null, null);
-        } else {
-          this._afterParseHandshake(parsedPeerInfo, withPeerList, onHandshake);
-        }
-      });
-    } else {
-      this._afterParseHandshake(peerInfo, withPeerList, onHandshake);
-    }
-  }
-  /** Internal use
-   * this method is called by the handshake method, the top level method will verify and try parse the PeerInfo
-   * incase not valid.
-   * @param {peerInfo} peerInfo
-   * @param {boolean} withPeerList
-   * @param {Function} onHandshake
-   */
-  _afterParseHandshake(peerInfo, withPeerList, onHandshake) {
-    this.node.dialProtocol(peerInfo, PROTOCOLS['HANDSHAKE'], (connectionErr, connection)=>{
-      if (connectionErr) {
-        onHandshake(connectionErr, null, null, null); ;
+      try {
+        peerInfo = await nodeUtils.peerBankSeedtoPeerInfoAsync(peerInfo);
+      } catch (e) {
+        onConnection(e);
         return;
       }
-      const selfId = this.getSelfIdB58Str();
-      const ping = new Messages.PingMsg({
-        'from': selfId,
-        'to': peerInfo.id.toB58String(),
-        'findpeers': withPeerList});
-      pull(
-          pull.values([ping.toNetworkStream()]),
-          connection,
-          pull.collect((err, response)=>{
-            if (err) {
-              this._logger.error('[-] Err ' + err);
-              return onHandshake(err, null, null, null);
-            }
-            const data = response;
-            const pongMsg = nodeUtils.toPongMsg(data);
-            if (!pongMsg.isValidMsg()) {
-              err = '[-] Err bad pong msg recieved.';
-            }
-            // TODO:: REPLACE THAT with normal notify,
-            // TODO:: The question is - where do I notify forall inbound/outbound handshakes
-            // see constats.js for HANDSHAKE_OUTBOUND/INBOUND actions.
-            this.emit('notify', pongMsg);
-            onHandshake(err, peerInfo, ping, pongMsg);
-            return pongMsg.toNetworkStream();
-          })
-      );
+    }
+    this.dial(peerInfo, (connectionErr, connection) => {
+      if (!connectionErr) {
+        this.notify(peerInfo);
+      }
+      onConnection(connectionErr);
     });
   }
   /**
@@ -734,17 +706,6 @@ class EnigmaNode extends EventEmitter {
   startStateSyncRequest(peerInfo, connectionHandler) {
     this.dialProtocol(peerInfo, PROTOCOLS.STATE_SYNC, (protocol, connection)=>{
       connectionHandler(protocol, connection);
-    });
-  }
-  /** TEMPORARY method
-   * @param {String} protocolName
-   * @param {Function} onEachResponse , (protocol,connection)
-   * dial to all peers on the list & forEach connection activate onResponse callback with (protocol,connection) params
-   */
-  groupDial(protocolName, onEachResponse) {
-    const peersInfo = this.getAllPeersInfo();
-    peersInfo.forEach((peer)=>{
-      this.dialProtocol(peer, protocolName, onEachResponse);
     });
   }
   /** Send a heart-beat to some peer

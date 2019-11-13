@@ -36,7 +36,7 @@ module.exports.readFile = function(path) {
       }
     });
   });
-}
+};
 
 /** turn peerbook into parsed obj
  * @param {peerInfo} rawPeerBook
@@ -226,7 +226,6 @@ module.exports.peerBankSeedtoPeerInfo = function(seed, callback) {
       if (err) {
         callback(err, null);
       }
-
       if (seed.multiAddrs) {
         seed.multiAddrs.forEach((ma)=>{
           if (_isIpfs(ma)) {
@@ -237,6 +236,34 @@ module.exports.peerBankSeedtoPeerInfo = function(seed, callback) {
       callback(err, peerInfo);
     });
   }
+};
+
+/**
+ * A promisified version of readFile
+ * @param {String} path - file path
+ * @return {Promise}
+ * */
+module.exports.peerBankSeedtoPeerInfoAsync = function(seed) {
+  return new Promise((resolve, reject) => {
+    if (PeerInfo.isPeerInfo(seed)) {
+      resolve(null, seed);
+    }
+    else {
+      PeerInfo.create(seed.peerId, (err, peerInfo)=>{
+        if (err) {
+          reject(err);
+        }
+        if (seed.multiAddrs) {
+          seed.multiAddrs.forEach((ma)=>{
+            if (_isIpfs(ma)) {
+              peerInfo.multiaddrs.add(ma);
+            }
+          });
+        }
+        resolve(peerInfo);
+      });
+    }
+  });
 };
 
 /**
@@ -303,7 +330,7 @@ module.exports.b58ToPeerId = (b58Id)=> {return PeerId.createFromB58String(b58Id)
  */
 module.exports.remove0x = function(hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) === '0x') {
       return hexString.substring(2);
     } else {
       return hexString;
@@ -321,7 +348,7 @@ module.exports.remove0x = function(hexString) {
  */
 module.exports.add0x = function(hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) === '0x') {
       return hexString;
     } else {
       return '0x' + hexString;

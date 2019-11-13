@@ -1,46 +1,46 @@
 /** Discovery sequence **/
 
-This part describes the initial discovery process of a new Worker in the network. 
-The network refers to the local node and peers are remote Workers. 
-The discovery sequence seperates between 2 parts: 
-New Worker in the network - don't have peers info in the persistent storage. 
-Previously logged Worker - Have some stored peers info. 
-All the messages are in JSONRPC 2.0 format 
+This part describes the initial discovery process of a new Worker in the network.
+The network refers to the local node and peers are remote Workers.
+The discovery sequence separates between 2 parts:
+New Worker in the network - don't have peers info in the persistent storage.
+Previously logged Worker - Have some stored peers info.
+All the messages are in JSONRPC 2.0 format
 
-New Worker in the network: 
-The worker has hardcoded addresses of bootstraping nodes and they would be 
+New Worker in the network:
+The worker has hardcoded addresses of bootstraping nodes and they would be
 the first connection to the network. Their goal is to be a gateway to
 the network and returns DNS Seeds. Incase they are offline the Worker could
-find other workers IP's on the internet and add them manualy using the CLI. 
+find other workers IP's on the internet and add them manualy using the CLI.
 
-msg #1 Worker to a boostrap node - ping 
+msg #1 Worker to a boostrap node - ping
 
 // id : The Server MUST reply with the same value in the Response object if included. This member is used to correlate the context between the two objects.
-// An identifier established by the Client that MUST contain a value  
+// An identifier established by the Client that MUST contain a value
 
 // from : a param holding base58 of the nodes public key (PeerInfo)
 
-// findpeers : boolean indicating if a peer list should be returned 
+// findpeers : boolean indicating if a peer list should be returned
 
-// ? Possibly the Ethereum signing key 
+// ? Possibly the Ethereum signing key
 
 {
 	"jsonrpc" : "2.0",
 	"method" : "ping",
 	"params" : [{"from":"", "findpeers" : ""}],
-	"id" : "", 
+	"id" : "",
 }
 
-msg #2 Boostrap node to the Worker  
+msg #2 Boostrap node to the Worker
 
-// the response object : 
+// the response object :
 
-// status : 200 ok, otherwise error 
+// status : 200 ok, otherwise error
 
 
 // seeds : list of A DNS records (potential peers)
 
-// to : node_id : the requester_id 
+// to : node_id : the requester_id
 
 // PONG RESPONSE EXAMPLE
 https://paste.ubuntu.com/p/3Y7kQFBcYs/
@@ -56,18 +56,18 @@ https://paste.ubuntu.com/p/3Y7kQFBcYs/
 			"seeds" : []
 		}
 	},
-	"id" : "", 
+	"id" : "",
 }
 
 
 
-// handshaking with A DNS seed 
-// At that point the Worker starts to look for peers activley 
+// handshaking with A DNS seed
+// At that point the Worker starts to look for peers activley
 // repeating the same concept of ping-pong messages with heart-beats
 
 # heart-beat request
 {
-	"jsonrpc" : "2.0", 
+	"jsonrpc" : "2.0",
 	"method" : "heartbeat",
 	"params" : [{"from","to"}],
 	"id" : ""
@@ -110,19 +110,19 @@ https://paste.ubuntu.com/p/3Y7kQFBcYs/
 
 * Synchronize sequence *
 
-This sequence describes on how a new Worker gets in sync with the network state 
+This sequence describes on how a new Worker gets in sync with the network state
 it does not aim to describe state-transitions of the network which will happen every epoch
 and will be described later at a sequence called 'Passing the torch'
-The sync process will refer to epoch number as the logical sequence of time. 
-Same as block number in a blockchain. 
-The Worker's goal is to be in sync till the current epoch state. 
+The sync process will refer to epoch number as the logical sequence of time.
+Same as block number in a blockchain.
+The Worker's goal is to be in sync till the current epoch state.
 
 The synchronization of secret-contracts will include:
 1) Contract code
 2) initial payload (delta 0)
 3) all state changes (deltas)
 
-// Enigma smart contract stores in some way or another: 
+// Enigma smart contract stores in some way or another:
 +--------------------+----------------+-----------+---------+------+
 | secret-contracts   | deployed code  | delta 1   | delta 2 | ...  |
 | address            | + payload hash | hash      | hash    | ...  |

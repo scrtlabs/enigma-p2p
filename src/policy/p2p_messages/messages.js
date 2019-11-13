@@ -45,13 +45,12 @@ class PingMsg extends Msg {
     if ('jsonrpc' in msgParams) {
       finalMsg = msgParams;
     } else {
-      if ('findpeers' in msgParams && 'from' in msgParams) {
+      if ('from' in msgParams) {
         finalMsg = {
           'jsonrpc': '2.0',
           'method': 'ping',
           'params': [{'from': msgParams.from,
-            'to': msgParams.to,
-            'findpeers': msgParams.findpeers}],
+            'to': msgParams.to}],
           'id': utils.randId(),
         };
       } else {
@@ -96,8 +95,7 @@ class PongMsg extends Msg {
     } else if ('id' in msgParams &&
             'from' in msgParams &&
             'to' in msgParams &&
-            'status' in msgParams &&
-            'seeds' in msgParams) {
+            'status' in msgParams) {
       finalMsg = {
         'jsonrpc': '2.0',
         'method': 'pong',
@@ -106,8 +104,7 @@ class PongMsg extends Msg {
           'response': {
             'from': msgParams.from,
             'to': msgParams.to,
-            'status': msgParams.status,
-            'seeds': msgParams.seeds,
+            'status': msgParams.status
           },
         },
       };
@@ -135,9 +132,6 @@ class PongMsg extends Msg {
   }
   status() {
     return this.response()['status'];
-  }
-  seeds() {
-    return this.response()['seeds'];
   }
   isValidMsg() {
     // TODO:: add extra checks.
