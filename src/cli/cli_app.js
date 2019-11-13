@@ -378,7 +378,7 @@ class CLI {
         this._depositValue = value;
       })
       .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations = constants.MINIMUM_CONFIRMATIONS) => {
-        this._minConfirmations = minConfirmations;
+        this._minConfirmations = +minConfirmations;
       })
       .parse(process.argv);
   }
