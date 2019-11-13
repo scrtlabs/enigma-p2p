@@ -253,3 +253,5 @@ test/*.deletedb
 *.deletedb
 src/cli/*.deletedb
 
+.python-version
+
