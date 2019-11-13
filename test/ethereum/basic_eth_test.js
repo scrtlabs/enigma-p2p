@@ -198,9 +198,11 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
 
     const deployPromise = api.deploySecretContract(secretContractAddress, codeHash, codeHash, initStateDeltaHash, "0x00", zeroAddress, gasUsed, workerEnclaveSigningAddress, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3())
-    const event = await deployPromise;
+    const result = await deployPromise;
 
-    assert.strictEqual(event.SecretContractDeployed.codeHash, codeHash);
+    assert.strictEqual(result.SecretContractDeployed.codeHash, codeHash);
+    assert.strictEqual(result.SecretContractDeployed.secretContractAddress, secretContractAddress);
+    assert.strictEqual(result.SecretContractDeployed.stateDeltaHash, initStateDeltaHash);
 
     const countSCsAfter = await api.countSecretContracts();
     assert.strictEqual(countSCsAfter, 1);
@@ -233,8 +235,10 @@ describe('Ethereum API tests (TODO: use enigmejs instead)', function () {
       const gasUsed = 10;
 
       eventSubscribe(api, constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, {}, getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-        async event => {
-          assert.strictEqual(event.codeHash, codeHash);
+        async result => {
+          assert.strictEqual(result.codeHash, codeHash);
+          assert.strictEqual(result.secretContractAddress, secretContractAddress);
+          assert.strictEqual(result.stateDeltaHash, initStateDeltaHash);
 
           const countSCsAfter = await api.countSecretContracts();
           assert.strictEqual(countSCsAfter, 1);
