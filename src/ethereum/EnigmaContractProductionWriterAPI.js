@@ -48,7 +48,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             reject(error);
           })
           .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-            if (!this.minimumConfirmations) {
+            if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
               resolve(null);
             }
           })
@@ -90,7 +90,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -133,7 +133,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -171,7 +171,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -238,7 +238,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -274,7 +274,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -310,7 +310,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             resolve(null);
           }
         })
@@ -383,7 +383,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -436,7 +436,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             await resolveLogic();
           }
         })
@@ -488,7 +488,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           reject(error);
         })
         .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (!this.minimumConfirmations) {
+          if (this.minimumConfirmations == 0 || !Number.isInteger(minimumConfirmations)) {
             await resolveLogic();
           }
         })
