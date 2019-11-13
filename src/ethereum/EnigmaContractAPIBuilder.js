@@ -75,8 +75,8 @@ class EnigmaContractAPIBuilder {
   }
 
   /**
-     * Set the minimum confirmations (ethereum blocks) a worker has to wait
-     * before knowing data is valid
+     * Set the minimum confirmations (ethereum blocks) a worker must wait
+     * before knowing data on the ethereum blockchain is valid
      * Writing via the API will resolve only after enough confirmations
      * Reading via the API will return data only if it was written at least minimunConfirmations blocks ago
      * @param {number} minimunConfirmations, defaults to 12
