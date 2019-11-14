@@ -150,7 +150,7 @@ module.exports.advanceXConfirmations = async function (web3, confirmations = con
           console.log("Dummy transaction error:", err);
         }
       });
-    ethereumBlockNumber = await getEthereumBlockNumber(web3);
+    ethereumBlockNumber = await nodeUtils.getEthereumBlockNumber(web3);
   }
 }
 
