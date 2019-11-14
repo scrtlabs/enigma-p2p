@@ -11,18 +11,12 @@ module.exports.NODE_NOTIFICATIONS = {
   'INIT_WORKER': 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
   'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
   // (ready to be discovered) -> 'peer:discovery' event.
-  'HANDSHAKE_OUTBOUND': 'hs_outbound', // performed handshake with node as outbound operation, e.g. outbound connection
-  'HANDSHAKE_INBOUND': 'hs_inbound', // performed answer to handshake // meaning responded to incoming request
-  'HANDSHAKE_UPDATE': 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
-  'BOOTSTRAP_FINISH': 'b_update_finish', // update of the connection manager bootstrap finished state
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PUBSUB_SUB': 'subscribe', // subscribe to topic
   // TODO:: after PR https://github.com/ipfs/interface-js-ipfs-core/pull/437
   'PUBSUB_UNSUB': 'pubunsub', // unsubscribe from topic
-  'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
-  'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
   'IDENTIFY_MISSING_STATES_FROM_REMOTE': 'identify', // identify the missing states, compare local with remote
   'TRY_RECEIVE_ALL': 'trcva', // try recieve all of the CID's
   'ANNOUNCE_ENG_CIDS': 'aengcids', // announce some general cids

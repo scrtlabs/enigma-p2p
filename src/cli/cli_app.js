@@ -420,13 +420,7 @@ class CLI {
   async _setup() {
     let err = null;
     if (this._autoInit) {
-      try {
-        await this._node.asyncInitializeWorkerProcess({amount: this._depositValue});
-      }
-      catch (e) {
-        console.log('[-] ERROR with automatic worker initialization: ', err);
-        err = e;
-      }
+      this._node.autoInitWorker({amount: this._depositValue});
     }
     return err;
   }

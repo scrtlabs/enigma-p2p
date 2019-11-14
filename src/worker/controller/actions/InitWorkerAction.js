@@ -36,21 +36,8 @@ class InitWorkerAction {
   execute(params) {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
-    const P = constants.CONSISTENT_DISCOVERY_PARAMS;
     const depositAmount = params.amount;
     // methods
-    const discovery = (cb)=>{
-      this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
-        delay: P.DELAY,
-        maxRetry: P.MAX_RETRY,
-        timeout: P.TIMEOUT,
-        callback: (status, result)=>{
-          const outMsg = 'Discovery status: ' + JSON.stringify(status);
-          this._controller.logger().info(outMsg);
-          cb(null);
-        },
-      });
-    };
     const syncState = (cb)=>{
       if(!this._controller.hasEthereum()){
         return cb(null);
@@ -164,8 +151,6 @@ class InitWorkerAction {
       return;
     };
     waterfall([
-      // BOOTSTRAP + DISCOVERY:
-      discovery,
       // Sync State
       syncState,
       // Announce State:
