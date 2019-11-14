@@ -217,6 +217,8 @@ module.exports.RAW_ETHEREUM_EVENTS = {
   Registered: 'Registered',
   DepositSuccessful: 'DepositSuccessful',
   WithdrawSuccessful: 'WithdrawSuccessful',
+  LoggedIn: 'LoggedIn',
+  LoggedOut: 'LoggedOut'
 };
 
 /**

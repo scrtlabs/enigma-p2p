@@ -57,15 +57,15 @@ library PrincipalImpl {
 
         // Verify the principal's signature
         bytes memory message;
-        message = EnigmaCommon.appendMessage(message, _seed.toBytes());
-        message = EnigmaCommon.appendMessage(message, state.userTaskDeployments[msg.sender].toBytes());
-        message = EnigmaCommon.appendMessageArrayLength(workerParams.workers.length, message);
+        message = EnigmaCommon.appendMessageKM(message, _seed.toBytes());
+        message = EnigmaCommon.appendMessageKM(message, state.userTaskDeployments[msg.sender].toBytes());
+        message = EnigmaCommon.appendMessageArrayLength(workerParams.workers.length, 20, message);
         for (uint i = 0; i < workerParams.workers.length; i++) {
-            message = EnigmaCommon.appendMessage(message, workerParams.workers[i].toBytes());
+            message = EnigmaCommon.appendMessageKM(message, workerParams.workers[i].toBytes());
         }
-        message = EnigmaCommon.appendMessageArrayLength(workerParams.stakes.length, message);
+        message = EnigmaCommon.appendMessageArrayLength(workerParams.stakes.length, 32, message);
         for (uint j = 0; j < workerParams.stakes.length; j++) {
-            message = EnigmaCommon.appendMessage(message, workerParams.stakes[j].toBytes());
+            message = EnigmaCommon.appendMessageKM(message, workerParams.stakes[j].toBytes());
         }
         bytes32 msgHash = keccak256(message);
         require(msgHash.recover(_sig) == state.principal, "Invalid signature");
