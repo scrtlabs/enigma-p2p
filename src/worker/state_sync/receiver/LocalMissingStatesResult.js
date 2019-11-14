@@ -68,7 +68,7 @@ function parseStateReqMsgs(contractData) {
       contractAddress: contractData.address,
       fromIndex: slice[0].index,
       fromHash: slice[0].deltaHash,
-      toIndex: slice[slice.length-1].index,
+      toIndex: slice[slice.length-1].index + 1,
       toHash: slice[slice.length-1].deltaHash,
     });
     begin = end;
