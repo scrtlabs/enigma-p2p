@@ -77,7 +77,7 @@ class VerifyAndStoreResultAction {
           let outsideTask = OutsideTask.buildTask(type, resultObj);
           if (outsideTask) {
             if (verifyError instanceof errors.TaskEthereumFailureErr) {
-              outsideTask.setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB)
+              outsideTask.getResult().setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB);
             }
             // store result in TaskManager mapped with taskId
             await this._controller.taskManager().addOutsideResult(type, outsideTask);
