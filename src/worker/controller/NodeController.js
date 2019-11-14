@@ -250,7 +250,7 @@ class NodeController {
   }
   _initEnigmaNode() {
     this._engNode.on('notify', (peer)=>{
-      this._logger.info('[+] handshake with ' + peer + ' done.' );
+      this._logger.info('[+] connecting to ' + peer + 'is done.' );
     });
   }
   _initProtocolHandler() {
@@ -467,31 +467,11 @@ class NodeController {
   getLocalTips() {
     return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, {useCache: false});
   }
-  getAllOutboundHandshakes() {
-    const currentPeerIds = this.engNode().getAllPeersIds();
-
-    const handshakedIds = this.stats().getAllActiveOutbound(currentPeerIds);
-
-    return this.engNode().getPeersInfoList(handshakedIds);
-  }
-  getAllInboundHandshakes() {
-    const currentPeerIds = this.engNode().getAllPeersIds();
-
-    const handshakedIds = this.stats().getAllActiveInbound(currentPeerIds);
-
-    return this.engNode().getPeersInfoList(handshakedIds);
-  }
-
   getConnectedPeers() {
     return this.engNode().getConnectedPeers();
   }
-
   getSelfPeerBookIds() {
     return this.engNode().getSelfPeerBookIds();
-  }
-
-  getAllPeerBank() {
-    return this.connectionManager().getAllPeerBank();
   }
   /**
    * unsubscribe form a topic

@@ -165,20 +165,13 @@ class EnigmaNode extends EventEmitter {
    * @return {Boolean} found - true = connected false otherwise
    */
   isConnected(strId) {
-    let found = false;
-    if (strId === this.getSelfIdB58Str()) {
-      return found;
-    }
-
-    try {
-      const peer = this.getSelfPeerBook().get(strId);
-      if (peer!= null) {
-        found = true;
-      }
-    } catch (err) {
-      found = false;
-    }
-    return found;
+    return (this.getConnectedPeers().indexOf(strId) > -1 );
+  }
+  /** checks if the node has any connections to another node
+   * @return {Boolean} true if there are connected peers, false otherwise
+   */
+  arePeersConnected() {
+    return (this.getConnectedPeers().length > 0);
   }
   /**
    * Subscribe to events with handlers and final handlers.
@@ -309,10 +302,10 @@ class EnigmaNode extends EventEmitter {
     return this.node.peerBook.getAllArray();
   }
   /** TODO: update once libp2p version is upgraded !!!!!!!!
-   * @return {Map}, the current connected peers
+   * @return {Array}, the current connected peers
    */
   getConnectedPeers() {
-    return this.node.connectionManager._peerValues;
+    return [...this.node.connectionManager._peerValues.keys()];
   }
   /**
    * Get All the Peer info from the peer book.
@@ -511,28 +504,20 @@ class EnigmaNode extends EventEmitter {
   }
   /** Dial to a bootstrap node.
    * @param {PeerInfo} peer, the peer to dial to
-   * @param {Function} onConnection , (err)=>{}
    */
-  async dialToBootstrap(peer, onConnection) {
-    let peerInfo = peer;
-    if (!PeerInfo.isPeerInfo(peerInfo)) {
-      try {
-        peerInfo = await nodeUtils.peerBankSeedtoPeerInfoAsync(peerInfo);
-      } catch (e) {
-        onConnection(e);
-        return;
-      }
-    }
+  connectToBootstrap(peerInfo) {
     this.dial(peerInfo, (connectionErr, connection) => {
-      if (!connectionErr) {
+      if (connectionErr) {
+        this._logger.error(`Failed connecting to a bootstrap node= ${connectionErr}`);
+      }
+      else {
         this.notify(peerInfo);
       }
-      onConnection(connectionErr);
     });
   }
   /**
    * Notify observer (Some controller subscribed)
-   * @param {Json} params, MUTS CONTAINT notification field
+   * @param {Json} params, MUST CONTAIN notification field
    */
   notify(params) {
     this.emit('notify', params);

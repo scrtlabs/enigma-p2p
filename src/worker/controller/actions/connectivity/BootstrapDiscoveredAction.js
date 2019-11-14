@@ -7,7 +7,8 @@ class BootstrapDiscoveredAction {
     params = params.params;
     const otherPeer = params.peer;
 
-    if (this._controller.engNode().isConnected(otherPeer.id.toB58String())) {
+    // Connect to a bootstrap only if there are no active connections
+    if (this._controller.engNode().arePeersConnected()) {
       return;
     }
     this._controller.engNode().connectToBootstrap(otherPeer);
