@@ -12,6 +12,7 @@ const DeployResult = require('../../../tasks/Result').DeployResult;
 const ComputeResult = require('../../../tasks/Result').ComputeResult;
 const FailedResult = require('../../../tasks/Result').FailedResult;
 const OutsideTask = require('../../../tasks/OutsideTask');
+const ethUtils = require("../../../../../test/ethereum/utils")
 
 class VerifyAndStoreResultAction {
   constructor(controller) {
@@ -160,7 +161,7 @@ class VerifyAndStoreResultAction {
         }
       }
       try {
-        const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
+        const currentBlockNumber = await ethUtils.getEthereumBlockNumber(this._controller.ethereum().api().w3());
         let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, currentBlockNumber, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
