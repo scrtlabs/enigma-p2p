@@ -110,22 +110,15 @@ describe('Eth verifier tests', function () {
       this.skip();
     }
 
-    return new Promise(async function (resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
+    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
 
-      // stop the test
-      const stopTest = async () => {
-        await controller.shutdownSystem();
-        coreServer.disconnect();
-        resolve();
-      };
 
-      const task = DeployTask.buildTask(taskData);
-      const res = await controller.getNode().asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
-      assert.strictEqual(res, true);
-      await stopTest();
-    });
+    const task = DeployTask.buildTask(taskData);
+    const res = await controller.getNode().asyncExecCmd(
+      constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
+    await controller.shutdownSystem();
+    coreServer.disconnect();
+    assert.strictEqual(res, true);
   });
 
   it('Verify new compute task verification action', async function () {
@@ -151,24 +144,16 @@ describe('Eth verifier tests', function () {
       this.skip();
     }
 
-    return new Promise(async function (resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
+    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
 
-      // stop the test
-      const stopTest = async () => {
-        await controller.shutdownSystem();
-        coreServer.disconnect();
-        resolve();
-      };
+    coreServer.setSigningKey(web3Utils.randomHex(20));
 
-      coreServer.setSigningKey(web3Utils.randomHex(20));
-
-      const task = ComputeTask.buildTask(taskData);
-      const res = await controller.getNode().asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
-      assert.strictEqual(res, false);
-      await stopTest();
-    });
+    const task = ComputeTask.buildTask(taskData);
+    const res = await controller.getNode().asyncExecCmd(
+      constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
+    await controller.shutdownSystem();
+    coreServer.disconnect();
+    assert.strictEqual(res, false);
   });
 
   it('Deploy task verification action ethereum exception', async function () {
@@ -177,24 +162,17 @@ describe('Eth verifier tests', function () {
       this.skip();
     }
 
-    return new Promise(async function (resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
+    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
 
-      // stop the test
-      const stopTest = async () => {
-        await controller.shutdownSystem();
-        coreServer.disconnect();
-        resolve();
-      };
 
-      controller.getNode().ethereum().api().triggerException();
+    controller.getNode().ethereum().api().triggerException();
 
-      const task = DeployTask.buildTask(taskData);
-      const res = await controller.getNode().asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
-      assert.strictEqual(res, false);
-      await stopTest();
-    });
+    const task = DeployTask.buildTask(taskData);
+    const res = await controller.getNode().asyncExecCmd(
+      constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, { task: task });
+    await controller.shutdownSystem();
+    coreServer.disconnect();
+    assert.strictEqual(res, false);
   });
 
   it('Verify deploy task submission action', async function () {
@@ -206,16 +184,11 @@ describe('Eth verifier tests', function () {
     return new Promise(async function (resolve) {
       let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
 
-      // stop the test
-      const stopTest = async () => {
+      const callback = async (err) => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        resolve();
-      };
-
-      const callback = async (err) => {
         assert.strictEqual(err, null);
-        await stopTest();
+        resolve();
       };
 
       const task = DeployResult.buildDeployResult(taskData);
@@ -239,16 +212,11 @@ describe('Eth verifier tests', function () {
     return new Promise(async function (resolve) {
       let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
 
-      // stop the test
-      const stopTest = async () => {
+      const callback = async (err) => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        resolve();
-      };
-
-      const callback = async (err) => {
         assert.strictEqual(err, null);
-        await stopTest();
+        resolve();
       };
 
       const task = ComputeResult.buildComputeResult(taskData);
@@ -272,16 +240,11 @@ describe('Eth verifier tests', function () {
     return new Promise(async function (resolve) {
       let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
 
-      // stop the test
-      const stopTest = async () => {
+      const callback = async (err) => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        resolve();
-      };
-
-      const callback = async (err) => {
         assert.strictEqual(err instanceof errors.TaskVerificationErr, true);
-        await stopTest();
+        resolve();
       };
 
       taskData.delta.data = web3Utils.randomHex(20);
@@ -307,16 +270,11 @@ describe('Eth verifier tests', function () {
     return new Promise(async function (resolve) {
       let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
 
-      // stop the test
-      const stopTest = async () => {
+      const callback = async (err) => {
         await controller.shutdownSystem();
         coreServer.disconnect();
-        resolve();
-      };
-
-      const callback = async (err) => {
         assert.strictEqual(err instanceof Error, true);
-        await stopTest();
+        resolve();
       };
 
       controller.getNode().ethereum().api().triggerException();
@@ -332,4 +290,4 @@ describe('Eth verifier tests', function () {
         constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, { params: { data: rawMessage }, callback: callback });
     });
   });
-})
+});
