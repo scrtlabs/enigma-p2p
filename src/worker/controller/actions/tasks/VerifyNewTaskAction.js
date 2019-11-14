@@ -2,6 +2,7 @@
  * verify a task
  * */
 const constants = require('../../../../common/constants');
+const ethUtils = require("../../../../../test/ethereum/utils")
 
 class VerifyNewTaskAction {
   constructor(controller) {
@@ -11,13 +12,13 @@ class VerifyNewTaskAction {
     let onResult = params.onResponse;
     const unverifiedTask = params.task;
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
+      onResponse: async (err, regParams) => {
         // TODO: remove this default!!!!
         let isVerified = true;
-        if(this._controller.hasEthereum()){
+        if (this._controller.hasEthereum()) {
           isVerified = false;
           try {
-            const currentBlockNumber = await this._controller.ethereum().api().getEthereumBlockNumber();
+            const currentBlockNumber = await ethUtils.getEthereumBlockNumber(this._controller.ethereum().api().w3());
             let res = await this._controller.ethereum().verifier().verifyTaskCreation(unverifiedTask, currentBlockNumber, regParams.result.signingKey);
             if (res.error) {
               this._controller.logger().info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${res.error}`);
@@ -34,7 +35,7 @@ class VerifyNewTaskAction {
           }
         }
         await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
-        if(onResult){
+        if (onResult) {
           onResult(null, isVerified);
         }
       },
@@ -43,8 +44,8 @@ class VerifyNewTaskAction {
 
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
-      params.onResponse = function(err, verificationResult) {
+    return new Promise((res, rej) => {
+      params.onResponse = function (err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);
       };

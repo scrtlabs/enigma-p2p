@@ -336,14 +336,6 @@ class EnigmaContractReaderAPI {
   }
 
   /**
-   * * Get Ethereum block number
-   * @return {Promise} returning {Integer} : blockNumber
-   * */
-  async getEthereumBlockNumber() {
-    return utils.getEthereumBlockNumber(this.w3());
-  }
-
-  /**
    * * Get Epoch size
    * @return {Promise} returning {Integer} : epochSize
    * */
