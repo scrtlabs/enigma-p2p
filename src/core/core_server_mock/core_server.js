@@ -198,7 +198,7 @@ class MockCoreServer {
       if (inputMap[dbAddr]) {
         const from = inputMap[dbAddr].from;
         const to = inputMap[dbAddr].to;
-        if (dbIndex >= from && dbIndex <= to) {
+        if (dbIndex >= from && dbIndex < to) {
           response.push({
             address: dbAddr,
             key: dbIndex,
