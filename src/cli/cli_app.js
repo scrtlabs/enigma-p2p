@@ -34,6 +34,7 @@ class CLI {
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
+    this._isBootstrap = false;
 
     this._principalNode = null;
 
@@ -329,6 +330,9 @@ class CLI {
     .option('--auto-init', 'perform automatic worker initialization ', ()=>{
       this._autoInit = true;
     })
+    .option('--is-bootstrap', 'is the bootstrap node in a system relies only on one bootstrap ', ()=>{
+      this._isBootstrap = true;
+    })
     .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
       this._autoInit = true;
       this._depositValue = value;
@@ -392,16 +396,19 @@ class CLI {
       });
     }
     const nodeConfig = this._getFinalConfig();
+    nodeConfig.extraConfig = {};
+
     if (this._randomTasksDbPath || this._principalNode) {
-      if(this._principalNode) {
+      if (this._principalNode) {
         console.log('Connecting to Principal Node at ' + this._principalNode);
         nodeConfig.extraConfig = {principal: {uri: this._principalNode}}
-      } else {
-        nodeConfig.extraConfig = {};
       }
       nodeConfig.extraConfig.tm = {
         dbPath: tempdir.sync()
       };
+    }
+    if (this._autoInit) {
+      nodeConfig.extraConfig.init = {amount: this._depositValue};
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
@@ -418,11 +425,16 @@ class CLI {
     }
   }
   async _setup() {
-    let err = null;
-    if (this._autoInit) {
-      this._node.autoInitWorker({amount: this._depositValue});
+    // TODO: consider what to do with this!!!
+    // The reason it is here to handle the case in which there is only one bootstrap node which need to trigger init
+    // (the init is triggered when connecting in the first time to a bootstrap node)
+    if (this._autoInit && this._isBootstrap) {
+      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+        if (err) {
+          console.log('[-] ERROR with automatic worker initialization: ', err);
+        }
+      });
     }
-    return err;
   }
   start() {
     console.log(Parsers.opener);

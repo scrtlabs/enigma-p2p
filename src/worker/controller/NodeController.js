@@ -98,8 +98,7 @@ class NodeController {
     this._ethereumApi = null;
 
     // TODO: consider a more cleaner approach
-    this._autoInitWorker = false;
-    this._autoInitParams = null;
+    this._workerInitDone = false;
 
     // init logic
     this._initController();
@@ -225,9 +224,9 @@ class NodeController {
   }
   _initEnigmaNode() {
     this._engNode.on('notify', (peer)=>{
-      this._logger.info('[+] connection to bootstrap' + peer + 'is done.' );
-      if (this._autoInitWorker) {
-        this.asyncInitializeWorkerProcess(this._autoInitParams);
+      this._logger.info('[+] connected to bootstrap' + peer.id.toB58String());
+      if (this._extraConfig.init) {
+        this.initializeWorkerProcess(this._extraConfig.amount, ()=>{});
       }
     });
   }
@@ -297,15 +296,17 @@ class NodeController {
   async asyncInitializeWorkerProcess(params) {
     await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
   }
-  autoInitWorker(params) {
-    this._autoInitWorker = true;
-    this._autoInitParams = params;
-  }
   /** set Ethereum API
    * @param {EthereumAPI} api
    * */
   setEthereumApi(api) {
     this._ethereumApi = api;
+  }
+  isWorkerInitDone() {
+    return this._workerInitDone;
+  }
+  workerInitDone() {
+    this._workerInitDone = true;
   }
   /** * stop the node */
   async stop() {

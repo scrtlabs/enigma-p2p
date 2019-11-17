@@ -31,12 +31,21 @@ class InitWorkerAction {
     this._controller = controller;
   }
   /**
-   * @param {Function} optinal callback (err)=>{}
+   * @param {Function} optional callback (err)=>{}
    * */
   execute(params) {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
     const depositAmount = params.amount;
+
+    if (this._controller.isWorkerInitDone()) {
+      this._controller.logger().debug('Worker was already initialized.. Skipping');
+      if (callback) {
+        callback(null);
+      }
+      return;
+    }
+
     // methods
     const syncState = (cb)=>{
       if(!this._controller.hasEthereum()){
@@ -45,8 +54,7 @@ class InitWorkerAction {
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
         onEnd: (err, statusResult)=>{
-          if(!err || err instanceof errors.SyncReceiverNoMissingDataErr){
-            this._controller.logger().debug(JSON.stringify(statusResult));
+          if (!err || err instanceof errors.SyncReceiverNoMissingDataErr){
             this._controller.logger().info('success syncing pipeline');
             err = null;
           } else{
@@ -148,7 +156,6 @@ class InitWorkerAction {
           }
         }
       }
-      return;
     };
     waterfall([
       // Sync State
@@ -162,8 +169,10 @@ class InitWorkerAction {
     ], (err)=>{
       if (err) {
         this._controller.logger().error('error InitWorkerAction ' + err);
-      } else {
+      }
+      else {
         this._controller.logger().info('success InitWorkerAction');
+        this._controller.workerInitDone();
       }
       if (callback) {
         callback(err);
