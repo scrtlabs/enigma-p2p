@@ -3,12 +3,8 @@
  * TODO:: https://github.com/enigmampc/enigma-p2p#overview-on-start
  * TODO:: this could be implemented better and persist for each step.
  * TODO:: For example, lets say that SyncStat fails, right now it just continues and notifies the user.
- * TODO:: it can keep trying just like PersistentDiscovery
+ * TODO:: it can keep trying
  *
- * * ------------------------------------------------------------------------------
- * BOOTSTRAP + DISCOVERY:
- * Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
- * * ------------------------------------------------------------------------------
  * Sync State:
  * Synchronize the Worker state: Secret contracts bytecode and deltas.
  * * ------------------------------------------------------------------------------

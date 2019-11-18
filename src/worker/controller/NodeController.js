@@ -30,6 +30,7 @@ const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelf
 const GetStateKeysAction = require('./actions/GetStateKeysAction');
 // connectivity
 const BootstrapDiscoveredAction = require('./actions/connectivity/BootstrapDiscoveredAction');
+const NewPeerAction = require('./actions/connectivity/NewPeerAction');
 //tasks
 const GetResultAction = require('./actions/tasks/GetResultAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
@@ -109,6 +110,7 @@ class NodeController {
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
+      [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
@@ -222,9 +224,6 @@ class NodeController {
   _initEnigmaNode() {
     this._engNode.on('notify', (peer)=>{
       this._logger.info('[+] connected to bootstrap' + peer.id.toB58String());
-      if (this._extraConfig.init) {
-        this.initializeWorkerProcess(this._extraConfig.amount, ()=>{});
-      }
     });
   }
   _initProtocolHandler() {
@@ -304,6 +303,9 @@ class NodeController {
   }
   workerInitDone() {
     this._workerInitDone = true;
+  }
+  getAutoInitParams() {
+    return this._extraConfig.init;
   }
   /** * stop the node */
   async stop() {

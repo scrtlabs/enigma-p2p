@@ -9,7 +9,8 @@ module.exports.LOG_CONFIG = {
 };
 module.exports.NODE_NOTIFICATIONS = {
   'INIT_WORKER': 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
-  'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
+  'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address
+  'NEW_PEER_CONNECTED': 'connected', // announcing a new peer has connected
   // (ready to be discovered) -> 'peer:discovery' event.
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PUBSUB_SUB': 'subscribe', // subscribe to topic

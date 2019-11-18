@@ -34,8 +34,6 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
     - [EnigmaNode](#enigmanode)
     - [P2P Messages](#p2p-messages)
     - [Incoming requests](#incoming-requests)
-    - [PeerBank](#peerbank)
-    - [Discovery and bootstrap](#discovery-and-bootstrap)
     - [State synchronization](#state-synchronization)
     - [PubSub - how to "broadcast"](#pubsub---how-to-%22broadcast%22)
     - [Connecting it all - controller](#connecting-it-all---controller)
@@ -46,7 +44,6 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 - [Running the tests](#running-the-tests)
 - [How it works](#how-it-works)
   - [Overview on start](#overview-on-start)
-  - [Persistent Peer Discovery](#persistent-peer-discovery)
   - [Syncing a Worker](#syncing-a-worker)
     - [Consensus](#consensus)
     - [Content Routing](#content-routing)
@@ -127,9 +124,8 @@ Everything is based on notifications and responses to those notifications.
 Notifications in the project come in 2 forms: 
 
 1) [EventEmitter](https://nodejs.org/api/events.html#events_events) 
-    - are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124)
-    - for example the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js#L299) will notify on a finished handshake and let the `NodeController` decide [what to do with it](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L72).
-
+    - Are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124).
+    
 2) Channels and communicators
 
     -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless. 
@@ -137,7 +133,7 @@ Notifications in the project come in 2 forms:
 
 ### Command pattern and Actions 
 
-Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modidications to fit NodeJS style. 
+Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modifications to fit NodeJS style. 
 Terminology wise, it's called **Actions**. 
 Everywhere in the project `notifications` lead to `Actions`. 
 The rational here is that objects hold the **concrete implementation**  and Actions are the **operational logic**. 
@@ -262,15 +258,6 @@ The messages are used as [concrete classes](https://github.com/enigmampc/enigma-
 
 All the inbound messages get accepted by the [ProtocolHandler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L18) class. 
 Building on top of libp2p terminology, different messages are different protocols and each one gets its own [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L42). 
-
-### PeerBank 
-
-[PeerBank](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/PeerBank.js#L5) is a class that holds **potential** peers. Once the node connects to some `peer_x` it will be removed from the `PeerBank`.
-This is used to collect peers via `findpeers` message and the `seeds` that come from `Pong` messages.
-
-### Discovery and bootstrap 
-
-The login of what to do is implemented in the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js) but the operational logic is implemented in [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js), usage [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L290).
 
 ### State synchronization
 

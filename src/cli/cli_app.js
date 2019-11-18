@@ -4,7 +4,6 @@ const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
-const nodeUtils = main.Utils.nodeUtils;
 const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = main.cryptography
@@ -34,7 +33,7 @@ class CLI {
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
-    this._isBootstrap = false;
+    this._isLonelyNode = false;
 
     this._principalNode = null;
 
@@ -113,14 +112,6 @@ class CLI {
         console.log(addrs);
         console.log('>------------------------<');
       },
-      'peerBank': () =>{
-        const peers = this._node.getAllPeerBank();
-        console.log('peer bank: ');
-        for (let k=0; k<peers.length; k++) {
-          console.log(k);
-        }
-        console.log('>------------------------<');
-      },
       'getConnectedPeers': () =>{
         let peers = this._node.getConnectedPeers();
         console.log('getConnectedPeers: ', peers);
@@ -132,8 +123,6 @@ class CLI {
         peers.forEach((p)=>{
           console.log(p.id.toB58String());
         });
-        //peers = this._node.getSelfPeerBookIds();
-        //console.log('getSelfPeerBookIds: ', peers);
         console.log('>------------------------<');
       },
       'broadcast': (args) =>{
@@ -331,8 +320,8 @@ class CLI {
     .option('--auto-init', 'perform automatic worker initialization ', ()=>{
       this._autoInit = true;
     })
-    .option('--is-bootstrap', 'is the bootstrap node in a system relies only on one bootstrap ', ()=>{
-      this._isBootstrap = true;
+    .option('--lonely-node', 'is it the only node in a system', ()=>{
+      this._isLonelyNode = true;
     })
     .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
       this._autoInit = true;
@@ -399,11 +388,6 @@ class CLI {
     const nodeConfig = this._getFinalConfig();
     nodeConfig.extraConfig = {};
 
-    // TODO: REMOVE THIS.. THIS IS A TEMPORARY HACK
-    if (nodeConfig.isBootstrap) {
-      this._isBootstrap = true;
-    }
-
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
         console.log('Connecting to Principal Node at ' + this._principalNode);
@@ -432,9 +416,8 @@ class CLI {
   }
   async _setup() {
     // TODO: consider what to do with this!!!
-    // The reason it is here to handle the case in which there is only one bootstrap node which need to trigger init
-    // (the init is triggered when connecting in the first time to a bootstrap node)
-    if (this._autoInit && this._isBootstrap) {
+    // The reason it is here to handle the case of one node in the system (mainly for testing purposes)
+    if (this._autoInit && this._isLonelyNode) {
       this._node.initializeWorkerProcess(this._depositValue, (err)=>{
         if (err) {
           console.log('[-] ERROR with automatic worker initialization: ', err);

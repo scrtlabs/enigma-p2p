@@ -166,7 +166,7 @@ class ProtocolHandler extends EventEmitter {
     if (params.worker.getSelfIdB58Str() === params.peer.id.toB58String()) {
       return;
     }
-    this.notify({'notification': NOTIFICATION['DISCOVERED'], 'params': params});
+    this.notify({notification: NOTIFICATION.DISCOVERED, params: params});
   }
   /** handle when all bootstrap nodes returned peers.
      * */
@@ -216,6 +216,7 @@ class ProtocolHandler extends EventEmitter {
   onPeerConnect(nodeBundle, params) {
     this._logger.debug('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
             '] new peer : ' + params.peer.id.toB58String());
+    this.notify({notification: NOTIFICATION.NEW_PEER_CONNECTED, params: params});
   }
   /** On peer disconnect
    * @param {PeerBundle} nodeBundle, libp2p bundle
