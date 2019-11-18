@@ -31,9 +31,15 @@ module.exports.port = function(val, params) {
   let parseVal =val.toString();
   if (parseVal === 'B1') {
     parseVal = params.B1Port;
+    // TODO: REMOVE THIS.. THIS IS A TEMPORARY HACK
+    params.configObject.isBootstrap = true;
+    params.changedKeys.push('isBootstrap');
   }
   if (parseVal === 'B2') {
     parseVal = params.B2Port;
+    // TODO: REMOVE THIS.. THIS IS A TEMPORARY HACK
+    params.configObject.isBootstrap = true;
+    params.changedKeys.push('isBootstrap');
   }
   params.configObject.port = parseVal;
   params.changedKeys.push('port');

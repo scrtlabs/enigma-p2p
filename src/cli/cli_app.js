@@ -398,6 +398,11 @@ class CLI {
     const nodeConfig = this._getFinalConfig();
     nodeConfig.extraConfig = {};
 
+    // TODO: REMOVE THIS.. THIS IS A TEMPORARY HACK
+    if (nodeConfig.isBootstrap) {
+      this._isBootstrap = true;
+    }
+
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
         console.log('Connecting to Principal Node at ' + this._principalNode);
