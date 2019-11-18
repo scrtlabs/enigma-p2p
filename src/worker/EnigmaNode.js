@@ -714,7 +714,6 @@ class EnigmaNode extends EventEmitter {
               const heartBeatRes = nodeUtils.toHeartBeatResMsg(response);
               if (heartBeatRes.isCompatibleWithMsg(heartBeatRequest)) {
                 // TODO:: validate ID equals in response, valid connection (possibly do nothing)
-                // TODO:: Add to stats (?)
                 onResult(null, heartBeatRes);
               } else {
                 // TODO:: The heartbeat message failed (weird) why? wrong id?

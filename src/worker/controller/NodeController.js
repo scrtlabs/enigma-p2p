@@ -15,7 +15,6 @@ const nodeUtils = require('../../common/utils');
 const WorkerBuilder = require('../builder/WorkerBuilder');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
-const Stats = require('../Stats');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
@@ -88,8 +87,6 @@ class NodeController {
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-    // stats
-    this._stats = new Stats();
 
     // TODO:: taskManager see this._initTaskManager()
     this._taskManager = null;
@@ -371,9 +368,6 @@ class NodeController {
   engNode() {
     return this._engNode;
   }
-  stats() {
-    return this._stats;
-  }
   provider() {
     return this._provider;
   }
@@ -516,12 +510,12 @@ class NodeController {
       );
     });
   }
-  /** temp should delete - is connection (no handshake related simple libp2p
+  /** is connection to a peer
    * @param {string} nodeId
+   * @return {bool} true/false
    */
-  isSimpleConnected(nodeId) {
-    const isConnected = this._engNode.isConnected(nodeId);
-    console.log('Connection test : ' + nodeId + ' ? ' + isConnected);
+  isConnected(nodeId) {
+    return this._engNode.isConnected(nodeId);
   }
   /**
    * from TaskManager

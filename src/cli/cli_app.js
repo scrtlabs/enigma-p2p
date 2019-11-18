@@ -182,7 +182,8 @@ class CLI {
       },
       'isConnected': (args)=>{
         const id = args[1];
-        this._node.isSimpleConnected(id);
+        const isConnected = this._node.isConnected(id);
+        console.log('Connection test : ' + id + ' ? ' + isConnected);
       },
       'topics': async (args)=>{
         const list = await this._node.getTopics();
