@@ -273,14 +273,16 @@ function syncTest(scenario) {
     const bootstrapNodes = ['/ip4/0.0.0.0/tcp/' + B2Port + '/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm'];
 
     const dnsConfig = {
-      'bootstrapNodes': bootstrapNodes,
-      'port': B2Port,
-      'nickname': 'dns',
-      'idPath': B2Path,
+      bootstrapNodes: bootstrapNodes,
+      port: B2Port,
+      nickname: 'dns',
+      idPath: B2Path,
+      extraConfig: {}
     };
     const peerConfig = {
-      'bootstrapNodes': bootstrapNodes,
-      'nickname': 'peer',
+      bootstrapNodes: bootstrapNodes,
+      nickname: 'peer',
+      extraConfig: {}
     };
     const dnsMockUri = 'tcp://127.0.0.1:4444';
     const peerMockUri = 'tcp://127.0.0.1:5555';
@@ -497,10 +499,11 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
     const uri ='tcp://127.0.0.1:6111';
     const coreServer = new CoreServer();
     const peerConfig = {
-      'bootstrapNodes': [],
-      'port': '0',
-      'nickname': 'peer',
-      'idPath': null,
+      bootstrapNodes: [],
+      port: '0',
+      nickname: 'peer',
+      idPath: null,
+      extraConfig: {}
     };
     let mainController;
     waterfall([

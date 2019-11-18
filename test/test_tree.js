@@ -3,7 +3,7 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true,
-    '#3' : false,
+    '#3' : true,
   },
   'ipc' :{
     'all' : true,
@@ -17,8 +17,6 @@ module.exports.TEST_TREE = {
   'coverage' :{
     'all' : true,
     '#1' : true,
-    '#2' : true,
-    '#3' : true,
   },
   'cache' :{
     'all' : true,
@@ -50,7 +48,7 @@ module.exports.TEST_TREE = {
     '#4' : true,
   },
   'sync_basic':{
-    'all' : false,
+    'all' : true,
     '#1' : true,
     '#2' : true,
     '#3' : true,
@@ -154,7 +152,6 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true,
-    '#3' : true,
   },
   'init_worker' : {
     'all' : true,

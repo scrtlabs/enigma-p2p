@@ -236,7 +236,7 @@ class ProtocolHandler extends EventEmitter {
   }
   onLocalStateExchange(nodeBundle, params){
     this._logger.debug('[LOCAL_STATE] got local state request from remote peer.');
-    self.notify({
+    this.notify({
       notification: NOTIFICATION.GET_ALL_TIPS,
       useCaches: false,
       onResponse: (err,tips)=>{
