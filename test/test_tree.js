@@ -14,10 +14,6 @@ module.exports.TEST_TREE = {
     '#5': true,
     '#6': true,
   },
-  'coverage' :{
-    'all' : true,
-    '#1' : true,
-  },
   'cache' :{
     'all' : true,
     '#1' : true

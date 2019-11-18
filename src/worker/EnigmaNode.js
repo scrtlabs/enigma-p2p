@@ -524,31 +524,6 @@ class EnigmaNode extends EventEmitter {
   }
 
   /**
-   * Get some peers PeerBook
-   * @param {PeerInfo} peerInfo, the target peer
-   * @param {Function} onResult signature (err,PeerBook) =>{}
-   */
-  getPeersPeerBook(peerInfo, onResult) {
-    this.dialProtocol(peerInfo, PROTOCOLS.PEERS_PEER_BOOK, (connectionErr, connection)=>{
-      if (connectionErr) {
-        this._logger.error('[-] err connection to peer');
-        return onResult(connectionErr, null);
-      }
-      let peersPeerBook = null;
-      const err = null;
-      pull(
-          connection,
-          pull.map((data) => {
-            peersPeerBook = data.toString('utf8').replace('\n', '');
-            peersPeerBook = JSON.parse(peersPeerBook);
-            onResult(err, peersPeerBook);
-            return peersPeerBook;
-          }),
-          pull.drain()
-      );
-    });
-  }
-  /**
    * Post a findpeers msg protocol request to another peer
    * @param {PeerInfo} peerInfo, the target peer
    * @param {Function} onResult signature (err,findPeersRequest, findPeersResponse) =>{}
@@ -610,21 +585,6 @@ class EnigmaNode extends EventEmitter {
         callback(err, engCid);
       });
     }
-  }
-
-  /**
-   * Sync Get some peers PeerBook
-   * @param {PeerInfo} peerInfo, the target peer
-   * @param {Function} onResult signature (err,PeerBook) =>{}
-   * @return {Promise}, peersbook || err
-   */
-  syncGetPeersPeerBook(peerInfo) {
-    return new Promise((res, rej)=>{
-      this.getPeersPeerBook(peerInfo, (err, peerBook)=>{
-        if (err) rej(err);
-        res(peerBook);
-      });
-    });
   }
   /**
    * given id lookup a peer in the network

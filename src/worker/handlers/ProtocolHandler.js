@@ -24,8 +24,6 @@ class ProtocolHandler extends EventEmitter {
     }
 
     this._protocols = [
-      PROTOCOLS['ECHO'],
-      PROTOCOLS['HANDSHAKE'],
       PROTOCOLS['PEERS_PEER_BOOK'],
       PROTOCOLS['HEARTBEAT'],
       PROTOCOLS['GROUP_DIAL'],
@@ -41,9 +39,7 @@ class ProtocolHandler extends EventEmitter {
     this.handlers[PROTOCOLS['PEER_DISCOVERY']] = this.onPeerDiscovery.bind(this);
     this.handlers[PROTOCOLS['PEER_CONNECT']] = this.onPeerConnect.bind(this);
     this.handlers[PROTOCOLS['PEER_DISCONNECT']] = this.onPeerDisconnect.bind(this);
-    this.handlers[PROTOCOLS['PEERS_PEER_BOOK']] = this.onGetPeerBook.bind(this);
     this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat.bind(this);
-    this.handlers[PROTOCOLS['ECHO']] = this.onEcho.bind(this);
     this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers.bind(this);
     this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync.bind(this);
     this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange.bind(this);
@@ -95,7 +91,6 @@ class ProtocolHandler extends EventEmitter {
       this.handlers[topicIDs[0]](params, message);
     }
   }
-
   tempFallback(protocolName) {
     this._logger.error('[-] Err invalid protocolName: ' + protocolName);
   }
@@ -134,26 +129,6 @@ class ProtocolHandler extends EventEmitter {
         params.connection
     );
   }
-
-  /** /getpeekbook protocol
-   * !!! DEPRECATED !!
-   * response with workers peer book
-   * @param {PeerBundle} nodeBundle libp2p bundle
-   * @param {Json} params {connection, worker,peer,protocol}
-   * TODO:: Replace with a strongly typed "Message" class as a response.
-   */
-  onGetPeerBook(nodeBundle, params) {
-    const selfNode = params.worker;
-    const peers = selfNode.getAllPeersInfo();
-    const parsed = nodeUtils.parsePeerBook(peers);
-    // stream back the connection
-    pull(
-        pull.values([JSON.stringify({
-          'from': selfNode.getSelfPeerInfo().id.toJSON(),
-          'peers': parsed})]),
-        params.connection
-    );
-  }
   /** This is NOT a connection establishment.
    * This simply means that a given boostrap node string has turned into a PeerInfo
    * and now the worker can dial to the peer.
@@ -167,17 +142,6 @@ class ProtocolHandler extends EventEmitter {
       return;
     }
     this.notify({notification: NOTIFICATION.DISCOVERED, params: params});
-  }
-  /** handle when all bootstrap nodes returned peers.
-     * */
-  /** Temporary for testing purposes.
-   * Takes a msg and responds with echo.
-   * kind of an "interactive ping"
-   * @param {PeerBundle} nodeBundle
-   * @param {Json} params
-   */
-  onEcho(nodeBundle, params) {
-    pull(params.connection, params.connection);
   }
   /** Response to a heart-beat request.
    * @param {PeerBundle} nodeBundle , the libp2p bundle

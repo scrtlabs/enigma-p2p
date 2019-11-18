@@ -335,11 +335,6 @@ Starting the node after Core. Set some configurations such as network settings, 
 
 Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
 
-* Persistent Discovery
-
-Service that is always alive and optimizes for "Optimal DHT" state
-(i.e take care of connection stability).
-
 * Sync State
 
 Synchronize the Worker state: Secret contracts bytecode and deltas.
