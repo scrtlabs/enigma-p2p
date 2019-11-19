@@ -33,7 +33,7 @@ class MockCoreServer {
   }
 
   static _send(socket, msg) {
-    const error = {'error': 'from server error'};
+    const error = { 'error': 'from server error' };
     if (msg) {
       socket.send(JSON.stringify(msg));
     } else {
@@ -99,7 +99,7 @@ class MockCoreServer {
         result: {
           output: MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, // AKA exeCode
           preCodeHash: 'hash-of-the-precode-bytecode',
-          delta: {key: 0, data: [11, 2, 3, 5, 41, 44]},
+          delta: { key: 0, data: [11, 2, 3, 5, 41, 44] },
           usedGas: 'amount-of-gas-used',
           ethereumPayload: 'hex of payload',
           ethereumAddress: 'address of the payload',
@@ -118,7 +118,7 @@ class MockCoreServer {
         type: msg.type,
         result: {
           output: MockCoreServer.GET_COMPUTE_OUTPUT_MOCK,
-          delta: {key: 0, data: [11, 2, 3, 5, 41, 44]},
+          delta: { key: 0, data: [11, 2, 3, 5, 41, 44] },
           usedGas: 'amount-of-gas-used',
           ethereumPayload: 'hex of payload',
           ethereumAddress: 'address of the payload',
@@ -149,7 +149,7 @@ class MockCoreServer {
     return {
       type: msg.type,
       id: msg.id,
-      result : {
+      result: {
         address: contractAddr,
         bytecode: bcode,
       }
@@ -171,7 +171,7 @@ class MockCoreServer {
       if (!this._tmpDB[contract_addr]) {
         this._tmpDB[contract_addr] = [];
       }
-      this._tmpDB[contract_addr].push({address: contract_addr, key: -1, data: msg.bytecode});
+      this._tmpDB[contract_addr].push({ address: contract_addr, key: -1, data: msg.bytecode });
     } else {
       return MockCoreServer._Error(msg);
     }
@@ -234,17 +234,19 @@ class MockCoreServer {
 
   runServer(uri, stateful) {
     this._uri = uri;
-    if(stateful) {
+    if (stateful) {
       this._tmpDB = {};
     }
     this._socket = zmq.socket('rep');
     this._socket.bindSync(uri);
     this._socket.on('message', (msg) => {
       msg = JSON.parse(msg);
-      if (this._name) {
-        console.log('[Mock %s Server] got msg! ', this._name, msg.type);
-      } else {
-        console.log('[Mock Server] got msg! ', msg.type);
+      if (process.env.NODE_ENV != 'test') {
+        if (this._name) {
+          console.log('[Mock %s Server] got msg! ', this._name, msg.type);
+        } else {
+          console.log('[Mock Server] got msg! ', msg.type);
+        }
       }
       switch (msg.type) {
         case MsgTypes.GetRegistrationParams:
@@ -304,7 +306,9 @@ class MockCoreServer {
           break;
 
         default:
-          console.log('[Mock Server] Unknown command: ', msg);
+          if (process.env.NODE_ENV != 'test') {
+            console.log('[Mock Server] Unknown command: ', msg);
+          }
       }
     });
   };
@@ -367,7 +371,7 @@ class MockCoreServer {
         let keys = this._tmpDB[address].map((delta) => { return delta.key; });
         let maxKey = Math.max.apply(Math, keys);
         // once the highest key was found, add the delta of the corresponding key to the results.
-        let tipObj = this._tmpDB[address].find((delta) => {return delta.key === maxKey});
+        let tipObj = this._tmpDB[address].find((delta) => { return delta.key === maxKey });
         res.push(tipObj);
       }
     }
@@ -423,7 +427,7 @@ class MockCoreServer {
 
   _getRegistrationParams(msg) {
     if (this._signKey === null) {
-      this._signKey = '0x' + randomize('?0', 40, {chars: 'abcdef'});
+      this._signKey = '0x' + randomize('?0', 40, { chars: 'abcdef' });
     }
     if (MockCoreServer._validate(msg, SCHEMES.GetAllTips)) {
       return {

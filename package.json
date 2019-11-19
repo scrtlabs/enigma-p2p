@@ -10,7 +10,8 @@
     "temp-dir": "/tmp/enigma-p2p"
   },
   "scripts": {
-    "test": "find ./test -name '*_test.js' | npx nyc xargs mocha -R spec --timeout 200000",
+    "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 200000",
+    "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9 || true",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
@@ -82,6 +83,7 @@
     "Elichai Turkel <elichai.turkel@gmail.com>",
     "Avishai Weingarten <avishw89@gmail.com>",
     "Victor Grau Serrat <victor@enigma.co>",
-    "Aditya Palepu <adi@enigma.co>"
+    "Aditya Palepu <adi@enigma.co>",
+    "Assaf Morami <assaf.morami@gmail.com>"
   ]
 }

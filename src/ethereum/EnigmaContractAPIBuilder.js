@@ -3,13 +3,13 @@ const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
 const EnigmaContractProductionWriterAPI = require('./EnigmaContractProductionWriterAPI');
 const Logger = require('../common/logger');
 const path = require('path');
-const {exec, spawn} = require('child_process');
+const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 const utils = require('../common/utils');
 const defaultsDeep = require('@nodeutils/defaults-deep');
 
-TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
 
+TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
 
 const defaultConfig = {
   url: 'ws://127.0.0.1:9545',
@@ -27,13 +27,14 @@ class EnigmaContractAPIBuilder {
     this.api = null;
     this.ethereumAddress = null;
     this.accountKey = null;
+    this.minimunConfirmations = null;
     this.environment = {};
     this.config = defaultConfig;
 
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({'cli': false});
+      this._logger = new Logger({ 'cli': false });
     }
 
     return this;
@@ -70,6 +71,20 @@ class EnigmaContractAPIBuilder {
     this.accountKey = key;
     return this;
   }
+
+  /**
+     * Set the minimum confirmations (ethereum blocks) a worker must wait
+     * before knowing data on the ethereum blockchain is valid
+     * Writing via the API will resolve only after enough confirmations
+     * Reading via the API will return data only if it was written at least minimunConfirmations blocks ago
+     * @param {number} minimunConfirmations, defaults to 12
+     * @return {EnigmaContractAPIBuilder} this
+     * */
+  setMinimunConfirmations(minimunConfirmations) {
+    this.minimunConfirmations = minimunConfirmations;
+    return this;
+  }
+
   /**
    * deploy a smart contract
    *
@@ -141,14 +156,14 @@ class EnigmaContractAPIBuilder {
       if (this.accountKey) {
         this.api = await new EnigmaContractProductionWriterAPI(this.enigmaContractAddress,
           this.enigmaContractABI, this.web3, this.logger(),
-          this.ethereumAddress, this.accountKey);
+          this.ethereumAddress, this.accountKey, this.minimunConfirmations);
       }
       else {
         this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
       }
     }
     else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger());
+      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.minimunConfirmations);
     }
 
     return {
@@ -188,7 +203,7 @@ class EnigmaContractAPIBuilder {
     }
 
     if (options.enigmaContractAddress) {
-      let config = {enigmaContractAddress: options.enigmaContractAddress};
+      let config = { enigmaContractAddress: options.enigmaContractAddress };
       if (options.urlProvider) {
         config.url = options.urlProvider;
       }
@@ -238,6 +253,7 @@ class EnigmaContractAPIBuilder {
     });
   }
 
+
   async _initEnv() {
     const truffleDirectory = this.config.truffleDirectory;
 
@@ -245,12 +261,15 @@ class EnigmaContractAPIBuilder {
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
     const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
+    const ethTestUtils = require('../../test/ethereum/utils');
 
     const networkId = truffleConfig.networks.development.network_id;
     const rawdata = await utils.readFile((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
     let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
+
+    await ethTestUtils.advanceXConfirmations(this.web3, this.minimunConfirmations);
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;

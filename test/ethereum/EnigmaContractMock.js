@@ -67,6 +67,10 @@ class EnigmaContractMock {
     return this._ethereumBlockNumber;
   }
 
+  getEthereumBlockNumberAsync(cb) {
+    cb(null, this._ethereumBlockNumber);
+  }
+
   subscribe(eventName, filter, callback) {
     this._eventListeners[eventName] = callback;
   }
@@ -77,6 +81,10 @@ class EnigmaContractMock {
 
   triggerException() {
     this._except = true;
+  }
+
+  w3() {
+    return {eth : {getBlockNumber: this.getEthereumBlockNumberAsync.bind(this)}};
   }
 }
 
