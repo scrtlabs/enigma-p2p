@@ -1,6 +1,5 @@
 const EventEmitter = require('events').EventEmitter;
 const waterfall = require('async/waterfall');
-const parallel = require('async/parallel');
 const PeerId = require('peer-id');
 const PeerInfo = require('peer-info');
 const pull = require('pull-stream');
@@ -48,12 +47,6 @@ class EnigmaNode extends EventEmitter {
   }
   getProtocolHandler() {
     return this._handler;
-  }
-  isBootstrapNode(id) {
-    return this.dnsNodes.some((ma)=>{
-      const bid = ma.substr(ma.length - constants.ID_LEN, ma.length);
-      return bid == id;
-    });
   }
   /**
    * Loads a peer info JSON from a given path and creates a node instance
@@ -134,8 +127,6 @@ class EnigmaNode extends EventEmitter {
   }
   /**
    * Define event handlers for the node with external delegation
-   * @param {Function} handler
-   * @param {Array} protocols, different protocols to listen and support
    */
   addHandlers() {
     const protocols = this._handler.getProtocolsList();
@@ -290,12 +281,6 @@ class EnigmaNode extends EventEmitter {
     return this.node.stats.peers();
   }
   /** Get PeerBook
-   * @return {PeerBook} , peerBook of the current EnigmaNode
-   */
-  getSelfPeerBook() {
-    return this.node.peerBook;
-  }
-  /** Get PeerBook
    * @return {Array} ,the list of all the PeerInfo are in the peerBook of the current EnigmaNode
    */
   getSelfPeerBookIds() {
@@ -320,23 +305,6 @@ class EnigmaNode extends EventEmitter {
         result.push(this.node.peerBook.get(peer));
       } catch (err) {
         this._logger.error('[-] Error finding peer' + err);
-      }
-    });
-    return result;
-  }
-  /** Get the peer info of a given list of id's
-   * @param {Array<String>} idList , b58
-   * @return {Array<PeerInfo>} peersInfo
-   */
-  getPeersInfoList(idList) {
-    const peers =idList;
-    const result = [];
-    // get peers info by id
-    peers.forEach((peer)=>{
-      try {
-        result.push(this.node.peerBook.get(peer));
-      } catch (err) {
-        this._logger.error('[-] Error finding peer ' + err);
       }
     });
     return result;
@@ -420,8 +388,8 @@ class EnigmaNode extends EventEmitter {
   }
   /**
    * Dial at some protocol and delegate the handling of that connection
-   * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
-   * @param {String} protocolName , the protocl name /echo/1.0.1
+   * @param {PeerInfo} peerInfo,  the peer we wish to dial to
+   * @param {String} protocolName, the protocol name /echo/1.0.1
    * @param {Function} onConnection receives (err,connection) =>{}
    */
   dialProtocol(peerInfo, protocolName, onConnection) {
@@ -450,7 +418,7 @@ class EnigmaNode extends EventEmitter {
    * @param {PeerInfo} peerInfo
    * @param {string} protocolName,
    * @param {JSON} reqMsg - request
-   * @return {Promise<Json>} response
+   * @return {Promise<JSON>} response
    * */
   oneShotDial(peerInfo, protocolName,reqMsg) {
     return new Promise((resolve,reject)=>{
@@ -481,7 +449,7 @@ class EnigmaNode extends EventEmitter {
    * @param {PeerInfo} peerInfo
    * @param {string} protocolName,
    * @param {JSON} reqMsg - request
-   * @return {Promise<Json>} response
+   * @return {Promise<JSON>} response
    * */
   async oneShotDialAndClose(peerInfo, protocolName,reqMsg){
     let response = null;
@@ -503,26 +471,28 @@ class EnigmaNode extends EventEmitter {
     });
   }
   /** Dial to a bootstrap node.
-   * @param {PeerInfo} peer, the peer to dial to
+   * @param {PeerInfo} peerInfo, the peer to dial to
+   * @return {boolean} true in a success, false otherwise
    */
   connectToBootstrap(peerInfo) {
     this.dial(peerInfo, (connectionErr, connection) => {
       if (connectionErr) {
         this._logger.error(`Failed connecting to a bootstrap node= ${connectionErr}`);
+        return false;
       }
       else {
         this.notify(peerInfo);
+        return true;
       }
     });
   }
   /**
    * Notify observer (Some controller subscribed)
-   * @param {Json} params, MUST CONTAIN notification field
+   * @param {JSON} params, MUST CONTAIN notification field
    */
   notify(params) {
     this.emit('notify', params);
   }
-
   /**
    * Post a findpeers msg protocol request to another peer
    * @param {PeerInfo} peerInfo, the target peer

@@ -1,51 +1,10 @@
 /** Policy class that handles messages policy*/
-const EventEmitter = require('events').EventEmitter;
 const constants = require('../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
-class Policy extends EventEmitter {
-  constructor(isStrict){
-    super();
-
-    this._isStrict = true;
-    if (isStrict === false){
-      this._isStrict = false;
-    }
-    this._version = '0.1';
-    this._TIMEOUT_FIND_PROVIDERS = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
-  }
-  getTimeoutFindProvider() {
-    return this._TIMEOUT_FIND_PROVIDERS;
-  }
-  policyVersion() {
-    return this._version;
-  }
-  /** Validate peer
-   * @param {peerInfo} peerInfo the peer info
-   * @param {PongMsg} policyBundle contains the pong message from the peer
-   * @return {Boolean}
-   */
-  isValidPeer(peerInfo, policyBundle) {
-    return true;
-  }
-  /** Validate all protocols configured
-   * @param {Array} registeredProtocols, list of protocol names
-   * @return {Boolean} true if valid false otherwise
-   */
-  validateProtocols(registeredProtocols) {
-    const shouldExist = Object.values(PROTOCOLS);
-
-    if (shouldExist.length > registeredProtocols.length) {
-      return false;
-    }
-
-    const missingValue = shouldExist.some((p)=>{
-      if (registeredProtocols.indexOf(p) < 0) {
-        return true;
-      }
-    });
-    return !missingValue;
+class Policy {
+  constructor(){
   }
   /** is a valid procol name
    * @param {String} protocolName,
@@ -53,7 +12,7 @@ class Policy extends EventEmitter {
    */
   isValidProtocol(protocolName) {
     for (const key in PROTOCOLS) {
-      if (PROTOCOLS[key] == protocolName) {
+      if (PROTOCOLS[key] === protocolName) {
         return true;
       }
     }
@@ -80,21 +39,6 @@ class Policy extends EventEmitter {
     return 'jsonrpc' in msg &&
                 (('method' in msg && 'params') || 'result' in msg ) &&
                 'id' in msg;
-  }
-  /** check if the number of connected bootstrap nodes is satifying
-   * @param {Integer} n, number of handshaked bootstrap nodes
-   * @return {Boolean} bool, True => Enough, False => Otherwise
-   */
-  isEnoughBNodes(n) {
-    if (n>0) {
-      return true;
-    }
-  }
-  /**
-   * non- Strict mode - no ethereum
-   * */
-  isStrict(){
-    return this._isStrict;
   }
 }
 

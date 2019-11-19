@@ -87,24 +87,6 @@ module.exports.randId = function() {
   return randomize('Aa0', 12);
 };
 
-/** Map a connection stream to a Ping Message
- * @param {Buffer} data, stream data
- * @return {PingMsg} ping
- * */
-module.exports.toPingMsg = function(data) {
-  let ping = data.toString('utf8').replace('\n', '');
-  ping = JSON.parse(ping);
-  return new Messages.PingMsg(ping);
-};
-
-/** Map a connection stream to a Pong Message
- * @param {Buffer} data, stream data
- * @return {PongMsg} pong
- * */
-module.exports.toPongMsg = function(data) {
-  const pong = data.toString('utf8').replace('\n', '');
-  return new Messages.PongMsg(pong);
-};
 /** Map a connection stream to a HeartBeat response Message
  * @param {Buffer} data, stream data
  * @return {HeartBeatResMsg} hb response
@@ -237,35 +219,6 @@ module.exports.peerBankSeedtoPeerInfo = function(seed, callback) {
     });
   }
 };
-
-/**
- * A promisified version of readFile
- * @param {String} path - file path
- * @return {Promise}
- * */
-module.exports.peerBankSeedtoPeerInfoAsync = function(seed) {
-  return new Promise((resolve, reject) => {
-    if (PeerInfo.isPeerInfo(seed)) {
-      resolve(null, seed);
-    }
-    else {
-      PeerInfo.create(seed.peerId, (err, peerInfo)=>{
-        if (err) {
-          reject(err);
-        }
-        if (seed.multiAddrs) {
-          seed.multiAddrs.forEach((ma)=>{
-            if (_isIpfs(ma)) {
-              peerInfo.multiaddrs.add(ma);
-            }
-          });
-        }
-        resolve(peerInfo);
-      });
-    }
-  });
-};
-
 /**
  * Connection string to PeerInfo
  * @param {String} addr,/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm

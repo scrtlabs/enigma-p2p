@@ -11,7 +11,8 @@ class BootstrapDiscoveredAction {
     if (this._controller.engNode().arePeersConnected()) {
       return;
     }
-    this._controller.engNode().connectToBootstrap(otherPeer);
+    const success = this._controller.engNode().connectToBootstrap(otherPeer);
+    this._controller.logger().debug(`connection to bootstrap succeeded=${success}`)
   }
 }
 module.exports = BootstrapDiscoveredAction;

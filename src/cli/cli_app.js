@@ -113,16 +113,8 @@ class CLI {
         console.log('>------------------------<');
       },
       'getConnectedPeers': () =>{
-        let peers = this._node.getConnectedPeers();
+        const peers = this._node.getConnectedPeers();
         console.log('getConnectedPeers: ', peers);
-        console.log('>------------------------<');
-      },
-      'getPeerBookIds': () =>{
-        let peers = this._node.getSelfPeerBookIds();
-        //console.log('getPeerBookIds: ');
-        peers.forEach((p)=>{
-          console.log(p.id.toB58String());
-        });
         console.log('>------------------------<');
       },
       'broadcast': (args) =>{
@@ -231,6 +223,7 @@ class CLI {
         console.log('broadcast <message> : broadcast a message to the whole network');
         console.log('deposit <amount>: deposit to Enigma contract');
         console.log('getAddr : get the multiaddress of the node. ');
+        console.log('getConnectedPeers : get the list of connected peer Ids');
         console.log('getRegistration : get the registration params of the node. ');
         console.log('getResult <taskId>: check locally if task result exists');
         console.log('help : help');
