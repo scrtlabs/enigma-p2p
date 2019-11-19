@@ -168,13 +168,6 @@ class JsonRpcServer extends EventEmitter {
   /** MUST for runtime manager (main controller)*/
   setChannel(communicator) {
     this._communicator = communicator;
-    this._communicator.setOnMessage((envelop)=>{
-      const concreteCmd = envelop.content().type;
-      const action = this._actions[concreteCmd];
-      if (action) {
-        action.execute(envelop);
-      }
-    });
   }
 }
 
