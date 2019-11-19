@@ -13,7 +13,7 @@ const ETHEREUM_ERROR_EVENT = 'error';
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
-    super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
+    super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, 0);
   }
   /**
      * Step 1 in registration
@@ -24,7 +24,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
-  register(signerAddress, report, signature, txParams=null) {
+  register(signerAddress, report, signature, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -35,19 +35,19 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         utils.add0x(signerAddress),
         utils.add0x(report),
         utils.add0x(signature))
-          .send(res.transactionOptions)
-          // .on('confirmation', (confirmationNumber, receipt) => {
-          //   console.log("at register confirmation. number=", confirmationNumber);
-          //   console.log("at register confirmation. receipt=", JSON.stringify(receipt));
-          //   resolve(receipt);
-          // })
-          .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-            reject(error);
-          })
-          .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
-            let events = receipt.events ? this._parseEvents(receipt.events) : null;
-            resolve(events);
-          })
+        .send(res.transactionOptions)
+        // .on('confirmation', (confirmationNumber, receipt) => {
+        //   console.log("at register confirmation. number=", confirmationNumber);
+        //   console.log("at register confirmation. receipt=", JSON.stringify(receipt));
+        //   resolve(receipt);
+        // })
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+          reject(error);
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = receipt.events ? this._parseEvents(receipt.events) : null;
+          resolve(events);
+        })
     });
   }
   /**
@@ -57,7 +57,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
-  deposit(custodian, amount, txParams=null) {
+  deposit(custodian, amount, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -84,7 +84,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {JSON} txParams
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
-  selfDeposit(amount, txParams=null) {
+  selfDeposit(amount, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -141,14 +141,14 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return @return {Promise} in success: Enigma contract emitted events, in failure: error //TODO:: we want to turn all the Json's into real classes.
      * */
-  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
+  deploySecretContract(taskId, preCodeHash, codeHash, initStateDeltaHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
         reject(res.error);
         return;
       }
-      if(!optionalEthereumData) {
+      if (!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
       }
       const packedParams = [utils.add0x(taskId), utils.add0x(preCodeHash), utils.add0x(codeHash), utils.add0x(initStateDeltaHash)];
@@ -172,7 +172,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * login a worker
      * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
-  login(txParams=null) {
+  login(txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -197,7 +197,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * login a worker
      * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
-  logout(txParams=null) {
+  logout(txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -217,7 +217,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
   /**
      * Irrelevant for workers -> users create deployment tasks with it
      * */
-  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams=null) {
+  createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -225,12 +225,12 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         return;
       }
       this._enigmaContract.methods.createDeploymentTaskRecord(inputsHash, gasLimit, gasPrice, firstBlockNumber, nonce)
-          .send(res.transactionOptions, (error, receipt)=> {
-            if (error) {
-              reject(error);
-            }
-            resolve(receipt);
-          });
+        .send(res.transactionOptions, (error, receipt) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(receipt);
+        });
     });
   }
   /**
@@ -246,17 +246,17 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
      * @param {JSON} txParams
      * @return {Promise} in success: Enigma contract emitted events, in failure: error
      * */
-  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams=null) {
+  commitReceipt(secretContractAddress, taskId, stateDeltaHash, outputHash, optionalEthereumData, optionalEthereumContractAddress, gasUsed, signature, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
         reject(res.error);
         return;
       }
-      if(!optionalEthereumData) {
+      if (!optionalEthereumData) {
         optionalEthereumData = EMPTY_HEX_STRING;
       }
-      if(!stateDeltaHash) {
+      if (!stateDeltaHash) {
         stateDeltaHash = EMPTY_HEX_STRING;
       }
       const packedParams = [utils.add0x(secretContractAddress), utils.add0x(taskId), utils.add0x(stateDeltaHash), utils.add0x(outputHash)];
@@ -266,13 +266,13 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         packedParams,
         utils.add0x(optionalEthereumData),
         utils.add0x(signature)).send(res.transactionOptions)
-          .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-              reject(error);
-          })
-          .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
-            let events = receipt.events ? this._parseEvents(receipt.events) : null;
-            resolve(events);
-          })
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+          reject(error);
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, (receipt) => {
+          let events = receipt.events ? this._parseEvents(receipt.events) : null;
+          resolve(events);
+        })
     });
   }
   /**
@@ -285,7 +285,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {JSON} txParams
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
-  commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature, txParams=null) {
+  commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -317,7 +317,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
    * @param {JSON} txParams
    * @return {Promise} in success: Enigma contract emitted events, in failure: error
    * */
-  deploySecretContractFailure(taskId, outputHash, gasUsed, signature, txParams=null) {
+  deploySecretContractFailure(taskId, outputHash, gasUsed, signature, txParams = null) {
     return new Promise((resolve, reject) => {
       let res = this.getTransactionOptions(txParams);
       if (res.error) {
@@ -344,11 +344,11 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     if (txParams !== undefined && txParams !== null) {
       const error = this._validateTxParams(txParams);
       if (error !== null) {
-        return {error: error};
+        return { error: error };
       }
       transactionOptions = defaultsDeep(txParams, this._defaultTrxOptions);
     }
-    return {transactionOptions: transactionOptions, error: null};
+    return { transactionOptions: transactionOptions, error: null };
   }
   _parseEvents(events) {
     let parsedEvents = {};

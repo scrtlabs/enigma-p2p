@@ -44,7 +44,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask task
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
-  'EXEC_TASK' : 'etask', // execute the task
+  'EXEC_TASK': 'etask', // execute the task
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
   'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status
@@ -255,7 +255,7 @@ module.exports.PRINCIPAL_NODE = {
   retryOptions: {
     retries: 10, // try 1 time and retry 10 times if needed, total = 11
     factor: 1.7, // https://www.wolframalpha.com/input/?i=Sum%5B1000*x%5Ek,+%7Bk,+0,+9%7D%5D+%3D+5+*+60+*+1000
-    minTimeout: 1* 1000, // the number of milliseconds before starting the first retry
+    minTimeout: 1 * 1000, // the number of milliseconds before starting the first retry
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
@@ -263,3 +263,5 @@ module.exports.PRINCIPAL_NODE = {
 };
 
 module.exports.PTT_END_EVENT = "PTT";
+
+module.exports.MINIMUM_CONFIRMATIONS = 12;

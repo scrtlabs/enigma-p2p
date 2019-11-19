@@ -10,6 +10,7 @@ const cryptography = main.cryptography
 const DbUtils = main.Utils.dbUtils;
 const tempdir = require('tempdir');
 const utils = require('../common/utils');
+const constants = require('../common/constants');
 
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
@@ -34,7 +35,7 @@ class CLI {
     this._autoInit = false;
     this._depositValue = null;
     this._isLonelyNode = false;
-
+    this._minConfirmations = null;
     this._principalNode = null;
 
     this._B1Path = path.join(__dirname, '../../test/testUtils/id-l');
@@ -67,46 +68,46 @@ class CLI {
     this._node = null;
     this._mainController = null;
     this._commands = {
-      'init': async (args)=>{
+      'init': async (args) => {
         const amount = args[1];
         try {
-          await this._node.asyncInitializeWorkerProcess({amount: amount});
+          await this._node.asyncInitializeWorkerProcess({ amount: amount });
         }
         catch (err) {
           console.log('[-] ERROR $init ', err);
         }
       },
-      'addPeer': (args)=>{
+      'addPeer': (args) => {
         const ma = args[1];
         this._node.addPeer(ma);
       },
-      'lookup': async (args)=>{
+      'lookup': async (args) => {
         const b58Addr = args[1];
         let peerInfo = await this._node.lookUpPeer(b58Addr);
         console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
-        if(peerInfo){
+        if (peerInfo) {
           console.log("Listening on:");
-          peerInfo.multiaddrs.forEach((ma)=> console.log(ma.toString()));
-        }else{
+          peerInfo.multiaddrs.forEach((ma) => console.log(ma.toString()));
+        } else {
           console.log("Not Found");
         }
       },
-      'remoteTips': async (args)=>{
+      'remoteTips': async (args) => {
         const b58Addr = args[1];
         let tips = await this._node.getLocalStateOfRemote(b58Addr);
         console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
-        if(tips){
-          tips.forEach((tip)=>{
+        if (tips) {
+          tips.forEach((tip) => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
             console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
           console.log(`-> total of ${tips.length} secret contracts.`);
-        }else{
+        } else {
           console.log("Not Found");
         }
       },
-      'getAddr': ()=>{
+      'getAddr': () => {
         const addrs = this._node.getSelfAddrs();
         console.log('---> self addrs : <---- ');
         console.log(addrs);
@@ -117,39 +118,39 @@ class CLI {
         console.log('getConnectedPeers: ', peers);
         console.log('>------------------------<');
       },
-      'broadcast': (args) =>{
+      'broadcast': (args) => {
         const msg = args[1];
         this._node.broadcast(msg);
       },
-      'announce': ()=>{
+      'announce': () => {
         this._node.tryAnnounce();
       },
-      'identify': ()=>{
+      'identify': () => {
         this._node.identifyMissingStates();
       },
-      'sync': ()=>{
+      'sync': () => {
         this._node.syncReceiverPipeline();
       },
-      'monitorSubscribe': (args)=>{
-        if (args.length < 2 ) {
+      'monitorSubscribe': (args) => {
+        if (args.length < 2) {
           return console.log('error please use $monitorSubscribe <topic str name>');
         }
         const topic = args[1];
         this._node.monitorSubscribe(topic);
       },
-      'publish': (args) =>{
-        if (args.length <3) {
+      'publish': (args) => {
+        if (args.length < 3) {
           return console.log('error please $publish <topic> <str msg>');
         }
         const topic = args[1];
         const message = args[2];
         this._node.publish(topic, JSON.stringify(message));
       },
-      'selfSubscribe': (args)=>{
+      'selfSubscribe': (args) => {
         this._node.selfSubscribeAction();
       },
-      'getRegistration': (args)=>{
-        this._node.getRegistrationParams((err, result)=>{
+      'getRegistration': (args) => {
+        this._node.getRegistrationParams((err, result) => {
           if (err) {
             console.log('err in getRegistration' + err);
           } else {
@@ -166,19 +167,19 @@ class CLI {
         const isConnected = this._node.isConnected(id);
         console.log('Connection test : ' + id + ' ? ' + isConnected);
       },
-      'topics': async (args)=>{
+      'topics': async (args) => {
         const list = await this._node.getTopics();
         console.log('----> topics <-----');
-        list.forEach((t)=>{
+        list.forEach((t) => {
           console.log(t);
         });
       },
-      'tips': async (args)=>{
+      'tips': async (args) => {
         console.log('----------------> local tips <----------------');
         try {
           // addr -> index + hash
           const tips = await this._node.getLocalTips();
-          tips.forEach((tip)=>{
+          tips.forEach((tip) => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
             console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
@@ -188,35 +189,35 @@ class CLI {
           console.log(e);
         }
       },
-      'unsubscribe': async (args)=>{
+      'unsubscribe': async (args) => {
         const topic = args[1];
         this._node.unsubscribeTopic(topic);
       },
-      'getResult' : async (args)=>{
+      'getResult': async (args) => {
         const taskId = args[1];
         let result = await this._node.getTaskResult(taskId);
         console.log(`-------------> Result for ${taskId} <-------------`);
         console.log(result);
         console.log(`>----------------------------------------------<`);
       },
-      'register' : async ()=>{
+      'register': async () => {
         await this._node.register();
       },
-      'login' : async ()=>{
+      'login': async () => {
         await this._node.login();
       },
-      'logout' : async ()=>{
+      'logout': async () => {
         await this._node.logout();
       },
-      'deposit' : async (args)=>{
+      'deposit': async (args) => {
         const amount = args[1];
         await this._node.deposit(amount);
       },
-      'withdraw' : async (args)=>{
+      'withdraw': async (args) => {
         const amount = args[1];
         await this._node.withdraw(amount);
       },
-      'help': (args)=>{
+      'help': (args) => {
         console.log('---> Commands List <---');
         console.log('addPeer <address> : connect to a new peer manualy.');
         console.log('announce : announce the network worker synchronized on states');
@@ -250,24 +251,24 @@ class CLI {
   }
   _initInitialFlags() {
     program
-    .version('0.1.0')
-    .usage('[options] <file ...>')
-    .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal)=>{
-      Parsers.list(listVal, this._globalWrapper);
-    })
-    .option('-n, --nickname [value]', 'nickname', (nick)=>{
-      Parsers.nickname(nick, this._globalWrapper);
-    })
-    .option('-p, --port [value]', 'listening port', (strPort)=>{
-      Parsers.port(strPort, this._globalWrapper);
-    })
-    .option('-i, --path [value]', 'id path', (theIdPath)=>{
-      Parsers.idPath(theIdPath, this._globalWrapper);
-    })
-    .option('-c, --core [value]', 'specify address:port of core', (addrPortStr)=>{
-      this._coreAddressPort = addrPortStr;
-    })
-    .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', ()=>{
+      .version('0.1.0')
+      .usage('[options] <file ...>')
+      .option('-b, --bnodes <items>', 'Bootstrap nodes', (listVal) => {
+        Parsers.list(listVal, this._globalWrapper);
+      })
+      .option('-n, --nickname [value]', 'nickname', (nick) => {
+        Parsers.nickname(nick, this._globalWrapper);
+      })
+      .option('-p, --port [value]', 'listening port', (strPort) => {
+        Parsers.port(strPort, this._globalWrapper);
+      })
+      .option('-i, --path [value]', 'id path', (theIdPath) => {
+        Parsers.idPath(theIdPath, this._globalWrapper);
+      })
+      .option('-c, --core [value]', 'specify address:port of core', (addrPortStr) => {
+        this._coreAddressPort = addrPortStr;
+      })
+      .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', () => {
         this._mockCore = true;
     })
     .option('--random-db', 'random tasks db', (randomPath)=>{
@@ -320,11 +321,14 @@ class CLI {
       this._autoInit = true;
       this._depositValue = value;
     })
+    .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations = constants.MINIMUM_CONFIRMATIONS) => {
+      this._minConfirmations = +minConfirmations;
+    })
     .parse(process.argv);
   }
   _getFinalConfig() {
     const finalConfig = {};
-    this._changedKeys.forEach((key)=>{
+    this._changedKeys.forEach((key) => {
       finalConfig[key] = this._configObject[key];
     });
     return finalConfig;
@@ -332,13 +336,13 @@ class CLI {
   async _initEnvironment() {
     const builder = new EnviornmentBuilder();
     if (this._coreAddressPort) {
-      const uri ='tcp://' + this._coreAddressPort;
+      const uri = 'tcp://' + this._coreAddressPort;
       if (this._mockCore) {
         const coreServer = new CoreServer();
         coreServer.setProvider(true);
         coreServer.runServer(uri);
       }
-      builder.setIpcConfig({uri: uri});
+      builder.setIpcConfig({ uri: uri });
     }
     if (this._rpcPort) {
       builder.setJsonRpcConfig({
@@ -356,7 +360,7 @@ class CLI {
           let raw = await utils.readFile(this._enigmaContractAbiPath);
           enigmaContractAbi = JSON.parse(raw).abi;
         }
-        catch(e) {
+        catch (e) {
           console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
           return;
         }
@@ -365,7 +369,7 @@ class CLI {
         try {
           accountKey = await utils.readFile(this._ethereumKeyPath);
         }
-        catch(e) {
+        catch (e) {
           console.log(`Error in reading account key ${this._ethereumKeyPath}`);
           return;
         }
@@ -375,7 +379,8 @@ class CLI {
         enigmaContractAddress: this._enigmaContractAddress,
         accountAddress: this._ethereumAddress,
         enigmaContractAbi,
-        accountKey
+        accountKey,
+        minConfirmations: this._minConfirmations
       });
     }
     const nodeConfig = this._getFinalConfig();
@@ -396,7 +401,7 @@ class CLI {
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
     const n = this._node;
-    process.on('SIGINT', async function() {
+    process.on('SIGINT', async function () {
       console.log('----> closing gracefully <------');
       await n.stop();
       process.exit();
@@ -425,7 +430,7 @@ class CLI {
       input: process.stdin,
       output: process.stdout,
       terminal: false,
-    }).on('line', function(cmd) {
+    }).on('line', function (cmd) {
       const args = cmd.split(' ');
       if (cmds[args[0]]) {
         cmds[args[0]](args);
