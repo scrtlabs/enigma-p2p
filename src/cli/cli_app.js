@@ -4,7 +4,6 @@ const path = require('path');
 const readline = require('readline');
 const program = require('commander');
 const Parsers = require('./Parsers');
-const nodeUtils = main.Utils.nodeUtils;
 const EnviornmentBuilder = main.Builder;
 const CoreServer = require('../core/core_server_mock/core_server');
 const cryptography = main.cryptography
@@ -35,6 +34,7 @@ class CLI {
     this._ethereumAddress = null;
     this._autoInit = false;
     this._depositValue = null;
+    this._isLonelyNode = false;
     this._minConfirmations = null;
     this._principalNode = null;
 
@@ -113,43 +113,9 @@ class CLI {
         console.log(addrs);
         console.log('>------------------------<');
       },
-      'getOutConnections': () => {
-        const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
-        cons.forEach((con) => {
-          console.log(con.id.toB58String());
-        });
-        console.log('>------------------------<');
-      },
-      'getInConnections': () => {
-        const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
-        cons.forEach((con) => {
-          console.log(con.id.toB58String());
-        });
-        console.log('>------------------------<');
-      },
-      'peerBank': () => {
-        const peers = this._node.getAllPeerBank();
-        console.log('peer bank: ');
-        for (let k = 0; k < peers.lentgh; k++) {
-          console.log(k);
-        }
-        console.log('>------------------------<');
-      },
-      'discover': () => {
-        this._node.tryConsistentDiscovery();
-      },
-      'inCount': () => {
-        const cons = this._node.getAllInboundHandshakes();
-        console.log('---> inbound connections <---');
-        console.log(cons.length);
-        console.log('>------------------------<');
-      },
-      'outCount': () => {
-        const cons = this._node.getAllOutboundHandshakes();
-        console.log('---> outbound connections <---');
-        console.log(cons.length);
+      'getConnectedPeers': () =>{
+        const peers = this._node.getConnectedPeers();
+        console.log('getConnectedPeers: ', peers);
         console.log('>------------------------<');
       },
       'broadcast': (args) => {
@@ -196,30 +162,10 @@ class CLI {
           }
         });
       },
-      'getAllHandshakedPeers': () => {
-        const hsPeers = this._node.getAllHandshakedPeers();
-        console.log(hsPeers);
-        // res == FindPeersResMsg inside messages.js
-        this._node.sendFindPeerRequest(hsPeers[0], (err, req, res) => {
-          console.log('ok got response!!! ', res.peers().length);
-          nodeUtils.peerBankSeedtoPeerInfo(res.peers()[0], (err, peerInfo) => {
-            if (err) {
-              console.log('ERR converting seed into peerInfo', err);
-            } else {
-              this._node.sendFindPeerRequest(peerInfo, (err, req, res) => {
-                if (err) {
-                  console.log('error connecting to the seed peer! ', err);
-                } else {
-                  console.log('success connecting to the seed peer, his seeds len : ' + res.peers().length);
-                }
-              });
-            }
-          });
-        });
-      },
-      'isConnected': (args) => {
+      'isConnected': (args)=>{
         const id = args[1];
-        this._node.isSimpleConnected(id);
+        const isConnected = this._node.isConnected(id);
+        console.log('Connection test : ' + id + ' ? ' + isConnected);
       },
       'topics': async (args) => {
         const list = await this._node.getTopics();
@@ -277,23 +223,18 @@ class CLI {
         console.log('announce : announce the network worker synchronized on states');
         console.log('broadcast <message> : broadcast a message to the whole network');
         console.log('deposit <amount>: deposit to Enigma contract');
-        console.log('discover : perform persistent discovery to reach optimal DHT');
         console.log('getAddr : get the multiaddress of the node. ');
-        console.log('getInConnections : get list of the inbound connections ');
-        console.log('getOutConnections : get id list of the outbound connections ');
+        console.log('getConnectedPeers : get the list of connected peer Ids');
         console.log('getRegistration : get the registration params of the node. ');
         console.log('getResult <taskId>: check locally if task result exists');
         console.log('help : help');
         console.log('identify : output to std all the missing state, i.e what needs to be synced');
-        console.log('inCount : number of inbound connections');
         console.log('init : init all the required steps for the worker');
         console.log('isConnected <PeerId>: check if some peer is connected');
         console.log('login : login to Enigma contract');
         console.log('logout : logout from Enigma contract');
         console.log('lookup <b58 address> : lookup a peer in the network');
         console.log('monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish');
-        console.log('outCount : number of outbound connections');
-        console.log('peerBank : get list of the potential (not connected) seeds');
         console.log('publish <topic> <str msg> : publish <str msg> on topic <topic> to the network')
         console.log('register : register to Enigma contract');
         console.log('remoteTips <b58 address> : look up the tips of some remote peer');
@@ -329,58 +270,61 @@ class CLI {
       })
       .option('--mock-core', '[TEST] start with core mock server. Must be used with --core option', () => {
         this._mockCore = true;
-      })
-      .option('--random-db', 'random tasks db', (randomPath) => {
-        if (randomPath) {
-          this._randomTasksDbPath = randomPath;
-        } else {
-          this._randomTasksDbPath = true;
-        }
-      })
-      .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr) => {
-        this._rpcPort = portStr;
-      })
-      .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider) => {
-        this._initEthereum = true;
-        this._ethereumWebsocketProvider = provider;
-      })
-      .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address) => {
-        this._initEthereum = true;
-        this._enigmaContractAddress = address;
-      })
-      .option('--ethereum-contract-abi-path [value]', 'specify the Enigma contract ABI path', (path) => {
-        this._initEthereum = true;
-        this._enigmaContractAbiPath = path;
-      })
-      .option('-E, --init-ethereum', 'init Ethereum', () => {
-        this._initEthereum = true;
-      })
-      .option('--ethereum-address [value]', 'specify the Ethereum public address', (address) => {
-        this._initEthereum = true;
-        this._ethereumAddress = address;
-      })
-      .option('--ethereum-key-path [value]', 'specify the Ethereum key path', (path) => {
-        this._initEthereum = true;
-        this._ethereumKeyPath = path;
-      })
-      .option('--ethereum-key [value]', 'specify the Ethereum key', (key) => {
-        this._initEthereum = true;
-        this._ethereumKey = key;
-      })
-      .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr) => {
-        this._principalNode = addrPortstr;
-      })
-      .option('--auto-init', 'perform automatic worker initialization ', () => {
-        this._autoInit = true;
-      })
-      .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value) => {
-        this._autoInit = true;
-        this._depositValue = value;
-      })
-      .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations = constants.MINIMUM_CONFIRMATIONS) => {
-        this._minConfirmations = +minConfirmations;
-      })
-      .parse(process.argv);
+    })
+    .option('--random-db', 'random tasks db', (randomPath)=>{
+      if (randomPath) {
+        this._randomTasksDbPath = randomPath;
+      } else {
+        this._randomTasksDbPath = true;
+      }
+    })
+    .option('-a, --proxy [value]', 'specify port and start with proxy feature (client jsonrpc api)', (portStr)=>{
+      this._rpcPort = portStr;
+    })
+    .option('--ethereum-websocket-provider [value]', 'specify the Ethereum websocket provider', (provider)=>{
+      this._initEthereum = true;
+      this._ethereumWebsocketProvider = provider;
+    })
+    .option('--ethereum-contract-address [value]', 'specify the Enigma contract address to start with', (address)=>{
+      this._initEthereum = true;
+      this._enigmaContractAddress = address;
+    })
+    .option('--ethereum-contract-abi-path [value]', 'specify the Enigma contract ABI path', (path)=>{
+      this._initEthereum = true;
+      this._enigmaContractAbiPath = path;
+    })
+    .option('-E, --init-ethereum', 'init Ethereum', ()=>{
+      this._initEthereum = true;
+    })
+    .option('--ethereum-address [value]', 'specify the Ethereum public address', (address)=>{
+      this._initEthereum = true;
+      this._ethereumAddress = address;
+    })
+    .option('--ethereum-key-path [value]', 'specify the Ethereum key path', (path)=>{
+      this._initEthereum = true;
+      this._ethereumKeyPath = path;
+    })
+    .option('--ethereum-key [value]', 'specify the Ethereum key', (key)=>{
+      this._initEthereum = true;
+      this._ethereumKey = key;
+    })
+    .option('--principal-node [value]', 'specify the address:port of the Principal Node', (addrPortstr)=>{
+      this._principalNode = addrPortstr;
+    })
+    .option('--auto-init', 'perform automatic worker initialization ', ()=>{
+      this._autoInit = true;
+    })
+    .option('--lonely-node', 'is it the only node in a system', ()=>{
+      this._isLonelyNode = true;
+    })
+    .option('--deposit-and-login [value]', 'deposit and login the worker, specify the amount to be deposited, while running automatic initialization', (value)=>{
+      this._autoInit = true;
+      this._depositValue = value;
+    })
+    .option('--min-confirmations [value]', 'the minimum number of confirmations (ethereum blocks) a worker has to wait before knowing data from ethereum is valid ', (minConfirmations = constants.MINIMUM_CONFIRMATIONS) => {
+      this._minConfirmations = +minConfirmations;
+    })
+    .parse(process.argv);
   }
   _getFinalConfig() {
     const finalConfig = {};
@@ -440,16 +384,19 @@ class CLI {
       });
     }
     const nodeConfig = this._getFinalConfig();
+    nodeConfig.extraConfig = {};
+
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
         console.log('Connecting to Principal Node at ' + this._principalNode);
-        nodeConfig.extraConfig = { principal: { uri: this._principalNode } }
-      } else {
-        nodeConfig.extraConfig = {};
+        nodeConfig.extraConfig = {principal: {uri: this._principalNode}}
       }
       nodeConfig.extraConfig.tm = {
         dbPath: tempdir.sync()
       };
+    }
+    if (this._autoInit) {
+      nodeConfig.extraConfig.init = {amount: this._depositValue};
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
@@ -466,17 +413,15 @@ class CLI {
     }
   }
   async _setup() {
-    let err = null;
-    if (this._autoInit) {
-      try {
-        await this._node.asyncInitializeWorkerProcess({ amount: this._depositValue });
-      }
-      catch (e) {
-        console.log('[-] ERROR with automatic worker initialization: ', err);
-        err = e;
-      }
+    // TODO: consider what to do with this!!!
+    // The reason it is here to handle the case of one node in the system (mainly for testing purposes)
+    if (this._autoInit && this._isLonelyNode) {
+      this._node.initializeWorkerProcess(this._depositValue, (err)=>{
+        if (err) {
+          console.log('[-] ERROR with automatic worker initialization: ', err);
+        }
+      });
     }
-    return err;
   }
   start() {
     console.log(Parsers.opener);

@@ -36,7 +36,7 @@ module.exports.readFile = function (path) {
       }
     });
   });
-}
+};
 
 /** turn peerbook into parsed obj
  * @param {peerInfo} rawPeerBook
@@ -79,7 +79,7 @@ function _parsePeerInfo(rawPeerInfo) {
     multiAddrs: multiAddrs
   };
   return parsedPeerInfo;
-};
+}
 
 /** Generate a random id out of Aa0 in len 12
  * for the JSONRPC id parameter.
@@ -89,24 +89,6 @@ module.exports.randId = function () {
   return randomize('Aa0', 12);
 };
 
-/** Map a connection stream to a Ping Message
- * @param {Buffer} data, stream data
- * @return {PingMsg} ping
- * */
-module.exports.toPingMsg = function (data) {
-  let ping = data.toString('utf8').replace('\n', '');
-  ping = JSON.parse(ping);
-  return new Messages.PingMsg(ping);
-};
-
-/** Map a connection stream to a Pong Message
- * @param {Buffer} data, stream data
- * @return {PongMsg} pong
- * */
-module.exports.toPongMsg = function (data) {
-  const pong = data.toString('utf8').replace('\n', '');
-  return new Messages.PongMsg(pong);
-};
 /** Map a connection stream to a HeartBeat response Message
  * @param {Buffer} data, stream data
  * @return {HeartBeatResMsg} hb response
@@ -161,9 +143,9 @@ module.exports.isFunction = function (functionToCheck) {
   return functionToCheck && {}.toString.call(functionToCheck) === '[object Function]';
 };
 /** update the delta patch to a json object from a smaller json
- * @param {Json} main
- * @param {Json} patch
- * @return {Json} updated, the result with the patch
+ * @param {JSON} main
+ * @param {JSON} patch
+ * @return {JSON} updated, the result with the patch
  * */
 module.exports.applyDelta = function (main, patch) {
   const updated = defaultsDeep(patch, main);
@@ -305,7 +287,7 @@ module.exports.b58ToPeerId = (b58Id) => { return PeerId.createFromB58String(b58I
  */
 module.exports.remove0x = function (hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) === '0x') {
       return hexString.substring(2);
     } else {
       return hexString;
@@ -323,7 +305,7 @@ module.exports.remove0x = function (hexString) {
  */
 module.exports.add0x = function (hexString) {
   if (module.exports.isString(hexString)) {
-    if (hexString.substring(0, 2) == '0x') {
+    if (hexString.substring(0, 2) === '0x') {
       return hexString;
     } else {
       return '0x' + hexString;

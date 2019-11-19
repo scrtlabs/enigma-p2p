@@ -5,7 +5,6 @@ const EventEmitter = require('events').EventEmitter;
 const constants = require('../../common/constants');
 const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
-const STATUS = constants.MSG_STATUS;
 const NOTIFICATION = constants.NODE_NOTIFICATIONS;
 const Messages = require('../../policy/p2p_messages/messages');
 const Logger = require('../../common/logger');
@@ -25,8 +24,6 @@ class ProtocolHandler extends EventEmitter {
     }
 
     this._protocols = [
-      PROTOCOLS['ECHO'],
-      PROTOCOLS['HANDSHAKE'],
       PROTOCOLS['PEERS_PEER_BOOK'],
       PROTOCOLS['HEARTBEAT'],
       PROTOCOLS['GROUP_DIAL'],
@@ -39,17 +36,13 @@ class ProtocolHandler extends EventEmitter {
     this.fallback = this.tempFallback;
     this.policy = new Policy();
     this.handlers = {};
-    this.handlers[PROTOCOLS['PEER_DISCOVERY']] = this.onPeerDiscovery;
-    this.handlers[PROTOCOLS['PEER_CONNECT']] = this.onPeerConnect;
-    this.handlers[PROTOCOLS['PEER_DISCONNECT']] = this.onPeerDisconnect;
-    this.handlers[PROTOCOLS['PEERS_PEER_BOOK']] = this.onGetPeerBook;
-    this.handlers[PROTOCOLS['GROUP_DIAL']] = this.onGroupDial;
-    this.handlers[PROTOCOLS['HANDSHAKE']] = this.onHandshake;
-    this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat;
-    this.handlers[PROTOCOLS['ECHO']] = this.onEcho;
-    this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers;
-    this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync;
-    this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange;
+    this.handlers[PROTOCOLS['PEER_DISCOVERY']] = this.onPeerDiscovery.bind(this);
+    this.handlers[PROTOCOLS['PEER_CONNECT']] = this.onPeerConnect.bind(this);
+    this.handlers[PROTOCOLS['PEER_DISCONNECT']] = this.onPeerDisconnect.bind(this);
+    this.handlers[PROTOCOLS['HEARTBEAT']] = this.onHeartBeat.bind(this);
+    this.handlers[PROTOCOLS['FIND_PEERS']] = this.onFindPeers.bind(this);
+    this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync.bind(this);
+    this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange.bind(this);
     // list of active subscriptions pubsub
 
     this._subscriptions = [
@@ -57,8 +50,8 @@ class ProtocolHandler extends EventEmitter {
       PUBSUB_TOPICS.TASK_RESULTS,
     ];
     // pubsub handlers
-    this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast;
-    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish;
+    this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast.bind(this);
+    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish.bind(this);
   }
   getProtocolsList() {
     return this._protocols;
@@ -70,7 +63,7 @@ class ProtocolHandler extends EventEmitter {
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAIN notification field
    */
-    notify(params) {
+  notify(params) {
     this.emit('notify', params);
   }
   /** Handle is a dispatching function
@@ -94,11 +87,10 @@ class ProtocolHandler extends EventEmitter {
    */
   handleTopic(params, message) {
     const topicIDs = message.topicIDs;
-    if (topicIDs.length > 0 && params.worker.getProtocolHandler().policy.isValidTopic(topicIDs[0])) {
+    if (topicIDs.length > 0 && this.policy.isValidTopic(topicIDs[0])) {
       this.handlers[topicIDs[0]](params, message);
     }
   }
-
   tempFallback(protocolName) {
     this._logger.error('[-] Err invalid protocolName: ' + protocolName);
   }
@@ -137,26 +129,6 @@ class ProtocolHandler extends EventEmitter {
         params.connection
     );
   }
-
-  /** /getpeekbook protocol
-   * !!! DEPRECATED !!
-   * response with workers peer book
-   * @param {PeerBundle} nodeBundle libp2p bundle
-   * @param {Json} params {connection, worker,peer,protocol}
-   * TODO:: Replace with a strongly typed "Message" class as a response.
-   */
-  onGetPeerBook(nodeBundle, params) {
-    const selfNode = params.worker;
-    const peers = selfNode.getAllPeersInfo();
-    const parsed = nodeUtils.parsePeerBook(peers);
-    // stream back the connection
-    pull(
-        pull.values([JSON.stringify({
-          'from': selfNode.getSelfPeerInfo().id.toJSON(),
-          'peers': parsed})]),
-        params.connection
-    );
-  }
   /** This is NOT a connection establishment.
    * This simply means that a given boostrap node string has turned into a PeerInfo
    * and now the worker can dial to the peer.
@@ -165,82 +137,11 @@ class ProtocolHandler extends EventEmitter {
    * @param {Json} params {connection, worker,peer,protocol}
    */
   onPeerDiscovery(nodeBundle, params) {
-    // incase a dns node "discoverd" himself
-    if (params.worker.getSelfIdB58Str() == params.peer.id.toB58String()) {
+    // in case a bootstrap "discovered" itself
+    if (params.worker.getSelfIdB58Str() === params.peer.id.toB58String()) {
       return;
     }
-    // if currently not connected to discoverd peer
-    if (!params.worker.isConnected(params.peer.id.toB58String())) {
-      params.worker.getProtocolHandler().notify({'notification': NOTIFICATION['DISCOVERED'], 'params': params});
-    }
-  }
-  /** handle when all bootstrap nodes returned peers.
-     * */
-  /** Temporary for testing purposes.
-   * Takes a msg and responds with echo.
-   * kind of an "interactive ping"
-   * @param {PeerBundle} nodeBundle
-   * @param {Json} params
-   */
-  onEcho(nodeBundle, params) {
-    pull(params.connection, params.connection);
-  }
-  /** This event is triggerd upon a handshake request
-   * Meaning, a ping message is attached
-   * Should check if findpeers is True and attach peer list
-   * Compose a PongMsg and send back
-   * TODO:: Should validate if connection is desired or not.
-   * TODO:: Place it somewhere smart.
-   * @param {PeerBundle} nodeBundle libp2p bundle
-   * @param {Json} params {connection, worker,peer,protocol}
-   */
-  onHandshake(nodeBundle, params) {
-    const conn = params.connection;
-    const worker = params.worker;
-    pull(
-        conn,
-        pull.map((data) => {
-          const pingMsg = nodeUtils.toPingMsg(data);
-          if (pingMsg.isValidMsg()) {
-            // create pong msg
-            let parsed = [];
-            if (pingMsg.findPeers()) {
-              const seeds = worker.getAllPeersInfo();
-              parsed = nodeUtils.parsePeerBook(seeds);
-            }
-            const pong = new Messages.PongMsg({
-              'id': pingMsg.id(),
-              'from': worker.getSelfIdB58Str(),
-              'to': pingMsg.from(),
-              'status': STATUS['OK'],
-              'seeds': parsed});
-            // notify
-            // TODO:: Below commented code
-            // TODO:: Need to notify BUT to change and define this is !!!inbound connection!!!
-            conn.getPeerInfo((err, peerInfo)=>{
-              if (err) {
-                worker.getProtocolHandler()._logger.error('[-] err retrieving peer info from connection on handshake ' + err);
-                return;
-              }
-              worker.getProtocolHandler().notify({
-                'notification': NOTIFICATION.HANDSHAKE_UPDATE,
-                'connectionType': 'inbound',
-                'status': pong.status(),
-                'pong': pong,
-                'who': peerInfo,
-              });
-            });
-            // validate correctness
-            if (pong.isValidMsg()) {
-              return pong.toNetworkStream();
-            }
-          } else {
-            // TODO:: return err and drop connection
-            return null;
-          }
-        }),
-        conn
-    );
+    this.notify({notification: NOTIFICATION.DISCOVERED, params: params});
   }
   /** Response to a heart-beat request.
    * @param {PeerBundle} nodeBundle , the libp2p bundle
@@ -277,8 +178,9 @@ class ProtocolHandler extends EventEmitter {
    * @param {Json} params , {worker,connection,peer,protocol}
    */
   onPeerConnect(nodeBundle, params) {
-    params.worker.getProtocolHandler()._logger.debug('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
+    this._logger.debug('[Connection with '+ nodeBundle.peerInfo.id.toB58String()+
             '] new peer : ' + params.peer.id.toB58String());
+    this.notify({notification: NOTIFICATION.NEW_PEER_CONNECTED, params: params});
   }
   /** On peer disconnect
    * @param {PeerBundle} nodeBundle, libp2p bundle
@@ -286,7 +188,7 @@ class ProtocolHandler extends EventEmitter {
    * TODO:: Every disconnect check if should re-build table and add more peers.
    */
   onPeerDisconnect(nodeBundle, params) {
-    params.worker.getProtocolHandler()._logger.info('peer disconnected from ' + params.peer.id.toB58String());
+    this._logger.info('peer disconnected from ' + params.peer.id.toB58String());
   }
   /**
    * Dispatching a a state sync request.
@@ -295,18 +197,16 @@ class ProtocolHandler extends EventEmitter {
    * @param {Json} params
    */
   onStateSync(nodeBundle, params) {
-    const self = params.worker.getProtocolHandler();
-    self.notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
+    this.notify({'notification': NOTIFICATION.STATE_SYNC_REQ, 'params': params});
   }
   onLocalStateExchange(nodeBundle, params){
-    const self = params.worker.getProtocolHandler();
-    params.worker.getProtocolHandler()._logger.debug('[LOCAL_STATE] got local state request from remote peer.');
-    self.notify({
+    this._logger.debug('[LOCAL_STATE] got local state request from remote peer.');
+    this.notify({
       notification: NOTIFICATION.GET_ALL_TIPS,
       useCaches: false,
       onResponse: (err,tips)=>{
         if(err){
-          params.worker.getProtocolHandler()._logger.debug(`[ERROR] get local tips ${err}.`);
+          this._logger.debug(`[ERROR] get local tips ${err}.`);
           return;
         }
         pull(
@@ -336,7 +236,7 @@ class ProtocolHandler extends EventEmitter {
     // const topicIDs = message.topicIDs;
     const out = JSON.stringify({'from': from, 'data': data}, null, 2);
     console.log('----------------------------------------------------');
-    params.worker.getProtocolHandler()._logger.info(out);
+    this._logger.info(out);
     console.log('----------------------------------------------------');
   }
   onTaskResultPublish(params, message) {
@@ -345,8 +245,7 @@ class ProtocolHandler extends EventEmitter {
     if (from === selfId) {
       return;
     }
-    const self = params.worker.getProtocolHandler();
-    self.notify({notification: NOTIFICATION.RECEIVED_NEW_RESULT, params: message});
+    this.notify({notification: NOTIFICATION.RECEIVED_NEW_RESULT, params: message});
   }
 }
 

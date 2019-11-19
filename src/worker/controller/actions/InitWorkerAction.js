@@ -3,12 +3,8 @@
  * TODO:: https://github.com/enigmampc/enigma-p2p#overview-on-start
  * TODO:: this could be implemented better and persist for each step.
  * TODO:: For example, lets say that SyncStat fails, right now it just continues and notifies the user.
- * TODO:: it can keep trying just like PersistentDiscovery
+ * TODO:: it can keep trying
  *
- * * ------------------------------------------------------------------------------
- * BOOTSTRAP + DISCOVERY:
- * Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
- * * ------------------------------------------------------------------------------
  * Sync State:
  * Synchronize the Worker state: Secret contracts bytecode and deltas.
  * * ------------------------------------------------------------------------------
@@ -31,26 +27,23 @@ class InitWorkerAction {
     this._controller = controller;
   }
   /**
-   * @param {Function} optinal callback (err)=>{}
+   * @param {Function} optional callback (err)=>{}
    * */
   execute(params) {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
-    const P = constants.CONSISTENT_DISCOVERY_PARAMS;
     const depositAmount = params.amount;
+
+    if (this._controller.isWorkerInitialized()) {
+      this._controller.logger().debug('Worker was already initialized.. Skipping');
+      if (callback) {
+        callback(null);
+      }
+      return;
+    }
+
+    this._controller.startInitWorker();
     // methods
-    const discovery = (cb)=>{
-      this._controller.execCmd(C.CONSISTENT_DISCOVERY, {
-        delay: P.DELAY,
-        maxRetry: P.MAX_RETRY,
-        timeout: P.TIMEOUT,
-        callback: (status, result)=>{
-          const outMsg = 'Discovery status: ' + JSON.stringify(status);
-          this._controller.logger().info(outMsg);
-          cb(null);
-        },
-      });
-    };
     const syncState = (cb)=>{
       if(!this._controller.hasEthereum()){
         return cb(null);
@@ -58,8 +51,7 @@ class InitWorkerAction {
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
         onEnd: (err, statusResult)=>{
-          if(!err || err instanceof errors.SyncReceiverNoMissingDataErr){
-            this._controller.logger().debug(JSON.stringify(statusResult));
+          if (!err || err instanceof errors.SyncReceiverNoMissingDataErr){
             this._controller.logger().info('success syncing pipeline');
             err = null;
           } else{
@@ -161,11 +153,8 @@ class InitWorkerAction {
           }
         }
       }
-      return;
     };
     waterfall([
-      // BOOTSTRAP + DISCOVERY:
-      discovery,
       // Sync State
       syncState,
       // Announce State:
@@ -177,8 +166,10 @@ class InitWorkerAction {
     ], (err)=>{
       if (err) {
         this._controller.logger().error('error InitWorkerAction ' + err);
-      } else {
+      }
+      else {
         this._controller.logger().info('success InitWorkerAction');
+        this._controller.initWorkerDone();
       }
       if (callback) {
         callback(err);
