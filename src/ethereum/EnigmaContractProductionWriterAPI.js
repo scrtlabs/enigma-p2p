@@ -2,8 +2,6 @@ const utils = require('../common/utils');
 const errors = require('../common/errors');
 const constants = require('../common/constants');
 const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
-const ethUtils = require("../../test/ethereum/utils")
-
 
 const EMPTY_HEX_STRING = '0x'; // This is the right value to pass an empty value to the contract, otherwise we get an error
 
@@ -215,7 +213,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let deployedEvents = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, { scAddr: utils.add0x(taskId) }, blockNumber);
@@ -358,7 +356,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let possibleEvents;
@@ -437,7 +435,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
@@ -489,7 +487,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           utils.add0x(signature)).encodeABI()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey)
-      const blockNumber = await ethUtils.getEthereumBlockNumber(this.w3());
+      const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
         let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, { taskId: utils.add0x(taskId) }, blockNumber);
@@ -515,10 +513,12 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
   }
 
   async _parsePastEvents(eventName, filter, blockNumber) {
-    let rawEvents = await this._enigmaContract.getPastEvents(eventName, { fromBlock: blockNumber, filter: filter });
-    let events = null;
-    if (Array.isArray(rawEvents) && rawEvents.length > 0) {
-      events = {};
+    const rawEvents = await this._enigmaContract.getPastEvents(eventName, { fromBlock: blockNumber, filter: filter });
+    let events = {};
+    if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
+      if (rawEvents.length > 1) {
+        this._logger.info(`Received am unexpected number of events for ${eventName} with the current filter ${JSON.stringify(filter)}.. taking the first`);
+      }
       events[eventName] = rawEvents[0];
       events = this._parseEvents(events);
     }

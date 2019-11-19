@@ -6,13 +6,13 @@
  * - update local storage
  * */
 const constants = require('../../../../common/constants');
+const utils = require('../../../../common/utils');
 const errors = require('../../../../common/errors');
 const EngCid = require('../../../../common/EngCID');
 const DeployResult = require('../../../tasks/Result').DeployResult;
 const ComputeResult = require('../../../tasks/Result').ComputeResult;
 const FailedResult = require('../../../tasks/Result').FailedResult;
 const OutsideTask = require('../../../tasks/OutsideTask');
-const ethUtils = require("../../../../../test/ethereum/utils")
 
 class VerifyAndStoreResultAction {
   constructor(controller) {
@@ -77,7 +77,7 @@ class VerifyAndStoreResultAction {
           let outsideTask = OutsideTask.buildTask(type, resultObj);
           if (outsideTask) {
             if (verifyError instanceof errors.TaskEthereumFailureErr) {
-              outsideTask.setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB)
+              outsideTask.getResult().setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB);
             }
             // store result in TaskManager mapped with taskId
             await this._controller.taskManager().addOutsideResult(type, outsideTask);
@@ -161,7 +161,7 @@ class VerifyAndStoreResultAction {
         }
       }
       try {
-        const currentBlockNumber = await ethUtils.getEthereumBlockNumber(this._controller.ethereum().api().w3());
+        const currentBlockNumber = await utils.getEthereumBlockNumber(this._controller.ethereum().api().w3());
         let res = await this._controller.ethereum().verifier().verifyTaskSubmission(result, currentBlockNumber, contractAddress, localTip);
         if (res.error) {
           this._controller.logger().info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);

@@ -2,8 +2,7 @@
  * verify a task
  * */
 const constants = require('../../../../common/constants');
-const ethUtils = require("../../../../../test/ethereum/utils")
-
+const ethUtils = require("../../../../common/utils")
 
 class VerifyNewTaskAction {
   constructor(controller) {
@@ -32,7 +31,7 @@ class VerifyNewTaskAction {
             }
           }
           catch (err) {
-            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.getTaskId()}`);
+            this._controller.logger().error(`[VERIFY_NEW_TASK] an exception occurred while trying to verify task ${unverifiedTask.getTaskId()} = ${err}`);
           }
         }
         await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);

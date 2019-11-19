@@ -7,11 +7,9 @@ const { exec, spawn } = require('child_process');
 const Web3 = require('web3');
 const utils = require('../common/utils');
 const defaultsDeep = require('@nodeutils/defaults-deep');
-const ethTestUtils = require('../../test/ethereum/utils');
 
 
 TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
-
 
 const defaultConfig = {
   url: 'ws://127.0.0.1:9545',
@@ -262,8 +260,8 @@ class EnigmaContractAPIBuilder {
     await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
     await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
 
-
     const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
+    const ethTestUtils = require('../../test/ethereum/utils');
 
     const networkId = truffleConfig.networks.development.network_id;
     const rawdata = await utils.readFile((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
