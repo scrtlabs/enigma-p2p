@@ -96,7 +96,8 @@ class NodeController {
     this._ethereumApi = null;
 
     // TODO: consider a more cleaner approach
-    this._workerInitDone = false;
+    this._workerInitialzied = false;
+    this._workerInitInProgress = false;
 
     // init logic
     this._initController();
@@ -298,11 +299,18 @@ class NodeController {
   setEthereumApi(api) {
     this._ethereumApi = api;
   }
-  isWorkerInitDone() {
-    return this._workerInitDone;
+  startInitWorker() {
+    this._workerInitInProgress = true;
   }
-  workerInitDone() {
-    this._workerInitDone = true;
+  initWorkerDone() {
+    this._workerInitialzied = true;
+    this._workerInitInProgress = false;
+  }
+  canInitWorker() {
+    return (!this._workerInitialzied && !this._workerInitInProgress);
+  }
+  isWorkerInitialized() {
+    return this._workerInitialzied;
   }
   getAutoInitParams() {
     return this._extraConfig.init;

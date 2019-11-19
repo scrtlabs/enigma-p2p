@@ -34,7 +34,7 @@ class InitWorkerAction {
     const C = constants.NODE_NOTIFICATIONS;
     const depositAmount = params.amount;
 
-    if (this._controller.isWorkerInitDone()) {
+    if (this._controller.isWorkerInitialized()) {
       this._controller.logger().debug('Worker was already initialized.. Skipping');
       if (callback) {
         callback(null);
@@ -42,6 +42,7 @@ class InitWorkerAction {
       return;
     }
 
+    this._controller.startInitWorker();
     // methods
     const syncState = (cb)=>{
       if(!this._controller.hasEthereum()){
@@ -168,7 +169,7 @@ class InitWorkerAction {
       }
       else {
         this._controller.logger().info('success InitWorkerAction');
-        this._controller.workerInitDone();
+        this._controller.initWorkerDone();
       }
       if (callback) {
         callback(err);
