@@ -35,11 +35,7 @@ class Policy {
    * @return {Boolean} isValid
    */
   validJsonRpc(msg) {
-    return (
-      "jsonrpc" in msg &&
-      (("method" in msg && "params") || "result" in msg) &&
-      "id" in msg
-    );
+    return "jsonrpc" in msg && (("method" in msg && "params") || "result" in msg) && "id" in msg;
   }
 }
 

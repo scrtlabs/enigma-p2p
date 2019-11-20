@@ -35,9 +35,7 @@ class InitWorkerAction {
     const depositAmount = params.amount;
 
     if (this._controller.isWorkerInitialized()) {
-      this._controller
-        .logger()
-        .debug("Worker was already initialized.. Skipping");
+      this._controller.logger().debug("Worker was already initialized.. Skipping");
       if (callback) {
         callback(null);
       }
@@ -71,9 +69,7 @@ class InitWorkerAction {
             this._controller.logger().error("failed announcing " + error);
           } else {
             content.forEach(ecid => {
-              this._controller
-                .logger()
-                .debug("providing : " + ecid.getKeccack256());
+              this._controller.logger().debug("providing : " + ecid.getKeccack256());
             });
           }
           cb(error);
@@ -89,9 +85,7 @@ class InitWorkerAction {
             constants.ETHEREUM_EVENTS.NewEpoch,
             function(error, event) {
               if (error) {
-                this._controller
-                  .logger()
-                  .error("failed subscribing to NewEpoch events " + error);
+                this._controller.logger().error("failed subscribing to NewEpoch events " + error);
               } else {
                 this._controller.execCmd(C.GET_STATE_KEYS);
               }
@@ -114,35 +108,23 @@ class InitWorkerAction {
         let isLogIn = false;
 
         try {
-          workerParams = await this._controller.asyncExecCmd(
-            C.GET_ETH_WORKER_PARAM
-          );
+          workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
         } catch (err) {
           return this._controller
             .logger()
-            .error(
-              "error InitWorkerAction- Reading worker params from ethereum failed" +
-                err
-            );
+            .error("error InitWorkerAction- Reading worker params from ethereum failed" + err);
         }
         // If the worker is already logged-in, nothing to do
         if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN) {
-          this._controller
-            .logger()
-            .info("InitWorkerAction- worker is already logged-in");
+          this._controller.logger().info("InitWorkerAction- worker is already logged-in");
           return;
         }
-        if (
-          workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-        ) {
+        if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
           registered = true;
         }
         // Check if  the worker should deposit money and login after registration
         if (depositAmount) {
-          if (
-            workerParams.status ===
-            constants.ETHEREUM_WORKER_STATUS.UNREGISTERED
-          ) {
+          if (workerParams.status === constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
             isDeposit = workerParams.balance > 0;
           }
         }
@@ -155,11 +137,7 @@ class InitWorkerAction {
           try {
             registered = await this._controller.asyncExecCmd(C.REGISTER);
           } catch (err) {
-            return this._controller
-              .logger()
-              .error(
-                "error InitWorkerAction- Register to ethereum failed" + err
-              );
+            return this._controller.logger().error("error InitWorkerAction- Register to ethereum failed" + err);
           }
         }
         if (!isDeposit && registered) {
@@ -168,18 +146,14 @@ class InitWorkerAction {
               amount: depositAmount
             });
           } catch (err) {
-            return this._controller
-              .logger()
-              .error("error InitWorkerAction- Deposit stake failed" + err);
+            return this._controller.logger().error("error InitWorkerAction- Deposit stake failed" + err);
           }
         }
         if (!isLogIn && isDeposit) {
           try {
             isLogIn = await this._controller.asyncExecCmd(C.LOGIN);
           } catch (err) {
-            return this._controller
-              .logger()
-              .error("error InitWorkerAction- Login to ethereum failed" + err);
+            return this._controller.logger().error("error InitWorkerAction- Login to ethereum failed" + err);
           }
         }
       }

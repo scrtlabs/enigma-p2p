@@ -175,7 +175,7 @@ The [MainController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d
 The different Runtimes need to implement 2 methods:
 
 `type() : string`
-  
+
 This method returns the Runtime [name](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/common/constants.js#L97).
 
 `setChannel(Communicator)`
@@ -203,11 +203,7 @@ let c2 = communicators.channel2;
 
 c1.setOnMessage(envelop => {
   console.log(envelop);
-  let e = new Envelop(
-    envelop.id(),
-    { msg: "this is lena " },
-    "target runtime action"
-  );
+  let e = new Envelop(envelop.id(), { msg: "this is lena " }, "target runtime action");
   c1.send(e);
 });
 // envelop

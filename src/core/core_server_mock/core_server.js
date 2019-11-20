@@ -296,22 +296,13 @@ class MockCoreServer {
           MockCoreServer._send(this._socket, encKeyMsg);
           break;
         case MsgTypes.DeploySecretContract:
-          MockCoreServer._send(
-            this._socket,
-            MockCoreServer._getDeployTaskResult(msg)
-          );
+          MockCoreServer._send(this._socket, MockCoreServer._getDeployTaskResult(msg));
           break;
         case MsgTypes.ComputeTask:
-          MockCoreServer._send(
-            this._socket,
-            MockCoreServer._getComputeTaskResult(msg)
-          );
+          MockCoreServer._send(this._socket, MockCoreServer._getComputeTaskResult(msg));
           break;
         case MsgTypes.GetPTTRequest:
-          MockCoreServer._send(
-            this._socket,
-            MockCoreServer._getPTTRequest(msg)
-          );
+          MockCoreServer._send(this._socket, MockCoreServer._getPTTRequest(msg));
           break;
         case MsgTypes.PTTResponse:
           MockCoreServer._send(this._socket, MockCoreServer._PTTResponse(msg));
@@ -339,8 +330,7 @@ class MockCoreServer {
         result: {
           workerEncryptionKey:
             "0061d93b5412c0c99c3c7867db13c4e13e51292bd52565d002ecf845bb0cfd8adfa5459173364ea8aff3fe24054cca88581f6c3c5e928097b9d4d47fce12ae47",
-          workerSig:
-            "worker-signature-with-signed-by-the-private-key-of-the-sender-key"
+          workerSig: "worker-signature-with-signed-by-the-private-key-of-the-sender-key"
         }
       };
     } else {

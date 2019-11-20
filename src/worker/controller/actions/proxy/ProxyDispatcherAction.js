@@ -20,8 +20,7 @@ class ProxyDispatcherAction {
         const workerSignKey = requestEnvelop.content().workerSignKey;
         const sequence = requestEnvelop.content().id;
         const selfId = this._controller.engNode().getSelfIdB58Str();
-        requestEnvelop.content().targetTopic =
-          selfId + workerSignKey + sequence;
+        requestEnvelop.content().targetTopic = selfId + workerSignKey + sequence;
         break;
       case constants.NODE_NOTIFICATIONS.GET_TASK_STATUS:
         theAction = constants.NODE_NOTIFICATIONS.DISPATCH_STATUS_REQ_RPC;
@@ -36,10 +35,7 @@ class ProxyDispatcherAction {
       case constants.CORE_REQUESTS.DeploySecretContract:
         try {
           // translate from base64 to byte array
-          const preCodeBufferGzip = Buffer.from(
-            requestEnvelop.content().request.preCode,
-            "base64"
-          );
+          const preCodeBufferGzip = Buffer.from(requestEnvelop.content().request.preCode, "base64");
           // unzip the preCode
           const preCodeBuffer = await utils.gunzip(preCodeBufferGzip);
           const preCodeByteArray = [...preCodeBuffer];
@@ -47,9 +43,7 @@ class ProxyDispatcherAction {
         } catch (e) {
           this._controller
             .logger()
-            .info(
-              `[PROXY_DISPATCH] an exception occurred while trying to unpack DeploySecretContract RPC ${e}`
-            );
+            .info(`[PROXY_DISPATCH] an exception occurred while trying to unpack DeploySecretContract RPC ${e}`);
           return;
         }
       case constants.CORE_REQUESTS.ComputeTask:
@@ -60,9 +54,7 @@ class ProxyDispatcherAction {
         break;
     }
     if (theAction) {
-      this._controller
-        .logger()
-        .debug("[PROXY_DISPATCH] sending dispatched rpc request");
+      this._controller.logger().debug("[PROXY_DISPATCH] sending dispatched rpc request");
       this._controller.execCmd(theAction, requestEnvelop);
     }
   }
@@ -74,15 +66,9 @@ class ProxyDispatcherAction {
       });
       result = JSON.parse(result.toDbJson());
     } catch (e) {
-      this._controller
-        .logger()
-        .info(`[PROXY_DISPATCH] error getting result ${e}`);
+      this._controller.logger().info(`[PROXY_DISPATCH] error getting result ${e}`);
     } finally {
-      const responseEnvelop = new Envelop(
-        requestEnvelop.id(),
-        { result: result },
-        requestEnvelop.type()
-      );
+      const responseEnvelop = new Envelop(requestEnvelop.id(), { result: result }, requestEnvelop.type());
       this._controller.communicator().send(responseEnvelop);
     }
   }

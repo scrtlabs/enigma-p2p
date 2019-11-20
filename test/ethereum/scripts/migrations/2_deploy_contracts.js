@@ -25,10 +25,7 @@ async function deployProtocol(deployer) {
     PrincipalImpl.link("WorkersImpl", WorkersImpl.address)
   ]);
 
-  await Promise.all([
-    deployer.deploy(TaskImpl),
-    deployer.deploy(PrincipalImpl)
-  ]);
+  await Promise.all([deployer.deploy(TaskImpl), deployer.deploy(PrincipalImpl)]);
 
   await Promise.all([
     Enigma.link("WorkersImpl", WorkersImpl.address),
@@ -40,14 +37,7 @@ async function deployProtocol(deployer) {
   let principal = PRINCIPAL_SIGNING_ADDRESS;
   console.log("using account", principal, "as principal signer");
   await deployer.deploy(ExchangeRate);
-  await deployer.deploy(
-    Enigma,
-    EnigmaToken.address,
-    principal,
-    ExchangeRate.address,
-    EPOCH_SIZE,
-    TIMEOUT_THRESHOLD
-  );
+  await deployer.deploy(Enigma, EnigmaToken.address, principal, ExchangeRate.address, EPOCH_SIZE, TIMEOUT_THRESHOLD);
 }
 
 async function doMigration(deployer) {

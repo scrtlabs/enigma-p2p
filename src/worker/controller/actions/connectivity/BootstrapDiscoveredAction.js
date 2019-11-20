@@ -16,11 +16,8 @@ class BootstrapDiscoveredAction {
       if (!err) {
         success = true;
       }
-      this._controller
-        .logger()
-        .debug(`connection to bootstrap succeeded=${success}`);
+      this._controller.logger().debug(`connection to bootstrap succeeded=${success}`);
     });
   }
 }
-
 module.exports = BootstrapDiscoveredAction;

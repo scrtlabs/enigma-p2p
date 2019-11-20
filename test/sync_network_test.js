@@ -55,26 +55,17 @@ describe("sync_network_tests", () => {
       let workerPeer = peers[0];
       let verifierPeer = peers[1];
       // publish the task
-      workerPeer.mainController
-        .getNode()
-        .execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
+      workerPeer.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
       await testUtils.sleep(3000);
       let ecid = EngCid.createFromSCAddress(task.getContractAddr());
-      let findProvidersResult = await verifierPeer.mainController
-        .getNode()
-        .asyncFindProviders([ecid]);
-      assert.strictEqual(
-        false,
-        findProvidersResult.isErrors(),
-        " errors found in find provider result"
-      );
+      let findProvidersResult = await verifierPeer.mainController.getNode().asyncFindProviders([ecid]);
+      assert.strictEqual(false, findProvidersResult.isErrors(), " errors found in find provider result");
       let providers = findProvidersResult.getProvidersFor(ecid);
       let providersNum = Object.keys(providers).length;
       assert.strictEqual(
         peersNum + 1,
         providersNum,
-        `wrong providers number current = ${providersNum} instead of ${peersNum +
-          1}`
+        `wrong providers number current = ${providersNum} instead of ${peersNum + 1}`
       );
       await stopTest();
     });
@@ -84,44 +75,14 @@ describe("sync_network_tests", () => {
 function getDeployResultTask() {
   let taskRawObj = {
     taskId: "0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538",
-    preCode: [
-      0,
-      1,
-      2,
-      3,
-      4,
-      5,
-      6,
-      7,
-      8,
-      9,
-      10,
-      11,
-      22,
-      11,
-      33,
-      22,
-      55,
-      66,
-      99,
-      66,
-      33,
-      66,
-      33,
-      66,
-      33,
-      66,
-      33
-    ],
-    encryptedArgs:
-      "kjidejkdjeu83832uewhriowehjuehyhejdekioeuisdrhjfdrkhjfesdjksfdljkoifdkliutrjiukerfjk",
+    preCode: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 22, 11, 33, 22, 55, 66, 99, 66, 33, 66, 33, 66, 33, 66, 33],
+    encryptedArgs: "kjidejkdjeu83832uewhriowehjuehyhejdekioeuisdrhjfdrkhjfesdjksfdljkoifdkliutrjiukerfjk",
     encryptedFn: "kjhbsarglikujrhehihiuhihikkkkkkkkkkkkjdhfyueuehen",
     userDHKey:
       "5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99",
     gasLimit: 1200,
     blockNumber: 120,
-    contractAddress:
-      "0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538"
+    contractAddress: "0033105ed3302282dddd38fcc8330a6448f6ae16bbcb26209d8740e8b3d28538"
   };
   let deployTask = DeployTask.buildTask(taskRawObj);
   // create result
@@ -134,8 +95,7 @@ function getDeployResultTask() {
     ethereumPayload: [233, 46, 78],
     ethereumAddress: "cc353334487696ebc3e15411e0b106186eba3c0c",
     signature: [233, 43, 67, 54],
-    preCodeHash:
-      "87c2d362de99f75a4f2755cdaaad2d11bf6cc65dc71356593c445535ff28f43d"
+    preCodeHash: "87c2d362de99f75a4f2755cdaaad2d11bf6cc65dc71356593c445535ff28f43d"
   };
   let result = Result.DeployResult.buildDeployResult(resultRawObj);
   deployTask.setResult(result);

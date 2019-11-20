@@ -60,20 +60,8 @@ class JsonRpcServer extends EventEmitter {
         deploySecretContract: async (args, callback) => {
           if (this._shouldRouteMessage(args)) {
             this._logger.info("[+] JsonRpc: deploySecretContract");
-            let expected = [
-              "workerAddress",
-              "preCode",
-              "encryptedArgs",
-              "encryptedFn",
-              "userDHKey",
-              "contractAddress"
-            ];
-            this._routeTask(
-              constants.CORE_REQUESTS.DeploySecretContract,
-              expected,
-              args,
-              callback
-            );
+            let expected = ["workerAddress", "preCode", "encryptedArgs", "encryptedFn", "userDHKey", "contractAddress"];
+            this._routeTask(constants.CORE_REQUESTS.DeploySecretContract, expected, args, callback);
           } else {
             //TODO:: message directed to self worker, handle
           }
@@ -81,20 +69,8 @@ class JsonRpcServer extends EventEmitter {
         sendTaskInput: async (args, callback) => {
           if (this._shouldRouteMessage(args)) {
             this._logger.info("[+] JsonRpc: sendTaskInput");
-            let expected = [
-              "taskId",
-              "workerAddress",
-              "encryptedArgs",
-              "encryptedFn",
-              "userDHKey",
-              "contractAddress"
-            ];
-            this._routeTask(
-              constants.CORE_REQUESTS.ComputeTask,
-              expected,
-              args,
-              callback
-            );
+            let expected = ["taskId", "workerAddress", "encryptedArgs", "encryptedFn", "userDHKey", "contractAddress"];
+            this._routeTask(constants.CORE_REQUESTS.ComputeTask, expected, args, callback);
           } else {
             //TODO:: message directed to self worker, handle
           }

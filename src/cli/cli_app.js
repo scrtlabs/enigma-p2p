@@ -42,10 +42,8 @@ class CLI {
     this._B1Port = "10300";
     this._B2Path = path.join(__dirname, "../../test/testUtils/id-d");
     this._B2Port = "10301";
-    this._B1Addr =
-      "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
-    this._B2Addr =
-      "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP";
+    this._B1Addr = "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
+    this._B2Addr = "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP";
 
     this._configObject = {
       bootstrapNodes: null,
@@ -85,9 +83,7 @@ class CLI {
       lookup: async args => {
         const b58Addr = args[1];
         let peerInfo = await this._node.lookUpPeer(b58Addr);
-        console.log(
-          `--------------> PeerInfo ${b58Addr} Lookup <--------------`
-        );
+        console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
         if (peerInfo) {
           console.log("Listening on:");
           peerInfo.multiaddrs.forEach(ma => console.log(ma.toString()));
@@ -98,16 +94,12 @@ class CLI {
       remoteTips: async args => {
         const b58Addr = args[1];
         let tips = await this._node.getLocalStateOfRemote(b58Addr);
-        console.log(
-          `--------------> tips of  ${b58Addr} Lookup <--------------`
-        );
+        console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
         if (tips) {
           tips.forEach(tip => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(
-              `address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`
-            );
+            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
           console.log(`-> total of ${tips.length} secret contracts.`);
         } else {
@@ -140,9 +132,7 @@ class CLI {
       },
       monitorSubscribe: args => {
         if (args.length < 2) {
-          return console.log(
-            "error please use $monitorSubscribe <topic str name>"
-          );
+          return console.log("error please use $monitorSubscribe <topic str name>");
         }
         const topic = args[1];
         this._node.monitorSubscribe(topic);
@@ -191,9 +181,7 @@ class CLI {
           tips.forEach(tip => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(
-              `address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`
-            );
+            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
           console.log(`-> total of ${tips.length} secret contracts.`);
         } catch (e) {
@@ -231,23 +219,15 @@ class CLI {
       help: args => {
         console.log("---> Commands List <---");
         console.log("addPeer <address> : connect to a new peer manualy.");
-        console.log(
-          "announce : announce the network worker synchronized on states"
-        );
-        console.log(
-          "broadcast <message> : broadcast a message to the whole network"
-        );
+        console.log("announce : announce the network worker synchronized on states");
+        console.log("broadcast <message> : broadcast a message to the whole network");
         console.log("deposit <amount>: deposit to Enigma contract");
         console.log("getAddr : get the multiaddress of the node. ");
         console.log("getConnectedPeers : get the list of connected peer Ids");
-        console.log(
-          "getRegistration : get the registration params of the node. "
-        );
+        console.log("getRegistration : get the registration params of the node. ");
         console.log("getResult <taskId>: check locally if task result exists");
         console.log("help : help");
-        console.log(
-          "identify : output to std all the missing state, i.e what needs to be synced"
-        );
+        console.log("identify : output to std all the missing state, i.e what needs to be synced");
         console.log("init : init all the required steps for the worker");
         console.log("isConnected <PeerId>: check if some peer is connected");
         console.log("login : login to Enigma contract");
@@ -256,19 +236,11 @@ class CLI {
         console.log(
           "monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish"
         );
-        console.log(
-          "publish <topic> <str msg> : publish <str msg> on topic <topic> to the network"
-        );
+        console.log("publish <topic> <str msg> : publish <str msg> on topic <topic> to the network");
         console.log("register : register to Enigma contract");
-        console.log(
-          "remoteTips <b58 address> : look up the tips of some remote peer"
-        );
-        console.log(
-          "selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)"
-        );
-        console.log(
-          "sync : sync the worker from the network and get all the missing states"
-        );
+        console.log("remoteTips <b58 address> : look up the tips of some remote peer");
+        console.log("selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)");
+        console.log("sync : sync the worker from the network and get all the missing states");
         console.log("tips : output to std the local existing states, tips");
         console.log("topics : list of subscribed topics");
         console.log("withdraw <amount>: withdraw from Enigma contract");
@@ -294,20 +266,12 @@ class CLI {
       .option("-i, --path [value]", "id path", theIdPath => {
         Parsers.idPath(theIdPath, this._globalWrapper);
       })
-      .option(
-        "-c, --core [value]",
-        "specify address:port of core",
-        addrPortStr => {
-          this._coreAddressPort = addrPortStr;
-        }
-      )
-      .option(
-        "--mock-core",
-        "[TEST] start with core mock server. Must be used with --core option",
-        () => {
-          this._mockCore = true;
-        }
-      )
+      .option("-c, --core [value]", "specify address:port of core", addrPortStr => {
+        this._coreAddressPort = addrPortStr;
+      })
+      .option("--mock-core", "[TEST] start with core mock server. Must be used with --core option", () => {
+        this._mockCore = true;
+      })
       .option("--random-db", "random tasks db", randomPath => {
         if (randomPath) {
           this._randomTasksDbPath = randomPath;
@@ -315,67 +279,39 @@ class CLI {
           this._randomTasksDbPath = true;
         }
       })
-      .option(
-        "-a, --proxy [value]",
-        "specify port and start with proxy feature (client jsonrpc api)",
-        portStr => {
-          this._rpcPort = portStr;
-        }
-      )
-      .option(
-        "--ethereum-websocket-provider [value]",
-        "specify the Ethereum websocket provider",
-        provider => {
-          this._initEthereum = true;
-          this._ethereumWebsocketProvider = provider;
-        }
-      )
-      .option(
-        "--ethereum-contract-address [value]",
-        "specify the Enigma contract address to start with",
-        address => {
-          this._initEthereum = true;
-          this._enigmaContractAddress = address;
-        }
-      )
-      .option(
-        "--ethereum-contract-abi-path [value]",
-        "specify the Enigma contract ABI path",
-        path => {
-          this._initEthereum = true;
-          this._enigmaContractAbiPath = path;
-        }
-      )
+      .option("-a, --proxy [value]", "specify port and start with proxy feature (client jsonrpc api)", portStr => {
+        this._rpcPort = portStr;
+      })
+      .option("--ethereum-websocket-provider [value]", "specify the Ethereum websocket provider", provider => {
+        this._initEthereum = true;
+        this._ethereumWebsocketProvider = provider;
+      })
+      .option("--ethereum-contract-address [value]", "specify the Enigma contract address to start with", address => {
+        this._initEthereum = true;
+        this._enigmaContractAddress = address;
+      })
+      .option("--ethereum-contract-abi-path [value]", "specify the Enigma contract ABI path", path => {
+        this._initEthereum = true;
+        this._enigmaContractAbiPath = path;
+      })
       .option("-E, --init-ethereum", "init Ethereum", () => {
         this._initEthereum = true;
       })
-      .option(
-        "--ethereum-address [value]",
-        "specify the Ethereum public address",
-        address => {
-          this._initEthereum = true;
-          this._ethereumAddress = address;
-        }
-      )
-      .option(
-        "--ethereum-key-path [value]",
-        "specify the Ethereum key path",
-        path => {
-          this._initEthereum = true;
-          this._ethereumKeyPath = path;
-        }
-      )
+      .option("--ethereum-address [value]", "specify the Ethereum public address", address => {
+        this._initEthereum = true;
+        this._ethereumAddress = address;
+      })
+      .option("--ethereum-key-path [value]", "specify the Ethereum key path", path => {
+        this._initEthereum = true;
+        this._ethereumKeyPath = path;
+      })
       .option("--ethereum-key [value]", "specify the Ethereum key", key => {
         this._initEthereum = true;
         this._ethereumKey = key;
       })
-      .option(
-        "--principal-node [value]",
-        "specify the address:port of the Principal Node",
-        addrPortstr => {
-          this._principalNode = addrPortstr;
-        }
-      )
+      .option("--principal-node [value]", "specify the address:port of the Principal Node", addrPortstr => {
+        this._principalNode = addrPortstr;
+      })
       .option("--auto-init", "perform automatic worker initialization ", () => {
         this._autoInit = true;
       })
@@ -433,9 +369,7 @@ class CLI {
           let raw = await utils.readFile(this._enigmaContractAbiPath);
           enigmaContractAbi = JSON.parse(raw).abi;
         } catch (e) {
-          console.log(
-            `Error in reading enigma contract API ${this._enigmaContractAbiPath}`
-          );
+          console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
           return;
         }
       }

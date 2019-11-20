@@ -46,19 +46,9 @@ describe("Verifier tests", function() {
         "signature"
       );
 
-      apiMock.setContractParams(contractAddress, null, [
-        web3Utils.randomHex(32),
-        deltaHash
-      ]);
+      apiMock.setContractParams(contractAddress, null, [web3Utils.randomHex(32), deltaHash]);
       // ok
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     } else {
       task = new DeployResult(
         taskId,
@@ -84,10 +74,7 @@ describe("Verifier tests", function() {
 
     // wrong deltaHash
     if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, [
-        web3Utils.randomHex(32),
-        web3Utils.randomHex(32)
-      ]);
+      apiMock.setContractParams(contractAddress, null, [web3Utils.randomHex(32), web3Utils.randomHex(32)]);
     } else {
       apiMock.setContractParams(taskId, outputHash, [web3Utils.randomHex(32)]);
     }
@@ -97,17 +84,9 @@ describe("Verifier tests", function() {
 
     // wrong deltaHash key
     if (isComputeTask) {
-      apiMock.setContractParams(contractAddress, null, [
-        web3Utils.randomHex(32),
-        web3Utils.randomHex(32),
-        deltaHash
-      ]);
+      apiMock.setContractParams(contractAddress, null, [web3Utils.randomHex(32), web3Utils.randomHex(32), deltaHash]);
     } else {
-      apiMock.setContractParams(taskId, outputHash, [
-        web3Utils.randomHex(32),
-        web3Utils.randomHex(32),
-        deltaHash
-      ]);
+      apiMock.setContractParams(taskId, outputHash, [web3Utils.randomHex(32), web3Utils.randomHex(32), deltaHash]);
     }
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, false);
@@ -115,18 +94,9 @@ describe("Verifier tests", function() {
 
     // wrong outputHash
     if (isComputeTask) {
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        web3Utils.randomHex(32)
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, web3Utils.randomHex(32));
     } else {
-      apiMock.setContractParams(contractAddress, web3Utils.randomHex(32), [
-        deltaHash
-      ]);
+      apiMock.setContractParams(contractAddress, web3Utils.randomHex(32), [deltaHash]);
     }
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, false);
@@ -135,14 +105,7 @@ describe("Verifier tests", function() {
     // status == RECEIPT_FAILED
     status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
     if (isComputeTask) {
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     } else {
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
     }
@@ -150,13 +113,7 @@ describe("Verifier tests", function() {
     assert.strictEqual(res.isVerified, false);
     assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
 
-    task = new FailedResult(
-      taskId,
-      constants.TASK_STATUS.FAILED,
-      output,
-      5,
-      "signature"
-    );
+    task = new FailedResult(taskId, constants.TASK_STATUS.FAILED, output, 5, "signature");
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, true);
     assert.strictEqual(res.error, null);
@@ -195,14 +152,7 @@ describe("Verifier tests", function() {
       );
 
       apiMock.setContractParams(contractAddress, null, [deltaHash]);
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
       // ok
       res = await verifier.verifyTaskSubmission(task, 0, contractAddress, {
         key: 0,
@@ -241,14 +191,7 @@ describe("Verifier tests", function() {
 
       contractAddress = taskId;
       apiMock.setContractParams(contractAddress, outputHash, [deltaHash]);
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
       // error
       res = await verifier.verifyTaskSubmission(task, 0, taskId, null);
       assert.strictEqual(res.isVerified, false);
@@ -258,35 +201,18 @@ describe("Verifier tests", function() {
     // status == RECEIPT_FAILED_ETH
     status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_ETH;
     if (isComputeTask) {
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     } else {
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
     }
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, false);
-    assert.strictEqual(
-      res.error instanceof errors.TaskEthereumFailureErr,
-      true
-    );
+    assert.strictEqual(res.error instanceof errors.TaskEthereumFailureErr, true);
 
     // status == RECEIPT_FAILED_CANCELLED
     status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_CANCELLED;
     if (isComputeTask) {
-      apiMock.setTaskParams(
-        taskId,
-        blockNumber,
-        status,
-        null,
-        null,
-        outputHash
-      );
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     } else {
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
     }
@@ -406,13 +332,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -446,16 +370,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: web3Utils.randomHex(32),
@@ -488,16 +407,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -516,23 +430,15 @@ describe("Verifier tests", function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskSubmission();
-      let task = new FailedResult(
-        a.taskId,
-        constants.TASK_STATUS.FAILED,
-        a.output,
-        5,
-        "signature"
-      );
+      let task = new FailedResult(a.taskId, constants.TASK_STATUS.FAILED, a.output, 5, "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptFailed", event);
@@ -547,23 +453,15 @@ describe("Verifier tests", function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskSubmission();
-      let task = new FailedResult(
-        a.taskId,
-        constants.TASK_STATUS.FAILED,
-        a.output,
-        5,
-        "signature"
-      );
+      let task = new FailedResult(a.taskId, constants.TASK_STATUS.FAILED, a.output, 5, "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -596,13 +494,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptFailed", event);
@@ -631,13 +527,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptVerified", event);
@@ -668,13 +562,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -709,16 +601,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: web3Utils.randomHex(32),
@@ -752,16 +639,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -781,23 +663,15 @@ describe("Verifier tests", function() {
 
     return new Promise(async function(resolve) {
       let a = await initStuffForTaskSubmission();
-      let task = new FailedResult(
-        a.taskId,
-        constants.TASK_STATUS.FAILED,
-        a.output,
-        5,
-        "signature"
-      );
+      let task = new FailedResult(a.taskId, constants.TASK_STATUS.FAILED, a.output, 5, "signature");
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -829,13 +703,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskFailedErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptFailed", event);
@@ -863,12 +735,10 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          // SHOULD FAIL IF GETS HERE
-          assert.strictEqual(true, false);
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        // SHOULD FAIL IF GETS HERE
+        assert.strictEqual(true, false);
+      });
 
       a.verifier.deleteTaskSubmissionListener(a.taskId);
       const event = {
@@ -903,12 +773,10 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          // SHOULD FAIL IF GETS HERE
-          assert.strictEqual(true, false);
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        // SHOULD FAIL IF GETS HERE
+        assert.strictEqual(true, false);
+      });
 
       a.verifier.deleteTaskSubmissionListener(a.taskId);
       const event = {
@@ -931,11 +799,7 @@ describe("Verifier tests", function() {
       let a = await initStuffForWorkerSelection();
 
       // 1.Verify only the algorithm
-      const observed = EthereumVerifier.selectWorkerGroup(
-        a.secretContractAddress,
-        a.expectedParams,
-        1
-      )[0];
+      const observed = EthereumVerifier.selectWorkerGroup(a.secretContractAddress, a.expectedParams, 1)[0];
       assert.strictEqual(observed, a.expectedAddress);
 
       // 2. Verify the entire flow of params update
@@ -950,24 +814,13 @@ describe("Verifier tests", function() {
         5,
         a.secretContractAddress
       );
-      let res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        a.expectedAddress
-      );
+      let res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        web3Utils.randomHex(32)
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3Utils.randomHex(32));
       assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(
-        res.error instanceof errors.WorkerSelectionVerificationErr,
-        true
-      );
+      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
 
       // with using DeployTask
       task = new DeployTask(
@@ -980,24 +833,13 @@ describe("Verifier tests", function() {
         a.secretContractAddress
       );
 
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        a.expectedAddress
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        web3Utils.randomHex(32)
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3Utils.randomHex(32));
       assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(
-        res.error instanceof errors.WorkerSelectionVerificationErr,
-        true
-      );
+      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
 
       // now add another param and expect the task to be verified
       blockNumber = 550;
@@ -1010,21 +852,13 @@ describe("Verifier tests", function() {
       };
       a.apiMock.triggerEvent("WorkersParameterized", event);
 
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        a.expectedAddress
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, true);
       assert.strictEqual(res.error, null);
 
       // verify unexpected past block number
       blockNumber = 50;
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        a.expectedAddress
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, false);
       assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
 
@@ -1039,16 +873,9 @@ describe("Verifier tests", function() {
       };
       a.apiMock.triggerEvent("WorkersParameterized", event);
 
-      res = await a.verifier.verifySelectedWorker(
-        task,
-        blockNumber,
-        a.expectedAddress
-      );
+      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
       assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(
-        res.error instanceof errors.WorkerSelectionVerificationErr,
-        true
-      ); // and not instanceof errors.TaskValidityErr
+      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true); // and not instanceof errors.TaskValidityErr
 
       resolve();
     });
@@ -1083,22 +910,14 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          assert.strictEqual(res.gasLimit, a.gasLimit);
-          assert.strictEqual(res.blockNumber, blockNumber);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        assert.strictEqual(res.gasLimit, a.gasLimit);
+        assert.strictEqual(res.blockNumber, blockNumber);
+        resolve();
+      });
     });
   });
 
@@ -1130,25 +949,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
+      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
       a.verifier
-        .verifyTaskCreation(
-          task,
-          blockNumber,
-          web3Utils.toChecksumAddress(web3Utils.randomHex(20))
-        )
+        .verifyTaskCreation(task, blockNumber, web3Utils.toChecksumAddress(web3Utils.randomHex(20)))
         .then(res => {
           assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.WorkerSelectionVerificationErr,
-            true
-          );
+          assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
           resolve();
         });
     });
@@ -1182,20 +988,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1227,20 +1025,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1271,22 +1061,14 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        0,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          assert.strictEqual(res.gasLimit, a.gasLimit);
-          assert.strictEqual(res.blockNumber, blockNumber);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, 0, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        assert.strictEqual(res.gasLimit, a.gasLimit);
+        assert.strictEqual(res.blockNumber, blockNumber);
+        resolve();
+      });
 
       const event = {
         taskId: a.secretContractAddress,
@@ -1325,23 +1107,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        0,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskCancelledErr,
-            true
-          );
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, 0, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskCancelledErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.secretContractAddress };
       a.apiMock.triggerEvent("TaskFeeReturned", event);
@@ -1367,29 +1138,16 @@ describe("Verifier tests", function() {
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          assert.strictEqual(res.blockNumber, blockNumber);
-          assert.strictEqual(res.gasLimit, a.gasLimit);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        assert.strictEqual(res.blockNumber, blockNumber);
+        assert.strictEqual(res.gasLimit, a.gasLimit);
+        resolve();
+      });
     });
   });
 
@@ -1403,42 +1161,17 @@ describe("Verifier tests", function() {
       let a = await initStuffForTaskCreation();
 
       let otherAddress = web3Utils.randomHex(32);
-      let task = new ComputeTask(
-        a.taskId,
-        a.encryptedArgs,
-        a.encryptedFn,
-        a.userDHKey,
-        a.gasLimit,
-        otherAddress
-      );
+      let task = new ComputeTask(a.taskId, a.encryptedArgs, a.encryptedFn, a.userDHKey, a.gasLimit, otherAddress);
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        otherAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, otherAddress, a.userDHKey]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
       a.verifier
-        .verifyTaskCreation(
-          task,
-          blockNumber,
-          web3Utils.toChecksumAddress(web3Utils.randomHex(20))
-        )
+        .verifyTaskCreation(task, blockNumber, web3Utils.toChecksumAddress(web3Utils.randomHex(20)))
         .then(res => {
           assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.WorkerSelectionVerificationErr,
-            true
-          );
+          assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
           resolve();
         });
     });
@@ -1463,27 +1196,14 @@ describe("Verifier tests", function() {
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED;
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1506,27 +1226,14 @@ describe("Verifier tests", function() {
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED;
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1548,24 +1255,17 @@ describe("Verifier tests", function() {
         0
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, 0, status);
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          assert.strictEqual(res.blockNumber, blockNumber);
-          assert.strictEqual(res.gasLimit, a.gasLimit);
-          resolve();
-        });
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        assert.strictEqual(res.blockNumber, blockNumber);
+        assert.strictEqual(res.gasLimit, a.gasLimit);
+        resolve();
+      });
 
       const event = {
         taskId: a.taskId,
@@ -1595,25 +1295,15 @@ describe("Verifier tests", function() {
         0
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
       a.apiMock.setTaskParams(a.taskId, 0, status);
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskCancelledErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskCancelledErr, true);
+        resolve();
+      });
 
       const event = {
         taskId: a.taskId,
@@ -1650,27 +1340,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        0,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(
-          task,
-          0,
-          web3Utils.toChecksumAddress(web3Utils.randomHex(20))
-        )
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.WorkerSelectionVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, 0, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, 0, web3Utils.toChecksumAddress(web3Utils.randomHex(20))).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
+        resolve();
+      });
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
 
@@ -1701,28 +1376,14 @@ describe("Verifier tests", function() {
         a.secretContractAddress
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
 
       a.apiMock.setTaskParams(a.taskId, 0, status);
-      a.verifier
-        .verifyTaskCreation(
-          task,
-          0,
-          web3Utils.toChecksumAddress(web3Utils.randomHex(20))
-        )
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.WorkerSelectionVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskCreation(task, 0, web3Utils.toChecksumAddress(web3Utils.randomHex(20))).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
+        resolve();
+      });
 
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
       const event = {
@@ -1754,27 +1415,14 @@ describe("Verifier tests", function() {
       );
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        a.secretContractAddress,
-        a.userDHKey
-      ]);
+      let inputsHash = cryptography.hashArray([a.encryptedFn, a.encryptedArgs, a.secretContractAddress, a.userDHKey]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22))
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TypeErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22)).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1805,20 +1453,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22))
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TypeErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22)).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1866,20 +1506,12 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22))
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TypeErr, true);
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, web3Utils.randomHex(22)).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TypeErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1922,23 +1554,12 @@ describe("Verifier tests", function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
       let inputsHash = web3Utils.randomHex(10);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
     });
   });
 
@@ -1963,23 +1584,12 @@ describe("Verifier tests", function() {
       let blockNumber = a.expectedParams.firstBlockNumber + 50;
       let inputsHash = web3Utils.randomHex(10);
 
-      a.apiMock.setTaskParams(
-        a.taskId,
-        blockNumber,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.apiMock.setTaskParams(a.taskId, blockNumber, status, a.gasLimit, inputsHash);
+      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
     });
   });
 
@@ -2007,16 +1617,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -2052,13 +1657,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, true);
-          assert.strictEqual(res.error, null);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, true);
+        assert.strictEqual(res.error, null);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: constants.ETHEREUM_EMPTY_HASH,
@@ -2094,16 +1697,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: constants.ETHEREUM_EMPTY_HASH,
@@ -2138,16 +1736,11 @@ describe("Verifier tests", function() {
 
       // ok
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskVerificationErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
 
       const event = {
         stateDeltaHash: a.deltaHash,
@@ -2179,16 +1772,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskEthereumFailureErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskEthereumFailureErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptFailedETH", event);
@@ -2217,16 +1805,11 @@ describe("Verifier tests", function() {
       let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(
-            res.error instanceof errors.TaskEthereumFailureErr,
-            true
-          );
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskEthereumFailureErr, true);
+        resolve();
+      });
 
       const event = { taskId: a.taskId };
       a.apiMock.triggerEvent("ReceiptFailedETH", event);
@@ -2259,22 +1842,14 @@ describe("Verifier tests", function() {
         a.userDHKey
       ]);
 
-      a.apiMock.setTaskParams(
-        a.secretContractAddress,
-        0,
-        status,
-        a.gasLimit,
-        inputsHash
-      );
+      a.apiMock.setTaskParams(a.secretContractAddress, 0, status, a.gasLimit, inputsHash);
       const ethereumBlockNumber = a.apiMock.getEthereumBlockNumber();
       const nextEpochBlock = a.apiMock.getTaskTimeout() + ethereumBlockNumber;
-      a.verifier
-        .verifyTaskCreation(task, ethereumBlockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskCreation(task, ethereumBlockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
+        resolve();
+      });
 
       let event = {
         seed: a.expectedParams.seed,
@@ -2309,13 +1884,11 @@ describe("Verifier tests", function() {
       const nextEpochBlock = a.apiMock.getTaskTimeout() + ethereumBlockNumber;
 
       a.apiMock.setTaskParams(a.taskId, 0, status);
-      a.verifier
-        .verifyTaskCreation(task, ethereumBlockNumber, a.expectedAddress)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskCreation(task, ethereumBlockNumber, a.expectedAddress).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
+        resolve();
+      });
 
       let event = {
         seed: a.expectedParams.seed,
@@ -2350,13 +1923,11 @@ describe("Verifier tests", function() {
       const nextEpochBlock = a.apiMock.getTaskTimeout() + a.blockNumber;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, "40", null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, "40", null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
+        resolve();
+      });
 
       let event = {
         seed: 787878978979,
@@ -2392,13 +1963,11 @@ describe("Verifier tests", function() {
       const nextEpochBlock = a.apiMock.getTaskTimeout() + a.blockNumber;
 
       a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
-      a.verifier
-        .verifyTaskSubmission(task, a.blockNumber, a.taskId, null)
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
-          resolve();
-        });
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskTimeoutErr, true);
+        resolve();
+      });
 
       let event = {
         seed: 78587678687,

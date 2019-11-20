@@ -132,37 +132,21 @@ describe("actions_tests", () => {
       // 2. turn it into eng cid
       let engCid = EngCid.createFromByteArray(blob);
       // 3. announce the content
-      let failedCids = await peerController
-        .getNode()
-        .asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {
-          engCids: [engCid]
-        });
-      assert.strictEqual(
-        0,
-        failedCids.length,
-        `failed cids ${failedCids.length}`
-      );
+      let failedCids = await peerController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {
+        engCids: [engCid]
+      });
+      assert.strictEqual(0, failedCids.length, `failed cids ${failedCids.length}`);
       // 4. verify provider
       await testUtils.sleep(1000);
-      let findProvidersResult = await bNodeController
-        .getNode()
-        .asyncFindProviders([engCid]);
-      assert.strictEqual(
-        false,
-        findProvidersResult.isErrors(),
-        " errors found in find provider result"
-      );
+      let findProvidersResult = await bNodeController.getNode().asyncFindProviders([engCid]);
+      assert.strictEqual(false, findProvidersResult.isErrors(), " errors found in find provider result");
       let providers = findProvidersResult.getProvidersFor(engCid);
       assert.strictEqual(
         peerController.getNode().getSelfB58Id(),
         providers[0].id.toB58String(),
         `peerId != providerId`
       );
-      assert.strictEqual(
-        1,
-        providers.length,
-        `providers length is ${providers.length}`
-      );
+      assert.strictEqual(1, providers.length, `providers length is ${providers.length}`);
       await stopTest();
     });
   });

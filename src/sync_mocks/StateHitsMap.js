@@ -84,21 +84,17 @@ class StateHitsMapManager extends EventEmitter {
 
       addrs.forEach(addr => {
         jobs.push(cb => {
-          this._deltasGetterPerContract(
-            addr,
-            hitMap.getDeltasNum(addr),
-            (err, results) => {
-              results.forEach(res => {
-                const index = res.index;
-                const address = res.address;
-                const deltaHash = res.deltaHash;
+          this._deltasGetterPerContract(addr, hitMap.getDeltasNum(addr), (err, results) => {
+            results.forEach(res => {
+              const index = res.index;
+              const address = res.address;
+              const deltaHash = res.deltaHash;
 
-                hitMap.addDeltaHit(address, index, deltaHash);
-              });
+              hitMap.addDeltaHit(address, index, deltaHash);
+            });
 
-              cb(err, hitMap);
-            }
-          );
+            cb(err, hitMap);
+          });
         });
       });
 

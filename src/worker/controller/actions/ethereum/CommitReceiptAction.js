@@ -10,9 +10,7 @@ class CommitReceiptAction {
   async asyncExecute(params) {
     const task = params.task;
     let err = null;
-    this._controller
-      .logger()
-      .info(`[COMMIT_RECEIPT] starting action with ${task.getTaskId()}`);
+    this._controller.logger().info(`[COMMIT_RECEIPT] starting action with ${task.getTaskId()}`);
     if (!task) {
       err = new errors.InputErr(`No task supplied for CommitReceiptAction`);
       return err;
@@ -25,22 +23,14 @@ class CommitReceiptAction {
       if (result.error) {
         err = result.error;
       } else {
-        this._controller
-          .logger()
-          .info(
-            `[COMMIT_RECEIPT] success for deploy of task ${task.getTaskId()}`
-          );
+        this._controller.logger().info(`[COMMIT_RECEIPT] success for deploy of task ${task.getTaskId()}`);
       }
     } else {
       result = await this._commitComputeTask(task);
       if (result.error) {
         err = result.error;
       } else {
-        this._controller
-          .logger()
-          .info(
-            `[COMMIT_RECEIPT] success for compute of task ${task.getTaskId()}`
-          );
+        this._controller.logger().info(`[COMMIT_RECEIPT] success for compute of task ${task.getTaskId()}`);
       }
     }
     return err;
@@ -53,9 +43,7 @@ class CommitReceiptAction {
       let revertRequired = false;
 
       if (!task.getResult().hasDelta()) {
-        err = new errors.InputErr(
-          `No delta for deploy task ${task.getTaskId()}`
-        );
+        err = new errors.InputErr(`No delta for deploy task ${task.getTaskId()}`);
       } else {
         try {
           let events = await this._controller
@@ -123,9 +111,7 @@ class CommitReceiptAction {
 
     if (task.getResult().isSuccess()) {
       const isDelta = task.getResult().hasDelta();
-      let deltaHash = isDelta
-        ? cryptography.hash(task.getResult().getDelta().data)
-        : constants.ETHEREUM_EMPTY_HASH;
+      let deltaHash = isDelta ? cryptography.hash(task.getResult().getDelta().data) : constants.ETHEREUM_EMPTY_HASH;
       let revertRequired = false;
 
       try {
@@ -147,9 +133,7 @@ class CommitReceiptAction {
         if (constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH in events) {
           this._controller
             .logger()
-            .info(
-              `[COMMIT_RECEIPT] received ReceiptFailedETH event after committing compute task ${task.getTaskId()}`
-            );
+            .info(`[COMMIT_RECEIPT] received ReceiptFailedETH event after committing compute task ${task.getTaskId()}`);
           revertRequired = true;
         }
       } catch (e) {
@@ -199,34 +183,21 @@ class CommitReceiptAction {
         address: task.getContractAddr(),
         type: constants.CORE_REQUESTS.RemoveContract
       };
-      this._controller
-        .logger()
-        .debug(`[COMMIT_RECEIPT] reverting contract ${task.getContractAddr()}`);
+      this._controller.logger().debug(`[COMMIT_RECEIPT] reverting contract ${task.getContractAddr()}`);
     } else {
       let deltaKey = task.getResult().getDelta().key;
       coreMsg = {
-        input: [
-          { address: task.getContractAddr(), from: deltaKey, to: deltaKey + 1 }
-        ],
+        input: [{ address: task.getContractAddr(), from: deltaKey, to: deltaKey + 1 }],
         type: constants.CORE_REQUESTS.RemoveDeltas
       };
       this._controller
         .logger()
-        .debug(
-          `[COMMIT_RECEIPT] reverting delta ${deltaKey} of contract ${task.getContractAddr()}`
-        );
+        .debug(`[COMMIT_RECEIPT] reverting delta ${deltaKey} of contract ${task.getContractAddr()}`);
     }
     try {
-      await this._controller.asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.UPDATE_DB,
-        { data: coreMsg }
-      );
+      await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
     } catch (e) {
-      this._controller
-        .logger()
-        .error(
-          `[COMMIT_RECEIPT] received an error while trying to revert core state: ${e}`
-        );
+      this._controller.logger().error(`[COMMIT_RECEIPT] received an error while trying to revert core state: ${e}`);
       err = e;
     }
     return { error: err };

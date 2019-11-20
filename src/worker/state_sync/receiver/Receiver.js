@@ -89,9 +89,7 @@ class Receiver extends EventEmitter {
       } else {
         result.forEach(res => {
           if (res.error) {
-            this._logger.error(
-              "[-] error in findProvider specific CID " + res.error
-            );
+            this._logger.error("[-] error in findProvider specific CID " + res.error);
             findProviderResult.addErroredProviderResult(res.ecid, res.error);
           } else {
             findProviderResult.addProviderResult(res.ecid, res.providers);
@@ -154,21 +152,17 @@ class Receiver extends EventEmitter {
     // init first job
     const ctx = this;
     jobs.push(cb => {
-      ctx.trySyncOneContractOneRequest(
-        providersList[0],
-        stateSyncMsgs,
-        (err, resultList) => {
-          let isDone = true;
-          if (err) {
-            // general error - retry
-            isDone = false;
-            cb(null, isDone, resultList);
-          } else {
-            // were done.
-            cb(null, isDone, resultList);
-          }
+      ctx.trySyncOneContractOneRequest(providersList[0], stateSyncMsgs, (err, resultList) => {
+        let isDone = true;
+        if (err) {
+          // general error - retry
+          isDone = false;
+          cb(null, isDone, resultList);
+        } else {
+          // were done.
+          cb(null, isDone, resultList);
         }
-      );
+      });
     });
 
     // init rest of the jobs except the last one
@@ -179,19 +173,15 @@ class Receiver extends EventEmitter {
           return cb(null, isDone, resultList);
         } else {
           // retry
-          ctx.trySyncOneContractOneRequest(
-            providersList[i],
-            stateSyncMsgs,
-            (err, resultList) => {
-              let isDone = true;
-              if (err) {
-                // general error - retry
-                isDone = false;
-              }
-              // were done.
-              return cb(null, isDone, resultList);
+          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err, resultList) => {
+            let isDone = true;
+            if (err) {
+              // general error - retry
+              isDone = false;
             }
-          );
+            // were done.
+            return cb(null, isDone, resultList);
+          });
         }
       });
     }
@@ -202,20 +192,16 @@ class Receiver extends EventEmitter {
         return cb(null, isDone, resultList);
       } else {
         // some error - retry
-        ctx.trySyncOneContractOneRequest(
-          providersList[providersList.length - 1],
-          stateSyncMsgs,
-          (err, resultList) => {
-            // finish regardless if it worked or not.
-            if (err) {
-              // finish with error
-              return cb(err, false, resultList);
-            } else {
-              // finish with success
-              return cb(null, true, resultList);
-            }
+        ctx.trySyncOneContractOneRequest(providersList[providersList.length - 1], stateSyncMsgs, (err, resultList) => {
+          // finish regardless if it worked or not.
+          if (err) {
+            // finish with error
+            return cb(err, false, resultList);
+          } else {
+            // finish with success
+            return cb(null, true, resultList);
           }
-        );
+        });
       }
     });
 

@@ -9,9 +9,7 @@ class Envelop {
     this._validEnvelop = true;
     //TODO:: this does not actually THROW it just hangs in there without any signal
     if (!sequenceOrId || !obj || !msgType) {
-      console.log(
-        "[-] error initializing envelop sequenceOrId,obj,msgType must be specified!"
-      );
+      console.log("[-] error initializing envelop sequenceOrId,obj,msgType must be specified!");
       this._validEnvelop = false;
     }
     this._msgType = msgType;

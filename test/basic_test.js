@@ -26,11 +26,7 @@ it("#1 Should test the worker builder", async function() {
     await worker.syncRun();
 
     await testUtils.sleep(1000);
-    assert.strictEqual(
-      0,
-      worker.getAllPeersInfo().length,
-      "peer info don't match "
-    );
+    assert.strictEqual(0, worker.getAllPeersInfo().length, "peer info don't match ");
     // stop the worker
     await worker.syncStop();
     resolve();
@@ -43,9 +39,7 @@ it("#2 Should test dialing to a bootstrap", async function() {
     this.skip();
   }
   return new Promise(async resolve => {
-    let bootstrapNodes = [
-      "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"
-    ];
+    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
     let bootstrapController = NodeController.initDefaultTemplate({
       port: B1Port,
       idPath: B1Path,
@@ -63,15 +57,9 @@ it("#2 Should test dialing to a bootstrap", async function() {
     await peerController.engNode().syncRun();
     await testUtils.sleep(3000);
 
-    assert.strictEqual(
-      bootstrapController.isConnected(peerController.getSelfB58Id()),
-      true
-    );
+    assert.strictEqual(bootstrapController.isConnected(peerController.getSelfB58Id()), true);
     assert.strictEqual(bootstrapController.getConnectedPeers().length, 1);
-    assert.strictEqual(
-      peerController.isConnected(bootstrapController.getSelfB58Id()),
-      true
-    );
+    assert.strictEqual(peerController.isConnected(bootstrapController.getSelfB58Id()), true);
     assert.strictEqual(peerController.getConnectedPeers().length, 1);
 
     await bootstrapController.engNode().syncStop();
@@ -88,9 +76,7 @@ it("#3 Should test libp2p discovery", async function() {
 
   return new Promise(async (resolve, reject) => {
     let nodesNum = 10;
-    let bootstrapNodes = [
-      "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"
-    ];
+    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
     let bNode = NodeController.initDefaultTemplate({
       port: B1Port,
       idPath: B1Path,

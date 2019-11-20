@@ -27,18 +27,12 @@ class StateSyncReqVerifier {
           break;
         }
         if (!(index in remoteMissingStates[address].deltas)) {
-          err =
-            "received an unknown index " + index + " for address " + address;
+          err = "received an unknown index " + index + " for address " + address;
           res = false;
           break;
         }
         if (remoteMissingStates[address].deltas[index] != crypto.hash(data)) {
-          err =
-            "delta received for address " +
-            address +
-            " in index " +
-            index +
-            " does not match remote hash";
+          err = "delta received for address " + address + " in index " + index + " does not match remote hash";
           res = false;
           break;
         }
@@ -54,10 +48,7 @@ class StateSyncReqVerifier {
           err = "received a bytecodeHash for unknown address " + address;
           res = false;
         } else if (remoteMissingStates[address].bytecodeHash != bytecodeHash) {
-          err =
-            "bytecodeHash received for address " +
-            address +
-            " does not match remote hash";
+          err = "bytecodeHash received for address " + address + " does not match remote hash";
           res = false;
         }
       } else {

@@ -18,9 +18,7 @@ class GetLocalTipsOfRemote {
       if (!peerInfo) {
         throw new errors.P2PErr(`no such peer ${b58Id}`);
       }
-      let remoteTips = await this._controller
-        .engNode()
-        .getLocalStateOfRemote(peerInfo);
+      let remoteTips = await this._controller.engNode().getLocalStateOfRemote(peerInfo);
       return remoteTips;
     } catch (e) {
       this._controller.logger().error(`GetLocalTipsOfRemote Action ${e}`);

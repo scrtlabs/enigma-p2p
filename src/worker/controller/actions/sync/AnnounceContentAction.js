@@ -19,22 +19,14 @@ class AnnounceContentAction {
       return ecid instanceof EngCid;
     });
     try {
-      let failedCids = await this._controller
-        .provider()
-        .asyncProvideContentsBatch(engCids);
-      this._controller
-        .logger()
-        .debug(
-          `[+] success announcing content, failedCids # =  ${failedCids.length}`
-        );
+      let failedCids = await this._controller.provider().asyncProvideContentsBatch(engCids);
+      this._controller.logger().debug(`[+] success announcing content, failedCids # =  ${failedCids.length}`);
       return onResponse(null, failedCids);
     } catch (e) {
       if (onResponse) {
         return onResponse(e);
       }
-      this._controller
-        .logger()
-        .error(`[AnnounceContent] can't announce message: ${e}`);
+      this._controller.logger().error(`[AnnounceContent] can't announce message: ${e}`);
     }
   }
   async asyncExecute(params) {

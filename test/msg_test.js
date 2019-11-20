@@ -16,18 +16,14 @@ it("should scheme validate state sync req", function(done) {
     toHash: "0x..."
   };
 
-  schemeValidator.validateScheme(
-    state_sync_req_obj,
-    MsgTypes.SYNC_STATE_REQ,
-    (err, isValid) => {
-      if (err) {
-        assert.strictEqual(false, true, err);
-      } else {
-        assert.strictEqual(true, isValid, "invalid scheme");
-      }
-      done();
+  schemeValidator.validateScheme(state_sync_req_obj, MsgTypes.SYNC_STATE_REQ, (err, isValid) => {
+    if (err) {
+      assert.strictEqual(false, true, err);
+    } else {
+      assert.strictEqual(true, isValid, "invalid scheme");
     }
-  );
+    done();
+  });
 });
 
 it("should scheme validate state sync res", function(done) {
@@ -41,18 +37,14 @@ it("should scheme validate state sync res", function(done) {
     ]
   };
 
-  schemeValidator.validateScheme(
-    state_sync_res_obj,
-    MsgTypes.SYNC_STATE_RES,
-    (err, isValid) => {
-      if (err) {
-        assert.strictEqual(false, true, err);
-      } else {
-        assert.strictEqual(true, isValid, "invalid scheme");
-      }
-      done();
+  schemeValidator.validateScheme(state_sync_res_obj, MsgTypes.SYNC_STATE_RES, (err, isValid) => {
+    if (err) {
+      assert.strictEqual(false, true, err);
+    } else {
+      assert.strictEqual(true, isValid, "invalid scheme");
     }
-  );
+    done();
+  });
 });
 
 it("should build state sync req msg from obj", function(done) {
@@ -69,16 +61,8 @@ it("should build state sync req msg from obj", function(done) {
     if (err) {
       assert.strictEqual(false, true, err);
     } else {
-      assert.strictEqual(
-        state_sync_req_obj.contractAddress,
-        msg.contractAddress(),
-        "addrs dont match "
-      );
-      assert.strictEqual(
-        state_sync_req_obj.toIndex,
-        msg.toIndex(),
-        "to index dont match "
-      );
+      assert.strictEqual(state_sync_req_obj.contractAddress, msg.contractAddress(), "addrs dont match ");
+      assert.strictEqual(state_sync_req_obj.toIndex, msg.toIndex(), "to index dont match ");
     }
     done();
   });
@@ -99,16 +83,8 @@ it("should build state sync msg res from obj", function(done) {
     if (err) {
       assert.strictEqual(false, true, err);
     } else {
-      assert.strictEqual(
-        state_sync_res_obj.contractAddress,
-        msg.contractAddress(),
-        "addrs dont match "
-      );
-      assert.strictEqual(
-        state_sync_res_obj.states.length,
-        msg.states().length,
-        "states len dont match "
-      );
+      assert.strictEqual(state_sync_res_obj.contractAddress, msg.contractAddress(), "addrs dont match ");
+      assert.strictEqual(state_sync_res_obj.states.length, msg.states().length, "states len dont match ");
     }
     done();
   });
@@ -252,11 +228,7 @@ it("should test to network req msg", function(done) {
       assert.strictEqual(false, true, err);
     } else {
       let network = msg.toNetwork();
-      assert.strictEqual(
-        shouldBeNetwork.length,
-        network.length,
-        "error length in network parsing"
-      );
+      assert.strictEqual(shouldBeNetwork.length, network.length, "error length in network parsing");
       let error = shouldBeNetwork.some(v1 => {
         return !network.includes(v1);
       });

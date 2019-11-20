@@ -20,9 +20,7 @@ class HandleVerifiedTaskAction {
     // First check if we are in the middle of PTT
     // if so, schedule the task execution to after it is done
     if (this._controller.principal().isInPTT()) {
-      this._controller
-        .principal()
-        .once(constants.PTT_END_EVENT, executeTaskCallback);
+      this._controller.principal().once(constants.PTT_END_EVENT, executeTaskCallback);
     }
     // otherwise, execute task now
     else {

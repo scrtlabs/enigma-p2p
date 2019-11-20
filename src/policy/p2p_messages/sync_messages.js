@@ -91,23 +91,15 @@ class SyncMsgBuilder {
    * */
   static stateReqFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
-    SyncMsgBuilder._buildMsg(
-      MSG_TYPES.SYNC_STATE_REQ,
-      msgObj,
-      (err, message) => {
-        callback(err, message);
-      }
-    );
+    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_REQ, msgObj, (err, message) => {
+      callback(err, message);
+    });
   }
   static stateResFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_STATE_RES;
-    SyncMsgBuilder._buildMsg(
-      MSG_TYPES.SYNC_STATE_RES,
-      msgObj,
-      (err, message) => {
-        callback(err, message);
-      }
-    );
+    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_RES, msgObj, (err, message) => {
+      callback(err, message);
+    });
   }
   static batchStateReqFromObjs(msgsObjList, callback) {
     if (msgsObjList.length < 1) {
@@ -154,17 +146,13 @@ class SyncMsgBuilder {
   }
   static bCodeReqFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
-    SyncMsgBuilder._buildMsg(
-      MSG_TYPES.SYNC_BCODE_REQ,
-      msgObj,
-      (err, message) => {
-        if (err) {
-          return callback(err);
-        } else {
-          return callback(null, message);
-        }
+    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_REQ, msgObj, (err, message) => {
+      if (err) {
+        return callback(err);
+      } else {
+        return callback(null, message);
       }
-    );
+    });
   }
   static bCodeResFromNetwork(networkMsg, callback) {
     const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
@@ -176,13 +164,9 @@ class SyncMsgBuilder {
   }
   static bCodeResFromObj(msgObj, callback) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_RES;
-    SyncMsgBuilder._buildMsg(
-      MSG_TYPES.SYNC_BCODE_RES,
-      msgObj,
-      (err, message) => {
-        callback(err, message);
-      }
-    );
+    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_RES, msgObj, (err, message) => {
+      callback(err, message);
+    });
   }
   static _isValidScheme(schemeType, testedObj, callback) {
     schemeValidator.validateScheme(testedObj, schemeType, callback);
