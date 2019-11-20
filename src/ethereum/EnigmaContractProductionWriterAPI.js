@@ -523,7 +523,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       this._logger.info(`Received an unexpected number of events for ${eventName} with the filter ${JSON.stringify({ fromBlock: blockNumber, filter: filter })}. Taking the first one.`);
     }
 
-    return this._parseEvents(events);
+    return this._parseEvents({ [eventName]: rawEvents[0] });
   }
 }
 
