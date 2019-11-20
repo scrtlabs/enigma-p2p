@@ -45,12 +45,15 @@ class EnigmaNode extends EventEmitter {
     this.policy = new Policy();
     this._handler = protocolHandler;
   }
+
   nickName() {
     return this.nickname;
   }
+
   getProtocolHandler() {
     return this._handler;
   }
+
   /**
    * Loads a peer info JSON from a given path and creates a node instance
    * @param {String} path
@@ -78,6 +81,7 @@ class EnigmaNode extends EventEmitter {
       setTimeout(callback, 100);
     });
   }
+
   /**
    * Create a random peerInfo and initialize a node instance
    * @param {Function} callback - empty callback with no params
@@ -107,6 +111,7 @@ class EnigmaNode extends EventEmitter {
       err => callback(err)
     );
   }
+
   /** Promise
    * Create a random peerInfo and initialize a node instance
    * @return {Promise}
@@ -119,6 +124,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   /** Promise
    * Load PeerID and create the peerInfo
    * @param {string} path
@@ -131,6 +137,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   /**
    * Define event handlers for the node with external delegation
    */
@@ -171,6 +178,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   /** isConnected to a peer
    * This function uses try/catch because of the DHT implementation
    * @param {String} strId, some peer ID;
@@ -179,12 +187,14 @@ class EnigmaNode extends EventEmitter {
   isConnected(strId) {
     return this.getConnectedPeers().indexOf(strId) > -1;
   }
+
   /** checks if the node has any connections to another node
    * @return {Boolean} true if there are connected peers, false otherwise
    */
   arePeersConnected() {
     return this.getConnectedPeers().length > 0;
   }
+
   /**
    * Subscribe to events with handlers and final handlers.
    * @param {Array} subscriptions, [{topic:name,topic_handler:Function(msg)=>{},final_handler:Function()=>{}}]
@@ -206,6 +216,7 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
+
   /*
    * Unsubscribe from topic
    * **/
@@ -222,6 +233,7 @@ class EnigmaNode extends EventEmitter {
       this._logger.debug(`unsubscribed from ${topic}`);
     });
   }
+
   /**
    * get list of topics subscribed to
    * @param {Promise<Array<string>>} Calls back with an error or a list of topicIDs that this peer is subscribed to.
@@ -234,6 +246,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   defaultSubscribe() {
     if (!this.started) {
       throw new errors.InitPipelinesErr(
@@ -259,6 +272,7 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
+
   /**
    * Broadcast some message about a specific topic
    * @param {String} topic, topic name
@@ -268,6 +282,7 @@ class EnigmaNode extends EventEmitter {
   broadcast(topic, content, oncePublishedCallback) {
     this.node.pubsub.publish(topic, content, oncePublishedCallback);
   }
+
   /**
    * Broadcast some message about a specific topic in a LOOP
    * @param {String} topic, topic name
@@ -282,6 +297,7 @@ class EnigmaNode extends EventEmitter {
     }, interval);
     return intervalID;
   }
+
   /**
    * Get a string array of full multiaddresses of the Node.
    * @returns {Array} str_addrs, array of multi-addresses in str format
@@ -294,6 +310,7 @@ class EnigmaNode extends EventEmitter {
     });
     return strAddrs;
   }
+
   /**
    * Get PeerInfo class of libp2p containing information about the current peer.
    * @return {PeerInfo} peerInfo
@@ -301,6 +318,7 @@ class EnigmaNode extends EventEmitter {
   getSelfPeerInfo() {
     return this.node.peerInfo;
   }
+
   /**
    * Get id in format of base58 str
    * @return {String} peer-id
@@ -308,6 +326,7 @@ class EnigmaNode extends EventEmitter {
   getSelfIdB58Str() {
     return this.getSelfPeerInfo().id.toJSON().id;
   }
+
   /**
    * Get All current peers String ID
    * @return {Array} id's
@@ -315,18 +334,21 @@ class EnigmaNode extends EventEmitter {
   getAllPeersIds() {
     return this.node.stats.peers();
   }
+
   /** Get PeerBook
    * @return {Array} ,the list of all the PeerInfo are in the peerBook of the current EnigmaNode
    */
   getSelfPeerBookIds() {
     return this.node.peerBook.getAllArray();
   }
+
   /** TODO: update once libp2p version is upgraded !!!!!!!!
    * @return {Array}, the current connected peers
    */
   getConnectedPeers() {
     return [...this.node.connectionManager._peerValues.keys()];
   }
+
   /**
    * Get All the Peer info from the peer book.
    * @return {Array} [PeerInfo]
@@ -344,6 +366,7 @@ class EnigmaNode extends EventEmitter {
     });
     return result;
   }
+
   /**
    * Start the node.
    * @param {Function} callback is a function with the following function (err) {} signature,
@@ -375,6 +398,7 @@ class EnigmaNode extends EventEmitter {
       resolve(this);
     });
   }
+
   /**
    * Sync Start the node.
    * where err is an Error in case starting the node fails.
@@ -390,6 +414,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   /** Init the node - either load the id from a file or create a new random one
    * This function should be called after the new EnigmaNode()
    * @param {string} path - path to node id, default null -> create a new random id s
@@ -402,6 +427,7 @@ class EnigmaNode extends EventEmitter {
       return this.syncCreateNode();
     }
   }
+
   /**
    * Stop the node.
    * @param {Function} callback is a function with the following function (err) {} signature,
@@ -410,6 +436,7 @@ class EnigmaNode extends EventEmitter {
   stop(callback) {
     this.node.stop(callback);
   }
+
   /**
    * Sync Stop the node.
    * where err is an Error in case stopping the node fails.
@@ -423,6 +450,7 @@ class EnigmaNode extends EventEmitter {
       });
     });
   }
+
   /**
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo,  the peer we wish to dial to
@@ -436,6 +464,7 @@ class EnigmaNode extends EventEmitter {
       this.node.dialProtocol(peerInfo, protocolName, onConnection);
     }
   }
+
   /**
    * Dial at some protocol and delegate the handling of that connection
    * @param {PeerInfo} peerInfo ,  the peer we wish to dial to
@@ -448,6 +477,7 @@ class EnigmaNode extends EventEmitter {
       this.node.dial(peerInfo, onConnection);
     }
   }
+
   /**
    * Dial once send a request, receive a response
    * @param {PeerInfo} peerInfo
@@ -479,6 +509,7 @@ class EnigmaNode extends EventEmitter {
       }
     });
   }
+
   /**
    * Dial once send a request, receive a response and hang up - disconnect.
    * @param {PeerInfo} peerInfo
@@ -505,23 +536,25 @@ class EnigmaNode extends EventEmitter {
       }
     });
   }
+
   /** Dial to a bootstrap node.
    * @param {PeerInfo} peerInfo, the peer to dial to
+   * @param {Callback} callback
    * @return {boolean} true in a success, false otherwise
    */
-  connectToBootstrap(peerInfo) {
+  connectToBootstrap(peerInfo, callback) {
     this.dial(peerInfo, (connectionErr, connection) => {
       if (connectionErr) {
         this._logger.error(
           `Failed connecting to a bootstrap node= ${connectionErr}`
         );
-        return false;
       } else {
         this.notify(peerInfo);
-        return true;
       }
+      callback(connectionErr);
     });
   }
+
   /**
    * Notify observer (Some controller subscribed)
    * @param {JSON} params, MUST CONTAIN notification field
@@ -529,6 +562,7 @@ class EnigmaNode extends EventEmitter {
   notify(params) {
     this.emit("notify", params);
   }
+
   /**
    * Post a findpeers msg protocol request to another peer
    * @param {PeerInfo} peerInfo, the target peer
@@ -583,6 +617,7 @@ class EnigmaNode extends EventEmitter {
       );
     });
   }
+
   /** provide content by declaring existing CID to the network
    * @param {EngCID} engCid , content cid wrapped in Enigma cid
    * @param {Function} callback - (err,engCid) =>{}
@@ -600,6 +635,7 @@ class EnigmaNode extends EventEmitter {
       });
     }
   }
+
   /**
    * given id lookup a peer in the network
    * does not attempt to connect
@@ -613,13 +649,15 @@ class EnigmaNode extends EventEmitter {
         reject(new errors.TypeErr(`cant generate PeerId from ${b58Id}`));
       }
       this.node.peerRouting.findPeer(peerId, (err, peer) => {
-        if (err) reject(err);
-        else {
+        if (err) {
+          reject(err);
+        } else {
           resolve(peer);
         }
       });
     });
   }
+
   /**
    * get the local state of a remote peer
    * if not connected already -> hang-up after message exchange
@@ -653,6 +691,7 @@ class EnigmaNode extends EventEmitter {
       }
     });
   }
+
   /**
    * Find provider for some CID
    * @param {EngCID} engCid, the content cid
@@ -666,6 +705,7 @@ class EnigmaNode extends EventEmitter {
       callback(err, providers);
     });
   }
+
   /** start the channel  - STATE_SYNC_REQ
    * @param {peerInfo} peerInfo
    * @param {Function} connectionHandler (protocol,connection) =>{}
@@ -679,6 +719,7 @@ class EnigmaNode extends EventEmitter {
       }
     );
   }
+
   /** Send a heart-beat to some peer
    * @param {peerInfo} peerInfo, could be string b58 id as well
    * @param {HeartBeatReq} heartBeatRequest , the request
