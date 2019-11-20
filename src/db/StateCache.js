@@ -1,6 +1,6 @@
-const DbApi = require('./LevelDbApi');
+const DbApi = require("./LevelDbApi");
 // const DbKey = require('./DbKey');
-const parallel = require('async/parallel');
+const parallel = require("async/parallel");
 
 /**
  * The cache database structure:
@@ -12,19 +12,19 @@ const parallel = require('async/parallel');
  * */
 class PersistentStateCache {
   /** @param {String} cachePath, the path to the db
-     * Will create or open existing*/
+   * Will create or open existing*/
   constructor(cachePath) {
-    this._CONTRACTS_KEY = 'contracts';
+    this._CONTRACTS_KEY = "contracts";
     this._dbApi = new DbApi(cachePath);
     this._dbApi.open();
   }
   /** add a new address to the cache
-     * @param {String} address - secret contract address
-     * @param {String} initialStateHash - hash of the delta 0
-     * @param {Function} callback , (err)=>{}
-     * */
+   * @param {String} address - secret contract address
+   * @param {String} initialStateHash - hash of the delta 0
+   * @param {Function} callback , (err)=>{}
+   * */
   addAddress(address, initialStateHash, callback) {
-    this._dbApi.get(this._CONTRACTS_KEY, (err, addrsList)=>{
+    this._dbApi.get(this._CONTRACTS_KEY, (err, addrsList) => {
       let addrsObj = [];
       // update address
       if (!err) {
@@ -33,25 +33,29 @@ class PersistentStateCache {
       addrsObj.push(address);
 
       // store back
-      this._dbApi.put(this._CONTRACTS_KEY, JSON.stringify(addrsObj), (err)=>{
+      this._dbApi.put(this._CONTRACTS_KEY, JSON.stringify(addrsObj), err => {
         if (err) {
           callback(err);
         } else {
           // add initial delta
-          this._dbApi.put(address, JSON.stringify({index: 0, hash: initialStateHash}), callback);
+          this._dbApi.put(
+            address,
+            JSON.stringify({ index: 0, hash: initialStateHash }),
+            callback
+          );
         }
       });
     });
   }
   /**
-     * Update an EXISTING tip
-     * @param {String} address - secret contract
-     * @param {String} tipHash - hash of the tip
-     * @param {Integer} tipIndex - delta index
-     * @param {Function} callback - (err)=>{}
-     * */
+   * Update an EXISTING tip
+   * @param {String} address - secret contract
+   * @param {String} tipHash - hash of the tip
+   * @param {Integer} tipIndex - delta index
+   * @param {Function} callback - (err)=>{}
+   * */
   updateTip(address, tipHash, tipIndex, callback) {
-    this._dbApi.get(address, (err, tip)=>{
+    this._dbApi.get(address, (err, tip) => {
       if (err) {
         callback(err);
       } else {
@@ -62,39 +66,39 @@ class PersistentStateCache {
     });
   }
   /** get Existing delta tip or err
-     * TipObject => {index,hash}
-     * if err -> no tip && no address in cache
-     * @param {String} address - secret contract
-     * @param {Function} callback - (err,tipObject)=>{}*/
+   * TipObject => {index,hash}
+   * if err -> no tip && no address in cache
+   * @param {String} address - secret contract
+   * @param {Function} callback - (err,tipObject)=>{}*/
   getTip(address, callback) {
     this._dbApi.get(address, callback);
   }
   /** get all cached addrs
-     * @param {Function} callback - (err,addressesList)=>{}*/
+   * @param {Function} callback - (err,addressesList)=>{}*/
   getAllAddrs(callback) {
-    this._dbApi.get(this._CONTRACTS_KEY, (err, addrs)=>{
+    this._dbApi.get(this._CONTRACTS_KEY, (err, addrs) => {
       callback(err, addrs);
     });
   }
   /** Get all the cached tips
-     * @param {Function} callback - (err,CachedTipsList)=>{}
-     * -> CachedTipsList == [{error, address,tip : {index,hash}},...] error inside is individual for a key
-     * */
+   * @param {Function} callback - (err,CachedTipsList)=>{}
+   * -> CachedTipsList == [{error, address,tip : {index,hash}},...] error inside is individual for a key
+   * */
   getAllTips(callback) {
-    this.getAllAddrs((err, addrs)=>{
+    this.getAllAddrs((err, addrs) => {
       if (err) {
         callback(err);
       } else {
         const jobs = [];
-        addrs.forEach((addr)=>{
-          jobs.push((cb)=>{
-            this.getTip(addr, (err, tip)=>{
-              cb(null, {error: err, address: addr, tip: tip});
+        addrs.forEach(addr => {
+          jobs.push(cb => {
+            this.getTip(addr, (err, tip) => {
+              cb(null, { error: err, address: addr, tip: tip });
             });
           });
         });
 
-        parallel(jobs, (err, tips)=>{
+        parallel(jobs, (err, tips) => {
           callback(err, tips);
         });
       }

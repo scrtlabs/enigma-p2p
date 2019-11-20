@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class LogoutAction {
   constructor(controller) {
@@ -10,7 +10,10 @@ class LogoutAction {
     let err = null;
 
     try {
-      await this._controller.ethereum().api().logout();
+      await this._controller
+        .ethereum()
+        .api()
+        .logout();
       this._controller.logger().info(`[LOGOUT] successful logout`);
       logoutSuccess = true;
     } catch (e) {
@@ -23,7 +26,7 @@ class LogoutAction {
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);

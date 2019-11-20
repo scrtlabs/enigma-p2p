@@ -1,6 +1,5 @@
-
-const constants = require('../../../../common/constants');
-const EngCid = require('../../../../common/EngCID');
+const constants = require("../../../../common/constants");
+const EngCid = require("../../../../common/EngCID");
 /**
  * This Action announces to the network about it's local state
  * This should be called once the node is synched with the network and has all the deltas and contracts.
@@ -16,43 +15,55 @@ class AnnounceLocalStateAction {
     let isEngCid = params.isEngCid;
 
     if (useCache) {
-      this._controller.cache().getAllTips((err, tipsList)=>{
+      this._controller.cache().getAllTips((err, tipsList) => {
         // TODO:: implement cache logic
         // TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     } else {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.GET_ALL_ADDRS, {
         useCache: useCache,
-        onResponse: (err, allAddrsResponse)=>{
+        onResponse: (err, allAddrsResponse) => {
           /**
            * do the announcement
            * */
-          const parsedEngCids = allAddrsResponse.result.addresses.map((addr)=>{
-            const ecid = EngCid.createFromSCAddress(addr);
-            if (ecid) {
-              return ecid;
-            } else {
-              this._controller.logger().error('[-] err converting bytearray->hex->EngCid !');
-            }
-          }).filter((ecid)=>{
-            return (ecid !== undefined && ecid !== null);
-          });
+          const parsedEngCids = allAddrsResponse.result.addresses
+            .map(addr => {
+              const ecid = EngCid.createFromSCAddress(addr);
+              if (ecid) {
+                return ecid;
+              } else {
+                this._controller
+                  .logger()
+                  .error("[-] err converting bytearray->hex->EngCid !");
+              }
+            })
+            .filter(ecid => {
+              return ecid !== undefined && ecid !== null;
+            });
           isEngCid = true;
-          this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid, (err, failedCids)=>{
-            if (err) {
-              // TODO:: this is completley incorrect.
-              // TODO:: it shows like there was some total error, but there will be errrors in the case where 1 peer logged out
-              // TODO:: it will try to reconnect to him in the DHT and will throw an error
-              // TODO:: this is ok accestable behaviour.
-              // TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
-              // TODO:: Bottom line im not processing the errors in the correct way.
-              return onResponse(err, parsedEngCids);
-            } else {
-              this._controller.logger().debug('[+] success providing cids.');
-              return onResponse(null, parsedEngCids);
-            }
-          });
-        },
+          this._controller
+            .provider()
+            .provideContentsBatch(
+              parsedEngCids,
+              isEngCid,
+              (err, failedCids) => {
+                if (err) {
+                  // TODO:: this is completley incorrect.
+                  // TODO:: it shows like there was some total error, but there will be errrors in the case where 1 peer logged out
+                  // TODO:: it will try to reconnect to him in the DHT and will throw an error
+                  // TODO:: this is ok accestable behaviour.
+                  // TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
+                  // TODO:: Bottom line im not processing the errors in the correct way.
+                  return onResponse(err, parsedEngCids);
+                } else {
+                  this._controller
+                    .logger()
+                    .debug("[+] success providing cids.");
+                  return onResponse(null, parsedEngCids);
+                }
+              }
+            );
+        }
       });
     }
   }
@@ -61,12 +72,10 @@ class AnnounceLocalStateAction {
     const action = this;
     return new Promise((resolve, reject) => {
       params.callback = function(status, result) {
-        resolve({status:status,result : result});
+        resolve({ status: status, result: result });
       };
       action.execute(params);
     });
   }
 }
 module.exports = AnnounceLocalStateAction;
-
-

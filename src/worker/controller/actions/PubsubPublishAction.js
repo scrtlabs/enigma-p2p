@@ -1,5 +1,5 @@
-const constants = require('../../../common/constants');
-const nodeUtils = require('../../../common/utils');
+const constants = require("../../../common/constants");
+const nodeUtils = require("../../../common/utils");
 
 class PubsubPublishAction {
   constructor(controller) {
@@ -9,13 +9,9 @@ class PubsubPublishAction {
   execute(params) {
     const topic = params.topic;
     const msgBuffer = Buffer.from(params.message);
-    this._controller.engNode().broadcast(
-        topic,
-        msgBuffer,
-        ()=>{
-          this._controller.logger().debug(`published [${topic}]`);
-        }
-    );
+    this._controller.engNode().broadcast(topic, msgBuffer, () => {
+      this._controller.logger().debug(`published [${topic}]`);
+    });
   }
 }
 module.exports = PubsubPublishAction;

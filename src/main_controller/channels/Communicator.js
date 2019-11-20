@@ -1,9 +1,9 @@
-const EventEmitter = require('events').EventEmitter;
+const EventEmitter = require("events").EventEmitter;
 
 class Communicator extends EventEmitter {
   constructor(otherCommunicator) {
     super();
-    this._M = 'm';
+    this._M = "m";
     this._other = otherCommunicator;
   }
   _setCommunicator(other) {
@@ -17,9 +17,9 @@ class Communicator extends EventEmitter {
     }
   }
   sendAndReceive(envelop) {
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       // assumption: the responder will emit id() event
-      this._other.on(envelop.id(), (responseEnvelop)=>{
+      this._other.on(envelop.id(), responseEnvelop => {
         res(responseEnvelop);
       });
       // emit the message
@@ -27,7 +27,7 @@ class Communicator extends EventEmitter {
     });
   }
   setOnMessage(callback) {
-    this._other.on(this._M, (envelop)=>{
+    this._other.on(this._M, envelop => {
       callback(envelop);
     });
   }

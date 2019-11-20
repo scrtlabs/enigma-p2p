@@ -1,7 +1,6 @@
-const crypto = require('../../../common/cryptography');
-const constants = require('../../../common/constants');
+const crypto = require("../../../common/cryptography");
+const constants = require("../../../common/constants");
 const MSG_TYPES = constants.P2P_MESSAGES;
-
 
 class StateSyncReqVerifier {
   /**
@@ -23,17 +22,23 @@ class StateSyncReqVerifier {
         const data = deltas[i].data;
         const index = deltas[i].key;
         if (!(address in remoteMissingStates)) {
-          err = 'received an unknown address ' + address + ' in SyncStateRes';
+          err = "received an unknown address " + address + " in SyncStateRes";
           res = false;
           break;
         }
         if (!(index in remoteMissingStates[address].deltas)) {
-          err = 'received an unknown index ' + index + ' for address ' + address;
+          err =
+            "received an unknown index " + index + " for address " + address;
           res = false;
           break;
         }
         if (remoteMissingStates[address].deltas[index] != crypto.hash(data)) {
-          err = 'delta received for address ' + address + ' in index ' + index + ' does not match remote hash';
+          err =
+            "delta received for address " +
+            address +
+            " in index " +
+            index +
+            " does not match remote hash";
           res = false;
           break;
         }
@@ -43,17 +48,20 @@ class StateSyncReqVerifier {
         const address = syncMessage.address();
         const bytecodeHash = crypto.hash(syncMessage.bytecode());
         if (!(address in remoteMissingStates)) {
-          err = 'received an unknown address ' + address + ' in SyncBcodeRes';
+          err = "received an unknown address " + address + " in SyncBcodeRes";
           res = false;
-        } else if (!('bytecodeHash' in remoteMissingStates[address])) {
-          err = 'received a bytecodeHash for unknown address ' + address;
+        } else if (!("bytecodeHash" in remoteMissingStates[address])) {
+          err = "received a bytecodeHash for unknown address " + address;
           res = false;
         } else if (remoteMissingStates[address].bytecodeHash != bytecodeHash) {
-          err = 'bytecodeHash received for address ' + address + ' does not match remote hash';
+          err =
+            "bytecodeHash received for address " +
+            address +
+            " does not match remote hash";
           res = false;
         }
       } else {
-        err = 'received an unknown msgType ' + msgType;
+        err = "received an unknown msgType " + msgType;
         res = false;
       }
     }

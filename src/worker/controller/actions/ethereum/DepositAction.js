@@ -9,7 +9,10 @@ class DepositAction {
     let err = null;
 
     try {
-      await this._controller.ethereum().api().selfDeposit(amount);
+      await this._controller
+        .ethereum()
+        .api()
+        .selfDeposit(amount);
       this._controller.logger().info(`[DEPOSIT] successful deposit`);
       success = true;
     } catch (e) {
@@ -19,11 +22,10 @@ class DepositAction {
     if (onResult) {
       onResult(err, success);
     }
-
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);

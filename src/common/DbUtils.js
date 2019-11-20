@@ -1,29 +1,29 @@
-const Web3 = require('web3');
+const Web3 = require("web3");
 
 class DbUtils {
   static toHexString(byteArray) {
     return Array.from(byteArray, function(byte) {
-      return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-    }).join('');
+      return ("0" + (byte & 0xff).toString(16)).slice(-2);
+    }).join("");
   }
 
   static hexToBytes(hex) {
-    if (hex.slice(0, 2) === '0x') {
+    if (hex.slice(0, 2) === "0x") {
       hex = hex.slice(2, hex.length);
     }
-    const b = Buffer.from(hex, 'hex');
+    const b = Buffer.from(hex, "hex");
     return [...b];
   }
 
   static intTo4BytesArr(num) {
     if (num > 4294967295) {
-      throw new Error('integer overflow');
+      throw new Error("integer overflow");
     }
     const arr = new Uint8Array([
       (num & 0xff000000) >> 24,
       (num & 0x00ff0000) >> 16,
       (num & 0x0000ff00) >> 8,
-      (num & 0x000000ff),
+      num & 0x000000ff
     ]);
     return Array.from(arr);
   }
@@ -38,27 +38,25 @@ class DbUtils {
     addr = DbUtils.toHexString(addr);
     let index = byteKey.slice(byteKey.length - 4, byteKey.length);
     index = DbUtils.bytesArrToInt(index);
-    return {'address': addr, 'index': index};
+    return { address: addr, index: index };
   }
   static toBytesKey(contractByteAddr, index) {
     const res = [];
-    contractByteAddr.forEach((c)=>{
+    contractByteAddr.forEach(c => {
       res.push(c);
     });
     if (index >= 0) {
       const indexBytes = DbUtils.intTo4BytesArr(index);
-      indexBytes.forEach((c)=>{
+      indexBytes.forEach(c => {
         res.push(c);
       });
     }
     return res;
   }
-  static isValidEthereumAddress(address)
-  {
+  static isValidEthereumAddress(address) {
     let web3 = new Web3();
     return web3.utils.isAddress(address);
-  };
-
+  }
 }
 
 module.exports = DbUtils;

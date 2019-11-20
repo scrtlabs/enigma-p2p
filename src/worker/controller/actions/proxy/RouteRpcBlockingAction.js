@@ -1,7 +1,6 @@
-
-const constants = require('../../../../common/constants');
-const EncoderUtil = require('../../../../common/EncoderUtil');
-const Envelop = require('../../../../main_controller/channels/Envelop');
+const constants = require("../../../../common/constants");
+const EncoderUtil = require("../../../../common/EncoderUtil");
+const Envelop = require("../../../../main_controller/channels/Envelop");
 
 class RouteRpcBlockingAction {
   constructor(controller) {
@@ -20,7 +19,11 @@ class RouteRpcBlockingAction {
     const reqType = requestEnvelop.content().type;
 
     if (!targetTopic || !sequence || !workerSignKey) {
-      this._sendResponseEnvelope(requestEnvelop, false, 'error no sequence/targetTopic/signKey');
+      this._sendResponseEnvelope(
+        requestEnvelop,
+        false,
+        "error no sequence/targetTopic/signKey"
+      );
       return;
     }
 
@@ -28,44 +31,55 @@ class RouteRpcBlockingAction {
       type: reqType,
       request: request,
       sequence: sequence,
-      targetTopic: targetTopic,
+      targetTopic: targetTopic
     });
     if (!routedMessage) {
-      this._sendResponseEnvelope(requestEnvelop, false, 'error in encoding routed message');
+      this._sendResponseEnvelope(
+        requestEnvelop,
+        false,
+        "error in encoding routed message"
+      );
       return;
     }
 
     // onPublish callback
-    const onPublish = (msg)=>{
+    const onPublish = msg => {
       // once the result from the worker arrives
       const data = EncoderUtil.decode(msg.data);
       if (!data) {
-        this._sendResponseEnvelope(requestEnvelop, false, 'error in decoding response message');
-      }
-      else {
+        this._sendResponseEnvelope(
+          requestEnvelop,
+          false,
+          "error in decoding response message"
+        );
+      } else {
         this._sendResponseEnvelope(requestEnvelop, data.result, null);
       }
       // TODO:: possible unsubscribe depends what the reqs are it might not be default maybe reuse the topic
     };
     // onSubscribed callback
-    const onSubscribed = ()=>{
-      console.log('[rpc] subscribed to target topic = ' + targetTopic);
+    const onSubscribed = () => {
+      console.log("[rpc] subscribed to target topic = " + targetTopic);
       // publish the actual request
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_PUB, {
         topic: workerSignKey,
-        message: routedMessage,
+        message: routedMessage
       });
     };
 
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.PUBSUB_SUB, {
       topic: targetTopic,
       onPublish: onPublish,
-      onSubscribed: onSubscribed,
+      onSubscribed: onSubscribed
     });
   }
 
   _sendResponseEnvelope(requestEnvelop, result, error) {
-    const env = new Envelop(requestEnvelop.id(), {result: result, error: error}, requestEnvelop.type());
+    const env = new Envelop(
+      requestEnvelop.id(),
+      { result: result, error: error },
+      requestEnvelop.type()
+    );
     this._controller.communicator().send(env);
   }
 }

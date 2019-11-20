@@ -1,5 +1,3 @@
-
-
 class FindProviderResult {
   constructor() {
     this._map = {};
@@ -16,11 +14,11 @@ class FindProviderResult {
    */
   addProviderResult(engCid, providerList) {
     const key = engCid.getKeccack256();
-    this._map[key] = {providers: providerList, ecid: engCid};
+    this._map[key] = { providers: providerList, ecid: engCid };
   }
   addErroredProviderResult(engCid, error) {
     const key = engCid.getKeccack256();
-    this._errored[key] = {ecid: engCid, error: error};
+    this._errored[key] = { ecid: engCid, error: error };
   }
   /**
    * indicates if there was a general error in the process - the _map will be empty in that case
@@ -58,5 +56,3 @@ class FindProviderResult {
 }
 
 module.exports = FindProviderResult;
-
-

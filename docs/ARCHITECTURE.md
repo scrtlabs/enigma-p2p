@@ -1,8 +1,9 @@
 # enigma-p2p
-| Branch | Build | Code Coverage | 
-|--------|-------|---------------|
-| Master |[![Build Status](https://travis-ci.org/enigmampc/enigma-p2p.svg?branch=master)](https://travis-ci.org/enigmampc/enigma-p2p) | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/master/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p) |
-| Develop |[![Build Status](https://travis-ci.org/enigmampc/enigma-p2p.svg?branch=develop)](https://travis-ci.org/enigmampc/enigma-p2p) | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/develop/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p) |
+
+| Branch  | Build                                                                                                                        | Code Coverage                                                                                                                                        |
+| ------- | ---------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Master  | [![Build Status](https://travis-ci.org/enigmampc/enigma-p2p.svg?branch=master)](https://travis-ci.org/enigmampc/enigma-p2p)  | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/master/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p)  |
+| Develop | [![Build Status](https://travis-ci.org/enigmampc/enigma-p2p.svg?branch=develop)](https://travis-ci.org/enigmampc/enigma-p2p) | [![codecov](https://codecov.io/gh/enigmampc/enigma-p2p/branch/develop/graph/badge.svg?token=SSyRKy7Ckg)](https://codecov.io/gh/enigmampc/enigma-p2p) |
 
 [WIP] The Enigma Worker P2P package written in Node.js based on libp2p-js [WIP]
 
@@ -57,11 +58,9 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
   - [Authors](#authors)
   - [License](#license)
 
-
 # Getting Started
 
 ## Quick CLI
-
 
 First:
 
@@ -71,7 +70,7 @@ For help and list of flags:
 
 `$node cli_app.js -h`
 
-For interactive-options help type `$help` while running. 
+For interactive-options help type `$help` while running.
 
 For quick launching with default the CLI with 1 bootstrap node type:
 
@@ -79,16 +78,16 @@ For quick launching with default the CLI with 1 bootstrap node type:
 
 For the run-time commands the node can do:
 
-**While already running type**  `help`
+**While already running type** `help`
 
 for quick launch with default worker(s) in a different terminal type:
 
 `node cli_app.js -b B1 --core <ip>:<port> --proxy <port>`
 
-`--core <ip>:<port>` flag will start a mock server on the given port and connect to it. 
+`--core <ip>:<port>` flag will start a mock server on the given port and connect to it.
 
 `--proxy <port>` will start up the JSONrpc server as well.
- 
+
 # Architechture
 
 ## Core P2P and the outside world
@@ -97,17 +96,13 @@ for quick launch with default worker(s) in a different terminal type:
      alt="Implementation 1" />
 
 ## P2P High level design
- 
- 
 
 <img src="./MainController.jpg"
      alt="Implementation 2" />
 
-
-* The components `NodeController`, `JsonRpcServer`, `CoreRuntime` are essentially autonomous "runtimes".
-* The MainController relays the communication with different Actions.
-* The communication is done via Channels, which are bi-directional message-sending implementations.
-  
+- The components `NodeController`, `JsonRpcServer`, `CoreRuntime` are essentially autonomous "runtimes".
+- The MainController relays the communication with different Actions.
+- The communication is done via Channels, which are bi-directional message-sending implementations.
 
 ## NodeController and internals
 
@@ -118,34 +113,33 @@ for quick launch with default worker(s) in a different terminal type:
 
 The enigma-p2p is asynchronous in its nature and has different concepts that are applied in the architecture.
 
-### Event driven and notifications  
+### Event driven and notifications
 
-Everything is based on notifications and responses to those notifications. 
-Notifications in the project come in 2 forms: 
+Everything is based on notifications and responses to those notifications.
+Notifications in the project come in 2 forms:
 
-1) [EventEmitter](https://nodejs.org/api/events.html#events_events) 
-    - Are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124).
-    
-2) Channels and communicators
+1. [EventEmitter](https://nodejs.org/api/events.html#events_events)
+   - Are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124).
+2. Channels and communicators
 
-    -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless. 
+   -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless.
 
+### Command pattern and Actions
 
-### Command pattern and Actions 
+Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modifications to fit NodeJS style.
+Terminology wise, it's called **Actions**.
+Everywhere in the project `notifications` lead to `Actions`.
+The rational here is that objects hold the **concrete implementation** and Actions are the **operational logic**.
 
-Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modifications to fit NodeJS style. 
-Terminology wise, it's called **Actions**. 
-Everywhere in the project `notifications` lead to `Actions`. 
-The rational here is that objects hold the **concrete implementation**  and Actions are the **operational logic**. 
+Actions are everywhere:
 
-Actions are everywhere: 
 - [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions)
 - [MainController](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/main_controller/actions)
 - [CoreRuntime](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/core/actions)
-  
-Actions must implement `execute(params)` function and usually take `context` object in their constructor. 
 
-To summarize, `Actions` are holding the **operational logic** when to call functions and in which order and it seperates the `invokation` from the `execution`. 
+Actions must implement `execute(params)` function and usually take `context` object in their constructor.
+
+To summarize, `Actions` are holding the **operational logic** when to call functions and in which order and it seperates the `invokation` from the `execution`.
 
 **Pipelines**
 
@@ -153,45 +147,44 @@ Sometimes different functions needs to be called together, those are called `Pip
 
 ### Controllers
 
-There are a lot of components that need to talk to each other. 
-So there is a hierarchy. The controllers are mapping `notifications` that are emitted to `Actions` that need to be executed. 
+There are a lot of components that need to talk to each other.
+So there is a hierarchy. The controllers are mapping `notifications` that are emitted to `Actions` that need to be executed.
 
-For example, the [NodeController](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller). 
+For example, the [NodeController](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller).
 
 **!!! Every controller also exposes a [FACADE](https://en.wikipedia.org/wiki/Facade_pattern) to the other things in the project. !!!**
 
-This is how user can call direct `Actions` such as `connect to peers` etc. 
+This is how user can call direct `Actions` such as `connect to peers` etc.
 
-### Constants 
+### Constants
 
-All the constants go [here](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/common/constants.js). 
-
+All the constants go [here](https://github.com/enigmampc/enigma-p2p/blob/mexico_branch/src/common/constants.js).
 
 ## Runtimes and the main controller
 
-Each component such as the Worker, CoreRuntime, etc are `Runtimes` and there is a main controller that connects between them. 
+Each component such as the Worker, CoreRuntime, etc are `Runtimes` and there is a main controller that connects between them.
 
 The reasoning here is again, seperation of concerns.
 
-### Main controller 
+### Main controller
 
-The [MainController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/MainController.js#L1), documented in a comment, is also based on `Actions` with slightly different concepts. 
+The [MainController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/MainController.js#L1), documented in a comment, is also based on `Actions` with slightly different concepts.
 
-### Runtimes 
+### Runtimes
 
-The different Runtimes need to implement 2 methods: 
+The different Runtimes need to implement 2 methods:
 
 `type() : string`
-    
-This method returns the Runtime [name](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/common/constants.js#L97). 
+  
+This method returns the Runtime [name](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/common/constants.js#L97).
 
-`setChannel(Communicator)` 
+`setChannel(Communicator)`
 
 This method sets the communicator for each Runtime to talk with the MainController ([example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L208)).
 
-### Channels and Communicators 
+### Channels and Communicators
 
-Runtime communication is usually `request/response`, which is why simple `EventEmmitter` is not enough. 
+Runtime communication is usually `request/response`, which is why simple `EventEmmitter` is not enough.
 
 For example, when `Worker` component needs something from the DB, it will use a `Channel` and wait for a response.
 
@@ -203,61 +196,64 @@ The "big" innovation here is the `sendAndReceive(envelop)` method.
 example:
 
 ```javascript
-const Envelop = require('./Envelop');
+const Envelop = require("./Envelop");
 let communicators = Channel.biDirectChannel();
 let c1 = communicators.channel1;
 let c2 = communicators.channel2;
 
-c1.setOnMessage((envelop)=>{
-    console.log(envelop);
-    let e = new Envelop(envelop.id(),{msg : 'this is lena '}, 'target runtime action');
-    c1.send(e);
+c1.setOnMessage(envelop => {
+  console.log(envelop);
+  let e = new Envelop(
+    envelop.id(),
+    { msg: "this is lena " },
+    "target runtime action"
+  );
+  c1.send(e);
 });
-  // envelop
-let e1 = new Envelop(true,{msg : 'who is it? '}, 'target runtime action');
+// envelop
+let e1 = new Envelop(true, { msg: "who is it? " }, "target runtime action");
 
 let responseEnvelop = await c2.sendAndReceive(e1);
 console.log("response: " + responseEnvelop);
 ```
 
-### Api controller 
+### Api controller
 
-The MainController exposes a [FACADE](https://en.wikipedia.org/wiki/Facade_pattern) to all the Runtimes. 
+The MainController exposes a [FACADE](https://en.wikipedia.org/wiki/Facade_pattern) to all the Runtimes.
 This is what the **CLI is talking to**.
 
 **TODO::**
 
-The Facade is implemented in [FacadeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L12) and should be adding [concrete methods](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L10) there that will define the general API, currently this is very unstable which is why the CLI calls the [components directly](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L196). 
+The Facade is implemented in [FacadeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L12) and should be adding [concrete methods](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/FacadeController.js#L10) there that will define the general API, currently this is very unstable which is why the CLI calls the [components directly](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L196).
 
-### Creating main controller instance 
+### Creating main controller instance
 
-There is a [Builder](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/EnvironmentBuilder.js#L9) :-) 
+There is a [Builder](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/main_controller/EnvironmentBuilder.js#L9) :-)
 
-[Example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L180) of how the CLI uses the builder to create an instance. 
+[Example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/cli/cli_app.js#L180) of how the CLI uses the builder to create an instance.
 
-## The Worker - everything libp2p. 
+## The Worker - everything libp2p.
 
-The worker runtime is everything that relates to messaging and the p2p. 
+The worker runtime is everything that relates to messaging and the p2p.
 
-### Libp2p configuration 
+### Libp2p configuration
 
-Besides the configuration in common/constants.js there are specific libp2p configurations, such as [PeerBundle](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/libp2p-bundle.js#L12). 
+Besides the configuration in common/constants.js there are specific libp2p configurations, such as [PeerBundle](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/libp2p-bundle.js#L12).
 
 ### EnigmaNode
 
 The [EnigmaNode](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/EnigmaNode.js#L20) is a wrapper to the `PeerBundle` from above. It implements specific p2p functions for enigma. Nothing should talk directly to the `PeerBundle`. Everything low-level that requires `PeerBundle` directly should go through this class instead.
 
-Just to emphasize: if one needs some specific function for libp2p-dht that does not exist yet in the `EnigmaNode` class, it should be implemented here and wrapped. 
+Just to emphasize: if one needs some specific function for libp2p-dht that does not exist yet in the `EnigmaNode` class, it should be implemented here and wrapped.
 
-### P2P Messages 
+### P2P Messages
 
-The messages are used as [concrete classes](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/policy/p2p_messages). They are documented [here](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/docs) along side with `IPC_MESSAGES.md`. There might be minor differences between what is documented and what is implemented. 
+The messages are used as [concrete classes](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/policy/p2p_messages). They are documented [here](https://github.com/enigmampc/enigma-p2p/tree/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/docs) along side with `IPC_MESSAGES.md`. There might be minor differences between what is documented and what is implemented.
 
+### Incoming requests
 
-### Incoming requests 
-
-All the inbound messages get accepted by the [ProtocolHandler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L18) class. 
-Building on top of libp2p terminology, different messages are different protocols and each one gets its own [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L42). 
+All the inbound messages get accepted by the [ProtocolHandler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L18) class.
+Building on top of libp2p terminology, different messages are different protocols and each one gets its own [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L42).
 
 ### State synchronization
 
@@ -271,40 +267,46 @@ A [class](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647b
 
 **Streams**
 
-All the streams are in [one place](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/streams.js). If a stream needs a stateful reference, for example the ability to query the database, it should be initialized in the `setGlobalState()` method. 
+All the streams are in [one place](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/streams.js). If a stream needs a stateful reference, for example the ability to query the database, it should be initialized in the `setGlobalState()` method.
 
 **Related Actions**
 
-The [Actions](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions/sync) with the operational logic inside `NodeController`. 
+The [Actions](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions/sync) with the operational logic inside `NodeController`.
 
 ### PubSub - how to "broadcast"
 
-This is a great way of communicating with Nodes in the network using the DHT. Essentially this is a `Multicast` based on `publish/subscribe` architecture. 
+This is a great way of communicating with Nodes in the network using the DHT. Essentially this is a `Multicast` based on `publish/subscribe` architecture.
 
-Nodes can subscribe to different topics and publish messages to those topics. 
+Nodes can subscribe to different topics and publish messages to those topics.
 
-An [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L298) (`$broadcast <msg>` in the cli) of publishing to `broadcast` topic. 
+An [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L298) (`$broadcast <msg>` in the cli) of publishing to `broadcast` topic.
 
-Subscribe [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/EnigmaNode.js#L199) and the [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L92) for a message. 
+Subscribe [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/EnigmaNode.js#L199) and the [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L92) for a message.
 
 **This functionality is great for the JSONRPC api to propagate messages to the network from a proxy node the dApp user is connected to**.
 
-### Connecting it all - controller 
+### Connecting it all - controller
 
 There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) and all of them are managed by the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L43) that maps `notifications` to `Actions`.
 
 **The NodeController exposes the Facade API for the Worker p2p things**
 
-### creating NodeController instance 
+### creating NodeController instance
 
-`initDefaultTemplate(options,logger)` is for creating a new [instance](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L102). 
+`initDefaultTemplate(options,logger)` is for creating a new [instance](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L102).
 
 ## Prerequisites
-* TBD
+
+- TBD
+
 ## Installing
-* TBD
+
+- TBD
+
 # Running the Node
-* TBD
+
+- TBD
+
 # Running the tests
 
 ```bash
@@ -316,62 +318,64 @@ npm run test
 ```
 
 ## Troubleshooting
+
 If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the port that was reported as already in use (from `./test/ipc_test.js`).
 
 # How it works
 
-## Overview on start 
-At a very high level, the Worker needs to execute a sequence of steps 
-and only then, it can start "working". Here is a diagram explaining all of the initial steps the Worker has to do: 
+## Overview on start
+
+At a very high level, the Worker needs to execute a sequence of steps
+and only then, it can start "working". Here is a diagram explaining all of the initial steps the Worker has to do:
 
 <img src="./start_flow.jpg"
      alt="Implementation 4" />
 
-* Start
-   
+- Start
+
 Starting the node after Core. Set some configurations such as network settings, Ethereum wallet etc.
 
-* Bootstrap
+- Bootstrap
 
 Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
 
-* Sync State
+- Sync State
 
 Synchronize the Worker state: Secret contracts bytecode and deltas.
 
-* Announce State 
+- Announce State
 
 Update the DHT registries with the content available (i.e deltas) for other peers to sync.
 
-* Background Services 
+- Background Services
 
 Such as Ethereum listener, JsonRpcAPI etc.
 
-* Register 
+- Register
 
 Register with Enigma.sol with all the required steps including Enclave Report.
 
 ## Syncing a Worker
 
-Worker synchronization is done using libp2p content routing mechanisms. 
-The architechture is sharded in its nature. 
-We could think of **each contract as a chain of blocks**, and **each block** represents some **delta** in a **seuquence**. 
-The first block is the bytecode, then we get delta 0, delta 1 and so on. 
+Worker synchronization is done using libp2p content routing mechanisms.
+The architechture is sharded in its nature.
+We could think of **each contract as a chain of blocks**, and **each block** represents some **delta** in a **seuquence**.
+The first block is the bytecode, then we get delta 0, delta 1 and so on.
 
-The synchronization process consists of many parts and before diving in, here is what it **doesn't do** (some might call it **TODO**): 
-1. protect again DOS/DDOS attacks. 
-2. blacklist ip. 
+The synchronization process consists of many parts and before diving in, here is what it **doesn't do** (some might call it **TODO**):
+
+1. protect again DOS/DDOS attacks.
+2. blacklist ip.
 3. re-use connection with a peer for more than 1 contract, i.e the full process of synching contract a and b will re-open the connection twice even if it's the same peer.
 
-What it **does** today: 
+What it **does** today:
 
 1. handles back-pressure (requests are piped in sink-streams with max of 500 range for deltas)
 2. shutdown the stream if something went wrong (i.e corrupted data)
 3. optimized for simple lamptops with no hardware/bandwidth assumptions.
 4. all the components in the process both the `Receiver`/`Provider` uses `sink-streams` all the way from the `request` to the `database` storage.
 
-Without further due, let's look at the flow. 
-
+Without further due, let's look at the flow.
 
 ### Consensus
 
@@ -383,16 +387,17 @@ Synchronizing the State means:
 
     1) Having all the secret-contracts WASM code.
     2) Having all the state deltas for each secret-contract.
-**In the code:** 
 
-[worker/IdentifyMissingStaetsAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/IdentifyMissingStatesAction.js) uses [StateSync](https://github.com/enigmampc/enigma-p2p/blob/develop/src/ethereum/StateSync.js) to get the `missing states map` it maps between addresses and delta/bytecode hashes that are missing. This is also used in the [verification stream](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/receiver/Receiver.js) to validate the corectness of the received data. 
-In simple words, instead of going to Ethereum twice, once for identifying what is missing and the second time for verification, we reuse the same object. 
+**In the code:**
+
+[worker/IdentifyMissingStaetsAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/IdentifyMissingStatesAction.js) uses [StateSync](https://github.com/enigmampc/enigma-p2p/blob/develop/src/ethereum/StateSync.js) to get the `missing states map` it maps between addresses and delta/bytecode hashes that are missing. This is also used in the [verification stream](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/receiver/Receiver.js) to validate the corectness of the received data.
+In simple words, instead of going to Ethereum twice, once for identifying what is missing and the second time for verification, we reuse the same object.
 
 ### Content Routing
 
 The content routing is based on the libp2p implementation of IPFS using [CID](https://github.com/ipld/js-cid) to identify content and Kad-DHT for finding peers.
 
-In the `enigma-p2p` the `CID` is wrapped with [EngCid](https://github.com/enigmampc/enigma-p2p/blob/develop/src/common/EngCID.js) and exposes convenient functions to use for the enigma use-case.  
+In the `enigma-p2p` the `CID` is wrapped with [EngCid](https://github.com/enigmampc/enigma-p2p/blob/develop/src/common/EngCID.js) and exposes convenient functions to use for the enigma use-case.
 
 **We use CID only to represent a contract address and nothing else.**
 
@@ -408,22 +413,22 @@ All the information is stored encrypted inside a rocks-db instance on the disk a
 
 Providing Content is the process of announcing to the network a list of CID's. **A node announces the content it provides after it's being synchronized with the Enigma Contract on Ethereum**.
 
-Providing requires an announcements process which is done via [AnnounceLocalStateAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/AnnounceLocalStateAction.js). 
+Providing requires an announcements process which is done via [AnnounceLocalStateAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/AnnounceLocalStateAction.js).
 
 Nodes store in their `DHT` a mapping between `CID` and provider peers.
 
 ### Find Content
 
-This is the role of the `Receiver`. 
-Finding content is the look up of certains CID's in the network. 
-Finding content requires 2 steps: 
-1. Get the local state. 
-2. Get the remote state. 
+This is the role of the `Receiver`.
+Finding content is the look up of certains CID's in the network.
+Finding content requires 2 steps:
+
+1. Get the local state.
+2. Get the remote state.
 
 The delta between the Remote and the local is **what needs to be synched**.
 
-This is a diagram demonstrating the use of the action [IdentifyMissingStatesAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/IdentifyMissingStatesAction.js) that will take care of both steps (thanks to @lenak25 implementation of remote states). 
-
+This is a diagram demonstrating the use of the action [IdentifyMissingStatesAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/IdentifyMissingStatesAction.js) that will take care of both steps (thanks to @lenak25 implementation of remote states).
 
 <img src="./IdentifySyncDiagram.png"
      alt="identify 2" />
@@ -434,45 +439,45 @@ This is a diagram demonstrating the use of the action [IdentifyMissingStatesActi
 
 Ok, so we know **what** is missing, now we need to find **who** can provide it. There is a list for each CID since peers might go offline or be malicioous etc.
 
-Again, this is from the `Receiver` perspective triggering [ContentProviderAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/FindContentProviderAction.js). 
-
+Again, this is from the `Receiver` perspective triggering [ContentProviderAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/FindContentProviderAction.js).
 
 <img src="./FindProvidersAction.png"
      alt="find providers 2" />
 
-The end result of this action is a map of `CID`'s to `providers` (peers) that can provide that CID. 
+The end result of this action is a map of `CID`'s to `providers` (peers) that can provide that CID.
 
-**TODO::** optimize on connections, i.e if a peer exists in all of the CID's then reuse the connection. 
+**TODO::** optimize on connections, i.e if a peer exists in all of the CID's then reuse the connection.
 
 ### Synchronize Content
 
-From the `Receiver` perspective it all starts with [TryReceiveAllAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/TryReceiveAllAction.js). At the moment we sync 
+From the `Receiver` perspective it all starts with [TryReceiveAllAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/sync/TryReceiveAllAction.js). At the moment we sync
 each contract one-by-one because:
-1. It's safer to manage 
+
+1. It's safer to manage
 2. It takes no assumption of good hardware/bandwith
 
-At the high-level the process of managing the synchronization of **all** the secret contracts: 
+At the high-level the process of managing the synchronization of **all** the secret contracts:
 
 <img src="./SyncHighLevel.png"
      alt="sync high level" />
 
-Phew, this is not simple. If we go deeper, there can be faults i.e peer go offline, malicious peer, corrupted data etc. So this is the process of receiving **one** secret contract (this is in-depth look into the yellow circle saying `Sync` in the above diagram): 
+Phew, this is not simple. If we go deeper, there can be faults i.e peer go offline, malicious peer, corrupted data etc. So this is the process of receiving **one** secret contract (this is in-depth look into the yellow circle saying `Sync` in the above diagram):
 
 <img src="./TrySyncReceiveOneContract.png"
      alt="sync one " />
 
-It's not over yet, if we look deeper, in the above diagram there is a state that's called `Sync-Receive contract`. This is the actuall flow of passing bytes around between 2 peers: 
+It's not over yet, if we look deeper, in the above diagram there is a state that's called `Sync-Receive contract`. This is the actuall flow of passing bytes around between 2 peers:
 
 - [Provider](https://github.com/enigmampc/enigma-p2p/tree/develop/src/worker/state_sync/provider)
 - [Receiver](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/receiver/Receiver.js)
 - [streams implementation](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/streams.js)
 
-A `Receiver` can request either a bytecode or deltas (limited up to 500 deltas per request). To handle backpressure and DOS attacks each request is handled once the previous is done, i.e the `Receiver` will send another reuqest to the `Provider` only after verifying and storing the current request. 
+A `Receiver` can request either a bytecode or deltas (limited up to 500 deltas per request). To handle backpressure and DOS attacks each request is handled once the previous is done, i.e the `Receiver` will send another reuqest to the `Provider` only after verifying and storing the current request.
 
-The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/states_sync_sequence) can be: 
+The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/states_sync_sequence) can be:
+
 - STATE_SYNC_REQ/RES
 - SYNC_BCODE_REQ/RES
-
 
 <img src="./streams_diagram_sync.png"
      alt="streams flow " />
@@ -484,18 +489,18 @@ The [messages](https://github.com/enigmampc/enigma-p2p/blob/develop/definitions/
 
 ## Built With
 
-* [NodeJS](https://nodejs.org/en/)
-* [Libp2p](https://libp2p.io/) - Networking library
+- [NodeJS](https://nodejs.org/en/)
+- [Libp2p](https://libp2p.io/) - Networking library
 
 ## Authors
 
-* TBD
+- TBD
 
 ## License
 
 The Enigma Worker P2P is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by
 the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 
-This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Affero General Public License for more details.
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
 
-You should have received a [copy](LICENSE) of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You should have received a [copy](LICENSE) of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.

@@ -1,11 +1,10 @@
 /** Policy class that handles messages policy*/
-const constants = require('../common/constants');
+const constants = require("../common/constants");
 const PROTOCOLS = constants.PROTOCOLS;
 const PUBSUB_TOPICS = constants.PUBSUB_TOPICS;
 
 class Policy {
-  constructor(){
-  }
+  constructor() {}
   /** is a valid procol name
    * @param {String} protocolName,
    * @return {Boolean}, is valid protocol
@@ -36,9 +35,11 @@ class Policy {
    * @return {Boolean} isValid
    */
   validJsonRpc(msg) {
-    return 'jsonrpc' in msg &&
-                (('method' in msg && 'params') || 'result' in msg ) &&
-                'id' in msg;
+    return (
+      "jsonrpc" in msg &&
+      (("method" in msg && "params") || "result" in msg) &&
+      "id" in msg
+    );
   }
 }
 

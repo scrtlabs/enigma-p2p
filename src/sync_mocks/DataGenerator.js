@@ -1,12 +1,13 @@
-const pickRandom = require('pick-random');
-const Web3 = require('web3');
+const pickRandom = require("pick-random");
+const Web3 = require("web3");
 const web3 = new Web3();
-const fs = require('fs');
-const level = require('level');
-
+const fs = require("fs");
+const level = require("level");
 
 function random(m, s) {
-  let num = Math.round(m + 2.0 * s * (Math.random() + Math.random() + Math.random() - 1.5));
+  let num = Math.round(
+    m + 2.0 * s * (Math.random() + Math.random() + Math.random() - 1.5)
+  );
   if (num <= 0) {
     num = 1;
   }
@@ -19,8 +20,8 @@ function randomRange(min, max) {
 
 module.exports.generateNkeccack256Hashes = function(n) {
   const hashes = [];
-  for (let i=0; i<n; ++i) {
-    const h = web3.utils.sha3(Math.random() + i + '');
+  for (let i = 0; i < n; ++i) {
+    const h = web3.utils.sha3(Math.random() + i + "");
     hashes.push(h);
   }
   return hashes;
@@ -28,12 +29,12 @@ module.exports.generateNkeccack256Hashes = function(n) {
 
 function toHexString(byteArray) {
   return Array.from(byteArray, function(byte) {
-    return ('0' + (byte & 0xFF).toString(16)).slice(-2);
-  }).join('');
+    return ("0" + (byte & 0xff).toString(16)).slice(-2);
+  }).join("");
 }
 
 function hexToBytes(hex) {
-  const b = Buffer.from(hex, 'hex');
+  const b = Buffer.from(hex, "hex");
   return [...b];
 }
 
@@ -43,7 +44,7 @@ function generateBytesBlob(size) {
 
   const blob = [];
 
-  for (let i =0; i<size; ++i) {
+  for (let i = 0; i < size; ++i) {
     const randByte = randomRange(min, max);
     blob.push(randByte);
   }
@@ -51,42 +52,41 @@ function generateBytesBlob(size) {
   return blob;
 }
 
-
 function _generateEthereumState(contractsNum, meanDeltasNum, deltasDeviation) {
   const ethereumState = {};
   // generate secret contract addresses
 
   const contracts = [];
 
-  for (let i=0; i<contractsNum; ++i) {
+  for (let i = 0; i < contractsNum; ++i) {
     const contractSize = randomRange(500, 2500);
     const bytecode = generateBytesBlob(contractSize);
     const bytecodeHash = web3.utils.keccak256(bytecode);
     contracts.push({
-      'code': bytecode,
-      'code_hash': bytecodeHash,
+      code: bytecode,
+      code_hash: bytecodeHash
     });
   }
 
-  contracts.forEach((contract)=>{
+  contracts.forEach(contract => {
     // generate deltas
     const deltas = [];
     const deltasNumber = random(meanDeltasNum, deltasDeviation);
-    for (let i=0; i<deltasNumber; ++i) {
+    for (let i = 0; i < deltasNumber; ++i) {
       const deltaSize = randomRange(300, 600);
       const delta = generateBytesBlob(deltaSize);
       const deltaHash = web3.utils.keccak256(delta);
       deltas.push({
-        'delta': delta,
-        'delta_hash': deltaHash,
+        delta: delta,
+        delta_hash: deltaHash
       });
     }
     // append a new contract
     const contractAddress = contract.code_hash;
     ethereumState[contractAddress] = {
-      'code': contract.code,
-      'code_hash': contract.code_hash,
-      'deltas': deltas,
+      code: contract.code,
+      code_hash: contract.code_hash,
+      deltas: deltas
     };
   });
 
@@ -101,7 +101,7 @@ function saveEthereumStateAsJs(path, ethereumState) {
       return console.log(err);
     }
 
-    console.log('The file was saved!');
+    console.log("The file was saved!");
   });
 }
 
@@ -117,13 +117,18 @@ module.exports.generateEthereumState = function() {
   const contractsNum = 100;
   const meanDeltasPerContracts = 39;
   const deviationDeltas = 2;
-  const ethState = _generateEthereumState(contractsNum, meanDeltasPerContracts, deviationDeltas);
-  const path = '/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/ethereum_blockchain.json';
+  const ethState = _generateEthereumState(
+    contractsNum,
+    meanDeltasPerContracts,
+    deviationDeltas
+  );
+  const path =
+    "/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/ethereum_blockchain.json";
   saveEthereumStateAsJs(path, ethState);
 };
 
 module.exports.loadEthState = function(path) {
-  let defaultPath = './ethereum_blockchain';
+  let defaultPath = "./ethereum_blockchain";
   if (path) {
     defaultPath = path;
   }
@@ -132,7 +137,7 @@ module.exports.loadEthState = function(path) {
 };
 
 module.exports.loadEthereumState = function() {
-  const dictionary = require('./ethereum_blockchain');
+  const dictionary = require("./ethereum_blockchain");
   return dictionary;
 };
 
@@ -152,11 +157,11 @@ function dictToList(dictionary) {
 // };
 
 function pickRandomFromList(list, num) {
-  if (num <=0 || num >= list.length) {
+  if (num <= 0 || num >= list.length) {
     return list;
   }
-  return pickRandom(list, {count: num});
-};
+  return pickRandom(list, { count: num });
+}
 
 function contractByteAddrFromHash(h) {
   h = h.slice(2, h.length);
@@ -169,7 +174,7 @@ function intTo4BytesArr(num) {
     (num & 0xff000000) >> 24,
     (num & 0x00ff0000) >> 16,
     (num & 0x0000ff00) >> 8,
-    (num & 0x000000ff),
+    num & 0x000000ff
   ]);
   return Array.from(arr);
 }
@@ -183,57 +188,60 @@ function bytesArrToInt(bytesArr) {
 function deltaKeyBytes(contractByteAddr, index) {
   const indexBytes = intTo4BytesArr(index);
   const res = [];
-  contractByteAddr.forEach((c)=>{
+  contractByteAddr.forEach(c => {
     res.push(c);
   });
-  indexBytes.forEach((c)=>{
+  indexBytes.forEach(c => {
     res.push(c);
   });
   return res;
 }
 
 module.exports.deltaKeyBytesToTuple = function(byteKey) {
-  let addr = byteKey.slice(0, byteKey.length -4);
+  let addr = byteKey.slice(0, byteKey.length - 4);
   addr = toHexString(addr);
-  let index = byteKey.slice(byteKey.length-4, byteKey.length);
+  let index = byteKey.slice(byteKey.length - 4, byteKey.length);
   index = bytesArrToInt(index);
-  return {'address': addr, 'index': index};
+  return { address: addr, index: index };
 };
 
-module.exports.partialDBStateFromEthereum = function(ethereumState, contractsNumToTake, deltasNumToTake) {
+module.exports.partialDBStateFromEthereum = function(
+  ethereumState,
+  contractsNumToTake,
+  deltasNumToTake
+) {
   const database = {};
 
   const ethList = dictToList(ethereumState);
   const chosenContracts = pickRandomFromList(ethList, contractsNumToTake);
 
-  chosenContracts.forEach((contract)=>{
+  chosenContracts.forEach(contract => {
     const deltas = contract.deltas;
     const chosenDeltas = [];
 
-    for (let i =0; i< Math.min(deltas.length, deltasNumToTake); ++i){
+    for (let i = 0; i < Math.min(deltas.length, deltasNumToTake); ++i) {
       chosenDeltas.push({
-        'delta': deltas[i],
-        'index': i,
+        delta: deltas[i],
+        index: i
       });
     }
     const contractByteAddr = contractByteAddrFromHash(contract.code_hash);
 
     // add contract bytecode
-    console.log('added contract');
-    database[[contractByteAddr]] =contract.code;
+    console.log("added contract");
+    database[[contractByteAddr]] = contract.code;
 
     // add deltas
 
-    chosenDeltas.forEach((d)=>{
+    chosenDeltas.forEach(d => {
       const deltaKey = deltaKeyBytes(contractByteAddr, d.index);
-      console.log('added delta key ' + deltaKey);
+      console.log("added delta key " + deltaKey);
       database[[deltaKey]] = d.delta;
     });
   });
 
   return database;
 };
-
 
 // "/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/db_states.json"
 module.exports.saveDbStateAs = function(path, dbState) {
@@ -243,13 +251,12 @@ module.exports.saveDbStateAs = function(path, dbState) {
       return console.log(err);
     }
 
-    console.log('The file was saved!');
+    console.log("The file was saved!");
   });
 };
 
-
 module.exports.loadDb = function(path) {
-  let defaultPath = './db_states';
+  let defaultPath = "./db_states";
 
   if (path) {
     defaultPath = path;
@@ -259,7 +266,7 @@ module.exports.loadDb = function(path) {
 };
 
 module.exports.loadDBState = function() {
-  const dictionary = require('./db_states');
+  const dictionary = require("./db_states");
   return dictionary;
 };
 
@@ -267,11 +274,11 @@ module.exports.saveDbStateToLevelDB = function(dbPath, dbState) {
   const db = level(dbPath);
 
   Object.keys(dbState).forEach(function(key) {
-    db.put(key, dbState[key].delta, (err)=>{
+    db.put(key, dbState[key].delta, err => {
       if (err) {
-        console.log('error storing -> ' + err);
+        console.log("error storing -> " + err);
       } else {
-        console.log('.');
+        console.log(".");
       }
     });
   });
@@ -279,7 +286,6 @@ module.exports.saveDbStateToLevelDB = function(dbPath, dbState) {
 // generate ethereum state
 
 // generateEthereumState();
-
 
 // db
 
@@ -304,7 +310,6 @@ module.exports.saveDbStateToLevelDB = function(dbPath, dbState) {
 // saveDbStateToLevelDB(leveldbPath,dbState);
 // console.log(dictToList(dbState).length);
 
-
 /* verify stuff */
 
 //
@@ -316,5 +321,3 @@ module.exports.saveDbStateToLevelDB = function(dbPath, dbState) {
 // console.log("-----");
 // console.log(tuple.address);
 // console.log(tuple.index);
-
-

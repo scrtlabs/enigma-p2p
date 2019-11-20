@@ -1,11 +1,10 @@
-const jayson = require('jayson');
-const retry = require('retry');
-const EventEmitter = require('events').EventEmitter;
+const jayson = require("jayson");
+const retry = require("retry");
+const EventEmitter = require("events").EventEmitter;
 
-const constants = require('../../common/constants');
-const MsgPrincipal = require('../../policy/p2p_messages/principal_messages');
+const constants = require("../../common/constants");
+const MsgPrincipal = require("../../policy/p2p_messages/principal_messages");
 const PRINCIPAL_CONSTANTS = constants.PRINCIPAL_NODE;
-
 
 class PrincipalNode extends EventEmitter {
   constructor(config, logger) {
@@ -24,7 +23,9 @@ class PrincipalNode extends EventEmitter {
 
   startPTT() {
     if (this._pttInProgress) {
-      this._logger.error("PTT is already in progress, cannot initiate a new one");
+      this._logger.error(
+        "PTT is already in progress, cannot initiate a new one"
+      );
       return false;
     }
     this._pttInProgress = true;
@@ -44,21 +45,28 @@ class PrincipalNode extends EventEmitter {
     return new Promise((resolve, reject) => {
       if (!(msg instanceof MsgPrincipal)) {
         // TODO: Changed to type error from common/errors.
-        reject(new Error('getStateKeys accepts only object of type MsgPrincipal'));
+        reject(
+          new Error("getStateKeys accepts only object of type MsgPrincipal")
+        );
       }
 
       // TODO: adjust config params and not use defaults
       let operation = retry.operation(PRINCIPAL_CONSTANTS.retryOptions);
-      operation.attempt((currentAttempt)=> {
-        this._client.request('getStateKeys', msg.toJson(), (err, response) => {
+      operation.attempt(currentAttempt => {
+        this._client.request("getStateKeys", msg.toJson(), (err, response) => {
           if (this._logger) {
-            this._logger.debug('Connecting to principal node: ' + this._uri);
+            this._logger.debug("Connecting to principal node: " + this._uri);
           }
           // Check if there was an error and the operation can be retried
-          if ((err || (response.error && response.error.code && response.error.code === PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE))
-            && operation.retry(true))
-          {
-            this._logger.debug('Error received from KM, will retry..');
+          if (
+            (err ||
+              (response.error &&
+                response.error.code &&
+                response.error.code ===
+                  PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE)) &&
+            operation.retry(true)
+          ) {
+            this._logger.debug("Error received from KM, will retry..");
             return;
           }
 
@@ -69,8 +77,7 @@ class PrincipalNode extends EventEmitter {
           if (response.error) return reject(response.error);
           resolve(response.result);
         });
-      })
-
+      });
     });
   }
 }
