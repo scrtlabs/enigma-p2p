@@ -368,7 +368,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         }
 
         if (!Array.isArray(possibleEvents) || possibleEvents.length == 0) {
-          reject("The commitReceipt function in the Enigma contract didn't emit any result event.")
+          reject(new errors.CommitReceiptEthereumError(`The commitReceipt function for taskId ${taskId} in the Enigma contract didn't emit any result event.`))
           return;
         }
 
@@ -377,12 +377,12 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           .filter(e => Object.keys(e).length == 1 && e[Object.keys(e)[0]].taskId == taskId);
 
         if (matchingEvents.length == 0) {
-          reject(`The commitReceipt function in the Enigma contract didn't emit a result event for taskId ${taskId}.`)
+          reject(new errors.CommitReceiptEthereumError(`The commitReceipt function in the Enigma contract didn't emit a result event for taskId ${taskId}.`));
           return;
         }
 
         if (matchingEvents.length > 1) {
-          reject(`The commitReceipt function in the Enigma contract emitted too many (${matchingEvents.length}: ${JSON.stringify(matchingEvents)}) result events for taskId ${taskId}.`)
+          reject(new errors.CommitReceiptEthereumError(`The commitReceipt function in the Enigma contract emitted too many (${matchingEvents.length}: ${JSON.stringify(matchingEvents)}) result events for taskId ${taskId}.`));
           return;
         }
 
