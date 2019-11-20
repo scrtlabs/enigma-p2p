@@ -514,15 +514,16 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
 
   async _parsePastEvents(eventName, filter, blockNumber) {
     const rawEvents = await this._enigmaContract.getPastEvents(eventName, { fromBlock: blockNumber, filter: filter });
-    let events = {};
-    if (Array.isArray(rawEvents) && (rawEvents.length > 0)) {
-      if (rawEvents.length > 1) {
-        this._logger.info(`Received am unexpected number of events for ${eventName} with the current filter ${JSON.stringify(filter)}.. taking the first`);
-      }
-      events[eventName] = rawEvents[0];
-      events = this._parseEvents(events);
+
+    if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+      return {};
     }
-    return events;
+
+    if (rawEvents.length > 1) {
+      this._logger.info(`Received an unexpected number of events for ${eventName} with the filter ${JSON.stringify({ fromBlock: blockNumber, filter: filter })}. Taking the first one.`);
+    }
+
+    return this._parseEvents(events);
   }
 }
 
