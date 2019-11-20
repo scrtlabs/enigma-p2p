@@ -13,11 +13,7 @@ class RouteRpcNonBlockingAction {
 
     // validate topic indicated
     if (!targetTopic || !request) {
-      this._sendResponseEnvelope(
-        requestEnvelop,
-        { sent: false },
-        "error no targetTopic/request"
-      );
+      this._sendResponseEnvelope(requestEnvelop, { sent: false }, "error no targetTopic/request");
       return;
     }
     // encode routed msg
@@ -26,11 +22,7 @@ class RouteRpcNonBlockingAction {
       request: request
     });
     if (!routedMessage) {
-      this._sendResponseEnvelope(
-        requestEnvelop,
-        { sent: false },
-        "error in encoding routed message"
-      );
+      this._sendResponseEnvelope(requestEnvelop, { sent: false }, "error in encoding routed message");
       return;
     }
 
@@ -44,11 +36,7 @@ class RouteRpcNonBlockingAction {
   }
 
   _sendResponseEnvelope(requestEnvelop, result, error) {
-    const env = new Envelop(
-      requestEnvelop.id(),
-      { result: result, error: error },
-      requestEnvelop.type()
-    );
+    const env = new Envelop(requestEnvelop.id(), { result: result, error: error }, requestEnvelop.type());
     this._controller.communicator().send(env);
   }
 }

@@ -67,25 +67,21 @@ describe("single_config_tests", () => {
       const userPubKey =
         "5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f9" +
         "8771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99";
-      client.request(
-        "getWorkerEncryptionKey",
-        { workerAddress: signKey, userPubKey: userPubKey },
-        async (err, res) => {
-          if (err) {
-            reject(err);
-          }
-          assert.strictEqual(
-            "worker-signature-with-signed-by-the-private-key-of-the-sender-key",
-            res.result.result.workerSig,
-            "workersig dont match"
-          );
-          await pMainController.shutdownSystem();
-          await bMainController.shutdownSystem();
-          pCoreServer.disconnect();
-          bCoreServer.disconnect();
-          resolve();
+      client.request("getWorkerEncryptionKey", { workerAddress: signKey, userPubKey: userPubKey }, async (err, res) => {
+        if (err) {
+          reject(err);
         }
-      );
+        assert.strictEqual(
+          "worker-signature-with-signed-by-the-private-key-of-the-sender-key",
+          res.result.result.workerSig,
+          "workersig dont match"
+        );
+        await pMainController.shutdownSystem();
+        await bMainController.shutdownSystem();
+        pCoreServer.disconnect();
+        bCoreServer.disconnect();
+        resolve();
+      });
     });
   });
 });

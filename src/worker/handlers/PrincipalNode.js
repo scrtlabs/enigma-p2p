@@ -23,9 +23,7 @@ class PrincipalNode extends EventEmitter {
 
   startPTT() {
     if (this._pttInProgress) {
-      this._logger.error(
-        "PTT is already in progress, cannot initiate a new one"
-      );
+      this._logger.error("PTT is already in progress, cannot initiate a new one");
       return false;
     }
     this._pttInProgress = true;
@@ -45,9 +43,7 @@ class PrincipalNode extends EventEmitter {
     return new Promise((resolve, reject) => {
       if (!(msg instanceof MsgPrincipal)) {
         // TODO: Changed to type error from common/errors.
-        reject(
-          new Error("getStateKeys accepts only object of type MsgPrincipal")
-        );
+        reject(new Error("getStateKeys accepts only object of type MsgPrincipal"));
       }
 
       // TODO: adjust config params and not use defaults
@@ -62,8 +58,7 @@ class PrincipalNode extends EventEmitter {
             (err ||
               (response.error &&
                 response.error.code &&
-                response.error.code ===
-                  PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE)) &&
+                response.error.code === PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE)) &&
             operation.retry(true)
           ) {
             this._logger.debug("Error received from KM, will retry..");

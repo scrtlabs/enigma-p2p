@@ -19,22 +19,15 @@ class ExecuteTaskAction {
     // If this is a deploy task, trigger PTT for the specific contract address
     if (task instanceof DeployTask) {
       try {
-        await this._controller.asyncExecCmd(
-          constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-          {
-            addresses: [task.getContractAddr()],
-            blockNumber: task.getBlockNumber()
-          }
-        );
-        this._controller
-          .logger()
-          .debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
+        await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS, {
+          addresses: [task.getContractAddr()],
+          blockNumber: task.getBlockNumber()
+        });
+        this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
       } catch (e) {
         return this._controller
           .logger()
-          .error(
-            `received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`
-          );
+          .error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
       }
     }
 
@@ -48,9 +41,7 @@ class ExecuteTaskAction {
     );
     let responseEnvelop = null;
     try {
-      responseEnvelop = await this._controller
-        .communicator()
-        .sendAndReceive(requestEnv);
+      responseEnvelop = await this._controller.communicator().sendAndReceive(requestEnv);
     } catch (e) {
       return this._controller.logger().error(e);
     }
@@ -58,9 +49,7 @@ class ExecuteTaskAction {
     // check for system error
     if (response.msg) {
       // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller
-        .logger()
-        .error("response from Core" + JSON.stringify(response));
+      return this._controller.logger().error("response from Core" + JSON.stringify(response));
     }
     let result = null;
     if (response.result) {
@@ -84,19 +73,12 @@ class ExecuteTaskAction {
           this._controller
             .logger()
             .debug(
-              "received compute result for contract:" +
-                task.getContractAddr() +
-                " delta-key:" +
-                result.getDelta().key
+              "received compute result for contract:" + task.getContractAddr() + " delta-key:" + result.getDelta().key
             );
         } else {
           this._controller
             .logger()
-            .debug(
-              "received compute result for contract:" +
-                task.getContractAddr() +
-                " ,no delta"
-            );
+            .debug("received compute result for contract:" + task.getContractAddr() + " ,no delta");
         }
         break;
     }

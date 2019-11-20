@@ -11,12 +11,7 @@ class MsgPrincipal {
     if (jsonObj && jsonObj.request && jsonObj.sig) {
       const blockNumber = jsonObj.blockNumber ? jsonObj.blockNumber : null;
       const addresses = jsonObj.addresses ? jsonObj.addresses : null;
-      return new MsgPrincipal(
-        jsonObj.request,
-        jsonObj.sig,
-        addresses,
-        blockNumber
-      );
+      return new MsgPrincipal(jsonObj.request, jsonObj.sig, addresses, blockNumber);
     } else {
       return null;
     }

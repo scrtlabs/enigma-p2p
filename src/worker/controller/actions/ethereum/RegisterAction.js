@@ -20,9 +20,7 @@ class RegisterAction {
               .ethereum()
               .api()
               .register(signerAddress, report, signature);
-            this._controller
-              .logger()
-              .info(`[REGISTER] successful registration`);
+            this._controller.logger().info(`[REGISTER] successful registration`);
             success = true;
           } catch (e) {
             this._controller.logger().error(`[REGISTER] error=  ${e}`);

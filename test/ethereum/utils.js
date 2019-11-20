@@ -7,19 +7,9 @@ const DbUtils = require("../../src/common/DbUtils");
 const nodeUtils = require("../../src/common/utils");
 const constants = require("../../src/common/constants");
 
-function runSelectionAlgo(
-  secretContractAddress,
-  seed,
-  nonce,
-  balancesSum,
-  balances,
-  workers
-) {
+function runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balances, workers) {
   const hash = crypto.hash(
-    abi.rawEncode(
-      ["uint256", "bytes32", "uint256"],
-      [seed, nodeUtils.add0x(secretContractAddress), nonce]
-    )
+    abi.rawEncode(["uint256", "bytes32", "uint256"], [seed, nodeUtils.add0x(secretContractAddress), nonce])
   );
   // Find random number between [0, tokenCpt)
   let randVal = JSBI.remainder(JSBI.BigInt(hash), JSBI.BigInt(balancesSum));
@@ -98,20 +88,8 @@ module.exports.createDataForSelectionAlgorithm = function() {
     nodeUtils.remove0x(web3Utils.randomHex(20).toLowerCase())
   ];
 
-  const balancesA = [
-    crypto.toBN(1),
-    crypto.toBN(2),
-    crypto.toBN(3),
-    crypto.toBN(4),
-    crypto.toBN(5)
-  ];
-  const balancesB = [
-    crypto.toBN(5),
-    crypto.toBN(4),
-    crypto.toBN(3),
-    crypto.toBN(2),
-    crypto.toBN(1)
-  ];
+  const balancesA = [crypto.toBN(1), crypto.toBN(2), crypto.toBN(3), crypto.toBN(4), crypto.toBN(5)];
+  const balancesB = [crypto.toBN(5), crypto.toBN(4), crypto.toBN(3), crypto.toBN(2), crypto.toBN(1)];
   const seed = 10;
   const nonce = 0;
   const epochSize = 100;
@@ -158,14 +136,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
 
   const secretContractAddress = nodeUtils.remove0x(web3Utils.randomHex(32));
 
-  const expected = runSelectionAlgo(
-    secretContractAddress,
-    seed,
-    nonce,
-    balancesSum,
-    balancesA,
-    workersA
-  );
+  const expected = runSelectionAlgo(secretContractAddress, seed, nonce, balancesSum, balancesA, workersA);
 
   return {
     params: params,
@@ -192,10 +163,7 @@ module.exports.transformStatesListToMap = statesList => {
 
 module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
-module.exports.advanceXConfirmations = async function(
-  web3,
-  confirmations = constants.MINIMUM_CONFIRMATIONS
-) {
+module.exports.advanceXConfirmations = async function(web3, confirmations = constants.MINIMUM_CONFIRMATIONS) {
   let initialEthereumBlockNumber = await nodeUtils.getEthereumBlockNumber(web3);
   let ethereumBlockNumber = 0;
 
@@ -223,12 +191,7 @@ module.exports.advanceXConfirmations = async function(
 };
 
 // add the whole DB_PROVIDER as a state in ethereum. ethereum must be running for this worker
-module.exports.setEthereumState = async (
-  api,
-  web3,
-  workerAddress,
-  workerEnclaveSigningAddress
-) => {
+module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclaveSigningAddress) => {
   for (const address in this.PROVIDERS_DB_MAP) {
     const secretContractData = this.PROVIDERS_DB_MAP[address];
     const addressInByteArray = address.split(",").map(function(item) {
@@ -241,8 +204,7 @@ module.exports.setEthereumState = async (
     const outputHash = web3.utils.randomHex(32);
     const gasUsed = 5;
     const optionalEthereumData = "0x00";
-    const optionalEthereumContractAddress =
-      "0x0000000000000000000000000000000000000000";
+    const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
 
     await api.deploySecretContract(
       hexString,

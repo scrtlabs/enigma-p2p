@@ -138,9 +138,7 @@ module.exports.isString = function(x) {
 };
 
 module.exports.isFunction = function(functionToCheck) {
-  return (
-    functionToCheck && {}.toString.call(functionToCheck) === "[object Function]"
-  );
+  return functionToCheck && {}.toString.call(functionToCheck) === "[object Function]";
 };
 /** update the delta patch to a json object from a smaller json
  * @param {JSON} main
@@ -351,8 +349,6 @@ module.exports.gunzip = function gunzip(buffer) {
  * */
 module.exports.getEthereumBlockNumber = web3 => {
   return new Promise((resolve, reject) => {
-    web3.eth.getBlockNumber((error, data) =>
-      error ? reject(error) : resolve(data)
-    );
+    web3.eth.getBlockNumber((error, data) => (error ? reject(error) : resolve(data)));
   });
 };

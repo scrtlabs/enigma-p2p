@@ -187,14 +187,7 @@
             }
           }
         },
-        "required": [
-          "preCode",
-          "encryptedArgs",
-          "encryptedFn",
-          "userDHKey",
-          "gasLimit",
-          "contractAddress"
-        ],
+        "required": ["preCode", "encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
         "additionalProperties": false
       }
     },
@@ -212,13 +205,7 @@
           "gasLimit": { "type": "number" },
           "contractAddress": { "type": "string" }
         },
-        "required": [
-          "encryptedArgs",
-          "encryptedFn",
-          "userDHKey",
-          "gasLimit",
-          "contractAddress"
-        ],
+        "required": ["encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
         "additionalProperties": false
       }
     },

@@ -10,19 +10,13 @@ it("#1 test PersistentStateCache", function(done) {
     this.skip();
   }
 
-  let scAddr =
-    "0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52944";
-  let scAddr2 =
-    "0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52945";
-  let initialStateDelta =
-    "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
-  let initialStateDelta2 =
-    "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac9";
-  let stateDelta =
-    "0x6d91615c65c0e8f861b0fbfce2d9897fb942293e341eda10c91a6912c4f32668";
+  let scAddr = "0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52944";
+  let scAddr2 = "0xd00fb2b59610c1dc98929e0891b4ef3bba493d18e39e6d4eb949c811ccc52945";
+  let initialStateDelta = "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac8";
+  let initialStateDelta2 = "0x1c8aff950685c2ed4bc3174f3472287b56d9517b9c948127319a09a7a36deac9";
+  let stateDelta = "0x6d91615c65c0e8f861b0fbfce2d9897fb942293e341eda10c91a6912c4f32668";
   let deltaIdx = 1;
-  let stateDelta2 =
-    "0x6d91615c65c0e8f861b0fbfce2d9897fb942293e341eda10c91a6912c4f32669";
+  let stateDelta2 = "0x6d91615c65c0e8f861b0fbfce2d9897fb942293e341eda10c91a6912c4f32669";
   let deltaIdx2 = 1;
   let dbPath = path.join(__dirname, "/cache_temp_db");
   let cache = new PersistentStateCache(dbPath);

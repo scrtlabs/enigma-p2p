@@ -260,17 +260,13 @@ function _verificationStream(read) {
         }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
-        Verifier.verify(
-          globalState.receiverContext.getRemoteMissingStatesMap(),
-          data,
-          (err, isOk) => {
-            if (isOk) {
-              return cb(end, data);
-            } else {
-              return cb("Error in verification with Ethereum: " + err, null);
-            }
+        Verifier.verify(globalState.receiverContext.getRemoteMissingStatesMap(), data, (err, isOk) => {
+          if (isOk) {
+            return cb(end, data);
+          } else {
+            return cb("Error in verification with Ethereum: " + err, null);
           }
-        );
+        });
       } else {
         return cb(end, null);
       }

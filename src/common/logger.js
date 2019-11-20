@@ -35,10 +35,7 @@ class Logger {
       this._cliLogger = new Log(this._options.level);
     }
     if (this._options.file) {
-      this._fileLogger = new Log(
-        this._options.level,
-        fs.createWriteStream(this._options.file)
-      );
+      this._fileLogger = new Log(this._options.level, fs.createWriteStream(this._options.file));
     }
   }
   _log(content, type) {

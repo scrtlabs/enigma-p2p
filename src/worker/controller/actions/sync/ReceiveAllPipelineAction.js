@@ -28,18 +28,15 @@ class ReceiveAllPipelineAction {
     }
     this._running = true;
     const getMissingStates = cb => {
-      this._controller.execCmd(
-        NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE,
-        {
-          cache: cache,
-          onResponse: (err, res) => {
-            if (err) {
-              return cb(err);
-            }
-            return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
+      this._controller.execCmd(NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
+        cache: cache,
+        onResponse: (err, res) => {
+          if (err) {
+            return cb(err);
           }
+          return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
         }
-      );
+      });
     };
     const parseResults = (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
       let err = null;
@@ -52,38 +49,17 @@ class ReceiveAllPipelineAction {
           tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
           ecids.push(ecid);
         } else {
-          err = new err.SyncReceiverErr(
-            `error creating EngCid from ${addrKey}`
-          );
+          err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
         }
       }
-      return cb(
-        err,
-        ecids,
-        missingStatesMsgsMap,
-        tempEcidToAddrMap,
-        remoteMissingStatesMap
-      );
+      return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
     };
-    const findPRovider = (
-      ecidList,
-      missingStatesMap,
-      tempEcidToAddrMap,
-      remoteMissingStatesMap,
-      cb
-    ) => {
+    const findPRovider = (ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
       this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
         descriptorsList: ecidList,
         isEngCid: true,
         next: findProviderResult => {
-          return cb(
-            null,
-            findProviderResult,
-            ecidList,
-            missingStatesMap,
-            tempEcidToAddrMap,
-            remoteMissingStatesMap
-          );
+          return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
         }
       });
     };
@@ -95,10 +71,7 @@ class ReceiveAllPipelineAction {
       remoteMissingStatesMap,
       cb
     ) => {
-      if (
-        findProviderResult.isCompleteError() ||
-        findProviderResult.isErrors()
-      ) {
+      if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
         cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
       }
       // parse to 1 object: cid => {providers, msgs} -> simple :)
@@ -120,19 +93,10 @@ class ReceiveAllPipelineAction {
         }
       });
     };
-    waterfall(
-      [
-        getMissingStates,
-        parseResults,
-        findPRovider,
-        parseProviders,
-        receiveAll
-      ],
-      (err, result) => {
-        this._running = false;
-        onEnd(err, result);
-      }
-    );
+    waterfall([getMissingStates, parseResults, findPRovider, parseProviders, receiveAll], (err, result) => {
+      this._running = false;
+      onEnd(err, result);
+    });
   }
 }
 module.exports = ReceiveAllPipelineAction;

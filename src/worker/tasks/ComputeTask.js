@@ -35,22 +35,8 @@ class ComputeTask extends Task {
       );
     }
   }
-  constructor(
-    taskId,
-    encryptedArgs,
-    encryptedFn,
-    userDHKey,
-    gasLimit,
-    contractAddr,
-    blockNumber
-  ) {
-    super(
-      taskId,
-      constants.CORE_REQUESTS.ComputeTask,
-      contractAddr,
-      gasLimit,
-      blockNumber
-    );
+  constructor(taskId, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr, blockNumber) {
+    super(taskId, constants.CORE_REQUESTS.ComputeTask, contractAddr, gasLimit, blockNumber);
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
     this._userDHKey = userDHKey;
@@ -96,10 +82,7 @@ class ComputeTask extends Task {
       if (taskObj.result && nodeUtils.isString(taskObj.result)) {
         taskObj.result = JSON.parse(taskObj.result);
       }
-      if (
-        taskObj.result &&
-        taskObj.result.status === constants.TASK_STATUS.SUCCESS
-      ) {
+      if (taskObj.result && taskObj.result.status === constants.TASK_STATUS.SUCCESS) {
         const result = Result.ComputeResult.buildComputeResult(taskObj.result);
         task.setResult(result);
       } else if (taskObj.result) {

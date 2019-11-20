@@ -38,11 +38,7 @@ class PersistentStateCache {
           callback(err);
         } else {
           // add initial delta
-          this._dbApi.put(
-            address,
-            JSON.stringify({ index: 0, hash: initialStateHash }),
-            callback
-          );
+          this._dbApi.put(address, JSON.stringify({ index: 0, hash: initialStateHash }), callback);
         }
       });
     });

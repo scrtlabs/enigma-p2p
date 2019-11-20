@@ -141,11 +141,7 @@ class FindPeersReqMsg extends Msg {
 
     if ("jsonrpc" in msgParams) {
       finalMsg = msgParams;
-    } else if (
-      "from" in msgParams &&
-      "to" in msgParams &&
-      "maxpeers" in msgParams
-    ) {
+    } else if ("from" in msgParams && "to" in msgParams && "maxpeers" in msgParams) {
       finalMsg = {
         jsonrpc: "2.0",
         method: "findpeers_req",
@@ -192,12 +188,7 @@ class FindPeersResMsg extends Msg {
     }
     if ("jsonrpc" in msgParams && "result" in msgParams) {
       finalMsg = msgParams;
-    } else if (
-      "from" in msgParams &&
-      "to" in msgParams &&
-      "peers" in msgParams &&
-      "id" in msgParams
-    ) {
+    } else if ("from" in msgParams && "to" in msgParams && "peers" in msgParams && "id" in msgParams) {
       finalMsg = {
         jsonrpc: "2.0",
         result: {

@@ -10,14 +10,7 @@
       "fromHash": { "type": "string" },
       "toHash": { "type": "string" }
     },
-    "required": [
-      "msgType",
-      "contractAddress",
-      "fromIndex",
-      "toIndex",
-      "fromHash",
-      "toHash"
-    ]
+    "required": ["msgType", "contractAddress", "fromIndex", "toIndex", "fromHash", "toHash"]
   },
   "SYNC_STATE_RES": {
     "id": "/SYNC_STATE_RES",

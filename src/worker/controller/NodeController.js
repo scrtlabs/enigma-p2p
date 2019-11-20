@@ -107,17 +107,13 @@ class NodeController {
       [NOTIFICATION.PUBSUB_PUB]: new PubsubPublishAction(this),
       [NOTIFICATION.PUBSUB_SUB]: new PubsubSubscribeAction(this),
       [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
-      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(
-        this
-      ), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
+      [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
-      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(
-        this
-      ), // new encryption key from core jsonrpc response
+      [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
       [NOTIFICATION.TASK_FINISHED]: new PublishTaskResultAction(this), // once the task manager emits end event
       [NOTIFICATION.TASK_VERIFIED]: new HandleVerifiedTaskAction(this), // once verified, check if it can be executed
@@ -136,9 +132,7 @@ class NodeController {
       // sync
       [NOTIFICATION.STATE_SYNC_REQ]: new ProvideStateSyncAction(this), // respond to a content provide request
       [NOTIFICATION.FIND_CONTENT_PROVIDER]: new FindContentProviderAction(this), // find providers of cids in the ntw
-      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(
-        this
-      ),
+      [NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE]: new IdentifyMissingStatesAction(this),
       [NOTIFICATION.TRY_RECEIVE_ALL]: new TryReceiveAllAction(this), // the action called by the receiver and needs to know what and from who to sync
       [NOTIFICATION.ANNOUNCE_LOCAL_STATE]: new AnnounceLocalStateAction(this),
       [NOTIFICATION.SYNC_RECEIVER_PIPELINE]: new ReceiveAllPipelineAction(this), // sync receiver pipeline
@@ -186,12 +180,7 @@ class NodeController {
     const enigmaNode = WorkerBuilder.build(finalConfig, _logger);
 
     // create the controller instance
-    return new NodeController(
-      enigmaNode,
-      enigmaNode.getProtocolHandler(),
-      _logger,
-      options.extraConfig
-    );
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), _logger, options.extraConfig);
   }
   _initController() {
     this._initPrincipalNode();
@@ -207,11 +196,7 @@ class NodeController {
    * TODO:: because of tests and multiple instances and path collision.
    * */
   _initTaskManager() {
-    if (
-      this._extraConfig &&
-      this._extraConfig.tm &&
-      this._extraConfig.tm.dbPath
-    ) {
+    if (this._extraConfig && this._extraConfig.tm && this._extraConfig.tm.dbPath) {
       const dbPath = this._extraConfig.tm.dbPath;
       this._taskManager = new TaskManager(dbPath, this.logger());
       this._taskManager.on("notify", params => {
@@ -335,11 +320,7 @@ class NodeController {
     await this.engNode().syncStop();
     await this._stopEthereum();
     // using some random path for testing (pre tmp feature)
-    if (
-      this._taskManager &&
-      this._extraConfig.tm.dbPath &&
-      this._extraConfig.tm.dbPath.indexOf("/tmp/") === -1
-    ) {
+    if (this._taskManager && this._extraConfig.tm.dbPath && this._extraConfig.tm.dbPath.indexOf("/tmp/") === -1) {
       await this._taskManager.asyncStopAndDropDb();
     } else if (this._taskManager && this._extraConfig.tm.dbPath) {
       await this._taskManager.asyncStop();
@@ -365,9 +346,7 @@ class NodeController {
       if (action) {
         action.execute(envelop);
       } else {
-        this._logger.error(
-          "[-] Err wrong type in NodeController: " + envelop.type()
-        );
+        this._logger.error("[-] Err wrong type in NodeController: " + envelop.type());
       }
     });
   }
@@ -498,13 +477,7 @@ class NodeController {
       onPublish: msg => {
         const from = msg.from;
         const data = JSON.parse(msg.data);
-        const out =
-          "->MONITOR published on:" +
-          topic +
-          "\n->from: " +
-          from +
-          "\n->payload: " +
-          JSON.stringify(data);
+        const out = "->MONITOR published on:" + topic + "\n->from: " + from + "\n->payload: " + JSON.stringify(data);
         this._logger.info(out);
       },
       onSubscribed: () => {
@@ -612,9 +585,7 @@ class NodeController {
           return callback(err, missingStatesMsgsMap);
         }
         if (err) {
-          return this._logger.error(
-            " error identifying missing states : " + err
-          );
+          return this._logger.error(" error identifying missing states : " + err);
         }
         for (const ecidHash in missingStatesMsgsMap) {
           this._logger.debug("----------- contract --------------");

@@ -21,15 +21,11 @@ const SYNC_SCENARIOS = {
   PARTIAL_DB_WITH_ALL_ADDRESSES: 3
 };
 
-const EnigmaContractAPIBuilder = require(path.join(
-  __dirname,
-  "../src/ethereum/EnigmaContractAPIBuilder"
-));
+const EnigmaContractAPIBuilder = require(path.join(__dirname, "../src/ethereum/EnigmaContractAPIBuilder"));
 const Verifier = require("../src/worker/state_sync/receiver/StateSyncReqVerifier");
 const Web3 = require("web3");
 
-const SyncMsgBuilder = require("../src/policy/p2p_messages/sync_messages")
-  .SyncMsgBuilder;
+const SyncMsgBuilder = require("../src/policy/p2p_messages/sync_messages").SyncMsgBuilder;
 
 const parallel = require("async/parallel");
 
@@ -60,12 +56,7 @@ async function initEthereumStuff() {
   const signature = web3.utils.randomHex(32);
   const depositValue = 1000;
 
-  await enigmaContractApi.register(
-    workerEnclaveSigningAddress,
-    workerReport,
-    signature,
-    { from: workerAddress }
-  );
+  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
   await enigmaContractApi.deposit(workerAddress, depositValue, {
     from: workerAddress
   });
@@ -4242,11 +4233,7 @@ function syncTest(scenario) {
     const tips = res.tips;
     const expectedMap = res.expected;
 
-    const bootstrapNodes = [
-      "/ip4/0.0.0.0/tcp/" +
-        B2Port +
-        "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"
-    ];
+    const bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
 
     const dnsConfig = {
       bootstrapNodes: bootstrapNodes,
@@ -4279,8 +4266,7 @@ function syncTest(scenario) {
     const ethereumInfo = await initEthereumStuff();
     const api = ethereumInfo.enigmaContractApi;
     const web3 = ethereumInfo.web3;
-    const workerEnclaveSigningAddress =
-      ethereumInfo.workerEnclaveSigningAddress;
+    const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
     const workerAddress = ethereumInfo.workerAddress;
     const enigmaContractAddress = ethereumInfo.enigmaContractAddress;
 
@@ -4300,12 +4286,7 @@ function syncTest(scenario) {
       .build();
 
     // write all states to ethereum
-    await ethTestUtils.setEthereumState(
-      api,
-      web3,
-      workerAddress,
-      workerEnclaveSigningAddress
-    );
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
     await testUtils.sleep(8000);
     waterfall(
       [
@@ -4318,15 +4299,13 @@ function syncTest(scenario) {
         },
         cb => {
           // sync
-          peerController
-            .getNode()
-            .syncReceiverPipeline(async (err, statusResult) => {
-              assert.strictEqual(null, err, "error syncing" + err);
-              statusResult.forEach(result => {
-                assert.strictEqual(true, result.success);
-              });
-              cb(null, statusResult);
+          peerController.getNode().syncReceiverPipeline(async (err, statusResult) => {
+            assert.strictEqual(null, err, "error syncing" + err);
+            statusResult.forEach(result => {
+              assert.strictEqual(true, result.success);
             });
+            cb(null, statusResult);
+          });
         }
       ],
       async (err, statusResult) => {
@@ -4334,23 +4313,15 @@ function syncTest(scenario) {
 
         // validate the results
         const missingstatesMap = syncResultMsgToStatesMap(statusResult);
-        assert.strictEqual(
-          Object.entries(missingstatesMap).length,
-          Object.entries(expectedMap).length
-        );
+        assert.strictEqual(Object.entries(missingstatesMap).length, Object.entries(expectedMap).length);
         for (const [address, data] of Object.entries(missingstatesMap)) {
           assert.strictEqual(
             Object.entries(missingstatesMap[address]).length,
             Object.entries(expectedMap[address]).length
           );
-          for (const [key, delta] of Object.entries(
-            missingstatesMap[address]
-          )) {
+          for (const [key, delta] of Object.entries(missingstatesMap[address])) {
             for (let i = 0; i < missingstatesMap[address][key].length; ++i) {
-              assert.strictEqual(
-                missingstatesMap[address][key][i],
-                expectedMap[address][key][i]
-              );
+              assert.strictEqual(missingstatesMap[address][key][i], expectedMap[address][key][i]);
             }
           }
         }
@@ -5448,8 +5419,7 @@ function prepareDataForVerifierTest() {
   const wrongMsg1 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [
     { address: address1, key: "1", data: delta1_0 }
   ]);
-  const expectedErr1 =
-    "received an unknown index " + "1" + " for address " + address1;
+  const expectedErr1 = "received an unknown index " + "1" + " for address " + address1;
 
   let wrongAddress = web3.utils.randomHex(32);
   wrongAddress = address1.slice(2, address1.length);
@@ -5457,13 +5427,11 @@ function prepareDataForVerifierTest() {
   const wrongMsg2 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [
     { address: wrongAddress, key: "0", data: delta1_0 }
   ]);
-  const expectedErr2 =
-    "received an unknown address " + wrongAddress + " in SyncStateRes";
+  const expectedErr2 = "received an unknown address " + wrongAddress + " in SyncStateRes";
 
-  const correctSyncStateMsg = createSyncMsgForVerifierTest(
-    MsgTypes.SYNC_STATE_RES,
-    [{ address: address1, key: "0", data: delta1_0 }]
-  );
+  const correctSyncStateMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [
+    { address: address1, key: "0", data: delta1_0 }
+  ]);
 
   const wrongData1 = Array.from(delta1_0);
   wrongData1.push(130);
@@ -5471,31 +5439,24 @@ function prepareDataForVerifierTest() {
   const wrongMsg3 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [
     { address: address1, key: "0", data: wrongData1 }
   ]);
-  const expectedErr3 =
-    "delta received for address " +
-    address1 +
-    " in index " +
-    "0" +
-    " does not match remote hash";
+  const expectedErr3 = "delta received for address " + address1 + " in index " + "0" + " does not match remote hash";
 
   const wrongMsg4 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {
     address: address1,
     bytecode: bytecode
   });
-  const expectedErr4 =
-    "received a bytecodeHash for unknown address " + address1;
+  const expectedErr4 = "received a bytecodeHash for unknown address " + address1;
 
   const wrongMsg5 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {
     address: wrongAddress,
     bytecode: bytecode
   });
-  const expectedErr5 =
-    "received an unknown address " + wrongAddress + " in SyncBcodeRes";
+  const expectedErr5 = "received an unknown address " + wrongAddress + " in SyncBcodeRes";
 
-  const correctSyncBytecodeMsg = createSyncMsgForVerifierTest(
-    MsgTypes.SYNC_BCODE_RES,
-    { address: address0, bytecode: bytecode }
-  );
+  const correctSyncBytecodeMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {
+    address: address0,
+    bytecode: bytecode
+  });
 
   const wrongData2 = Array.from(bytecode);
   wrongData2.push(130);
@@ -5504,10 +5465,7 @@ function prepareDataForVerifierTest() {
     address: address0,
     bytecode: wrongData2
   });
-  const expectedErr6 =
-    "bytecodeHash received for address " +
-    address0 +
-    " does not match remote hash";
+  const expectedErr6 = "bytecodeHash received for address " + address0 + " does not match remote hash";
 
   const wrongMsg7 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_REQ, {
     address: address0,

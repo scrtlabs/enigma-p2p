@@ -1,9 +1,6 @@
 const path = require("path");
 const assert = require("assert");
-const EnigmaContractAPIBuilder = require(path.join(
-  __dirname,
-  "../../src/ethereum/EnigmaContractAPIBuilder"
-));
+const EnigmaContractAPIBuilder = require(path.join(__dirname, "../../src/ethereum/EnigmaContractAPIBuilder"));
 const testParameters = require("./test_parameters.json");
 const constants = require("../../src/common/constants");
 const utils = require("../../src/common/utils");
@@ -46,12 +43,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   }
 
   var res, workerAccount;
-  var accounts,
-    workerEnclaveSigningAddress,
-    workerAddress,
-    workerReport,
-    signature,
-    api;
+  var accounts, workerEnclaveSigningAddress, workerAddress, workerReport, signature, api;
 
   beforeEach(async () => {
     const x = await init(constants.MINIMUM_CONFIRMATIONS);
@@ -72,10 +64,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("check default minConfirmation is set", async function() {
-    assert.strictEqual(
-      api.minimumConfirmations,
-      constants.MINIMUM_CONFIRMATIONS
-    );
+    assert.strictEqual(api.minimumConfirmations, constants.MINIMUM_CONFIRMATIONS);
   });
 
   it("check non-default minConfirmation is set", async function() {
@@ -91,20 +80,12 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker register", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
     const worker = await api.getWorker(workerAddress);
-    assert.strictEqual(
-      worker.status,
-      constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-    );
+    assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
   });
 
   it("worker register event", async () => {
@@ -113,20 +94,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.Registered,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.Registered,
-          async result => {
-            assert.strictEqual(result.signer, workerEnclaveSigningAddress);
-            assert.strictEqual(result.workerAddress, workerAddress);
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Registered, async result => {
+          assert.strictEqual(result.signer, workerEnclaveSigningAddress);
+          assert.strictEqual(result.workerAddress, workerAddress);
 
-            const worker = await api.getWorker(workerAddress);
-            assert.strictEqual(
-              worker.status,
-              constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-            );
-            resolve();
-          }
-        )
+          const worker = await api.getWorker(workerAddress);
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+          resolve();
+        })
       );
 
       api.register(workerEnclaveSigningAddress, workerReport, signature, {
@@ -137,12 +112,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deposit", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -159,12 +129,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker deposit event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -174,17 +141,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
-          async result => {
-            assert.strictEqual(result.from, workerAddress);
-            assert.strictEqual(result.value, depositValue);
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful, async result => {
+          assert.strictEqual(result.from, workerAddress);
+          assert.strictEqual(result.value, depositValue);
 
-            const worker = await api.getWorker(workerAddress);
-            assert.strictEqual(worker.balance, depositValue);
-            resolve();
-          }
-        )
+          const worker = await api.getWorker(workerAddress);
+          assert.strictEqual(worker.balance, depositValue);
+          resolve();
+        })
       );
 
       api.deposit(workerAddress, depositValue, { from: workerAddress });
@@ -193,12 +157,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker login", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -213,20 +172,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     await loginPromise;
 
     const worker = await api.getWorker(workerAddress);
-    assert.strictEqual(
-      worker.status,
-      constants.ETHEREUM_WORKER_STATUS.LOGGEDIN
-    );
+    assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
   });
 
   it("worker login event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -234,18 +187,12 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.LoggedIn,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.LoggedIn,
-          async result => {
-            assert.strictEqual(result.workerAddress, workerAddress);
-            const worker = await api.getWorker(workerAddress);
-            assert.strictEqual(
-              worker.status,
-              constants.ETHEREUM_WORKER_STATUS.LOGGEDIN
-            );
-            resolve();
-          }
-        )
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.LoggedIn, async result => {
+          assert.strictEqual(result.workerAddress, workerAddress);
+          const worker = await api.getWorker(workerAddress);
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
+          resolve();
+        })
       );
 
       const depositePromise = api.deposit(workerAddress, 1000, {
@@ -260,12 +207,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it('"verify" worker enclave report', async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -276,12 +218,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -299,9 +236,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     assert.strictEqual(countSCsBefore, 0);
 
     const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
-    const codeHash = api
-      .w3()
-      .utils.sha3(JSON.stringify(testParameters.bytecode));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
     const initStateDeltaHash = api.w3().utils.randomHex(32);
     const zeroAddress = "0x0000000000000000000000000000000000000000";
     const gasUsed = 10;
@@ -321,14 +256,8 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const result = await deployPromise;
 
     assert.strictEqual(result.SecretContractDeployed.codeHash, codeHash);
-    assert.strictEqual(
-      result.SecretContractDeployed.secretContractAddress,
-      secretContractAddress
-    );
-    assert.strictEqual(
-      result.SecretContractDeployed.stateDeltaHash,
-      initStateDeltaHash
-    );
+    assert.strictEqual(result.SecretContractDeployed.secretContractAddress, secretContractAddress);
+    assert.strictEqual(result.SecretContractDeployed.stateDeltaHash, initStateDeltaHash);
 
     const countSCsAfter = await api.countSecretContracts();
     assert.strictEqual(countSCsAfter, 1);
@@ -339,12 +268,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker deploy secret contract event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -361,12 +287,8 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       const countSCsBefore = await api.countSecretContracts();
       assert.strictEqual(countSCsBefore, 0);
 
-      const secretContractAddress = utils.remove0x(
-        api.w3().utils.randomHex(32)
-      );
-      const codeHash = api
-        .w3()
-        .utils.sha3(JSON.stringify(testParameters.bytecode));
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const zeroAddress = "0x0000000000000000000000000000000000000000";
       const gasUsed = 10;
@@ -375,27 +297,19 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-          async result => {
-            assert.strictEqual(result.codeHash, codeHash);
-            assert.strictEqual(
-              result.secretContractAddress,
-              secretContractAddress
-            );
-            assert.strictEqual(result.stateDeltaHash, initStateDeltaHash);
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed, async result => {
+          assert.strictEqual(result.codeHash, codeHash);
+          assert.strictEqual(result.secretContractAddress, secretContractAddress);
+          assert.strictEqual(result.stateDeltaHash, initStateDeltaHash);
 
-            const countSCsAfter = await api.countSecretContracts();
-            assert.strictEqual(countSCsAfter, 1);
+          const countSCsAfter = await api.countSecretContracts();
+          assert.strictEqual(countSCsAfter, 1);
 
-            const observedCodeHash = await api.getContractParams(
-              secretContractAddress
-            );
-            assert.strictEqual(observedCodeHash.codeHash, codeHash);
+          const observedCodeHash = await api.getContractParams(secretContractAddress);
+          assert.strictEqual(observedCodeHash.codeHash, codeHash);
 
-            resolve();
-          }
-        )
+          resolve();
+        })
       );
 
       api.deploySecretContract(
@@ -414,12 +328,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract failure", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -436,19 +345,13 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const countSCsBefore = await api.countSecretContracts();
     assert.strictEqual(countSCsBefore, 0);
 
-    const codeHash = api
-      .w3()
-      .utils.sha3(JSON.stringify(testParameters.bytecode));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
     const gasUsed = 10;
     const taskId1 = utils.remove0x(api.w3().utils.randomHex(32));
 
-    const deployFailurePromise = api.deploySecretContractFailure(
-      taskId1,
-      codeHash,
-      gasUsed,
-      signature,
-      { from: workerAddress }
-    );
+    const deployFailurePromise = api.deploySecretContractFailure(taskId1, codeHash, gasUsed, signature, {
+      from: workerAddress
+    });
     ethTestUtils.advanceXConfirmations(api.w3());
     const events = await deployFailurePromise;
 
@@ -461,12 +364,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker deploy secret contract failure event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -483,9 +383,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       const countSCsBefore = await api.countSecretContracts();
       assert.strictEqual(countSCsBefore, 0);
 
-      const codeHash = api
-        .w3()
-        .utils.sha3(JSON.stringify(testParameters.bytecode));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const gasUsed = 10;
       const taskId1 = utils.remove0x(api.w3().utils.randomHex(32));
 
@@ -493,17 +391,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
-          async event => {
-            assert.strictEqual(event.signature, signature);
-            assert.strictEqual(event.taskId, taskId1);
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async event => {
+          assert.strictEqual(event.signature, signature);
+          assert.strictEqual(event.taskId, taskId1);
 
-            const countSCsAfter = await api.countSecretContracts();
-            assert.strictEqual(countSCsAfter, 0);
-            resolve();
-          }
-        )
+          const countSCsAfter = await api.countSecretContracts();
+          assert.strictEqual(countSCsAfter, 0);
+          resolve();
+        })
       );
 
       api.deploySecretContractFailure(taskId1, codeHash, gasUsed, signature, {
@@ -514,12 +409,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker logout", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -534,30 +424,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     await loginPromise;
 
     const loggedInWorker = await api.getWorker(workerAddress);
-    assert.strictEqual(
-      loggedInWorker.status,
-      constants.ETHEREUM_WORKER_STATUS.LOGGEDIN
-    );
+    assert.strictEqual(loggedInWorker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
 
     const logoutPromise = api.logout({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await logoutPromise;
 
     const loggedOutWorker = await api.getWorker(workerAddress);
-    assert.strictEqual(
-      loggedOutWorker.status,
-      constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-    );
+    assert.strictEqual(loggedOutWorker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
   });
 
   it("worker logout event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -575,18 +456,12 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.LoggedOut,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.LoggedOut,
-          async result => {
-            assert.strictEqual(result.workerAddress, workerAddress);
-            const worker = await api.getWorker(workerAddress);
-            assert.strictEqual(
-              worker.status,
-              constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-            );
-            resolve();
-          }
-        )
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.LoggedOut, async result => {
+          assert.strictEqual(result.workerAddress, workerAddress);
+          const worker = await api.getWorker(workerAddress);
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+          resolve();
+        })
       );
 
       api.logout({ from: workerAddress });
@@ -595,12 +470,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker withdraw", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -639,12 +509,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker withdraw event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -675,17 +542,11 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful,
-          async result => {
-            const workerAfter = await api.getWorker(workerAddress);
-            assert.strictEqual(
-              workerAfter.balance,
-              depositValue - withdrawValue
-            );
-            resolve();
-          }
-        )
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful, async result => {
+          const workerAfter = await api.getWorker(workerAddress);
+          assert.strictEqual(workerAfter.balance, depositValue - withdrawValue);
+          resolve();
+        })
       );
 
       api.withdraw(withdrawValue, { from: workerAddress });
@@ -694,12 +555,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit receipt", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -714,9 +570,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     await loginPromise;
 
     const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
-    const codeHash = api
-      .w3()
-      .utils.sha3(JSON.stringify(testParameters.bytecode));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
     const initStateDeltaHash = api.w3().utils.randomHex(32);
     const zeroAddress = "0x0000000000000000000000000000000000000000";
     const gasUsed = 10;
@@ -736,8 +590,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     await deployPromise;
 
     const optionalEthereumData = "0x00";
-    const optionalEthereumContractAddress =
-      "0x0000000000000000000000000000000000000000";
+    const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
     const outputHash = api.w3().utils.randomHex(32);
     const stateDeltaHash = api.w3().utils.randomHex(32);
     const taskId = utils.remove0x(api.w3().utils.randomHex(32));
@@ -763,12 +616,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker commit receipt event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -782,12 +632,8 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       ethTestUtils.advanceXConfirmations(api.w3());
       await loginPromise;
 
-      const secretContractAddress = utils.remove0x(
-        api.w3().utils.randomHex(32)
-      );
-      const codeHash = api
-        .w3()
-        .utils.sha3(JSON.stringify(testParameters.bytecode));
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const zeroAddress = "0x0000000000000000000000000000000000000000";
       const gasUsed = 10;
@@ -807,8 +653,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       await deployPromise;
 
       const optionalEthereumData = "0x00";
-      const optionalEthereumContractAddress =
-        "0x0000000000000000000000000000000000000000";
+      const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
       const outputHash = api.w3().utils.randomHex(32);
       const stateDeltaHash = api.w3().utils.randomHex(32);
       const taskId = utils.remove0x(api.w3().utils.randomHex(32));
@@ -817,16 +662,13 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
-          async receipt => {
-            assert.strictEqual(receipt.outputHash, outputHash);
-            assert.strictEqual(receipt.stateDeltaHash, stateDeltaHash);
-            assert.strictEqual(receipt.stateDeltaHashIndex, 1);
-            assert.strictEqual(receipt.taskId, taskId);
-            resolve();
-          }
-        )
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, async receipt => {
+          assert.strictEqual(receipt.outputHash, outputHash);
+          assert.strictEqual(receipt.stateDeltaHash, stateDeltaHash);
+          assert.strictEqual(receipt.stateDeltaHashIndex, 1);
+          assert.strictEqual(receipt.taskId, taskId);
+          resolve();
+        })
       );
 
       api.commitReceipt(
@@ -844,12 +686,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit task failure", async function() {
-    const registerPromise = api.register(
-      workerEnclaveSigningAddress,
-      workerReport,
-      signature,
-      { from: workerAddress }
-    );
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
@@ -864,9 +701,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     await loginPromise;
 
     const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
-    const codeHash = api
-      .w3()
-      .utils.sha3(JSON.stringify(testParameters.bytecode));
+    const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
     const initStateDeltaHash = api.w3().utils.randomHex(32);
     const zeroAddress = "0x0000000000000000000000000000000000000000";
     const gasUsed = 10;
@@ -888,13 +723,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const outputHash = api.w3().utils.randomHex(32);
     const taskId = utils.remove0x(api.w3().utils.randomHex(32));
 
-    const taskFailurePromise = api.commitTaskFailure(
-      secretContractAddress,
-      taskId,
-      outputHash,
-      gasUsed,
-      signature
-    );
+    const taskFailurePromise = api.commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature);
     ethTestUtils.advanceXConfirmations(api.w3());
     const receipt = await taskFailurePromise;
 
@@ -904,12 +733,9 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
   it("worker commit task failure event", async function() {
     return new Promise(async resolve => {
-      const registerPromise = api.register(
-        workerEnclaveSigningAddress,
-        workerReport,
-        signature,
-        { from: workerAddress }
-      );
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
 
@@ -923,12 +749,8 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       ethTestUtils.advanceXConfirmations(api.w3());
       await loginPromise;
 
-      const secretContractAddress = utils.remove0x(
-        api.w3().utils.randomHex(32)
-      );
-      const codeHash = api
-        .w3()
-        .utils.sha3(JSON.stringify(testParameters.bytecode));
+      const secretContractAddress = utils.remove0x(api.w3().utils.randomHex(32));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const zeroAddress = "0x0000000000000000000000000000000000000000";
       const gasUsed = 10;
@@ -954,23 +776,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         api,
         constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
         {},
-        getEventRecievedFunc(
-          constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
-          async receipt => {
-            assert.strictEqual(receipt.signature, signature);
-            assert.strictEqual(receipt.taskId, taskId);
-            resolve();
-          }
-        )
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async receipt => {
+          assert.strictEqual(receipt.signature, signature);
+          assert.strictEqual(receipt.taskId, taskId);
+          resolve();
+        })
       );
 
-      api.commitTaskFailure(
-        secretContractAddress,
-        taskId,
-        outputHash,
-        gasUsed,
-        signature
-      );
+      api.commitTaskFailure(secretContractAddress, taskId, outputHash, gasUsed, signature);
       ethTestUtils.advanceXConfirmations(api.w3());
     });
   });

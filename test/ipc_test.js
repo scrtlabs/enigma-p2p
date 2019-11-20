@@ -107,19 +107,17 @@ it("#3 GetAllTips - mock server", async function() {
       .setIpcConfig({ uri: uri })
       .build();
     const fromCache = false;
-    mainController
-      .getNode()
-      .getAllLocalTips(fromCache, async (err, missingStates) => {
-        expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
-        expect(missingStates.length).toBe(3);
-        expect(missingStates[0].key).toBe(10);
-        expect(missingStates[1].key).toBe(34);
-        expect(missingStates[2].key).toBe(0);
-        await mainController.getNode().stop();
-        mainController.getIpcClient().disconnect();
-        coreServer.disconnect();
-        resolve();
-      });
+    mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates) => {
+      expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
+      expect(missingStates.length).toBe(3);
+      expect(missingStates[0].key).toBe(10);
+      expect(missingStates[1].key).toBe(34);
+      expect(missingStates[2].key).toBe(0);
+      await mainController.getNode().stop();
+      mainController.getIpcClient().disconnect();
+      coreServer.disconnect();
+      resolve();
+    });
   });
 });
 
@@ -151,9 +149,7 @@ it("#4 getNewTaskEncryptionKey - mock server", async function() {
       constants.CORE_REQUESTS.NewTaskEncryptionKey
     );
     c1.sendAndReceive(reqEnv).then(resEnv => {
-      expect(resEnv.content().type).toBe(
-        constants.CORE_REQUESTS.NewTaskEncryptionKey
-      );
+      expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
       expect(resEnv.id()).toBe(reqEnv.id());
       expect(resEnv.content().id).toBe(reqEnv.content().id);
       expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
@@ -191,9 +187,7 @@ it("#5 GetPTTRequest - mock server", async function() {
       expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
       expect(resEnv.id()).toBe(reqEnv.id());
       expect(resEnv.content().id).toBe(reqEnv.content().id);
-      expect(resEnv.content().result.request).toBe(
-        CoreServer.GET_PTT_REQUEST_MOCK
-      );
+      expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_REQUEST_MOCK);
       expect(resEnv.content().result.workerSig).toBeTruthy();
       coreRuntime.disconnect();
       coreServer.disconnect();

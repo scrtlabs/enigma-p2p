@@ -18,10 +18,7 @@ const jayson = require("jayson");
 
 const B2Path = "../../test/testUtils/id-d";
 const B2Port = "10301";
-const bootstrapNodes = [
-  "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1a" +
-    "vvxfyYQwk8R3UnFrQ6aP"
-];
+const bootstrapNodes = ["/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1a" + "vvxfyYQwk8R3UnFrQ6aP"];
 const proxyConfig = {
   bootstrapNodes: bootstrapNodes,
   port: B2Port,
@@ -114,10 +111,7 @@ describe("JsonRPC tests", () => {
             const uri = "http://127.0.0.1:";
             proxyConfig.extraConfig = {};
             proxyConfig.extraConfig.tm = {
-              dbPath: path.join(
-                __dirname,
-                "/" + nodeUtils.randId() + ".deletedb"
-              )
+              dbPath: path.join(__dirname, "/" + nodeUtils.randId() + ".deletedb")
             };
             proxyConfig.extraConfig.principal = { uri: uri + principalPort };
             // start the Proxy Node
@@ -135,10 +129,7 @@ describe("JsonRPC tests", () => {
             // start the Worker Node
             workerConfig.extraConfig = {};
             workerConfig.extraConfig.tm = {
-              dbPath: path.join(
-                __dirname,
-                "/" + nodeUtils.randId() + ".deletedb"
-              )
+              dbPath: path.join(__dirname, "/" + nodeUtils.randId() + ".deletedb")
             };
             const builder = new EnvironmentBuilder();
             builder
@@ -208,16 +199,12 @@ describe("JsonRPC tests", () => {
     id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
 
     let response = await new Promise((resolve, reject) => {
-      JsonRpcClient.request(
-        "getWorkerEncryptionKey",
-        { workerAddress: id, userPubKey: userPubKey },
-        (err, res) => {
-          if (err) {
-            reject(err);
-          }
-          resolve(res);
+      JsonRpcClient.request("getWorkerEncryptionKey", { workerAddress: id, userPubKey: userPubKey }, (err, res) => {
+        if (err) {
+          reject(err);
         }
-      );
+        resolve(res);
+      });
     });
     response = response.result;
     expect(response.workerEncryptionKey).toMatch(/[0-9a-f]{128}/); // 128 hex digits
@@ -230,12 +217,9 @@ describe("JsonRPC tests", () => {
     }
     return new Promise(resolve => {
       const taskInput = {
-        taskId:
-          "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
-        contractAddress:
-          "0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
-        workerAddress:
-          "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
+        taskId: "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
+        contractAddress: "0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
+        workerAddress: "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
         encryptedFn:
           "be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95",
         encryptedArgs:
@@ -253,17 +237,12 @@ describe("JsonRPC tests", () => {
     if (!tree["all"] || !tree["#4"]) {
       this.skip();
     }
-    const preCodeZip = await utils.gzip(
-      Buffer.from([22, 33, 100, 202, 111, 223, 211, 22])
-    );
+    const preCodeZip = await utils.gzip(Buffer.from([22, 33, 100, 202, 111, 223, 211, 22]));
     return new Promise(resolve => {
       const deployInput = {
-        taskId:
-          "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
-        contractAddress:
-          "0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
-        workerAddress:
-          "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
+        taskId: "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
+        contractAddress: "0x9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
+        workerAddress: "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
         encryptedFn:
           "be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95",
         encryptedArgs:
@@ -282,15 +261,11 @@ describe("JsonRPC tests", () => {
     if (!tree["all"] || !tree["#5"]) {
       this.skip();
     }
-    const preCodeZip = await utils.gzip(
-      Buffer.from([22, 33, 100, 202, 111, 223, 211, 22])
-    );
+    const preCodeZip = await utils.gzip(Buffer.from([22, 33, 100, 202, 111, 223, 211, 22]));
     return new Promise(resolve => {
       const deployInput = {
-        taskId:
-          "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
-        workerAddress:
-          "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
+        taskId: "b79ebb25f2469cd6cabf8600c18d4f34c0d09ebb1f64f4cde141f6a2b3678a4d",
+        workerAddress: "5a29b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74998a",
         encryptedFn:
           "be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95",
         encryptedArgs:
@@ -312,12 +287,9 @@ describe("JsonRPC tests", () => {
     return new Promise(async resolve => {
       let signKey = await workerController.getNode().getSelfSubscriptionKey();
       await testUtils.sleep(1500);
-      const preCodeZip = await utils.gzip(
-        Buffer.from([22, 33, 100, 202, 111, 223, 211, 22])
-      );
+      const preCodeZip = await utils.gzip(Buffer.from([22, 33, 100, 202, 111, 223, 211, 22]));
       const deployInput = {
-        contractAddress:
-          "9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
+        contractAddress: "9209b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d74059e",
         preCode: preCodeZip.toString("base64"),
         workerAddress: signKey,
         encryptedFn:
@@ -327,34 +299,22 @@ describe("JsonRPC tests", () => {
         userDHKey:
           "5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99"
       };
-      JsonRpcClient.request(
-        "deploySecretContract",
-        deployInput,
-        async (err, res) => {
-          await testUtils.sleep(1500);
-          assert.strictEqual(
-            true,
-            res.sendTaskResult,
-            "sendTaskResult not true"
-          );
-          JsonRpcClient.request(
-            "getTaskStatus",
-            {
-              workerAddress: deployInput.workerAddress,
-              taskId: deployInput.contractAddress
-            },
-            (err, res) => {
-              if (err) assert.strictEqual(true, false, "err" + err);
-              assert.strictEqual(
-                constants.TASK_STATUS.SUCCESS,
-                res.result,
-                "result not success"
-              );
-              resolve();
-            }
-          );
-        }
-      );
+      JsonRpcClient.request("deploySecretContract", deployInput, async (err, res) => {
+        await testUtils.sleep(1500);
+        assert.strictEqual(true, res.sendTaskResult, "sendTaskResult not true");
+        JsonRpcClient.request(
+          "getTaskStatus",
+          {
+            workerAddress: deployInput.workerAddress,
+            taskId: deployInput.contractAddress
+          },
+          (err, res) => {
+            if (err) assert.strictEqual(true, false, "err" + err);
+            assert.strictEqual(constants.TASK_STATUS.SUCCESS, res.result, "result not success");
+            resolve();
+          }
+        );
+      });
     });
   });
 });

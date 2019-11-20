@@ -8,8 +8,7 @@ let subprocess; // Global `trufffle develop` "child process" object
 
 function buildEnv(truffleDirectory) {
   return new Promise((resolve, reject) => {
-    const command =
-      "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
+    const command = "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
         reject("env_initializer.buildEnv " + err);
@@ -22,11 +21,7 @@ function buildEnv(truffleDirectory) {
 
 function resetEnv(truffleDirectory) {
   return new Promise((resolve, reject) => {
-    const command =
-      "cd " +
-      truffleDirectory +
-      " && truffle migrate --reset && cd " +
-      process.cwd();
+    const command = "cd " + truffleDirectory + " && truffle migrate --reset && cd " + process.cwd();
     exec(command, (err, stdout, stderr) => {
       if (err) {
         reject("env_initalizer.resetEnv " + err);

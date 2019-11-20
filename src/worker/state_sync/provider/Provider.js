@@ -75,10 +75,7 @@ class Provider extends EventEmitter {
    * - queryType, describe the query type needed
    * */
   dbRequest(request) {
-    if (
-      request.hasOwnProperty("onResponse") &&
-      request.hasOwnProperty("dbQueryType")
-    ) {
+    if (request.hasOwnProperty("onResponse") && request.hasOwnProperty("dbQueryType")) {
       if (request.dbQueryType === constants.CORE_REQUESTS.GetDeltas) {
         request.notification = constants.NODE_NOTIFICATIONS.GET_DELTAS;
       } else if (request.dbQueryType === constants.CORE_REQUESTS.GetContract) {

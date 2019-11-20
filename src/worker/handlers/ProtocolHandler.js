@@ -36,27 +36,19 @@ class ProtocolHandler extends EventEmitter {
     this.fallback = this.tempFallback;
     this.policy = new Policy();
     this.handlers = {};
-    this.handlers[PROTOCOLS["PEER_DISCOVERY"]] = this.onPeerDiscovery.bind(
-      this
-    );
+    this.handlers[PROTOCOLS["PEER_DISCOVERY"]] = this.onPeerDiscovery.bind(this);
     this.handlers[PROTOCOLS["PEER_CONNECT"]] = this.onPeerConnect.bind(this);
-    this.handlers[PROTOCOLS["PEER_DISCONNECT"]] = this.onPeerDisconnect.bind(
-      this
-    );
+    this.handlers[PROTOCOLS["PEER_DISCONNECT"]] = this.onPeerDisconnect.bind(this);
     this.handlers[PROTOCOLS["HEARTBEAT"]] = this.onHeartBeat.bind(this);
     this.handlers[PROTOCOLS["FIND_PEERS"]] = this.onFindPeers.bind(this);
     this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync.bind(this);
-    this.handlers[
-      PROTOCOLS.LOCAL_STATE_EXCHAGNE
-    ] = this.onLocalStateExchange.bind(this);
+    this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange.bind(this);
     // list of active subscriptions pubsub
 
     this._subscriptions = [PUBSUB_TOPICS.BROADCAST, PUBSUB_TOPICS.TASK_RESULTS];
     // pubsub handlers
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast.bind(this);
-    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish.bind(
-      this
-    );
+    this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish.bind(this);
   }
   getProtocolsList() {
     return this._protocols;
@@ -112,9 +104,7 @@ class ProtocolHandler extends EventEmitter {
       pull.map(data => {
         const findPeersRequestMsg = nodeUtils.toFindPeersReqMsg(data);
         if (!findPeersRequestMsg.isValidMsg()) {
-          this.fallback(
-            "/findpeers/0.0 invalid findpeer request was sent to local node."
-          );
+          this.fallback("/findpeers/0.0 invalid findpeer request was sent to local node.");
           return;
         }
 
@@ -186,10 +176,7 @@ class ProtocolHandler extends EventEmitter {
    */
   onPeerConnect(nodeBundle, params) {
     this._logger.debug(
-      "[Connection with " +
-        nodeBundle.peerInfo.id.toB58String() +
-        "] new peer : " +
-        params.peer.id.toB58String()
+      "[Connection with " + nodeBundle.peerInfo.id.toB58String() + "] new peer : " + params.peer.id.toB58String()
     );
     this.notify({
       notification: NOTIFICATION.NEW_PEER_CONNECTED,
@@ -214,9 +201,7 @@ class ProtocolHandler extends EventEmitter {
     this.notify({ notification: NOTIFICATION.STATE_SYNC_REQ, params: params });
   }
   onLocalStateExchange(nodeBundle, params) {
-    this._logger.debug(
-      "[LOCAL_STATE] got local state request from remote peer."
-    );
+    this._logger.debug("[LOCAL_STATE] got local state request from remote peer.");
     this.notify({
       notification: NOTIFICATION.GET_ALL_TIPS,
       useCaches: false,

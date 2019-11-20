@@ -37,36 +37,20 @@ class VerifyAndStoreResultAction {
 
     this._controller
       .logger()
-      .debug(
-        "[RECEIVED_RESULT] taskId {" +
-          resultObj.taskId +
-          "} \nstatus {" +
-          resultObj.status +
-          "}"
-      );
+      .debug("[RECEIVED_RESULT] taskId {" + resultObj.taskId + "} \nstatus {" + resultObj.status + "}");
 
     let { taskResult, err } = this._buildTaskResult(type, resultObj);
     if (!err) {
-      let { error, isVerified } = await this._verifyResult(
-        taskResult,
-        contractAddress
-      );
+      let { error, isVerified } = await this._verifyResult(taskResult, contractAddress);
       let verifyError = error;
 
       if (isVerified) {
         const coreMsg = this._buildIpcMsg(taskResult, contractAddress);
         if (coreMsg) {
           try {
-            await this._controller.asyncExecCmd(
-              constants.NODE_NOTIFICATIONS.UPDATE_DB,
-              { data: coreMsg }
-            );
+            await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
           } catch (e) {
-            this._controller
-              .logger()
-              .error(
-                `[UPDATE_CORE] can't update core with outside task results -> ${e}`
-              );
+            this._controller.logger().error(`[UPDATE_CORE] can't update core with outside task results -> ${e}`);
             if (optionalCallback) {
               optionalCallback(e);
             }
@@ -81,14 +65,11 @@ class VerifyAndStoreResultAction {
             if (ecid) {
               try {
                 // announce the network
-                await this._controller.asyncExecCmd(
-                  constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,
-                  { engCids: [ecid] }
-                );
+                await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, {
+                  engCids: [ecid]
+                });
               } catch (e) {
-                this._controller
-                  .logger()
-                  .error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
+                this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish ecid  -> ${e}`);
                 error = e;
               }
             }
@@ -102,28 +83,20 @@ class VerifyAndStoreResultAction {
           let outsideTask = OutsideTask.buildTask(type, resultObj);
           if (outsideTask) {
             if (verifyError instanceof errors.TaskEthereumFailureErr) {
-              outsideTask
-                .getResult()
-                .setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB);
+              outsideTask.getResult().setStatus(constants.TASK_STATUS.FAILED.FAILED_ETHEREUM_CB);
             }
             // store result in TaskManager mapped with taskId
-            await this._controller
-              .taskManager()
-              .addOutsideResult(type, outsideTask);
+            await this._controller.taskManager().addOutsideResult(type, outsideTask);
           }
         } catch (e) {
-          this._controller
-            .logger()
-            .error(`[STORE_RESULT] can't save outside task  -> ${e}`);
+          this._controller.logger().error(`[STORE_RESULT] can't save outside task  -> ${e}`);
           error = e;
         }
       }
 
       this._controller
         .logger()
-        .debug(
-          `[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId}: is_err ?  ${error}`
-        );
+        .debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId}: is_err ?  ${error}`);
       if (optionalCallback) {
         optionalCallback(error);
       }
@@ -131,9 +104,7 @@ class VerifyAndStoreResultAction {
       // if (err)
       this._controller
         .logger()
-        .debug(
-          `[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId} with an error:  ${err}`
-        );
+        .debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId} with an error:  ${err}`);
       if (optionalCallback) {
         optionalCallback(err);
       }
@@ -143,11 +114,7 @@ class VerifyAndStoreResultAction {
     // FailedTask
     if (taskResult instanceof FailedResult) {
       // TODO:: what to do with a FailedTask ???
-      this._controller
-        .logger()
-        .debug(
-          `[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${taskResult.getTaskId()}`
-        );
+      this._controller.logger().debug(`[RECEIVED_FAILED_TASK] FAILED TASK RECEIVED id = ${taskResult.getTaskId()}`);
       return null;
     }
     // DeployResult
@@ -186,16 +153,11 @@ class VerifyAndStoreResultAction {
       // If it is a compute task without delta => request tip from core to validate with Ethereum
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
-          let tips = await this._controller.asyncExecCmd(
-            constants.NODE_NOTIFICATIONS.GET_TIPS,
-            { contractAddresses: contractAddress, useCache: false }
-          );
-          if (
-            !Array.isArray(tips) ||
-            tips.length === 0 ||
-            !tips[0].address ||
-            tips[0].address !== contractAddress
-          ) {
+          let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {
+            contractAddresses: contractAddress,
+            useCache: false
+          });
+          if (!Array.isArray(tips) || tips.length === 0 || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;
           } else {
             localTip = tips[0];
@@ -218,27 +180,14 @@ class VerifyAndStoreResultAction {
         let res = await this._controller
           .ethereum()
           .verifier()
-          .verifyTaskSubmission(
-            result,
-            currentBlockNumber,
-            contractAddress,
-            localTip
-          );
+          .verifyTaskSubmission(result, currentBlockNumber, contractAddress, localTip);
         if (res.error) {
           this._controller
             .logger()
-            .info(
-              `[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${
-                res.error
-              }`
-            );
+            .info(`[VERIFY_TASK_RESULT] error in verification of result of task ${result.getTaskId()}: ${res.error}`);
           error = res.error;
         } else if (res.isVerified) {
-          this._controller
-            .logger()
-            .debug(
-              `[VERIFY_TASK_RESULT] successful verification of task ${result.getTaskId()}`
-            );
+          this._controller.logger().debug(`[VERIFY_TASK_RESULT] successful verification of task ${result.getTaskId()}`);
           isVerified = true;
         }
       } catch (e) {

@@ -4,8 +4,7 @@
  * in the network.
  * */
 const EngCid = require("../../../common/EngCID");
-const SyncMsgBuilder = require("../../../policy/p2p_messages/sync_messages")
-  .SyncMsgBuilder;
+const SyncMsgBuilder = require("../../../policy/p2p_messages/sync_messages").SyncMsgBuilder;
 const constants = require("../../../common/constants");
 
 // TODO:: come to conclusion that this function is unnesceary and delete it.

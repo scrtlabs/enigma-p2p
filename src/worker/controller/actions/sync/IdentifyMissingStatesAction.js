@@ -38,9 +38,7 @@ class IdentifyMissingStatesAction {
           if (err || !this._controller.hasEthereum()) {
             let error = err;
             if (!this._controller.hasEthereum()) {
-              error = new errs.EthereumErr(
-                `[IDENTIFY_MISSING_STATES] failure, no ethereum!`
-              );
+              error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
             }
             return finalCallback(error);
           }
@@ -61,32 +59,26 @@ class IdentifyMissingStatesAction {
 
   static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
     // TODO:: method not static and get StateSync from this._controller.ethereum()....
-    StateSync.getRemoteMissingStates(
-      enigmaContractApi,
-      localTips,
-      (err, missingList) => {
-        const res = { missingStatesMap: {}, missingStatesMsgsMap: {} };
+    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
+      const res = { missingStatesMap: {}, missingStatesMsgsMap: {} };
 
-        if (err) {
-          return cb(err);
-        }
-
-        const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
-        const finalOutput = {};
-        for (const addrKey in result) {
-          const obj = result[addrKey];
-          if (obj.bcodeReq) {
-            obj.deltasReq.push(obj.bcodeReq);
-          }
-          finalOutput[addrKey] = obj.deltasReq;
-        }
-        res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(
-          missingList
-        );
-        res.missingStatesMsgsMap = finalOutput;
-        return cb(null, res);
+      if (err) {
+        return cb(err);
       }
-    );
+
+      const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
+      const finalOutput = {};
+      for (const addrKey in result) {
+        const obj = result[addrKey];
+        if (obj.bcodeReq) {
+          obj.deltasReq.push(obj.bcodeReq);
+        }
+        finalOutput[addrKey] = obj.deltasReq;
+      }
+      res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(missingList);
+      res.missingStatesMsgsMap = finalOutput;
+      return cb(null, res);
+    });
   }
   static _transformMissingStatesListToMap(missingStatesList) {
     const missingStatesMap = {};

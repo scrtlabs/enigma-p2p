@@ -6,8 +6,7 @@ const multiaddr = require("multiaddr");
 const messages = require("../src/policy/p2p_messages/messages");
 
 const peerId = "QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
-const peerUrl =
-  "/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
+const peerUrl = "/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
 const peerDict1 = {
   peerId: { id: peerId },
   connectedMultiaddr: peerUrl,
@@ -23,27 +22,16 @@ const peerDict2 = {
 };
 
 // All the number '1' fields in the streams below are placeholders, do not imply proper field values
-const stream1 =
-  '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "findpeers": 1}';
-const stream2 =
-  '{"from": "' +
-  peerId +
-  '", "to": "' +
-  peerId +
-  '", "id": 1, "status": 1, "seeds": 1}';
-const stream3 =
-  '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "maxpeers": 1}';
-const stream4 =
-  '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "peers": 1}';
+const stream1 = '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "findpeers": 1}';
+const stream2 = '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "status": 1, "seeds": 1}';
+const stream3 = '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "maxpeers": 1}';
+const stream4 = '{"from": "' + peerId + '", "to": "' + peerId + '", "id": 1, "peers": 1}';
 
 it("should parsePeerBook", function() {
   assert.strictEqual(nodeUtils.parsePeerBook(null), null);
   nodeUtils.connectionStrToPeerInfo(peerUrl, (e, p) => {
     p.connect(peerUrl); // ToDo: there is no function in source code that will process `connectedMultiaddr`
-    assert.deepStrictEqual(nodeUtils.parsePeerBook([p, p]), [
-      peerDict2,
-      peerDict2
-    ]);
+    assert.deepStrictEqual(nodeUtils.parsePeerBook([p, p]), [peerDict2, peerDict2]);
   });
 });
 
@@ -75,18 +63,9 @@ it("should check isFunction and isString", function() {
 });
 
 it("should applyDelta", function() {
-  assert.deepStrictEqual(
-    nodeUtils.applyDelta({ a: "c" }, { a: "bb", d: "c" }),
-    { a: "bb", d: "c" }
-  );
-  assert.deepStrictEqual(
-    nodeUtils.applyDelta({ a: null }, { a: "c", d: "c" }),
-    { a: "c", d: "c" }
-  );
-  assert.deepStrictEqual(
-    nodeUtils.applyDelta({ a: { b: "c" } }, { a: { d: "e" } }),
-    { a: { b: "c", d: "e" } }
-  );
+  assert.deepStrictEqual(nodeUtils.applyDelta({ a: "c" }, { a: "bb", d: "c" }), { a: "bb", d: "c" });
+  assert.deepStrictEqual(nodeUtils.applyDelta({ a: null }, { a: "c", d: "c" }), { a: "c", d: "c" });
+  assert.deepStrictEqual(nodeUtils.applyDelta({ a: { b: "c" } }, { a: { d: "e" } }), { a: { b: "c", d: "e" } });
   assert.deepStrictEqual(nodeUtils.applyDelta(null), {});
 });
 
@@ -109,11 +88,7 @@ it("should pick random from list", function() {
 });
 
 it("should validate IPFS address", function() {
-  assert(
-    nodeUtils.isIpfs(
-      "/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"
-    )
-  );
+  assert(nodeUtils.isIpfs("/ip4/0.0.0.0/tcp/10333/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"));
   assert(!nodeUtils.isIpfs("not a valid IPFS address"));
 });
 
@@ -142,10 +117,7 @@ it("should peerBankSeedtoPeerInfo", function() {
 
 it("should connectionStrToPeerInfo", function() {
   assert.throws(function() {
-    nodeUtils.connectionStrToPeerInfo("not a valid candidate", function(
-      e,
-      p
-    ) {});
+    nodeUtils.connectionStrToPeerInfo("not a valid candidate", function(e, p) {});
   }, Error);
 
   nodeUtils.connectionStrToPeerInfo(peerUrl, (e, p) => {

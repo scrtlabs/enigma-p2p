@@ -35,20 +35,11 @@ class EthereumVerifier {
    * Init the API
    */
   async init() {
-    this._ethereumServices.on(
-      constants.ETHEREUM_EVENTS.NewEpoch,
-      this._newEpochEventCallback.bind(this)
-    );
+    this._ethereumServices.on(constants.ETHEREUM_EVENTS.NewEpoch, this._newEpochEventCallback.bind(this));
     await this._updateWorkerParamNow();
     this._taskTimeoutInBlocks = await this._contractApi.getTaskTimeout();
-    this._ethereumServices.on(
-      constants.ETHEREUM_EVENTS.TaskCreation,
-      this._taskCreationEventCallback.bind(this)
-    );
-    this._ethereumServices.on(
-      constants.ETHEREUM_EVENTS.TaskCancelled,
-      this._taskCreationEventCallback.bind(this)
-    );
+    this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCreation, this._taskCreationEventCallback.bind(this));
+    this._ethereumServices.on(constants.ETHEREUM_EVENTS.TaskCancelled, this._taskCreationEventCallback.bind(this));
     this._ethereumServices.on(
       constants.ETHEREUM_EVENTS.TaskSuccessSubmission,
       this._taskSubmissionEventCallback.bind(this)
@@ -90,26 +81,15 @@ class EthereumVerifier {
         return resolve(result);
       }
       if (!DbUtils.isValidEthereumAddress(workerAddress)) {
-        result.error = new errors.TypeErr(
-          "Worker address is not a valid Ethereum address"
-        );
+        result.error = new errors.TypeErr("Worker address is not a valid Ethereum address");
         return resolve(result);
       }
-      this._createTaskCreationListener(
-        task,
-        blockNumber,
-        workerAddress,
-        resolve
-      );
+      this._createTaskCreationListener(task, blockNumber, workerAddress, resolve);
       this._verifyTaskCreationNow(task).then(async res => {
         if (res.canBeVerified) {
           this.deleteTaskCreationListener(task.getTaskId());
           if (res.isVerified) {
-            let res2 = await this.verifySelectedWorker(
-              task,
-              res.taskParams.blockNumber,
-              workerAddress
-            );
+            let res2 = await this.verifySelectedWorker(task, res.taskParams.blockNumber, workerAddress);
             result.error = res2.error;
             result.isVerified = res2.isVerified;
             result.gasLimit = res.taskParams.gasLimit;
@@ -139,14 +119,12 @@ class EthereumVerifier {
         return resolve(result);
       }
       this._createTaskSubmissionListener(task, blockNumber, resolve);
-      this._verifyTaskSubmissionNow(task, contractAddress, localTip).then(
-        res => {
-          if (res.canBeVerified) {
-            this.deleteTaskSubmissionListener(task.getTaskId());
-            resolve({ error: res.error, isVerified: res.isVerified });
-          }
+      this._verifyTaskSubmissionNow(task, contractAddress, localTip).then(res => {
+        if (res.canBeVerified) {
+          this.deleteTaskSubmissionListener(task.getTaskId());
+          resolve({ error: res.error, isVerified: res.isVerified });
         }
-      );
+      });
     });
   }
 
@@ -177,17 +155,11 @@ class EthereumVerifier {
     return new Promise(resolve => {
       const params = this._findWorkerParamForTask(blockNumber);
       if (!params) {
-        const err = new errors.TaskValidityErr(
-          "Epoch params are missing for the task " + task.getTaskId()
-        );
+        const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
         return resolve({ error: err, isVerified: false });
       }
       let secretContractAddress = task.getContractAddr();
-      const res = this._verifySelectedWorker(
-        secretContractAddress,
-        workerAddress,
-        params
-      );
+      const res = this._verifySelectedWorker(secretContractAddress, workerAddress, params);
       return resolve({ error: res.error, isVerified: res.isVerified });
     });
   }
@@ -207,9 +179,7 @@ class EthereumVerifier {
       }
       // Check if the task was cancelled
       if (event.type === constants.ETHEREUM_EVENTS.TaskCancelled) {
-        const err = new errors.TaskCancelledErr(
-          "Task " + taskId + " was cancelled"
-        );
+        const err = new errors.TaskCancelledErr("Task " + taskId + " was cancelled");
         return resolve({
           error: err,
           isVerified: false,
@@ -219,11 +189,7 @@ class EthereumVerifier {
       }
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
-        let res2 = await this.verifySelectedWorker(
-          task,
-          event.blockNumber,
-          workerAddress
-        );
+        let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
         return resolve({
           error: res2.error,
           isVerified: res2.isVerified,
@@ -264,12 +230,8 @@ class EthereumVerifier {
         resolve({ error: err, isVerified: false });
       }
       // then check if its an event indicating of an Ethereum callback failure
-      else if (
-        event.type === constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB
-      ) {
-        const err = new errors.TaskEthereumFailureErr(
-          "Task " + taskId + " was failed due to Ethereum"
-        );
+      else if (event.type === constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB) {
+        const err = new errors.TaskEthereumFailureErr("Task " + taskId + " was failed due to Ethereum");
         resolve({ error: err, isVerified: false });
       }
       // Verify the case of a FailedResult
@@ -277,44 +239,28 @@ class EthereumVerifier {
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
           resolve({ error: null, isVerified: true });
         } else {
-          const err = new errors.TaskValidityErr(
-            "Task " + taskId + " did not fail"
-          );
+          const err = new errors.TaskValidityErr("Task " + taskId + " did not fail");
           resolve({ error: err, isVerified: false });
         }
       } else {
         // Task isinstanceof TaskResult
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
           // task failure is not expected
-          const err = new errors.TaskFailedErr(
-            "Task " + taskId + " has failed"
-          );
+          const err = new errors.TaskFailedErr("Task " + taskId + " has failed");
           resolve({ error: err, isVerified: false });
         } else {
           if (task instanceof DeployResult) {
-            if (
-              event.type !== constants.ETHEREUM_EVENTS.SecretContractDeployment
-            ) {
-              const err = new errors.TaskValidityErr(
-                "Wrong event received (=" + event.type + ") for task " + taskId
-              );
+            if (event.type !== constants.ETHEREUM_EVENTS.SecretContractDeployment) {
+              const err = new errors.TaskValidityErr("Wrong event received (=" + event.type + ") for task " + taskId);
               resolve({ error: err, isVerified: false });
             } else {
-              const res = this._checkDeployResult(
-                task,
-                event.stateDeltaHash,
-                event.codeHash
-              );
+              const res = this._checkDeployResult(task, event.stateDeltaHash, event.codeHash);
               resolve({ error: res.error, isVerified: res.isVerified });
             }
           } else {
             //task instanceof ComputeResult
-            if (
-              event.type !== constants.ETHEREUM_EVENTS.TaskSuccessSubmission
-            ) {
-              const err = new errors.TaskValidityErr(
-                "Wrong event received (=" + event.type + ") for task " + taskId
-              );
+            if (event.type !== constants.ETHEREUM_EVENTS.TaskSuccessSubmission) {
+              const err = new errors.TaskValidityErr("Wrong event received (=" + event.type + ") for task " + taskId);
               resolve({ error: err, isVerified: false });
             } else {
               const res = this._checkComputeResultEvent(
@@ -361,9 +307,7 @@ class EthereumVerifier {
       try {
         res.taskParams = await this._contractApi.getTaskParams(taskId);
       } catch (e) {
-        this._logger.info(
-          `error received while trying to read task params for taskId ${taskId}: ${e}`
-        );
+        this._logger.info(`error received while trying to read task params for taskId ${taskId}: ${e}`);
         // TODO: consider adding a retry mechanism
         res.canBeVerified = true;
         res.isVerified = false;
@@ -371,27 +315,17 @@ class EthereumVerifier {
         return resolve(res);
       }
 
-      if (
-        res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED
-      ) {
-        res = defaultsDeep(
-          res,
-          this._verifyTaskCreateParams(res.taskParams.inputsHash, task)
-        );
+      if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
+        res = defaultsDeep(res, this._verifyTaskCreateParams(res.taskParams.inputsHash, task));
         res.canBeVerified = true;
-      } else if (
-        res.taskParams.status ===
-        constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED
-      ) {
+      } else if (res.taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_UNDEFINED) {
         res.canBeVerified = false;
         res.isVerified = null;
         res.error = null;
       } else {
         res.canBeVerified = true;
         res.isVerified = false;
-        res.error = new errors.TaskValidityErr(
-          `Task remote status is not expected (=${res.taskParams.status})`
-        );
+        res.error = new errors.TaskValidityErr(`Task remote status is not expected (=${res.taskParams.status})`);
       }
       return resolve(res);
     });
@@ -415,23 +349,17 @@ class EthereumVerifier {
       try {
         taskParams = await this._contractApi.getTaskParams(taskId);
 
-        if (
-          taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED
-        ) {
+        if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_VERIFIED) {
           res.canBeVerified = true;
 
           if (task instanceof FailedResult) {
             res.isVerified = false;
-            res.error = new errors.TaskValidityErr(
-              `Task ${taskId} did not fail`
-            );
+            res.error = new errors.TaskValidityErr(`Task ${taskId} did not fail`);
           } else {
             let result = {};
             let contractParams = null;
             try {
-              contractParams = await this._contractApi.getContractParams(
-                contractAddress
-              );
+              contractParams = await this._contractApi.getContractParams(contractAddress);
               if (!contractParams.deltaHashes) {
                 res.isVerified = false;
                 res.error = new errors.TaskValidityErr(
@@ -440,33 +368,19 @@ class EthereumVerifier {
               }
             } catch (e) {
               res.isVerified = false;
-              res.error = new errors.TaskValidityErr(
-                `Failure in verification of task ${taskId}: ${e}`
-              );
+              res.error = new errors.TaskValidityErr(`Failure in verification of task ${taskId}: ${e}`);
             }
             if (!res.error) {
               if (task instanceof DeployResult) {
-                result = this._checkDeployResult(
-                  task,
-                  contractParams.deltaHashes[0],
-                  contractParams.codeHash
-                );
+                result = this._checkDeployResult(task, contractParams.deltaHashes[0], contractParams.codeHash);
               } else {
-                result = this._checkComputeResult(
-                  taskParams,
-                  contractParams,
-                  task,
-                  contractAddress,
-                  localTip
-                );
+                result = this._checkComputeResult(taskParams, contractParams, task, contractAddress, localTip);
               }
               res.isVerified = result.isVerified;
               res.error = result.error;
             }
           }
-        } else if (
-          taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED
-        ) {
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
           res.canBeVerified = true;
 
           if (task instanceof FailedResult) {
@@ -476,37 +390,21 @@ class EthereumVerifier {
             res.isVerified = false;
             res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
           }
-        } else if (
-          taskParams.status ===
-          constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_ETH
-        ) {
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_ETH) {
           res.canBeVerified = true;
           res.isVerified = false;
-          res.error = new errors.TaskEthereumFailureErr(
-            "Task " + taskId + " was failed due to Ethereum"
-          );
-        } else if (
-          taskParams.status ===
-          constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_CANCELLED
-        ) {
+          res.error = new errors.TaskEthereumFailureErr("Task " + taskId + " was failed due to Ethereum");
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED_CANCELLED) {
           res.canBeVerified = true;
           res.isVerified = false;
           res.error = new errors.TaskValidityErr(
             `Failure in verification of task ${taskId}: task was cancelled by the user`
           );
-        } else if (
-          taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED
-        ) {
+        } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECORD_CREATED) {
           // If the task was created already, use its mined block number instead for the timeout calculations
           if (taskId in this._getAllTaskSubmissionIds()) {
-            let { listener, blockNumber } = this._getTaskSubmissionListener(
-              taskId
-            );
-            this._setTaskSubmissionListener(
-              taskId,
-              taskParams.blockNumber,
-              listener
-            );
+            let { listener, blockNumber } = this._getTaskSubmissionListener(taskId);
+            this._setTaskSubmissionListener(taskId, taskParams.blockNumber, listener);
           }
         } else {
           // taskParams.status === RECORD_UNDEFINED
@@ -515,9 +413,7 @@ class EthereumVerifier {
           res.error = null;
         }
       } catch (e) {
-        this._logger.info(
-          `error received while trying to verify result of task taskId ${taskId}: ${e}`
-        );
+        this._logger.info(`error received while trying to verify result of task taskId ${taskId}: ${e}`);
         // TODO: consider adding a retry mechanism
         res.canBeVerified = true;
         res.isVerified = false;
@@ -531,24 +427,16 @@ class EthereumVerifier {
     let res = { isVerified: false, error: null };
 
     if (!task.hasDelta()) {
-      res.error = new errors.TaskVerificationErr(
-        "No delta in task result " + task.getTaskId()
-      );
+      res.error = new errors.TaskVerificationErr("No delta in task result " + task.getTaskId());
     } else {
       const deltaKey = task.getDelta().key;
       if (deltaKey !== 0) {
-        res.error = new errors.TaskVerificationErr(
-          "Mismatch in delta index in task result " + task.getTaskId()
-        );
+        res.error = new errors.TaskVerificationErr("Mismatch in delta index in task result " + task.getTaskId());
       } else {
         if (!EthereumVerifier._verifyHash(deltaHash, task.getDelta().data)) {
-          res.error = new errors.TaskVerificationErr(
-            "Mismatch in delta hash in task result " + task.getTaskId()
-          );
+          res.error = new errors.TaskVerificationErr("Mismatch in delta hash in task result " + task.getTaskId());
         } else if (!EthereumVerifier._verifyHash(codeHash, task.getOutput())) {
-          res.error = new errors.TaskVerificationErr(
-            "Mismatch in output hash in task result " + task.getTaskId()
-          );
+          res.error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
         }
         // All fine
         else {
@@ -559,13 +447,7 @@ class EthereumVerifier {
     return res;
   }
 
-  _checkComputeResult(
-    taskParams,
-    contractParams,
-    task,
-    contractAddress,
-    localTip
-  ) {
+  _checkComputeResult(taskParams, contractParams, task, contractAddress, localTip) {
     let isVerified = false;
     let error = null;
     // Delta
@@ -573,19 +455,10 @@ class EthereumVerifier {
       const deltaKey = task.getDelta().key;
 
       if (deltaKey >= contractParams.deltaHashes.length) {
-        error = new errors.TaskVerificationErr(
-          "Wrong delta index in task result " + task.getTaskId()
-        );
+        error = new errors.TaskVerificationErr("Wrong delta index in task result " + task.getTaskId());
       }
-      if (
-        !EthereumVerifier._verifyHash(
-          contractParams.deltaHashes[deltaKey],
-          task.getDelta().data
-        )
-      ) {
-        error = new errors.TaskVerificationErr(
-          "Mismatch in delta hash in task result " + task.getTaskId()
-        );
+      if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[deltaKey], task.getDelta().data)) {
+        error = new errors.TaskVerificationErr("Mismatch in delta hash in task result " + task.getTaskId());
       }
     }
     // No delta
@@ -593,18 +466,11 @@ class EthereumVerifier {
       const lastDeltaIndex = contractParams.deltaHashes.length - 1;
       if (lastDeltaIndex !== localTip.key) {
         error = new errors.TaskVerificationErr(
-          "Mismatch in last local tip index (no state change) for task " +
-            task.getTaskId()
+          "Mismatch in last local tip index (no state change) for task " + task.getTaskId()
         );
-      } else if (
-        !EthereumVerifier._verifyHash(
-          contractParams.deltaHashes[lastDeltaIndex],
-          localTip.data
-        )
-      ) {
+      } else if (!EthereumVerifier._verifyHash(contractParams.deltaHashes[lastDeltaIndex], localTip.data)) {
         error = new errors.TaskVerificationErr(
-          "Mismatch in last local tip hash (no state change) for task " +
-            task.getTaskId()
+          "Mismatch in last local tip hash (no state change) for task " + task.getTaskId()
         );
       }
     }
@@ -612,9 +478,7 @@ class EthereumVerifier {
     if (!error) {
       let output = task.getOutput();
       if (!EthereumVerifier._verifyHash(taskParams.outputHash, output)) {
-        error = new errors.TaskVerificationErr(
-          "Mismatch in output hash in task result " + task.getTaskId()
-        );
+        error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       } else {
         isVerified = true;
       }
@@ -633,14 +497,10 @@ class EthereumVerifier {
       const deltaKey = task.getDelta().key;
 
       if (deltaKey !== deltaIndex) {
-        error = new errors.TaskVerificationErr(
-          "Wrong delta index in task result " + task.getTaskId()
-        );
+        error = new errors.TaskVerificationErr("Wrong delta index in task result " + task.getTaskId());
       }
       if (!EthereumVerifier._verifyHash(deltaHash, task.getDelta().data)) {
-        error = new errors.TaskVerificationErr(
-          "Mismatch in delta hash in task result " + task.getTaskId()
-        );
+        error = new errors.TaskVerificationErr("Mismatch in delta hash in task result " + task.getTaskId());
       }
     }
     // No delta
@@ -655,9 +515,7 @@ class EthereumVerifier {
     if (!error) {
       let output = task.getOutput();
       if (!EthereumVerifier._verifyHash(outputHash, output)) {
-        error = new errors.TaskVerificationErr(
-          "Mismatch in output hash in task result " + task.getTaskId()
-        );
+        error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       } else {
         isVerified = true;
       }
@@ -678,11 +536,7 @@ class EthereumVerifier {
    */
   _verifySelectedWorker(secretContractAddress, workerAddress, params) {
     let result = { error: null, isVerified: true };
-    let selectedWorker = EthereumVerifier.selectWorkerGroup(
-      secretContractAddress,
-      params,
-      1
-    )[0];
+    let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
     selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
     if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr(
@@ -705,10 +559,7 @@ class EthereumVerifier {
    */
   static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
     // Find total number of staked tokens for workers
-    const tokenCpt = params.balances.reduce(
-      (a, b) => JSBI.add(a, b),
-      JSBI.BigInt(0)
-    );
+    const tokenCpt = params.balances.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
     let nonce = 0;
     const selectedWorkers = [];
     do {
@@ -716,11 +567,7 @@ class EthereumVerifier {
       const hash = cryptography.hash(
         abi.rawEncode(
           ["uint256", "bytes32", "uint256"],
-          [
-            params.seed.toString(10),
-            nodeUtils.add0x(secretContractAddress),
-            nonce
-          ]
+          [params.seed.toString(10), nodeUtils.add0x(secretContractAddress), nonce]
         )
       );
 
@@ -763,15 +610,10 @@ class EthereumVerifier {
 
   _newEpochEventCallback(err, event) {
     if (err) {
-      this._logger.error(
-        "an error occurred while listening to new epoch event. Error=" + err
-      );
+      this._logger.error("an error occurred while listening to new epoch event. Error=" + err);
     } else {
       if (!this._validateWorkerParams(event)) {
-        this._logger.error(
-          "Worker params received are not valid, ignoring them.. params=" +
-            JSON.stringify(event)
-        );
+        this._logger.error("Worker params received are not valid, ignoring them.. params=" + JSON.stringify(event));
       } else {
         this._workerParamArray.push(event);
         if (this._workerParamArray.length > this._workerParamArrayMaxSize) {
@@ -784,9 +626,7 @@ class EthereumVerifier {
 
   _taskCreationEventCallback(err, event) {
     if (err) {
-      this._logger.error(
-        "an error occurred while listening to task creation event. Error=" + err
-      );
+      this._logger.error("an error occurred while listening to task creation event. Error=" + err);
     } else {
       const unverifiedTaskIds = this._getAllTaskCreationIds();
 
@@ -806,17 +646,12 @@ class EthereumVerifier {
 
   _taskSubmissionEventCallback(err, event) {
     if (err) {
-      this._logger.error(
-        "an error occurred while listening to task submission event. Error=" +
-          err
-      );
+      this._logger.error("an error occurred while listening to task submission event. Error=" + err);
     } else {
       const unverifiedTaskIds = this._getAllTaskSubmissionIds();
       for (let taskId of unverifiedTaskIds) {
         if (event.taskId === taskId) {
-          let { listener, blockNumber } = this._getTaskSubmissionListener(
-            taskId
-          );
+          let { listener, blockNumber } = this._getTaskSubmissionListener(taskId);
           this.deleteTaskSubmissionListener(taskId);
           return listener(event);
         }
@@ -826,17 +661,12 @@ class EthereumVerifier {
 
   _taskDeployedContractEventCallback(err, event) {
     if (err) {
-      this._logger.error(
-        "an error occurred while listening to deploy secret contract event. Error=" +
-          err
-      );
+      this._logger.error("an error occurred while listening to deploy secret contract event. Error=" + err);
     } else {
       const unverifiedTaskIds = this._getAllTaskSubmissionIds();
       for (let taskId of unverifiedTaskIds) {
         if (event.secretContractAddress === taskId) {
-          let { listener, blockNumber } = this._getTaskSubmissionListener(
-            taskId
-          );
+          let { listener, blockNumber } = this._getTaskSubmissionListener(taskId);
           this.deleteTaskSubmissionListener(taskId);
           return listener(event);
         }
@@ -870,10 +700,7 @@ class EthereumVerifier {
       return workerParamArray;
     }
     for (let i = 1; i < workerParamArray.length; i++) {
-      if (
-        workerParamArray[i].firstBlockNumber <
-        workerParamArray[i - 1].firstBlockNumber
-      ) {
+      if (workerParamArray[i].firstBlockNumber < workerParamArray[i - 1].firstBlockNumber) {
         smallestBlockIndex = i;
         break;
       }
@@ -911,21 +738,14 @@ class EthereumVerifier {
         task.getUserDHKey()
       ];
     } else {
-      paramsArray = [
-        task.getEncryptedFn(),
-        task.getEncryptedArgs(),
-        task.getContractAddr(),
-        task.getUserDHKey()
-      ];
+      paramsArray = [task.getEncryptedFn(), task.getEncryptedArgs(), task.getContractAddr(), task.getUserDHKey()];
     }
     if (cryptography.hashArray(paramsArray) === inputsHash) {
       res.isVerified = true;
       res.error = null;
     } else {
       res.isVerified = false;
-      res.error = new errors.TaskVerificationErr(
-        "Mismatch in inputs hash in task record " + task.getTaskId()
-      );
+      res.error = new errors.TaskVerificationErr("Mismatch in inputs hash in task record " + task.getTaskId());
     }
     return res;
   }
@@ -937,10 +757,7 @@ class EthereumVerifier {
     let unverifiedTaskIds = this._getAllTaskCreationIds();
     for (let taskId of unverifiedTaskIds) {
       let { blockNumber, listener } = this._getTaskCreationListener(taskId);
-      if (
-        newEpochEvent.firstBlockNumber - blockNumber >=
-        this._taskTimeoutInBlocks
-      ) {
+      if (newEpochEvent.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
         this.deleteTaskCreationListener(taskId);
         listener(newEpochEvent);
       }
@@ -950,10 +767,7 @@ class EthereumVerifier {
     unverifiedTaskIds = this._getAllTaskSubmissionIds();
     for (let taskId of unverifiedTaskIds) {
       let { blockNumber, listener } = this._getTaskSubmissionListener(taskId);
-      if (
-        newEpochEvent.firstBlockNumber - blockNumber >=
-        this._taskTimeoutInBlocks
-      ) {
+      if (newEpochEvent.firstBlockNumber - blockNumber >= this._taskTimeoutInBlocks) {
         this.deleteTaskSubmissionListener(taskId);
         listener(newEpochEvent);
       }

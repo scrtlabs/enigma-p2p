@@ -49,11 +49,7 @@ async function getRemoteMissingStates(api, localTips, callback) {
               missingCodeHash = contractData.codeHash;
             }
             const parsedDeltasArray = [];
-            for (
-              let i = firstMissingIndex;
-              i < contractData.deltaHashes.length;
-              i++
-            ) {
+            for (let i = firstMissingIndex; i < contractData.deltaHashes.length; i++) {
               parsedDeltasArray.push({
                 deltaHash: contractData.deltaHashes[i],
                 index: i
