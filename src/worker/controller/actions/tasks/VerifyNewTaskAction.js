@@ -27,27 +27,17 @@ class VerifyNewTaskAction {
             let res = await this._controller
               .ethereum()
               .verifier()
-              .verifyTaskCreation(
-                unverifiedTask,
-                currentBlockNumber,
-                regParams.result.signingKey
-              );
+              .verifyTaskCreation(unverifiedTask, currentBlockNumber, regParams.result.signingKey);
             if (res.error) {
               this._controller
                 .logger()
-                .info(
-                  `[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${
-                    res.error
-                  }`
-                );
+                .info(`[VERIFY_NEW_TASK] error in verification of task ${unverifiedTask.getTaskId()}: ${res.error}`);
             } else if (res.isVerified) {
               unverifiedTask.setGasLimit(res.gasLimit);
               unverifiedTask.setBlockNumber(res.blockNumber);
               this._controller
                 .logger()
-                .debug(
-                  `[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`
-                );
+                .debug(`[VERIFY_NEW_TASK] successful verification of task ${unverifiedTask.getTaskId()}`);
               isVerified = true;
             }
           } catch (err) {
@@ -58,9 +48,7 @@ class VerifyNewTaskAction {
               );
           }
         }
-        await this._controller
-          .taskManager()
-          .asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
+        await this._controller.taskManager().asyncOnVerifyTask(unverifiedTask.getTaskId(), isVerified);
         if (onResult) {
           onResult(null, isVerified);
         }

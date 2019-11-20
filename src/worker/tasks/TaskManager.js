@@ -300,10 +300,7 @@ class TaskManager extends EventEmitter {
   onFinishTask(taskResult, callback) {
     // this should never happen.
     if (this._unverifiedPool[taskResult.getTaskId()]) {
-      const err =
-        "[ON_FINISH_TASK] error task " +
-        taskResult.getTaskId() +
-        " was executed without verification.";
+      const err = "[ON_FINISH_TASK] error task " + taskResult.getTaskId() + " was executed without verification.";
       this._logger.error(err);
       return callback(err);
     }
@@ -319,12 +316,7 @@ class TaskManager extends EventEmitter {
         if (err) {
           return callback(err);
         }
-        this._logger.info(
-          "[TASK_FINISHED] status = [" +
-            taskResult.getStatus() +
-            "] id: " +
-            task.getTaskId()
-        );
+        this._logger.info("[TASK_FINISHED] status = [" + taskResult.getStatus() + "] id: " + task.getTaskId());
         // notify about the task change
         this.notify({
           notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED,
@@ -392,10 +384,7 @@ class TaskManager extends EventEmitter {
    * */
   isKeepAlive(taskId) {
     const now = nodeUtils.unixTimestamp();
-    return (
-      this._unverifiedPool[taskId] &&
-      now - this._unverifiedPool[taskId].time < nodeUtils.unixDay()
-    );
+    return this._unverifiedPool[taskId] && now - this._unverifiedPool[taskId].time < nodeUtils.unixDay();
   }
   /**
    * Promise based version of async
@@ -548,10 +537,7 @@ class TaskManager extends EventEmitter {
    * - if not existing
    * */
   _isOkToAdd(unverifiedTask) {
-    return (
-      unverifiedTask instanceof Task &&
-      !this.isUnverifiedInPool(unverifiedTask.getTaskId())
-    );
+    return unverifiedTask instanceof Task && !this.isUnverifiedInPool(unverifiedTask.getTaskId());
   }
   /**
    * Notify observer (Some controller subscribed)

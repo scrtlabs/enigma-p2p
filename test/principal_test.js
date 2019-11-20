@@ -67,12 +67,10 @@ it("#2 Should Simulate the principal node and run GetStateKeysAction", async fun
 
     response = MockCoreServer.GET_PTT_REQUEST_MOCK;
 
-    await mainController
-      .getNode()
-      .asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS, {
-        addresses: fakeAddresses,
-        blockNumber: fakeBlockNumber
-      });
+    await mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS, {
+      addresses: fakeAddresses,
+      blockNumber: fakeBlockNumber
+    });
     await testUtils.sleep(1500);
     await mainController.shutdownSystem();
     controllers.coreServer.disconnect();

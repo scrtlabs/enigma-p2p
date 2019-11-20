@@ -6,8 +6,7 @@ const StateUtils = require("../src/common/DbUtils");
 const crypto = require("../src/common/cryptography");
 
 const address = "0123456789ABcdeF0123456789AbcDEF00000000";
-const hash =
-  "0x5f8387c70ddbc27ab6cb2918ce879d8399b28300bf14fe604fe2e04f1ec9c640";
+const hash = "0x5f8387c70ddbc27ab6cb2918ce879d8399b28300bf14fe604fe2e04f1ec9c640";
 const b58 = "QmPZ9gcCEpqKTo6aq61g2nXGUhM4iCL3ewB6LDXZCtioEB";
 const msgDecoded = [{ name: "Andrew" }, { name: "Maxim" }];
 const msgEncoded = [
@@ -95,14 +94,8 @@ it("should convert hex to ascii", async function() {
   assert.strictEqual(EncoderUtil.hexToAscii(31323334), "1234");
   assert.strictEqual(EncoderUtil.hexToAscii("68656c6c6f"), "hello");
   assert.strictEqual(EncoderUtil.hexToAscii("0x68656c6c6f"), "hello");
-  assert.strictEqual(
-    EncoderUtil.hexToAscii("0x68656c6c6f20776f726c64"),
-    "hello world"
-  );
-  assert.strictEqual(
-    EncoderUtil.hexToAscii("20 20 20 20 20 68 65 6c 6c 6f 20 20 20 20 20"),
-    "     hello     "
-  );
+  assert.strictEqual(EncoderUtil.hexToAscii("0x68656c6c6f20776f726c64"), "hello world");
+  assert.strictEqual(EncoderUtil.hexToAscii("20 20 20 20 20 68 65 6c 6c 6f 20 20 20 20 20"), "     hello     ");
   assert.strictEqual(
     EncoderUtil.hexToAscii(
       "7b226964223a22333337373637373332393539313232323730333939323938343134383" +
@@ -248,10 +241,7 @@ it("should fail to create EngCID", async function() {
 
 it("should hash", async function() {
   const h = crypto.hash("48656c6c6f20576f726c64");
-  assert.strictEqual(
-    h,
-    "0x592fa743889fc7f92ac2a37bb1f5ba1daf2a5c84741ca0e0061d243a2e6707ba"
-  );
+  assert.strictEqual(h, "0x592fa743889fc7f92ac2a37bb1f5ba1daf2a5c84741ca0e0061d243a2e6707ba");
 });
 
 it("should hex -> bytes -> hex", async function() {

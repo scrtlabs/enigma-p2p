@@ -10,9 +10,7 @@ module.exports = {
       multiAddrs: ["/ip4/0.0.0.0/tcp/"],
       // TODO:: ignored because of constants/namespace
       namespace: "ipfs",
-      bootstrapNodes: [
-        "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"
-      ]
+      bootstrapNodes: ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"]
     },
     idPath: null, // load PeerId, if null-> create one
     // TODO:: ignored currently cuz of implementation

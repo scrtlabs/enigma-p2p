@@ -60,28 +60,13 @@ describe("task_flow_tests", () => {
       let { bNode, peer } = await testBuilder.createTwo();
       await testUtils.sleep(5000);
 
-      const verifyResultPropagation = createVerifyResultCallback(
-        bNode,
-        peer,
-        resolve,
-        task
-      );
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(
-        peer.mainController.getNode(),
-        verifyResultPropagation
-      );
-      peer.mainController
-        .getNode()
-        .overrideAction(
-          constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,
-          newAction
-        );
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNode.mainController
-        .getNode()
-        .execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
     });
   });
 
@@ -95,29 +80,14 @@ describe("task_flow_tests", () => {
       let { bNode, peer } = await testBuilder.createTwo();
       await testUtils.sleep(5000);
 
-      const verifyResultPropagation = createVerifyResultCallback(
-        bNode,
-        peer,
-        resolve,
-        task
-      );
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(
-        peer.mainController.getNode(),
-        verifyResultPropagation
-      );
-      peer.mainController
-        .getNode()
-        .overrideAction(
-          constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,
-          newAction
-        );
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNode.mainController
-        .getNode()
-        .execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
     });
   });
 
@@ -131,29 +101,14 @@ describe("task_flow_tests", () => {
       let { bNode, peer } = await testBuilder.createTwo();
       await testUtils.sleep(5000);
 
-      const verifyResultPropagation = createVerifyResultCallback(
-        bNode,
-        peer,
-        resolve,
-        task
-      );
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(
-        peer.mainController.getNode(),
-        verifyResultPropagation
-      );
-      peer.mainController
-        .getNode()
-        .overrideAction(
-          constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,
-          newAction
-        );
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNode.mainController
-        .getNode()
-        .execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
     });
   });
 
@@ -167,29 +122,14 @@ describe("task_flow_tests", () => {
       let { bNode, peer } = await testBuilder.createTwo();
       await testUtils.sleep(5000);
 
-      const verifyResultPropagation = createVerifyResultCallback(
-        bNode,
-        peer,
-        resolve,
-        task
-      );
+      const verifyResultPropagation = createVerifyResultCallback(bNode, peer, resolve, task);
 
       // override the action response
-      const newAction = new VerifyAndStoreResultActionMock(
-        peer.mainController.getNode(),
-        verifyResultPropagation
-      );
-      peer.mainController
-        .getNode()
-        .overrideAction(
-          constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT,
-          newAction
-        );
+      const newAction = new VerifyAndStoreResultActionMock(peer.mainController.getNode(), verifyResultPropagation);
+      peer.mainController.getNode().overrideAction(constants.NODE_NOTIFICATIONS.RECEIVED_NEW_RESULT, newAction);
       // run the test
       // publish the task result
-      bNode.mainController
-        .getNode()
-        .execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
+      bNode.mainController.getNode().execCmd(constants.NODE_NOTIFICATIONS.TASK_FINISHED, { task: task });
     });
   });
 });

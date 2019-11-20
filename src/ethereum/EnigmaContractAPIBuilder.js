@@ -141,9 +141,7 @@ class EnigmaContractAPIBuilder {
 
     if (this.useDeployedFlag) {
       if (this.config.enigmaContractABI === undefined) {
-        const rawdata = await utils.readFile(
-          path.join(this.config.truffleDirectory, "build/contracts/Enigma.json")
-        ); //require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
+        const rawdata = await utils.readFile(path.join(this.config.truffleDirectory, "build/contracts/Enigma.json")); //require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
         const EnigmaContractJson = JSON.parse(rawdata);
         this.config.enigmaContractABI = EnigmaContractJson.abi;
       }
@@ -251,11 +249,7 @@ class EnigmaContractAPIBuilder {
   /**** INTERNAL ****/
   _resetEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
-      const command =
-        "cd " +
-        truffleDirectory +
-        " && truffle migrate --reset && cd " +
-        process.cwd();
+      const command = "cd " + truffleDirectory + " && truffle migrate --reset && cd " + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
           reject("ApiBuilder.resetEnv " + err);
@@ -267,8 +261,7 @@ class EnigmaContractAPIBuilder {
 
   _buildEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
-      const command =
-        "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
+      const command = "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
           reject("ApiBuilder.buildEnv " + err);
@@ -288,24 +281,16 @@ class EnigmaContractAPIBuilder {
     const ethTestUtils = require("../../test/ethereum/utils");
 
     const networkId = truffleConfig.networks.development.network_id;
-    const rawdata = await utils.readFile(
-      path.join(truffleDirectory, "build/contracts/Enigma.json")
-    );
+    const rawdata = await utils.readFile(path.join(truffleDirectory, "build/contracts/Enigma.json"));
     let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
 
-    await ethTestUtils.advanceXConfirmations(
-      this.web3,
-      this.minimunConfirmations
-    );
+    await ethTestUtils.advanceXConfirmations(this.web3, this.minimunConfirmations);
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;
-    this.logger().info(
-      "Deployed the Enigma Mock Contract in the following address: " +
-        this.enigmaContractAddress
-    );
+    this.logger().info("Deployed the Enigma Mock Contract in the following address: " + this.enigmaContractAddress);
   }
 
   _connectToContract() {
@@ -315,17 +300,12 @@ class EnigmaContractAPIBuilder {
     this.enigmaContractAddress = this.config.enigmaContractAddress;
     this.enigmaContractABI = this.config.enigmaContractABI;
 
-    this.logger().info(
-      "Connecting to the Enigma Contract in the following address: " +
-        this.enigmaContractAddress
-    );
+    this.logger().info("Connecting to the Enigma Contract in the following address: " + this.enigmaContractAddress);
   }
 
   _initWeb3() {
     if (!this.config.url.startsWith("ws:")) {
-      throw new Error(
-        "wrong transport config. Only websocket is currently supported"
-      );
+      throw new Error("wrong transport config. Only websocket is currently supported");
     }
 
     const websocketProvider = this.config.url;

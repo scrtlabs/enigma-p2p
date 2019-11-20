@@ -12,9 +12,7 @@ class DbAction {
       if (!this._controller.getCommunicator(constatnts.RUNTIME_TYPE.Core)) {
         return;
       }
-      let dbCommunicator = this._controller.getCommunicator(
-        constatnts.RUNTIME_TYPE.Core
-      ).thisCommunicator;
+      let dbCommunicator = this._controller.getCommunicator(constatnts.RUNTIME_TYPE.Core).thisCommunicator;
       dbCommunicator.sendAndReceive(envelop).then(resEnv => {
         reqCommunicator.send(resEnv);
       });

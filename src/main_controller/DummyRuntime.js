@@ -7,9 +7,7 @@ class DummyRuntime {
   setChannel(communicator) {
     this._communicator = communicator;
     this._communicator.setOnMessage(envelop => {
-      console.log(
-        "DummyRuntime: got msg : " + JSON.stringify(envelop.content())
-      );
+      console.log("DummyRuntime: got msg : " + JSON.stringify(envelop.content()));
     });
   }
   sendMsg(content) {

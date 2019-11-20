@@ -37,23 +37,8 @@ class DeployTask extends Task {
       );
     }
   }
-  constructor(
-    taskId,
-    preCode,
-    encryptedArgs,
-    encryptedFn,
-    userDHKey,
-    gasLimit,
-    contractAddr,
-    blockNumber
-  ) {
-    super(
-      taskId,
-      constants.CORE_REQUESTS.DeploySecretContract,
-      contractAddr,
-      gasLimit,
-      blockNumber
-    );
+  constructor(taskId, preCode, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr, blockNumber) {
+    super(taskId, constants.CORE_REQUESTS.DeploySecretContract, contractAddr, gasLimit, blockNumber);
     this._preCode = preCode;
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
@@ -105,10 +90,7 @@ class DeployTask extends Task {
       if (taskObj.result && nodeUtils.isString(taskObj.result)) {
         taskObj.result = JSON.parse(taskObj.result);
       }
-      if (
-        taskObj.result &&
-        taskObj.result.status !== constants.TASK_STATUS.FAILED
-      ) {
+      if (taskObj.result && taskObj.result.status !== constants.TASK_STATUS.FAILED) {
         // here is string
         const result = Result.DeployResult.buildDeployResult(taskObj.result);
         task.setResult(result);

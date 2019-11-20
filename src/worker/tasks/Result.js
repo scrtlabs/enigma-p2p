@@ -47,16 +47,7 @@ class Result {
   }
 }
 class ComputeResult extends Result {
-  constructor(
-    taskId,
-    status,
-    output,
-    delta,
-    usedGas,
-    ethereumPayload,
-    ethereumAddress,
-    signature
-  ) {
+  constructor(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature) {
     super(taskId, status);
     this._output = output;
     this._delta = delta;
@@ -133,27 +124,8 @@ class ComputeResult extends Result {
 }
 
 class DeployResult extends ComputeResult {
-  constructor(
-    taskId,
-    status,
-    output,
-    delta,
-    usedGas,
-    ethereumPayload,
-    ethereumAddress,
-    signature,
-    preCodeHash
-  ) {
-    super(
-      taskId,
-      status,
-      output,
-      delta,
-      usedGas,
-      ethereumPayload,
-      ethereumAddress,
-      signature
-    );
+  constructor(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature, preCodeHash) {
+    super(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature);
     this._preCodeHash = preCodeHash;
   }
   static buildDeployResult(result) {

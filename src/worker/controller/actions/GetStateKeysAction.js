@@ -41,9 +41,7 @@ class GetStateKeysAction {
           err = coreResponse.msg;
         }
         return this._handleError(
-          `Failed Core connection: err: ${JSON.stringify(
-            err
-          )}, coreResponse: ${JSON.stringify(coreResponse)}`,
+          `Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`,
           err,
           onResponse
         );
@@ -56,41 +54,24 @@ class GetStateKeysAction {
           .getStateKeys(this._buildRequestMsg(coreResponse, params));
       } catch (err) {
         // TODO: Errors.
-        return this._handleError(
-          `Failed Principal node connection: ${err.code} - ${err.message}`,
-          err,
-          onResponse
-        );
+        return this._handleError(`Failed Principal node connection: ${err.code} - ${err.message}`, err, onResponse);
       }
-      this._pttResponse(
-        { response: principalResponse.data, sig: principalResponse.sig },
-        (err, response) => {
-          if (
-            err ||
-            response.type === "Error" ||
-            response.result.errors.length > 0
-          ) {
-            if (response && coreResponse.type === "Error") {
-              err = coreResponse.msg;
-            } else if (
-              response &&
-              response.result &&
-              response.result.errors.length > 0
-            ) {
-              err = response.result;
-            }
-            return this._handleError(
-              `Failed Core connection: err: ${JSON.stringify(
-                err
-              )}, coreResponse: ${JSON.stringify(response)}`,
-              err,
-              onResponse
-            );
+      this._pttResponse({ response: principalResponse.data, sig: principalResponse.sig }, (err, response) => {
+        if (err || response.type === "Error" || response.result.errors.length > 0) {
+          if (response && coreResponse.type === "Error") {
+            err = coreResponse.msg;
+          } else if (response && response.result && response.result.errors.length > 0) {
+            err = response.result;
           }
-          this._controller.principal().onPTTEnd();
-          return onResponse(null);
+          return this._handleError(
+            `Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`,
+            err,
+            onResponse
+          );
         }
-      );
+        this._controller.principal().onPTTEnd();
+        return onResponse(null);
+      });
     };
 
     let dbRequestParams = {
@@ -98,10 +79,7 @@ class GetStateKeysAction {
       onResponse: onPTTRequestResponse
     };
 
-    this._controller.execCmd(
-      constants.NODE_NOTIFICATIONS.DB_REQUEST,
-      dbRequestParams
-    );
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, dbRequestParams);
   }
 
   _pttResponse(params, cb) {

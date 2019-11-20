@@ -44,12 +44,7 @@ async function prepareEthData(controller) {
   });
   await api.deposit(workerAddress, depositValue, { from: workerAddress });
   await api.login({ from: workerAddress });
-  await ethTestUtils.setEthereumState(
-    api,
-    api.w3(),
-    workerAddress,
-    accounts[1]
-  );
+  await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
 
   return workerAddress;
 }
@@ -86,30 +81,21 @@ it("#1 run init and healthCheck", async function() {
     await bNodeController.getNode().asynctryAnnounce();
     coreServer.setReceiverTips(noTipsReceiver);
 
-    await testPeer.mainController
-      .getNode()
-      .asyncInitializeWorkerProcess({ amount: 50000 });
+    await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
 
     // assertion checks
     // we check what was previously the health check:
     // receiving the registration params + checking the missing states
 
     let coreUri = testPeer.mainController.getIpcClient().getUri();
-    let regParams = await testPeer.mainController
-      .getNode()
-      .asyncGetRegistrationParams();
+    let regParams = await testPeer.mainController.getNode().asyncGetRegistrationParams();
 
     assert.strictEqual(coreUri != null, true);
     assert.strictEqual(regParams.result.signingKey.length, 42);
 
-    let missingStates = await testPeer.mainController
-      .getNode()
-      .asyncIdentifyMissingStates();
+    let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
 
-    assert.strictEqual(
-      Object.keys(missingStates["missingStatesMap"]).length,
-      0
-    );
+    assert.strictEqual(Object.keys(missingStates["missingStatesMap"]).length, 0);
 
     // STOP EVERYTHING
     peers.push(testPeer);

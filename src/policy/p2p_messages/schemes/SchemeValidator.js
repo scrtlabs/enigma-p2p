@@ -16,75 +16,63 @@ function loadScheme(path, callback) {
 // ./schemes/state_sync_scheme.json
 const schemeMap = {
   [MsgTypes.SYNC_STATE_REQ]: (testObj, callback) => {
-    loadScheme(
-      path.join(__dirname, "/state_sync_scheme.json"),
-      (err, preScheme) => {
-        if (err) {
-          return callback(err);
-        } else {
-          const scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
-          const v = new Validator();
-          let isValid = true;
-          if (Array.isArray(testObj)) {
-            for (let i = 0; i < testObj.length; ++i) {
-              if (!v.validate(testObj[i], scheme).valid) {
-                isValid = false;
-                break;
-              }
+    loadScheme(path.join(__dirname, "/state_sync_scheme.json"), (err, preScheme) => {
+      if (err) {
+        return callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_STATE_REQ];
+        const v = new Validator();
+        let isValid = true;
+        if (Array.isArray(testObj)) {
+          for (let i = 0; i < testObj.length; ++i) {
+            if (!v.validate(testObj[i], scheme).valid) {
+              isValid = false;
+              break;
             }
-          } else {
-            isValid = v.validate(testObj, scheme).valid;
           }
-          return callback(null, isValid);
+        } else {
+          isValid = v.validate(testObj, scheme).valid;
         }
+        return callback(null, isValid);
       }
-    );
+    });
   },
 
   [MsgTypes.SYNC_STATE_RES]: (testObj, callback) => {
-    loadScheme(
-      path.join(__dirname, "/state_sync_scheme.json"),
-      (err, preScheme) => {
-        if (err) {
-          callback(err);
-        } else {
-          const scheme = preScheme[MsgTypes.SYNC_STATE_RES];
-          const v = new Validator();
-          const isValid = v.validate(testObj, scheme).valid;
-          callback(null, isValid);
-        }
+    loadScheme(path.join(__dirname, "/state_sync_scheme.json"), (err, preScheme) => {
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_STATE_RES];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
       }
-    );
+    });
   },
   [MsgTypes.SYNC_BCODE_REQ]: (testObj, callback) => {
-    loadScheme(
-      path.join(__dirname, "/state_sync_scheme.json"),
-      (err, preScheme) => {
-        if (err) {
-          callback(err);
-        } else {
-          const scheme = preScheme[MsgTypes.SYNC_BCODE_REQ];
-          const v = new Validator();
-          const isValid = v.validate(testObj, scheme).valid;
-          callback(null, isValid);
-        }
+    loadScheme(path.join(__dirname, "/state_sync_scheme.json"), (err, preScheme) => {
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_BCODE_REQ];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
       }
-    );
+    });
   },
   [MsgTypes.SYNC_BCODE_RES]: (testObj, callback) => {
-    loadScheme(
-      path.join(__dirname, "/state_sync_scheme.json"),
-      (err, preScheme) => {
-        if (err) {
-          callback(err);
-        } else {
-          const scheme = preScheme[MsgTypes.SYNC_BCODE_RES];
-          const v = new Validator();
-          const isValid = v.validate(testObj, scheme).valid;
-          callback(null, isValid);
-        }
+    loadScheme(path.join(__dirname, "/state_sync_scheme.json"), (err, preScheme) => {
+      if (err) {
+        callback(err);
+      } else {
+        const scheme = preScheme[MsgTypes.SYNC_BCODE_RES];
+        const v = new Validator();
+        const isValid = v.validate(testObj, scheme).valid;
+        callback(null, isValid);
       }
-    );
+    });
   }
 };
 

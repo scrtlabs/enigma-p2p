@@ -13,10 +13,9 @@ class GetStatusProxyAction {
   async execute(requestEnvelop) {
     let taskId = requestEnvelop.content().taskId;
     try {
-      let result = await this._controller.asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.GET_TASK_RESULT,
-        { taskId: taskId }
-      );
+      let result = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TASK_RESULT, {
+        taskId: taskId
+      });
       const responseEnvelop = new Envelop(
         requestEnvelop.id(),
         { result: result.getStatus(), output: result.getOutput() },
@@ -27,10 +26,7 @@ class GetStatusProxyAction {
       console.log("-------------------------------------");
       this._controller.logger().error(e);
       console.log("-------------------------------------");
-      this._controller.execCmd(
-        constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC,
-        requestEnvelop
-      );
+      this._controller.execCmd(constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC, requestEnvelop);
     }
   }
 }

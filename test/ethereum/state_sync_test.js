@@ -1,13 +1,7 @@
 const path = require("path");
 const assert = require("assert");
-const EnigmaContractAPIBuilder = require(path.join(
-  __dirname,
-  "../../src/ethereum/EnigmaContractAPIBuilder"
-));
-const EthereumServices = require(path.join(
-  __dirname,
-  "../../src/ethereum/EthereumServices"
-));
+const EnigmaContractAPIBuilder = require(path.join(__dirname, "../../src/ethereum/EnigmaContractAPIBuilder"));
+const EthereumServices = require(path.join(__dirname, "../../src/ethereum/EthereumServices"));
 const StateSync = require(path.join(__dirname, "../../src/ethereum/StateSync"));
 const testParameters = require("./test_parameters.json");
 const utils = require("../../src/common/utils");
@@ -71,16 +65,13 @@ describe("State Sync", function() {
 
       const secretContractAddress1 = utils.remove0x(web3.utils.randomHex(32)); // accounts[5];
       const secretContractAddress2 = utils.remove0x(web3.utils.randomHex(32)); // accounts[4];
-      const codeHash = api
-        .w3()
-        .utils.sha3(JSON.stringify(testParameters.bytecode));
+      const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const codeHash2 = api.w3().utils.sha3(web3.utils.randomHex(32));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const gasUsed = 10;
       const depositValue = 1000;
       const optionalEthereumData = "0x00";
-      const optionalEthereumContractAddress =
-        "0x0000000000000000000000000000000000000000";
+      const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -187,11 +178,7 @@ describe("State Sync", function() {
         assert.strictEqual(results[0].deltas[3].index, 3);
         assert.strictEqual(results[0].deltas[3].deltaHash, stateDeltaHash3);
         assert.strictEqual(results[0].deltas.length, 4);
-        assert.strictEqual(
-          results[0].bytecodeHash,
-          codeHash,
-          "the bytecode is not equal to the codeHash"
-        );
+        assert.strictEqual(results[0].bytecodeHash, codeHash, "the bytecode is not equal to the codeHash");
 
         assert.strictEqual(results[1].address, secretContractAddress2);
         assert.strictEqual(results[1].deltas[0].index, 0);
@@ -201,77 +188,58 @@ describe("State Sync", function() {
         assert.strictEqual(results[1].deltas.length, 2);
         assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-        StateSync.getRemoteMissingStates(
-          api,
-          [{ address: secretContractAddress1, key: 0 }],
-          (err, results) => {
-            // DONE results == [{address, deltas : [deltaHash, index]}]
-            assert.strictEqual(results.length, 2);
+        StateSync.getRemoteMissingStates(api, [{ address: secretContractAddress1, key: 0 }], (err, results) => {
+          // DONE results == [{address, deltas : [deltaHash, index]}]
+          assert.strictEqual(results.length, 2);
 
-            assert.strictEqual(results[0].address, secretContractAddress1);
-            assert.strictEqual(results[0].deltas[0].index, 1);
-            assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
-            assert.strictEqual(results[0].deltas[1].index, 2);
-            assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash2);
-            assert.strictEqual(results[0].deltas[2].index, 3);
-            assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
-            assert.strictEqual(results[0].deltas.length, 3);
-            assert.strictEqual("bytecodeHash" in results[0], false);
+          assert.strictEqual(results[0].address, secretContractAddress1);
+          assert.strictEqual(results[0].deltas[0].index, 1);
+          assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
+          assert.strictEqual(results[0].deltas[1].index, 2);
+          assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash2);
+          assert.strictEqual(results[0].deltas[2].index, 3);
+          assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
+          assert.strictEqual(results[0].deltas.length, 3);
+          assert.strictEqual("bytecodeHash" in results[0], false);
 
-            assert.strictEqual(results[1].address, secretContractAddress2);
-            assert.strictEqual(results[1].deltas[0].index, 0);
-            assert.strictEqual(
-              results[1].deltas[0].deltaHash,
-              initStateDeltaHash
-            );
-            assert.strictEqual(results[1].deltas[1].index, 1);
-            assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
-            assert.strictEqual(results[1].deltas.length, 2);
-            assert.strictEqual(results[1].bytecodeHash, codeHash2);
+          assert.strictEqual(results[1].address, secretContractAddress2);
+          assert.strictEqual(results[1].deltas[0].index, 0);
+          assert.strictEqual(results[1].deltas[0].deltaHash, initStateDeltaHash);
+          assert.strictEqual(results[1].deltas[1].index, 1);
+          assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
+          assert.strictEqual(results[1].deltas.length, 2);
+          assert.strictEqual(results[1].bytecodeHash, codeHash2);
 
-            StateSync.getRemoteMissingStates(
-              api,
-              [
-                { address: secretContractAddress1, key: 1 },
-                { address: secretContractAddress2, key: 1 }
-              ],
-              (err, results) => {
-                // DONE results == [{address, deltas : [deltaHash, index]}]
-                assert.strictEqual(results.length, 1);
+          StateSync.getRemoteMissingStates(
+            api,
+            [{ address: secretContractAddress1, key: 1 }, { address: secretContractAddress2, key: 1 }],
+            (err, results) => {
+              // DONE results == [{address, deltas : [deltaHash, index]}]
+              assert.strictEqual(results.length, 1);
 
-                assert.strictEqual(results[0].address, secretContractAddress1);
-                assert.strictEqual(results[0].deltas[0].index, 2);
-                assert.strictEqual(
-                  results[0].deltas[0].deltaHash,
-                  stateDeltaHash2
-                );
-                assert.strictEqual(results[0].deltas[1].index, 3);
-                assert.strictEqual(
-                  results[0].deltas[1].deltaHash,
-                  stateDeltaHash3
-                );
-                assert.strictEqual(results[0].deltas.length, 2);
-                assert.strictEqual("bytecodeHash" in results[0], false);
+              assert.strictEqual(results[0].address, secretContractAddress1);
+              assert.strictEqual(results[0].deltas[0].index, 2);
+              assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
+              assert.strictEqual(results[0].deltas[1].index, 3);
+              assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
+              assert.strictEqual(results[0].deltas.length, 2);
+              assert.strictEqual("bytecodeHash" in results[0], false);
 
-                StateSync.getRemoteMissingStates(
-                  api,
-                  [
-                    { address: secretContractAddress1, key: 3 },
-                    { address: secretContractAddress2, key: 1 }
-                  ],
-                  async (err, results) => {
-                    // DONE results == [{address, deltas : [deltaHash, index]}]
-                    assert.strictEqual(results.length, 0);
+              StateSync.getRemoteMissingStates(
+                api,
+                [{ address: secretContractAddress1, key: 3 }, { address: secretContractAddress2, key: 1 }],
+                async (err, results) => {
+                  // DONE results == [{address, deltas : [deltaHash, index]}]
+                  assert.strictEqual(results.length, 0);
 
-                    api.unsubscribeAll();
-                    await res.environment.destroy();
-                    resolve();
-                  }
-                );
-              }
-            );
-          }
-        );
+                  api.unsubscribeAll();
+                  await res.environment.destroy();
+                  resolve();
+                }
+              );
+            }
+          );
+        });
       });
     });
   });
@@ -311,8 +279,7 @@ describe("State Sync", function() {
       const outputHash3 = web3.utils.randomHex(32);
       const depositValue = 1000;
       const optionalEthereumData = "0x00";
-      const optionalEthereumContractAddress =
-        "0x0000000000000000000000000000000000000000";
+      const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress

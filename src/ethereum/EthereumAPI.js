@@ -27,9 +27,7 @@ class EthereumAPI {
       ? config.minConfirmations
       : constants.MINIMUM_CONFIRMATIONS;
 
-    let builder = new EnigmaContractAPIBuilder(
-      this._logger
-    ).setMinimunConfirmations(minimunConfirmations);
+    let builder = new EnigmaContractAPIBuilder(this._logger).setMinimunConfirmations(minimunConfirmations);
     let res = await builder.setConfigAndBuild(config);
 
     this._api = res.api;
@@ -40,11 +38,7 @@ class EthereumAPI {
     this._services = new EthereumServices(this._api);
     this._services.initServices(null);
 
-    this._verifier = new EthereumVerifier(
-      this._api,
-      this._services,
-      this._logger
-    );
+    this._verifier = new EthereumVerifier(this._api, this._services, this._logger);
     await this._verifier.init();
   }
 

@@ -58,11 +58,7 @@ describe("jsonrpc_advanced", () => {
       await testUtils.sleep(1000);
       const deployInput = await getDeployRequest(signKey);
       client.request("deploySecretContract", deployInput, async (err, res) => {
-        assert.strictEqual(
-          true,
-          res.result.sendTaskResult,
-          "sendTaskResult not true"
-        );
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(1000);
         client.request(
           "getTaskStatus",
@@ -73,17 +69,9 @@ describe("jsonrpc_advanced", () => {
           },
           async (err, res) => {
             if (err) assert.strictEqual(true, false, "err" + err);
-            assert.strictEqual(
-              constants.TASK_STATUS.SUCCESS,
-              res.result.result,
-              "result not success"
-            );
+            assert.strictEqual(constants.TASK_STATUS.SUCCESS, res.result.result, "result not success");
             // the output result comes from core_mock hardcoded data which might brake in the future
-            assert.deepStrictEqual(
-              MockCoreServer.GET_DEPLOY_BYTECODE_MOCK,
-              res.result.output,
-              "output don't match"
-            );
+            assert.deepStrictEqual(MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, res.result.output, "output don't match");
             // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
             await stopTest();
           }
@@ -127,34 +115,18 @@ describe("jsonrpc_advanced", () => {
       await testUtils.sleep(1000);
       const deployInput = await getDeployRequest(signKey);
       client.request("deploySecretContract", deployInput, async (err, res) => {
-        assert.strictEqual(
-          true,
-          res.result.sendTaskResult,
-          "sendTaskResult not true"
-        );
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(1000);
-        client.request(
-          "getTaskResult",
-          { taskId: deployInput.contractAddress },
-          async (err, res) => {
-            if (err) assert.strictEqual(true, false, "err" + err);
-            let status = res.result.result.status;
-            let output = res.result.result.output;
-            assert.strictEqual(
-              constants.TASK_STATUS.SUCCESS,
-              status,
-              "result not success"
-            );
-            // the output result comes from core_mock hardcoded data which might brake in the future
-            assert.deepStrictEqual(
-              MockCoreServer.GET_DEPLOY_BYTECODE_MOCK,
-              output,
-              "output don't match"
-            );
-            // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
-            await stopTest();
-          }
-        );
+        client.request("getTaskResult", { taskId: deployInput.contractAddress }, async (err, res) => {
+          if (err) assert.strictEqual(true, false, "err" + err);
+          let status = res.result.result.status;
+          let output = res.result.result.output;
+          assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
+          // the output result comes from core_mock hardcoded data which might brake in the future
+          assert.deepStrictEqual(MockCoreServer.GET_DEPLOY_BYTECODE_MOCK, output, "output don't match");
+          // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
+          await stopTest();
+        });
       });
     });
   });
@@ -194,33 +166,17 @@ describe("jsonrpc_advanced", () => {
       await testUtils.sleep(1000);
       const computeInput = await getComputeRequest(signKey);
       client.request("sendTaskInput", computeInput, async (err, res) => {
-        assert.strictEqual(
-          true,
-          res.result.sendTaskResult,
-          "sendTaskResult not true"
-        );
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(1000);
-        client.request(
-          "getTaskResult",
-          { taskId: computeInput.taskId },
-          async (err, res) => {
-            if (err) assert.strictEqual(true, false, "err" + err);
-            let status = res.result.result.status;
-            let output = res.result.result.output;
-            assert.strictEqual(
-              constants.TASK_STATUS.SUCCESS,
-              status,
-              "result not success"
-            );
-            // the output result comes from core_mock hardcoded data which might brake in the future
-            assert.deepStrictEqual(
-              MockCoreServer.GET_COMPUTE_OUTPUT_MOCK,
-              output,
-              "output don't match"
-            );
-            await stopTest();
-          }
-        );
+        client.request("getTaskResult", { taskId: computeInput.taskId }, async (err, res) => {
+          if (err) assert.strictEqual(true, false, "err" + err);
+          let status = res.result.result.status;
+          let output = res.result.result.output;
+          assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
+          // the output result comes from core_mock hardcoded data which might brake in the future
+          assert.deepStrictEqual(MockCoreServer.GET_COMPUTE_OUTPUT_MOCK, output, "output don't match");
+          await stopTest();
+        });
       });
     });
   });
@@ -268,35 +224,19 @@ describe("jsonrpc_advanced", () => {
         .principal()
         .on(constants.PTT_END_EVENT, async () => {
           await testUtils.sleep(1000);
-          client.request(
-            "getTaskResult",
-            { taskId: computeInput.taskId },
-            async (err, res) => {
-              if (err) assert.strictEqual(true, false, "err" + err);
-              let status = res.result.result.status;
-              let output = res.result.result.output;
-              assert.strictEqual(
-                constants.TASK_STATUS.SUCCESS,
-                status,
-                "result not success"
-              );
-              // the output result comes from core_mock hardcoded data which might brake in the future
-              assert.deepStrictEqual(
-                MockCoreServer.GET_COMPUTE_OUTPUT_MOCK,
-                output,
-                "output don't match"
-              );
-              // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
-              await stopTest();
-            }
-          );
+          client.request("getTaskResult", { taskId: computeInput.taskId }, async (err, res) => {
+            if (err) assert.strictEqual(true, false, "err" + err);
+            let status = res.result.result.status;
+            let output = res.result.result.output;
+            assert.strictEqual(constants.TASK_STATUS.SUCCESS, status, "result not success");
+            // the output result comes from core_mock hardcoded data which might brake in the future
+            assert.deepStrictEqual(MockCoreServer.GET_COMPUTE_OUTPUT_MOCK, output, "output don't match");
+            // assert.strictEqual(deployInput.preCode,res.result.output, "output don't match");
+            await stopTest();
+          });
         });
       client.request("sendTaskInput", computeInput, async (err, res) => {
-        assert.strictEqual(
-          true,
-          res.result.sendTaskResult,
-          "sendTaskResult not true"
-        );
+        assert.strictEqual(true, res.result.sendTaskResult, "sendTaskResult not true");
         await testUtils.sleep(1000);
         peerController
           .getNode()
@@ -308,19 +248,15 @@ describe("jsonrpc_advanced", () => {
 });
 
 async function getDeployRequest(signKey) {
-  const preCodeZip = await utils.gzip(
-    Buffer.from([22, 33, 100, 202, 111, 223, 211, 22])
-  );
+  const preCodeZip = await utils.gzip(Buffer.from([22, 33, 100, 202, 111, 223, 211, 22]));
 
   return {
-    contractAddress:
-      "4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521",
+    contractAddress: "4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521",
     preCode: preCodeZip.toString("base64"),
     workerAddress: signKey,
     encryptedFn:
       "be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95",
-    encryptedArgs:
-      "fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90",
+    encryptedArgs: "fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90",
     userDHKey:
       "5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99"
   };
@@ -329,13 +265,11 @@ async function getDeployRequest(signKey) {
 function getComputeRequest(signKey) {
   return {
     taskId: "9980b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521",
-    contractAddress:
-      "4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521",
+    contractAddress: "4409b216c78f20a2755240a73b7903825db9a6f985bcce798381aef58d740521",
     workerAddress: signKey,
     encryptedFn:
       "be3e4462e79ccdf05b02e0921731c5f9dc8dce554b861cf5a05a5162141d63e1f4b1fac190828367052b198857aba9e10cdad79d95",
-    encryptedArgs:
-      "fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90",
+    encryptedArgs: "fd50f5f6cd8b7e2b30547e70a84b61faaebf445927b70a743f23bf10342da00b7d8a20948c6c3aec7c54edba52298d90",
     userDHKey:
       "5587fbc96b01bfe6482bf9361a08e84810afcc0b1af72a8e4520f98771ea1080681e8a2f9546e5924e18c047fa948591dba098bffaced50f97a41b0050bdab99"
   };

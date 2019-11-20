@@ -34,18 +34,11 @@ class PublishTaskResultAction {
 
     // commit to Ethereum
     if (this._controller.hasEthereum()) {
-      err = await this._controller.asyncExecCmd(
-        constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT,
-        {
-          task: task
-        }
-      );
+      err = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
+        task: task
+      });
       if (err) {
-        this._controller
-          .logger()
-          .info(
-            `[PUBLISH_ANNOUNCE_TASK] error occurred in task ${task.getTaskId()} commit`
-          );
+        this._controller.logger().info(`[PUBLISH_ANNOUNCE_TASK] error occurred in task ${task.getTaskId()} commit`);
       }
     }
 
@@ -55,21 +48,12 @@ class PublishTaskResultAction {
       let ecid = EngCid.createFromSCAddress(task.getContractAddr());
       if (ecid) {
         try {
-          await this._controller.asyncExecCmd(
-            constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,
-            { engCids: [ecid] }
-          );
+          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, { engCids: [ecid] });
         } catch (e) {
-          this._controller
-            .logger()
-            .debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
+          this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
         }
       } else {
-        this._controller
-          .logger()
-          .error(
-            `[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`
-          );
+        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
       }
     }
   }

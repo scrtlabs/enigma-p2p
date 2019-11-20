@@ -54,8 +54,7 @@ class IpcClient extends EventEmitter {
       const result = validate(msg, finalScheme, {
         rewrite: (instance, schema) => {
           const obj = {};
-          if (typeof instance != "object" || !schema.properties)
-            return instance; // Checks if either instance or schema isn't of type object
+          if (typeof instance != "object" || !schema.properties) return instance; // Checks if either instance or schema isn't of type object
           for (const n in schema.properties) {
             // Looks over the fields in the schema and copy only them from the instance.
             if (n in instance) obj[n] = instance[n];
