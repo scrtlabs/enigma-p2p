@@ -82,16 +82,13 @@ it("#1 run init and healthCheck", async function() {
     coreServer.setReceiverTips(noTipsReceiver);
 
     await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
-
+    let hc = await testPeer.mainController.healthCheck();
     // assertion checks
-    // we check what was previously the health check:
-    // receiving the registration params + checking the missing states
+    assert.strictEqual(hc.status, true);
 
-    let coreUri = testPeer.mainController.getIpcClient().getUri();
-    let regParams = await testPeer.mainController.getNode().asyncGetRegistrationParams();
-
-    assert.strictEqual(coreUri != null, true);
-    assert.strictEqual(regParams.result.signingKey.length, 42);
+    assert.strictEqual(hc.core.status, true);
+    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
+    assert.strictEqual(hc.ethereum.status, true);
 
     let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
 

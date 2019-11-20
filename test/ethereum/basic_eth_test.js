@@ -64,10 +64,18 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("check default minConfirmation is set", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#1"]) {
+      this.skip();
+    }
     assert.strictEqual(api.minimumConfirmations, constants.MINIMUM_CONFIRMATIONS);
   });
 
   it("check non-default minConfirmation is set", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#2"]) {
+      this.skip();
+    }
     await res.environment.destroy();
 
     const x = await init(15);
@@ -75,11 +83,13 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     api = res.api;
 
     assert.strictEqual(api.minimumConfirmations, 15);
-
-    // await res.environment.destroy(); will be called in afterEach
   });
 
   it("worker register", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#3"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -89,6 +99,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker register event", async () => {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#4"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       eventSubscribe(
         api,
@@ -112,6 +126,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deposit", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#5"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -128,6 +146,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deposit event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#6"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -157,6 +179,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker login", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#7"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -176,6 +202,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker login event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#8"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -207,6 +237,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it('"verify" worker enclave report', async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#9"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -218,6 +252,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#10"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -267,6 +305,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#11"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -328,6 +370,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract failure", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#12"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -363,6 +409,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract failure event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#13"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -409,6 +459,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker logout", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#14"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -435,6 +489,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker logout event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#15"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -470,6 +528,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker withdraw", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#16"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -508,6 +570,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker withdraw event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#17"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -555,6 +621,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit receipt", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#18"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -615,6 +685,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit receipt event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#19"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
@@ -686,6 +760,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit task failure", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#20"]) {
+      this.skip();
+    }
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -732,6 +810,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit task failure event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#21"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress

@@ -1,8 +1,10 @@
 const path = require("path");
 const assert = require("assert");
 const EnigmaContractAPIBuilder = require(path.join(__dirname, "../../src/ethereum/EnigmaContractAPIBuilder"));
+const Logger = require(path.join(__dirname, "../../src/common/logger"));
 const EthereumServices = require(path.join(__dirname, "../../src/ethereum/EthereumServices"));
 const StateSync = require(path.join(__dirname, "../../src/ethereum/StateSync"));
+const EthereumAPI = require(path.join(__dirname, "../../src/ethereum/EthereumAPI"));
 const testParameters = require("./test_parameters.json");
 const utils = require("../../src/common/utils");
 const TEST_TREE = require("../test_tree").TEST_TREE;
@@ -33,8 +35,11 @@ describe("State Sync", function() {
     return { res, workerAccount, builder };
   }
 
-  var res, workerAccount;
-  var accounts, api;
+  let res, workerAccount;
+  let accounts, api;
+  let workerEnclaveSigningAddress, workerAddress;
+  let workerReport, signature;
+  let enigmaContractAddress;
 
   beforeEach(async () => {
     const x = await init();
@@ -47,6 +52,7 @@ describe("State Sync", function() {
     workerAddress = workerAccount.address;
     workerReport = testParameters.report;
     signature = api.w3().utils.randomHex(32);
+    enigmaContractAddress = x.builder.enigmaContractAddress;
   });
 
   afterEach(async () => {
@@ -55,8 +61,8 @@ describe("State Sync", function() {
   });
 
   it("empty local tips, partial local tips, partial local tips 2, full local tips", async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree["all"] || !tree["#3"]) {
+    const tree = TEST_TREE.ethereum_advanced;
+    if (!tree["all"] || !tree["#1"]) {
       this.skip();
     }
 
@@ -245,8 +251,8 @@ describe("State Sync", function() {
   });
 
   it("failure", async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree["all"] || !tree["#4"]) {
+    const tree = TEST_TREE.ethereum_advanced;
+    if (!tree["all"] || !tree["#2"]) {
       this.skip();
     }
 
@@ -261,8 +267,8 @@ describe("State Sync", function() {
   });
 
   it("Test Ethereum services", async function() {
-    const tree = TEST_TREE.ethereum;
-    if (!tree["all"] || !tree["#5"]) {
+    const tree = TEST_TREE.ethereum_advanced;
+    if (!tree["all"] || !tree["#3"]) {
       this.skip();
     }
 
@@ -368,6 +374,34 @@ describe("State Sync", function() {
 
       await res.environment.destroy();
 
+      resolve();
+    });
+  });
+  it("Test health check ", async function() {
+    const tree = TEST_TREE.ethereum_advanced;
+    if (!tree["all"] || !tree["#4"]) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let ethereumApi = new EthereumAPI(new Logger({ cli: true }));
+      await ethereumApi.init({ enigmaContractAddress: enigmaContractAddress });
+
+      // sunny day
+      let data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, true);
+      assert.strictEqual(data.url, "ws://127.0.0.1:9545");
+      assert.strictEqual(data.enigmaContractAddress, enigmaContractAddress);
+
+      // rainy day
+      await ethereumApi.destroy();
+
+      data = await ethereumApi.healthCheck();
+      assert.strictEqual(data.isConnected, false);
+      assert.strictEqual(data.url, "ws://127.0.0.1:9545");
+      assert.strictEqual(data.enigmaContractAddress, enigmaContractAddress);
+
+      await res.environment.destroy();
       resolve();
     });
   });
