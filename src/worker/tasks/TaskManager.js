@@ -1,15 +1,15 @@
-const errors = require('../../common/errors');
-const DbApi = require('../../db/LevelDbApi');
-const constants = require('../../common/constants');
-const path = require('path');
-const Task = require('./Task');
-const EventEmitter = require('events').EventEmitter;
-const nodeUtils = require('../../common/utils');
-const DeployTask = require('./DeployTask');
-const ComputeTask = require('./ComputeTask');
-const OutsideTask = require('./OutsideTask');
-const parallel = require('async/parallel');
-const Result = require('./Result');
+const errors = require("../../common/errors");
+const DbApi = require("../../db/LevelDbApi");
+const constants = require("../../common/constants");
+const path = require("path");
+const Task = require("./Task");
+const EventEmitter = require("events").EventEmitter;
+const nodeUtils = require("../../common/utils");
+const DeployTask = require("./DeployTask");
+const ComputeTask = require("./ComputeTask");
+const OutsideTask = require("./OutsideTask");
+const parallel = require("async/parallel");
+const Result = require("./Result");
 
 class TaskManager extends EventEmitter {
   constructor(dbPath, logger) {
@@ -17,9 +17,9 @@ class TaskManager extends EventEmitter {
     if (dbPath) {
       this._dbPath = dbPath;
     } else {
-      this._dbPath = path.join(__dirname, '/tasks_db');
+      this._dbPath = path.join(__dirname, "/tasks_db");
     }
-    this._DB_MAPPER = 'mapper';
+    this._DB_MAPPER = "mapper";
     this._db = new DbApi(this._dbPath);
     this._db.open();
     if (logger) {
@@ -41,11 +41,14 @@ class TaskManager extends EventEmitter {
       // add to pool
       this._unverifiedPool[unverifiedTask.getTaskId()] = {
         time: nodeUtils.unixTimestamp(),
-        task: unverifiedTask,
+        task: unverifiedTask
       };
-      this.notify({notification: constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, task: unverifiedTask});
+      this.notify({
+        notification: constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK,
+        task: unverifiedTask
+      });
     } else {
-      const err = 'TaskManager: Task is not not ok to add';
+      const err = "TaskManager: Task is not not ok to add";
       this._logger.error(err);
     }
     return err;
@@ -56,16 +59,16 @@ class TaskManager extends EventEmitter {
    * @param {OutsideTask} outsideTask
    * @return {Promise<true>} if succeeded otherwise throws.
    * */
-  addOutsideResult(type,outsideTask){
-    return new Promise((res,rej)=>{
-      if(outsideTask instanceof OutsideTask){
-        this._db.put(outsideTask.getTaskId(), outsideTask.toDbJson(),(err)=>{
-          if(err){
+  addOutsideResult(type, outsideTask) {
+    return new Promise((res, rej) => {
+      if (outsideTask instanceof OutsideTask) {
+        this._db.put(outsideTask.getTaskId(), outsideTask.toDbJson(), err => {
+          if (err) {
             return rej(err);
           }
           res(true);
         });
-      }else{
+      } else {
         rej(new errors.TypeErr(`result is not instanceof OutsideTask`));
       }
     });
@@ -76,7 +79,7 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback (err)=>{}
    * */
   _storeTask(task, callback) {
-    this._db.get(this._DB_MAPPER, (err, potentialIdsList)=>{
+    this._db.get(this._DB_MAPPER, (err, potentialIdsList) => {
       // append the task id to list
       let idsList = [];
       if (!err) {
@@ -84,7 +87,7 @@ class TaskManager extends EventEmitter {
       }
       idsList.push(task.getTaskId());
       // store back
-      this._db.put(this._DB_MAPPER, JSON.stringify(idsList), (err)=>{
+      this._db.put(this._DB_MAPPER, JSON.stringify(idsList), err => {
         if (err) {
           return callback(err);
         }
@@ -97,8 +100,8 @@ class TaskManager extends EventEmitter {
    * Promise based removeTask
    * */
   async asyncRemoveTask(taskId) {
-    return new Promise((resolve, reject)=>{
-      this.removeTask(taskId, (err)=>{
+    return new Promise((resolve, reject) => {
+      this.removeTask(taskId, err => {
         if (err) reject(err);
         else resolve(true);
       });
@@ -112,11 +115,11 @@ class TaskManager extends EventEmitter {
   removeTask(taskId, callback) {
     if (this._unverifiedPool[taskId]) {
       delete this._unverifiedPool[taskId];
-      this._logger.debug('[UNVERIFIED-DELETE] task ' + taskId + 'deleted');
+      this._logger.debug("[UNVERIFIED-DELETE] task " + taskId + "deleted");
     }
-    this._readAndDelete(taskId, (err)=>{
+    this._readAndDelete(taskId, err => {
       if (err) {
-        this._logger.error('[_readAndDelete]: ' +err);
+        this._logger.error("[_readAndDelete]: " + err);
       }
       callback(err);
     });
@@ -126,8 +129,8 @@ class TaskManager extends EventEmitter {
    * @return {Promise<Array<Task>>}
    * */
   async asyncGetAllTasks() {
-    return new Promise((resolve, reject)=>{
-      this.getAllTasks((err, tasks)=>{
+    return new Promise((resolve, reject) => {
+      this.getAllTasks((err, tasks) => {
         if (err) reject(err);
         else resolve(tasks);
       });
@@ -141,12 +144,12 @@ class TaskManager extends EventEmitter {
     const allTasks = [];
     const keys = Object.keys(this._unverifiedPool);
     // add all unverified tasks
-    keys.forEach((key)=>{
+    keys.forEach(key => {
       allTasks.push(this._unverifiedPool[key].task);
     });
     // add all db tasks
-    this._getAllDbTasks((err, tasks)=>{
-      if (err instanceof Error && err.type === 'NotFoundError') {
+    this._getAllDbTasks((err, tasks) => {
+      if (err instanceof Error && err.type === "NotFoundError") {
         return callback(null, allTasks);
       } else if (err) {
         return callback(err);
@@ -158,10 +161,10 @@ class TaskManager extends EventEmitter {
   /**
    * promise based version of getTask
    * */
-  async asyncGetTask(taskId){
-    return new Promise((res,rej)=>{
-      this.getTask(taskId,(err,task)=>{
-        if(err){
+  async asyncGetTask(taskId) {
+    return new Promise((res, rej) => {
+      this.getTask(taskId, (err, task) => {
+        if (err) {
           return rej(err);
         }
         res(task);
@@ -176,7 +179,7 @@ class TaskManager extends EventEmitter {
     if (this.isUnverifiedInPool(taskId)) {
       return this._unverifiedPool[taskId].task;
     }
-    this._readTask(taskId, (err, task)=>{
+    this._readTask(taskId, (err, task) => {
       callback(err, task);
     });
   }
@@ -186,7 +189,7 @@ class TaskManager extends EventEmitter {
    * @return {Function} callback(status or null)
    * */
   getTaskStatus(taskId, callback) {
-    this.getTask(taskId, (err, task)=>{
+    this.getTask(taskId, (err, task) => {
       if (err) return callback(null);
       else callback(task.getStatus());
     });
@@ -197,7 +200,7 @@ class TaskManager extends EventEmitter {
    * */
   getUnverifiedTasks() {
     const taskIds = Object.keys(this._unverifiedPool);
-    return taskIds.map((id)=>{
+    return taskIds.map(id => {
       return this._unverifiedPool[id].task;
     });
   }
@@ -206,8 +209,8 @@ class TaskManager extends EventEmitter {
    * @return {Array<Task>} verifiedTasks
    * */
   async asyncGetVerifiedTasks() {
-    return new Promise((res, rej)=>{
-      this._getAllDbTasks((err, verifiedTasks)=>{
+    return new Promise((res, rej) => {
+      this._getAllDbTasks((err, verifiedTasks) => {
         if (err) rej(err);
         else res(verifiedTasks);
       });
@@ -218,10 +221,10 @@ class TaskManager extends EventEmitter {
    * @return {Array<Task>} failedTasks
    * */
   async asyncGetFailedTasks() {
-    return new Promise(async (res, rej)=>{
+    return new Promise(async (res, rej) => {
       try {
         const finished = await this.asyncGetFinishedTasks();
-        const failed = finished.filter((t)=>{
+        const failed = finished.filter(t => {
           return t.isFailed();
         });
         res(failed);
@@ -235,10 +238,10 @@ class TaskManager extends EventEmitter {
    * @return {Array<Task>} finishedTasks
    * */
   async asyncGetSuccessfullTasks() {
-    return new Promise(async (res, rej)=>{
+    return new Promise(async (res, rej) => {
       try {
         const finished = await this.asyncGetFinishedTasks();
-        const successfull = finished.filter((t)=>{
+        const successfull = finished.filter(t => {
           return t.isSuccess();
         });
         res(successfull);
@@ -252,12 +255,12 @@ class TaskManager extends EventEmitter {
    * @return {Array<Task>} finishedTasks
    * */
   async asyncGetFinishedTasks() {
-    return new Promise((res, rej)=>{
-      this._getAllDbTasks((err, verifiedTasks)=>{
+    return new Promise((res, rej) => {
+      this._getAllDbTasks((err, verifiedTasks) => {
         if (err) {
           rej(err);
         } else {
-          const finishedTasks = verifiedTasks.filter((t)=>{
+          const finishedTasks = verifiedTasks.filter(t => {
             return t.isFinished();
           });
           res(finishedTasks);
@@ -269,8 +272,8 @@ class TaskManager extends EventEmitter {
    * promise based version of onFinishTask
    * */
   async asyncOnFinishTask(taskResult) {
-    return new Promise((res, rej)=>{
-      this.onFinishTask(taskResult, (err)=>{
+    return new Promise((res, rej) => {
+      this.onFinishTask(taskResult, err => {
         if (err) rej(err);
         else res();
       });
@@ -280,8 +283,8 @@ class TaskManager extends EventEmitter {
    * promise based version of onFinishTask
    * */
   async asyncGetTaskStatus(taskId) {
-    return new Promise((res, rej)=>{
-      this.getTask(taskId, (err, task)=>{
+    return new Promise((res, rej) => {
+      this.getTask(taskId, (err, task) => {
         if (err) rej(err);
         else res(task.getStatus());
       });
@@ -297,25 +300,36 @@ class TaskManager extends EventEmitter {
   onFinishTask(taskResult, callback) {
     // this should never happen.
     if (this._unverifiedPool[taskResult.getTaskId()]) {
-      const err = '[ON_FINISH_TASK] error task ' + taskResult.getTaskId() + ' was executed without verification.';
+      const err =
+        "[ON_FINISH_TASK] error task " +
+        taskResult.getTaskId() +
+        " was executed without verification.";
       this._logger.error(err);
       return callback(err);
     }
     const id = taskResult.getTaskId();
-    this._readAndDelete(id, (err, task)=>{
+    this._readAndDelete(id, (err, task) => {
       if (err) {
         return callback(err);
       }
       // attach a result
       task.setResult(taskResult);
       // save the task again with the result attached
-      this._storeTask(task, (err)=>{
+      this._storeTask(task, err => {
         if (err) {
           return callback(err);
         }
-        this._logger.info('[TASK_FINISHED] status = [' + taskResult.getStatus() + '] id: ' + task.getTaskId());
+        this._logger.info(
+          "[TASK_FINISHED] status = [" +
+            taskResult.getStatus() +
+            "] id: " +
+            task.getTaskId()
+        );
         // notify about the task change
-        this.notify({notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED, task: task});
+        this.notify({
+          notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED,
+          task: task
+        });
         return callback();
       });
     });
@@ -324,8 +338,8 @@ class TaskManager extends EventEmitter {
    * promise based version of onVerifyTask
    */
   async asyncOnVerifyTask(taskId, isVerified) {
-    return new Promise((res, rej)=>{
-      this.onVerifyTask(taskId, isVerified, (err)=>{
+    return new Promise((res, rej) => {
+      this.onVerifyTask(taskId, isVerified, err => {
         if (err) rej(err);
         else res();
       });
@@ -340,26 +354,29 @@ class TaskManager extends EventEmitter {
    * */
   onVerifyTask(taskId, isVerified, optionalCb) {
     if (!this.isUnverifiedInPool(taskId)) {
-      this._logger.debug('[VERIFY:] task ' + taskId + ' not in pool.');
+      this._logger.debug("[VERIFY:] task " + taskId + " not in pool.");
       if (optionalCb) return optionalCb(null);
       return;
     }
     if (!isVerified) {
-      this._logger.debug('[VERIFY:] task ' + taskId + ' not verified');
+      this._logger.debug("[VERIFY:] task " + taskId + " not verified");
       if (optionalCb) return optionalCb(null);
       return;
     }
     const task = this._unverifiedPool[taskId].task;
     task.setInProgressStatus();
-    this._storeTask(task, (err)=>{
+    this._storeTask(task, err => {
       if (err) {
-        this._logger.error('db error saving verified task to db' + err);
+        this._logger.error("db error saving verified task to db" + err);
         if (optionalCb) optionalCb(err);
         return;
       }
       delete this._unverifiedPool[task.getTaskId()];
-      this._logger.debug('[onVerifyTask] saved to db task ' + task.getTaskId());
-      this.notify({notification: constants.NODE_NOTIFICATIONS.TASK_VERIFIED, task: task});
+      this._logger.debug("[onVerifyTask] saved to db task " + task.getTaskId());
+      this.notify({
+        notification: constants.NODE_NOTIFICATIONS.TASK_VERIFIED,
+        task: task
+      });
       if (optionalCb) return optionalCb(null);
     });
   }
@@ -375,15 +392,17 @@ class TaskManager extends EventEmitter {
    * */
   isKeepAlive(taskId) {
     const now = nodeUtils.unixTimestamp();
-    return this._unverifiedPool[taskId] &&
-        (now - this._unverifiedPool[taskId].time) < nodeUtils.unixDay();
+    return (
+      this._unverifiedPool[taskId] &&
+      now - this._unverifiedPool[taskId].time < nodeUtils.unixDay()
+    );
   }
   /**
    * Promise based version of async
    * */
   async asyncStop() {
-    return new Promise((res, rej)=>{
-      this.stop((err)=>{
+    return new Promise((res, rej) => {
+      this.stop(err => {
         if (err) rej(err);
         else res();
       });
@@ -395,10 +414,10 @@ class TaskManager extends EventEmitter {
    * TODO:: !!!!!!!!!!!!!!!!!!!!!!!!!!!!!
    * */
   async asyncStopAndDropDb() {
-    return new Promise(async (res, rej)=>{
+    return new Promise(async (res, rej) => {
       try {
         await this.asyncStop();
-        nodeUtils.deleteFolderFromOSRecursive(this._dbPath, ()=>{
+        nodeUtils.deleteFolderFromOSRecursive(this._dbPath, () => {
           res();
         });
       } catch (e) {
@@ -411,7 +430,7 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback(err)=>{}
    * */
   stop(callback) {
-    this._db.close((err)=>{
+    this._db.close(err => {
       callback(err);
     });
   }
@@ -421,11 +440,11 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback (err,Task)=>{}
    * */
   _readTask(taskId, callback) {
-    this._db.get(taskId, (err, res)=>{
+    this._db.get(taskId, (err, res) => {
       if (err) return callback(err);
       let task = null;
       //OutsideTask result received from outside node
-      if(res.outsideTask){
+      if (res.outsideTask) {
         task = OutsideTask.fromDbJson(res);
       }
       // deploy task
@@ -437,7 +456,7 @@ class TaskManager extends EventEmitter {
       if (task) {
         callback(null, task);
       } else {
-        return callback('error loading task from db');
+        return callback("error loading task from db");
       }
     });
   }
@@ -448,37 +467,37 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback (err,Task)=>{}
    * */
   _readAndDelete(taskId, callback) {
-    this._readTask(taskId, (err, task)=>{
+    this._readTask(taskId, (err, task) => {
       if (err) {
-        if (err instanceof Error && err.type === 'NotFoundError') {
+        if (err instanceof Error && err.type === "NotFoundError") {
           callback(null);
         } else {
-          this._logger.error('error reading task ' + err);
+          this._logger.error("error reading task " + err);
           return callback(err);
         }
       }
-      this._db.get(this._DB_MAPPER, (err, idsList)=>{
+      this._db.get(this._DB_MAPPER, (err, idsList) => {
         if (err) return callback(err);
         const idx = idsList.indexOf(taskId);
-        if (idx>-1) {
+        if (idx > -1) {
           const deletedId = idsList.splice(idx, 1);
-          this._db.put(this._DB_MAPPER, JSON.stringify(idsList), (err)=>{
+          this._db.put(this._DB_MAPPER, JSON.stringify(idsList), err => {
             if (err) return callback(err);
             // delete the task object
-            this._db.delete(taskId, (err)=>{
+            this._db.delete(taskId, err => {
               return callback(err, task);
             });
           });
         } else {
-          this._logger.debug('[ERROR] cant find taskId,skipping');
+          this._logger.debug("[ERROR] cant find taskId,skipping");
         }
       });
     });
   }
   /** promise based get all stored ids */
   async _asyncGetAllStoredIds() {
-    return new Promise((resolve, reject)=>{
-      this._getAllStoredIds((err, ids)=>{
+    return new Promise((resolve, reject) => {
+      this._getAllStoredIds((err, ids) => {
         if (err) reject(err);
         else resolve(ids);
       });
@@ -489,7 +508,7 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback(err,Array<string>)=>{}
    * */
   _getAllStoredIds(callback) {
-    this._db.get(this._DB_MAPPER, (err, idsList)=>{
+    this._db.get(this._DB_MAPPER, (err, idsList) => {
       callback(err, idsList);
     });
   }
@@ -497,9 +516,9 @@ class TaskManager extends EventEmitter {
    * @{Function} callback(err,Array<Task>)=>{}
    * */
   _getAllDbTasks(callback) {
-    this._getAllStoredIds((err, idsList)=>{
+    this._getAllStoredIds((err, idsList) => {
       if (err) return callback(err);
-      this._getDbTasksFromList(idsList, (err, allTasks)=>{
+      this._getDbTasksFromList(idsList, (err, allTasks) => {
         callback(err, allTasks);
       });
     });
@@ -510,14 +529,14 @@ class TaskManager extends EventEmitter {
    * */
   _getDbTasksFromList(idsList, callback) {
     const jobs = [];
-    idsList.forEach((id)=>{
-      jobs.push((cb)=>{
-        this._readTask(id, (err, task)=>{
+    idsList.forEach(id => {
+      jobs.push(cb => {
+        this._readTask(id, (err, task) => {
           cb(err, task);
         });
       });
     });
-    parallel(jobs, (err, tasks)=>{
+    parallel(jobs, (err, tasks) => {
       callback(err, tasks);
     });
   }
@@ -529,15 +548,17 @@ class TaskManager extends EventEmitter {
    * - if not existing
    * */
   _isOkToAdd(unverifiedTask) {
-    return (unverifiedTask instanceof Task &&
-    (!this.isUnverifiedInPool(unverifiedTask.getTaskId())));
+    return (
+      unverifiedTask instanceof Task &&
+      !this.isUnverifiedInPool(unverifiedTask.getTaskId())
+    );
   }
   /**
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAINT notification field
    */
   notify(params) {
-    this.emit('notify', params);
+    this.emit("notify", params);
   }
 }
 

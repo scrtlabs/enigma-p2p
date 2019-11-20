@@ -1,11 +1,11 @@
-const errors = require('../common/errors');
-const constants = require('../common/constants');
-const Logger = require('../common/logger');
-const nodeUtils = require('../common/utils');
-const cryptography = require('../common/cryptography');
+const errors = require("../common/errors");
+const constants = require("../common/constants");
+const Logger = require("../common/logger");
+const nodeUtils = require("../common/utils");
+const cryptography = require("../common/cryptography");
 
 // TODO:: delegate the configuration load to the caller from the outside + allow dynamic path (because the caller is responsible).
-const config = require('./config.json');
+const config = require("./config.json");
 
 /*
 Using "Ox" in hexadecimal strings: (not sure this belongs here but don't have a better place at the moment)
@@ -15,15 +15,24 @@ TaskId and secretContractAddresses are thus treated everywhere without "0x" but 
 because we use web3 for the hash calculation. This inconsistency is misleading and should be addressed properly. TODO(lenak)
  */
 
-
 class EnigmaContractReaderAPI {
   /**
    * {string} enigmaContractAddress
    * {Json} enigmaContractABI
    * {Web3} web3
    * */
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, minimumConfirmations = constants.MINIMUM_CONFIRMATIONS) {
-    this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
+  constructor(
+    enigmaContractAddress,
+    enigmaContractABI,
+    web3,
+    logger,
+    workerAddress,
+    minimumConfirmations = constants.MINIMUM_CONFIRMATIONS
+  ) {
+    this._enigmaContract = new web3.eth.Contract(
+      enigmaContractABI,
+      enigmaContractAddress
+    );
     this._web3 = web3;
     this._enigmaContractAddress = enigmaContractAddress;
     this._activeEventSubscriptions = {};
@@ -44,8 +53,7 @@ class EnigmaContractReaderAPI {
     if (workerAddress) {
       this._workerAddress = workerAddress;
       this._defaultTrxOptions.from = workerAddress;
-    }
-    else {
+    } else {
       this._workerAddress = null;
     }
   }
@@ -59,29 +67,34 @@ class EnigmaContractReaderAPI {
     return this._workerAddress;
   }
   /**
-     * get a secret contract hash
-     * @param {string} secrectContractAddress
-     * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
-     * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes
-     * */
+   * get a secret contract hash
+   * @param {string} secrectContractAddress
+   * @return {Promise} returning {JSON}: {string} owner, {string} preCodeHash, {string} codeHash,
+   * {string} outputHash, {ETHEREUM_SECRET_CONTRACT_STATUS} status, {Array<string>} deltaHashes
+   * */
   async getContractParams(secrectContractAddress) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getSecretContract(nodeUtils.add0x(secrectContractAddress)).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        const params = {
-          owner: data.owner,
-          preCodeHash: data.preCodeHash,
-          codeHash: data.codeHash,
-          status: parseInt(data.status),
-          deltaHashes: data.stateDeltaHashes
-        };
-        resolve(params);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getSecretContract(nodeUtils.add0x(secrectContractAddress))
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          const params = {
+            owner: data.owner,
+            preCodeHash: data.preCodeHash,
+            codeHash: data.codeHash,
+            status: parseInt(data.status),
+            deltaHashes: data.stateDeltaHashes
+          };
+          resolve(params);
+        });
     });
   }
   /**
@@ -89,16 +102,21 @@ class EnigmaContractReaderAPI {
    * @return {Promise} number
    * */
   async countSecretContracts() {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.countSecretContracts().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        resolve(parseInt(data));
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .countSecretContracts()
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(parseInt(data));
+        });
     });
   }
   /**
@@ -108,26 +126,29 @@ class EnigmaContractReaderAPI {
    * @return {Promise} Array<string>
    * */
   async getSecretContractAddresses(from, to) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getSecretContractAddresses(from, to).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-
-        }
-        if (data) {
-          let newScAddressesArray = [];
-          data.forEach((scAddress) => {
-            newScAddressesArray.push(nodeUtils.remove0x(scAddress));
-          });
-          resolve(newScAddressesArray);
-        }
-        else {
-          resolve(data);
-        }
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getSecretContractAddresses(from, to)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          if (data) {
+            let newScAddressesArray = [];
+            data.forEach(scAddress => {
+              newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+            });
+            resolve(newScAddressesArray);
+          } else {
+            resolve(data);
+          }
+        });
     });
   }
   /**
@@ -135,45 +156,54 @@ class EnigmaContractReaderAPI {
    * @return {Promise} Array<string>
    * */
   async getAllSecretContractAddresses() {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getAllSecretContractAddresses().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getAllSecretContractAddresses()
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
-        if (data) {
-          let newScAddressesArray = [];
-          data.forEach((scAddress) => {
-            newScAddressesArray.push(nodeUtils.remove0x(scAddress));
-          });
-          resolve(newScAddressesArray);
-        }
-        else {
-          // Assaf: why the if/else?
-          resolve(data);
-        }
-      });
+          if (data) {
+            let newScAddressesArray = [];
+            data.forEach(scAddress => {
+              newScAddressesArray.push(nodeUtils.remove0x(scAddress));
+            });
+            resolve(newScAddressesArray);
+          } else {
+            // Assaf: why the if/else?
+            resolve(data);
+          }
+        });
     });
   }
   /**
-     * Get the Worker parameters
-     * @param {Integer} blockNumber //TODO:: check which time solidity expects, maybe BN ?
-     * @return {Promise} //TODO:: what are the exact parameters that are returned?
-     * */
+   * Get the Worker parameters
+   * @param {Integer} blockNumber //TODO:: check which time solidity expects, maybe BN ?
+   * @return {Promise} //TODO:: what are the exact parameters that are returned?
+   * */
   async getWorkerParams(blockNumber) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getWorkerParams(blockNumber).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        resolve(data);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getWorkerParams(blockNumber)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(data);
+        });
     });
   }
   /**
@@ -181,21 +211,26 @@ class EnigmaContractReaderAPI {
    * @return {Promise} //TODO:: what are the exact parameters that are returned?
    * */
   async getWorkersParams() {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getWorkersParams().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        resolve(data);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getWorkersParams()
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(data);
+        });
     });
   }
   /**
-     * TODO:: what does it do?
-     * */
+   * TODO:: what does it do?
+   * */
   // getWorkerGroup(blockNumber, secrectContractAddress) {
   //   return new Promise(async (resolve, reject) => {
   // const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
@@ -216,29 +251,36 @@ class EnigmaContractReaderAPI {
    * @return {Promise} returning {JSON}: address, status, report, balance
    * */
   async getWorker(address) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getWorker(address)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
-        if (Object.keys(data).length < 4) {
-          const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
-          reject(err);
-          return
-        }
-        const params = {
-          address: data.signer,
-          status: parseInt(data.status),
-          report: data.report,
-          balance: parseInt(data.balance)
-        };
+          if (Object.keys(data).length < 4) {
+            const err = new errors.EnigmaContractDataError(
+              "Wrong number of parameters received for worker state " + address
+            );
+            reject(err);
+            return;
+          }
+          const params = {
+            address: data.signer,
+            status: parseInt(data.status),
+            report: data.report,
+            balance: parseInt(data.balance)
+          };
 
-        resolve(params);
-      });
+          resolve(params);
+        });
     });
   }
   /**
@@ -246,61 +288,80 @@ class EnigmaContractReaderAPI {
    * @return {Promise} returning {JSON}: address, status, report, balance
    * */
   async getSelfWorker() {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
       const address = this.getWorkerAddress();
       if (!address) {
-        reject(new errors.InputErr("Missing worker-address when calling getSelfWorker"));
+        reject(
+          new errors.InputErr(
+            "Missing worker-address when calling getSelfWorker"
+          )
+        );
         return;
       }
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getWorker(address).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return;
-        }
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getWorker(address)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
 
-        if (Object.keys(data).length < 4) {
-          const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker state " + address);
-          reject(err);
-          return;
-        }
-        const report = this._web3.utils.hexToAscii(data.report);
-        const params = {
-          address: data.signer,
-          status: parseInt(data.status),
-          report: report,
-          balance: parseInt(data.balance)
-        };
-        resolve(params);
-      });
+          if (Object.keys(data).length < 4) {
+            const err = new errors.EnigmaContractDataError(
+              "Wrong number of parameters received for worker state " + address
+            );
+            reject(err);
+            return;
+          }
+          const report = this._web3.utils.hexToAscii(data.report);
+          const params = {
+            address: data.signer,
+            status: parseInt(data.status),
+            report: report,
+            balance: parseInt(data.balance)
+          };
+          resolve(params);
+        });
     });
   }
   /**
-     * * Get the Worker report
-     * @param {string} workerAddress
-     * @return {Promise} returning {JSON} : {string} signer, {string} report
-     * */
+   * * Get the Worker report
+   * @param {string} workerAddress
+   * @return {Promise} returning {JSON} : {string} signer, {string} report
+   * */
   async getReport(workerAddress) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getReport(workerAddress).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        if (Object.keys(data).length !== 2) {
-          const err = new errors.EnigmaContractDataError("Wrong number of parameters received for worker report " + workerAddress);
-          reject(err);
-          return
-        }
-        const params = {
-          signer: data[0],
-          report: data[1],
-        };
-        resolve(params);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getReport(workerAddress)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          if (Object.keys(data).length !== 2) {
+            const err = new errors.EnigmaContractDataError(
+              "Wrong number of parameters received for worker report " +
+                workerAddress
+            );
+            reject(err);
+            return;
+          }
+          const params = {
+            signer: data[0],
+            report: data[1]
+          };
+          resolve(params);
+        });
     });
   }
   /**
@@ -311,26 +372,31 @@ class EnigmaContractReaderAPI {
    *  {integer} blockNumber, {ETHEREUM_TASK_STATUS} taskStatus
    * */
   async getTaskParams(taskId) {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getTaskRecord(nodeUtils.add0x(taskId)).call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        const params = {
-          inputsHash: data.inputsHash,
-          gasLimit: parseInt(data.gasLimit),
-          gasPrice: parseInt(data.gasPx),
-          proof: data.proof,
-          senderAddress: data.sender,
-          blockNumber: parseInt(data.blockNumber),
-          status: parseInt(data.status),
-          outputHash: data.outputHash,
-        };
-        resolve(params);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getTaskRecord(nodeUtils.add0x(taskId))
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          const params = {
+            inputsHash: data.inputsHash,
+            gasLimit: parseInt(data.gasLimit),
+            gasPrice: parseInt(data.gasPx),
+            proof: data.proof,
+            senderAddress: data.sender,
+            blockNumber: parseInt(data.blockNumber),
+            status: parseInt(data.status),
+            outputHash: data.outputHash
+          };
+          resolve(params);
+        });
     });
   }
 
@@ -339,16 +405,21 @@ class EnigmaContractReaderAPI {
    * @return {Promise} returning {Integer} : epochSize
    * */
   async getEpochSize() {
-    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+    const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(
+      this.w3()
+    );
     return new Promise(async (resolve, reject) => {
-      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
-      this._enigmaContract.methods.getEpochSize().call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
-        if (error) {
-          reject(error);
-          return
-        }
-        resolve(data);
-      });
+      const confirmedBlockNumber =
+        currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getEpochSize()
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(data);
+        });
     });
   }
   /**
@@ -357,12 +428,14 @@ class EnigmaContractReaderAPI {
    * */
   getTaskTimeout() {
     return new Promise((resolve, reject) => {
-      this._enigmaContract.methods.getTaskTimeoutSize().call(this._defaultTrxOptions, (error, data) => {
-        if (error) {
-          reject(error);
-        }
-        resolve(data);
-      });
+      this._enigmaContract.methods
+        .getTaskTimeoutSize()
+        .call(this._defaultTrxOptions, (error, data) => {
+          if (error) {
+            reject(error);
+          }
+          resolve(data);
+        });
     });
   }
   /**
@@ -373,14 +446,19 @@ class EnigmaContractReaderAPI {
    * @param {Function} callback (err,event)=>{} //TODO:: add the parameters that the function takes.
    * */
   subscribe(eventName, filter, callback) {
-    const eventWatcher = this._enigmaContract.events[eventName]({ filter: filter });
+    const eventWatcher = this._enigmaContract.events[eventName]({
+      filter: filter
+    });
 
-    eventWatcher
-      .on('data', async event => {
-        const result = this._eventParsers[eventName](event, this._web3);
-        const startingBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
-        const confirmedBlockNumber = startingBlockNumber + this.minimumConfirmations;
-        const subscription = this._web3.eth.subscribe("newBlockHeaders", async (error, event) => {
+    eventWatcher.on("data", async event => {
+      const result = this._eventParsers[eventName](event, this._web3);
+      const startingBlockNumber = await nodeUtils.getEthereumBlockNumber(
+        this.w3()
+      );
+      const confirmedBlockNumber =
+        startingBlockNumber + this.minimumConfirmations;
+      const subscription = this._web3.eth
+        .subscribe("newBlockHeaders", async (error, event) => {
           if (error) {
             callback(err);
             subscription.unsubscribe(/*TODO handle?*/);
@@ -389,25 +467,31 @@ class EnigmaContractReaderAPI {
             subscription.unsubscribe(/*TODO handle?*/);
           }
         })
-          .on('changed', (event) => {
-            this.logger().info('received a change of the event ' + event + '. Deleting its listener');
-            if (eventName in this._activeEventSubscriptions) {
-              delete (this._activeEventSubscriptions[eventName]);
-            }
-          })
-          .on('error', (err) => {
-            callback(err);
-          });
+        .on("changed", event => {
+          this.logger().info(
+            "received a change of the event " +
+              event +
+              ". Deleting its listener"
+          );
+          if (eventName in this._activeEventSubscriptions) {
+            delete this._activeEventSubscriptions[eventName];
+          }
+        })
+        .on("error", err => {
+          callback(err);
+        });
 
-        this._activeEventSubscriptions[eventName] = eventWatcher;
-      })
+      this._activeEventSubscriptions[eventName] = eventWatcher;
+    });
   }
   /**
    * Unsubscribe from all the subscribed events
    * @return {Boolean} success
    * */
   unsubscribeAll() {
-    for (const [eventName, eventWatcher] of Object.entries(this._activeEventSubscriptions)) {
+    for (const [eventName, eventWatcher] of Object.entries(
+      this._activeEventSubscriptions
+    )) {
       eventWatcher.unsubscribe();
     }
     return true;
@@ -418,30 +502,32 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} workerAddress , {string} signer
        * */
-      [constants.RAW_ETHEREUM_EVENTS.Registered]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.Registered]: event => {
         return {
           workerAddress: event.returnValues.custodian,
-          signer: event.returnValues.signer,
+          signer: event.returnValues.signer
         };
       },
       /**
        * @return {JSON}: {Integer} seed , {Integer} blockNumber, {Integer} inclusionBlockNumber, {Array<string>} workers,
        *    {Array<Integer>} balances, {Integer} nonce
        * */
-      [constants.RAW_ETHEREUM_EVENTS.WorkersParameterized]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.WorkersParameterized]: event => {
         return {
           seed: cryptography.toBN(event.returnValues.seed),
           firstBlockNumber: parseInt(event.returnValues.firstBlockNumber),
-          inclusionBlockNumber: parseInt(event.returnValues.inclusionBlockNumber),
+          inclusionBlockNumber: parseInt(
+            event.returnValues.inclusionBlockNumber
+          ),
           workers: event.returnValues.workers,
-          balances: event.returnValues.stakes.map((x) => cryptography.toBN(x)),
-          nonce: parseInt(event.returnValues.nonce),
+          balances: event.returnValues.stakes.map(x => cryptography.toBN(x)),
+          nonce: parseInt(event.returnValues.nonce)
         };
       },
       /**
        * @return {JSON}: {string} taskId , {Integer} gasLimit, {Integer} gasPrice, {string} senderAddress
        * */
-      [constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated]: event => {
         return {
           taskId: event.returnValues.taskId,
           inputsHash: event.returnValues.inputsHash,
@@ -455,72 +541,74 @@ class EnigmaContractReaderAPI {
        * @return {JSON}: {string} taskId , {string} stateDeltaHash, {string} outputHash, {integer} stateDeltaHashIndex
        *                 {string} optionalEthereumData, {string} optionalEthereumContractAddress, {string} signature
        * */
-      [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified]: event => {
         return {
           taskId: nodeUtils.remove0x(event.returnValues.bytes32s[1]),
           stateDeltaHash: event.returnValues.bytes32s[2],
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
-          outputHash: event.returnValues.bytes32s[3],
+          outputHash: event.returnValues.bytes32s[3]
         };
       },
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed]: event => {
         return {
           taskId: nodeUtils.remove0x(event.returnValues.taskId),
-          signature: event.returnValues.sig,
+          signature: event.returnValues.sig
         };
       },
       /**
        * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
        * */
-      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH]: event => {
         return {
           taskId: nodeUtils.remove0x(event.returnValues.taskId),
-          signature: event.returnValues.sig,
+          signature: event.returnValues.sig
         };
       },
       /**
        * @return {JSON}: {string>} taskId
        * */
-      [constants.RAW_ETHEREUM_EVENTS.TaskFeeReturned]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.TaskFeeReturned]: event => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: event.returnValues.taskId
         };
       },
       /**
        * @return {JSON}: {string} from , {Integer} value
        * */
-      [constants.RAW_ETHEREUM_EVENTS.DepositSuccessful]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.DepositSuccessful]: event => {
         return {
           from: event.returnValues.from,
-          value: parseInt(event.returnValues.value),
+          value: parseInt(event.returnValues.value)
         };
       },
       /**
        * @return {JSON}: {string} to , {Integer} value
        * */
-      [constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful]: event => {
         return {
           to: event.returnValues.to,
-          value: parseInt(event.returnValues.value),
+          value: parseInt(event.returnValues.value)
         };
       },
       /**
        * @return {JSON}: {string} secretContractAddress , {string} codeHash, {string} stateDeltaHash
        * */
-      [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: event => {
         return {
-          secretContractAddress: nodeUtils.remove0x(event.returnValues.bytes32s[0]),
+          secretContractAddress: nodeUtils.remove0x(
+            event.returnValues.bytes32s[0]
+          ),
           codeHash: event.returnValues.bytes32s[2],
-          stateDeltaHash: event.returnValues.bytes32s[3],
+          stateDeltaHash: event.returnValues.bytes32s[3]
         };
       },
       /**
        * @return {JSON}: {string} workerAddress
-      * */
-      [constants.RAW_ETHEREUM_EVENTS.LoggedIn]: (event) => {
+       * */
+      [constants.RAW_ETHEREUM_EVENTS.LoggedIn]: event => {
         return {
           workerAddress: event.returnValues.workerAddress
         };
@@ -528,14 +616,13 @@ class EnigmaContractReaderAPI {
       /**
        * @return {JSON}: {string} workerAddress
        * */
-      [constants.RAW_ETHEREUM_EVENTS.LoggedOut]: (event) => {
+      [constants.RAW_ETHEREUM_EVENTS.LoggedOut]: event => {
         return {
           workerAddress: event.returnValues.workerAddress
         };
-      },
+      }
     };
   }
 }
-
 
 module.exports = EnigmaContractReaderAPI;

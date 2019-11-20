@@ -1,5 +1,5 @@
-const CIDUtil = require('./CIDUtil');
-const EncoderUtil = require('./EncoderUtil');
+const CIDUtil = require("./CIDUtil");
+const EncoderUtil = require("./EncoderUtil");
 
 /**
  * Abstraction - wrapper to libp2p-cid
@@ -10,7 +10,7 @@ class EngCID {
     this._cid = null;
     this._address = null;
   }
-  static createFromByteArray(bytes){
+  static createFromByteArray(bytes) {
     const h = CIDUtil.hashByteArray(bytes);
     return this.createFromKeccack256(h);
   }
@@ -49,13 +49,13 @@ class EngCID {
   }
 
   /** get the keccack256 hash of a CID
-     * @param {Boolean} with0x , if true then add 0x to the result
-     * @return {String} h, a keccak hash representation
-     * */
+   * @param {Boolean} with0x , if true then add 0x to the result
+   * @return {String} h, a keccak hash representation
+   * */
   getKeccack256(with0x = false) {
     const h = CIDUtil.getKeccak256FromCID(this._cid);
     if (with0x) {
-      return '0x' + h;
+      return "0x" + h;
     }
     return h;
   }
@@ -69,8 +69,8 @@ class EngCID {
   }
 
   /** Compare if this and other are equal
-     * @param {CID} cid - other cid to test
-     * @return {Boolean} true - this.cid == cid , false otherwise*/
+   * @param {CID} cid - other cid to test
+   * @return {Boolean} true - this.cid == cid , false otherwise*/
   equalCID(cid) {
     return this._cid.equals(cid);
   }
@@ -84,20 +84,20 @@ class EngCID {
   }
 
   equalEngCID(engCID) {
-    if (engCID.constructor.name === 'EngCID') {
+    if (engCID.constructor.name === "EngCID") {
       return this.equalCID(engCID.getCID());
     }
     return false;
   }
 
   /** Encode the CID into a network stream.
-     * Steps:
-     * 1) b58Str = this.cid
-     * 2) e = encode(b58Str), encode with encoder util, currently msgpack
-     * 3) b = toBytes(e)
-     * 4) return b
-     * @return {Array<Bytes>}
-     * */
+   * Steps:
+   * 1) b58Str = this.cid
+   * 2) e = encode(b58Str), encode with encoder util, currently msgpack
+   * 3) b = toBytes(e)
+   * 4) return b
+   * @return {Array<Bytes>}
+   * */
   encodeToNetwork() {
     return this._encoder.encodeToNetwork(this.toB58String());
   }
@@ -135,4 +135,3 @@ module.exports = EngCID;
 // let fromNetwork = eng.encodeToNetwork();
 // let newCID = EngCID.createFromNetwork(fromNetwork);
 // console.log(eng.equalEngCID(newCID));
-

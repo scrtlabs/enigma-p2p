@@ -1,7 +1,7 @@
-const constants = require('../../common/constants');
-const utils = require('../../common/utils');
-const EventEmitter = require('events').EventEmitter;
-const Result = require('./Result').Result;
+const constants = require("../../common/constants");
+const utils = require("../../common/utils");
+const EventEmitter = require("events").EventEmitter;
+const Result = require("./Result").Result;
 
 class Task extends EventEmitter {
   constructor(taskId, type, contractAddress, gasLimit, blockNumber) {
@@ -37,7 +37,7 @@ class Task extends EventEmitter {
   }
   _setStatus(status) {
     this._status = status;
-    this.emit('status', {taskId: this._taskId, status: status});
+    this.emit("status", { taskId: this._taskId, status: status });
   }
   setInProgressStatus() {
     this._setStatus(constants.TASK_STATUS.IN_PROGRESS);
@@ -76,7 +76,7 @@ class Task extends EventEmitter {
     return this._blockNumber;
   }
   isUnverified() {
-    return (this._status === constants.TASK_STATUS.UNVERIFIED);
+    return this._status === constants.TASK_STATUS.UNVERIFIED;
   }
   isSuccess() {
     return this._status === constants.TASK_STATUS.SUCCESS;
@@ -85,7 +85,7 @@ class Task extends EventEmitter {
     return this._status === constants.TASK_STATUS.FAILED;
   }
   isFinished() {
-    return (this.isSuccess() || this.isFailed());
+    return this.isSuccess() || this.isFailed();
   }
 }
 module.exports = Task;

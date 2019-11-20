@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class NewPeerAction {
   constructor(controller) {
@@ -15,7 +15,8 @@ class NewPeerAction {
     if (autoInit && initRequired) {
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.INIT_WORKER, {
         callback: callback,
-        amount: autoInit.amount});
+        amount: autoInit.amount
+      });
     }
   }
 }

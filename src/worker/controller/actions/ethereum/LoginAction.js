@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class LoginAction {
   constructor(controller) {
@@ -10,7 +10,10 @@ class LoginAction {
     let err = null;
 
     try {
-      await this._controller.ethereum().api().login();
+      await this._controller
+        .ethereum()
+        .api()
+        .login();
       this._controller.logger().info(`[LOGIN] successful login`);
       loginSuccess = true;
     } catch (e) {
@@ -23,7 +26,7 @@ class LoginAction {
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);

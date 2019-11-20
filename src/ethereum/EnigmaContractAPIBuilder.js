@@ -1,21 +1,19 @@
-const EnigmaContractReaderAPI = require('./EnigmaContractReaderAPI');
-const EnigmaContractWriterAPI = require('./EnigmaContractWriterAPI');
-const EnigmaContractProductionWriterAPI = require('./EnigmaContractProductionWriterAPI');
-const Logger = require('../common/logger');
-const path = require('path');
-const { exec, spawn } = require('child_process');
-const Web3 = require('web3');
-const utils = require('../common/utils');
-const defaultsDeep = require('@nodeutils/defaults-deep');
+const EnigmaContractReaderAPI = require("./EnigmaContractReaderAPI");
+const EnigmaContractWriterAPI = require("./EnigmaContractWriterAPI");
+const EnigmaContractProductionWriterAPI = require("./EnigmaContractProductionWriterAPI");
+const Logger = require("../common/logger");
+const path = require("path");
+const { exec, spawn } = require("child_process");
+const Web3 = require("web3");
+const utils = require("../common/utils");
+const defaultsDeep = require("@nodeutils/defaults-deep");
 
-
-TRUFFLE_DIR = path.join(__dirname, '../../test/ethereum/scripts');
+TRUFFLE_DIR = path.join(__dirname, "../../test/ethereum/scripts");
 
 const defaultConfig = {
-  url: 'ws://127.0.0.1:9545',
-  truffleDirectory: TRUFFLE_DIR,
+  url: "ws://127.0.0.1:9545",
+  truffleDirectory: TRUFFLE_DIR
 };
-
 
 class EnigmaContractAPIBuilder {
   constructor(logger) {
@@ -34,7 +32,7 @@ class EnigmaContractAPIBuilder {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({ 'cli': false });
+      this._logger = new Logger({ cli: false });
     }
 
     return this;
@@ -73,13 +71,13 @@ class EnigmaContractAPIBuilder {
   }
 
   /**
-     * Set the minimum confirmations (ethereum blocks) a worker must wait
-     * before knowing data on the ethereum blockchain is valid
-     * Writing via the API will resolve only after enough confirmations
-     * Reading via the API will return data only if it was written at least minimunConfirmations blocks ago
-     * @param {number} minimunConfirmations, defaults to 12
-     * @return {EnigmaContractAPIBuilder} this
-     * */
+   * Set the minimum confirmations (ethereum blocks) a worker must wait
+   * before knowing data on the ethereum blockchain is valid
+   * Writing via the API will resolve only after enough confirmations
+   * Reading via the API will return data only if it was written at least minimunConfirmations blocks ago
+   * @param {number} minimunConfirmations, defaults to 12
+   * @return {EnigmaContractAPIBuilder} this
+   * */
   setMinimunConfirmations(minimunConfirmations) {
     this.minimunConfirmations = minimunConfirmations;
     return this;
@@ -143,7 +141,9 @@ class EnigmaContractAPIBuilder {
 
     if (this.useDeployedFlag) {
       if (this.config.enigmaContractABI === undefined) {
-        const rawdata = await utils.readFile((path.join(this.config.truffleDirectory, 'build/contracts/Enigma.json')));//require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
+        const rawdata = await utils.readFile(
+          path.join(this.config.truffleDirectory, "build/contracts/Enigma.json")
+        ); //require(path.join(truffleDirectory, 'build/contracts/Enigma.json'));
         const EnigmaContractJson = JSON.parse(rawdata);
         this.config.enigmaContractABI = EnigmaContractJson.abi;
       }
@@ -154,16 +154,32 @@ class EnigmaContractAPIBuilder {
 
     if (this.apiWriterFlag) {
       if (this.accountKey) {
-        this.api = await new EnigmaContractProductionWriterAPI(this.enigmaContractAddress,
-          this.enigmaContractABI, this.web3, this.logger(),
-          this.ethereumAddress, this.accountKey, this.minimunConfirmations);
+        this.api = await new EnigmaContractProductionWriterAPI(
+          this.enigmaContractAddress,
+          this.enigmaContractABI,
+          this.web3,
+          this.logger(),
+          this.ethereumAddress,
+          this.accountKey,
+          this.minimunConfirmations
+        );
+      } else {
+        this.api = await new EnigmaContractWriterAPI(
+          this.enigmaContractAddress,
+          this.enigmaContractABI,
+          this.web3,
+          this.logger(),
+          this.ethereumAddress
+        );
       }
-      else {
-        this.api = await new EnigmaContractWriterAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.ethereumAddress);
-      }
-    }
-    else {
-      this.api = await new EnigmaContractReaderAPI(this.enigmaContractAddress, this.enigmaContractABI, this.web3, this.logger(), this.minimunConfirmations);
+    } else {
+      this.api = await new EnigmaContractReaderAPI(
+        this.enigmaContractAddress,
+        this.enigmaContractABI,
+        this.web3,
+        this.logger(),
+        this.minimunConfirmations
+      );
     }
 
     return {
@@ -210,10 +226,14 @@ class EnigmaContractAPIBuilder {
       if (options.enigmaContractAbi) {
         config.enigmaContractABI = options.enigmaContractAbi;
       }
-      res = await this.useDeployed(config).setEthereumAddress(ethereumAddress).build();
-    }
-    else {
-      res = await this.createNetwork().deploy().setEthereumAddress(ethereumAddress).build();
+      res = await this.useDeployed(config)
+        .setEthereumAddress(ethereumAddress)
+        .build();
+    } else {
+      res = await this.createNetwork()
+        .deploy()
+        .setEthereumAddress(ethereumAddress)
+        .build();
     }
     return res;
   }
@@ -231,10 +251,14 @@ class EnigmaContractAPIBuilder {
   /**** INTERNAL ****/
   _resetEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
-      const command = 'cd ' + truffleDirectory + ' && truffle migrate --reset && cd ' + process.cwd();
+      const command =
+        "cd " +
+        truffleDirectory +
+        " && truffle migrate --reset && cd " +
+        process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          reject('ApiBuilder.resetEnv ' + err);
+          reject("ApiBuilder.resetEnv " + err);
         }
         resolve(stderr, stdout);
       });
@@ -243,37 +267,45 @@ class EnigmaContractAPIBuilder {
 
   _buildEnv(truffleDirectory) {
     return new Promise((resolve, reject) => {
-      const command = 'cd ' + truffleDirectory + ' && truffle compile && cd ' + process.cwd();
+      const command =
+        "cd " + truffleDirectory + " && truffle compile && cd " + process.cwd();
       exec(command, (err, stdout, stderr) => {
         if (err) {
-          reject('ApiBuilder.buildEnv ' + err);
+          reject("ApiBuilder.buildEnv " + err);
         }
         resolve(stderr, stdout);
       });
     });
   }
 
-
   async _initEnv() {
     const truffleDirectory = this.config.truffleDirectory;
 
-    await this._buildEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
-    await this._resetEnv(truffleDirectory);// .then(this.logger()).catch(this.logger());
+    await this._buildEnv(truffleDirectory); // .then(this.logger()).catch(this.logger());
+    await this._resetEnv(truffleDirectory); // .then(this.logger()).catch(this.logger());
 
-    const truffleConfig = require(path.join(truffleDirectory, 'truffle'));
-    const ethTestUtils = require('../../test/ethereum/utils');
+    const truffleConfig = require(path.join(truffleDirectory, "truffle"));
+    const ethTestUtils = require("../../test/ethereum/utils");
 
     const networkId = truffleConfig.networks.development.network_id;
-    const rawdata = await utils.readFile((path.join(truffleDirectory, 'build/contracts/Enigma.json')));
+    const rawdata = await utils.readFile(
+      path.join(truffleDirectory, "build/contracts/Enigma.json")
+    );
     let EnigmaContractJson = JSON.parse(rawdata);
 
     this._initWeb3();
 
-    await ethTestUtils.advanceXConfirmations(this.web3, this.minimunConfirmations);
+    await ethTestUtils.advanceXConfirmations(
+      this.web3,
+      this.minimunConfirmations
+    );
 
     this.enigmaContractAddress = EnigmaContractJson.networks[networkId].address;
     this.enigmaContractABI = EnigmaContractJson.abi;
-    this.logger().info('Deployed the Enigma Mock Contract in the following address: ' + this.enigmaContractAddress);
+    this.logger().info(
+      "Deployed the Enigma Mock Contract in the following address: " +
+        this.enigmaContractAddress
+    );
   }
 
   _connectToContract() {
@@ -283,45 +315,50 @@ class EnigmaContractAPIBuilder {
     this.enigmaContractAddress = this.config.enigmaContractAddress;
     this.enigmaContractABI = this.config.enigmaContractABI;
 
-    this.logger().info('Connecting to the Enigma Contract in the following address: ' + this.enigmaContractAddress);
+    this.logger().info(
+      "Connecting to the Enigma Contract in the following address: " +
+        this.enigmaContractAddress
+    );
   }
 
   _initWeb3() {
-    if (!this.config.url.startsWith('ws:')) {
-      throw new Error("wrong transport config. Only websocket is currently supported");
+    if (!this.config.url.startsWith("ws:")) {
+      throw new Error(
+        "wrong transport config. Only websocket is currently supported"
+      );
     }
 
     const websocketProvider = this.config.url;
     const provider = new Web3.providers.WebsocketProvider(websocketProvider);
 
     // from https://github.com/ethereum/web3.js/issues/1354
-    provider.on('error', (e) => this.logger().error('WS Error: ', e));
-    provider.on('end', (e) => this.logger().info('WS End'));
+    provider.on("error", e => this.logger().error("WS Error: ", e));
+    provider.on("end", e => this.logger().info("WS End"));
 
     this.web3 = new Web3(provider);
   }
 
   async _startNetwork() {
     const truffleDirectory = this.config.truffleDirectory;
-    const command = 'cd ' + truffleDirectory + ' && truffle develop';
+    const command = "cd " + truffleDirectory + " && truffle develop";
     this.environment.subprocess = spawn(command, {
       shell: true,
-      detached: true,
+      detached: true
     });
 
     this.environment.subprocess.unref();
-    this.logger().debug('Network started');
+    this.logger().debug("Network started");
     await utils.sleep(3000);
   }
 
   async _stop() {
     await process.kill(-this.environment.subprocess.pid);
-    this.logger().debug('Stopping environment');
+    this.logger().debug("Stopping environment");
   }
 
   async _disconnect() {
     await this.web3.currentProvider.disconnect();
-    this.logger().debug('Disconnecting from environment');
+    this.logger().debug("Disconnecting from environment");
   }
 }
 

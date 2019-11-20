@@ -1,5 +1,5 @@
-const errors = require('../../../../common/errors');
-const EngCid = require('../../../../common/EngCID');
+const errors = require("../../../../common/errors");
+const EngCid = require("../../../../common/EngCID");
 class AnnounceContentAction {
   constructor(controller) {
     this._controller = controller;
@@ -15,24 +15,32 @@ class AnnounceContentAction {
       return this._controller.logger().error(msg);
     }
     // extra safety, extra O(n)
-    engCids = engCids.filter((ecid)=>{
-      return (ecid instanceof EngCid);
+    engCids = engCids.filter(ecid => {
+      return ecid instanceof EngCid;
     });
-    try{
-      let failedCids = await this._controller.provider().asyncProvideContentsBatch(engCids);
-      this._controller.logger().debug(`[+] success announcing content, failedCids # =  ${failedCids.length}`);
-      return onResponse(null,failedCids);
-    }catch(e){
+    try {
+      let failedCids = await this._controller
+        .provider()
+        .asyncProvideContentsBatch(engCids);
+      this._controller
+        .logger()
+        .debug(
+          `[+] success announcing content, failedCids # =  ${failedCids.length}`
+        );
+      return onResponse(null, failedCids);
+    } catch (e) {
       if (onResponse) {
         return onResponse(e);
       }
-      this._controller.logger().error(`[AnnounceContent] can't announce message: ${e}`);
+      this._controller
+        .logger()
+        .error(`[AnnounceContent] can't announce message: ${e}`);
     }
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
-      params.onResponse = function(err,failedCids) {
+    return new Promise((res, rej) => {
+      params.onResponse = function(err, failedCids) {
         if (err) rej(err);
         else res(failedCids);
       };
@@ -41,5 +49,3 @@ class AnnounceContentAction {
   }
 }
 module.exports = AnnounceContentAction;
-
-

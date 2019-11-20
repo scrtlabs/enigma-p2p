@@ -8,7 +8,10 @@ class GetWorkerParamsAction {
     let workerParams = null;
 
     try {
-      workerParams = await this._controller.ethereum().api().getSelfWorker();
+      workerParams = await this._controller
+        .ethereum()
+        .api()
+        .getSelfWorker();
     } catch (e) {
       this._controller.logger().error(`[GET_ETH_WORKER_PARAM] error =  ${e}`);
       err = e;
@@ -19,7 +22,7 @@ class GetWorkerParamsAction {
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);

@@ -1,4 +1,4 @@
-const constants = require('../../../../../common/constants');
+const constants = require("../../../../../common/constants");
 /**
  This action returns all the requested deltas.
  either from cache or directly from core.
@@ -16,11 +16,10 @@ class GetContractCodeAction {
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
       dbQueryType: constants.CORE_REQUESTS.GetContract,
       input: input,
-      onResponse: (err, result)=>{
+      onResponse: (err, result) => {
         return onResult(err, result);
-      },
+      }
     });
   }
 }
 module.exports = GetContractCodeAction;
-

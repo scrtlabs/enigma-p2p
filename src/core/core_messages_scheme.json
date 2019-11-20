@@ -2,8 +2,8 @@
   "BASE_SCHEME": {
     "type": "object",
     "properties": {
-      "type": {"type": "string"},
-      "id": {"type": "string"}
+      "type": { "type": "string" },
+      "id": { "type": "string" }
     },
     "required": ["type", "id"],
     "additionalProperties": false
@@ -38,8 +38,8 @@
       "input": {
         "type": "object",
         "properties": {
-          "address": {"type": "string"},
-          "key": {"type": "number"}
+          "address": { "type": "string" },
+          "key": { "type": "number" }
         },
         "required": ["address", "key"],
         "additionalProperties": false
@@ -55,9 +55,9 @@
         "items": {
           "type": "object",
           "properties": {
-            "address": {"type": "string"},
-            "from": {"type": "number"},
-            "to": {"type": "number"}
+            "address": { "type": "string" },
+            "from": { "type": "number" },
+            "to": { "type": "number" }
           },
           "required": ["address", "from", "to"],
           "additionalProperties": false
@@ -69,14 +69,14 @@
   },
   "GetContract": {
     "properties": {
-      "input": {"type": "string"}
+      "input": { "type": "string" }
     },
     "required": ["input"],
     "additionalProperties": false
   },
   "UpdateNewContract": {
     "properties": {
-      "address": {"type": "string"},
+      "address": { "type": "string" },
       "bytecode": {
         "type": "array",
         "items": {
@@ -90,12 +90,12 @@
   },
   "UpdateNewContractOnDeployment": {
     "properties": {
-      "address": {"type": "string"},
-      "bytecode": {"type": "string"},
-      "delta":{
+      "address": { "type": "string" },
+      "bytecode": { "type": "string" },
+      "delta": {
         "type": "object",
         "properties": {
-          "key": {"type": "number"},
+          "key": { "type": "number" },
           "data": {
             "type": "array",
             "items": {
@@ -113,20 +113,20 @@
   },
   "RemoveContract": {
     "properties": {
-      "address": {"type": "string"}
+      "address": { "type": "string" }
     },
     "required": ["address"],
     "additionalProperties": false
   },
   "UpdateDeltas": {
     "properties": {
-      "deltas":{
+      "deltas": {
         "type": "array",
         "items": {
           "type": "object",
           "properties": {
-            "address": {"type": "string"},
-            "key": {"type": "number"},
+            "address": { "type": "string" },
+            "key": { "type": "number" },
             "data": {
               "type": "array",
               "items": {
@@ -150,9 +150,9 @@
         "items": {
           "type": "object",
           "properties": {
-            "address": {"type": "string"},
-            "from": {"type": "number"},
-            "to": {"type": "number"}
+            "address": { "type": "string" },
+            "from": { "type": "number" },
+            "to": { "type": "number" }
           },
           "required": ["address", "from", "to"],
           "additionalProperties": false
@@ -164,7 +164,7 @@
   },
   "NewTaskEncryptionKey": {
     "properties": {
-      "userPubKey": {"type": "string"}
+      "userPubKey": { "type": "string" }
     },
     "required": ["userPubKey"],
     "additionalProperties": false
@@ -174,11 +174,11 @@
       "input": {
         "type": "object",
         "properties": {
-          "encryptedArgs": {"type": "string"},
-          "encryptedFn": {"type": "string"},
-          "userDHKey": {"type": "string"},
-          "gasLimit": {"type": "number"},
-          "contractAddress": {"type": "string"},
+          "encryptedArgs": { "type": "string" },
+          "encryptedFn": { "type": "string" },
+          "userDHKey": { "type": "string" },
+          "gasLimit": { "type": "number" },
+          "contractAddress": { "type": "string" },
           "preCode": {
             "type": "array",
             "items": {
@@ -187,7 +187,14 @@
             }
           }
         },
-        "required": ["preCode", "encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
+        "required": [
+          "preCode",
+          "encryptedArgs",
+          "encryptedFn",
+          "userDHKey",
+          "gasLimit",
+          "contractAddress"
+        ],
         "additionalProperties": false
       }
     },
@@ -199,13 +206,19 @@
       "input": {
         "type": "object",
         "properties": {
-          "encryptedArgs": {"type": "string"},
-          "encryptedFn": {"type": "string"},
-          "userDHKey": {"type": "string"},
-          "gasLimit": {"type": "number"},
-          "contractAddress": {"type": "string"}
+          "encryptedArgs": { "type": "string" },
+          "encryptedFn": { "type": "string" },
+          "userDHKey": { "type": "string" },
+          "gasLimit": { "type": "number" },
+          "contractAddress": { "type": "string" }
         },
-        "required": ["encryptedArgs", "encryptedFn", "userDHKey", "gasLimit", "contractAddress"],
+        "required": [
+          "encryptedArgs",
+          "encryptedFn",
+          "userDHKey",
+          "gasLimit",
+          "contractAddress"
+        ],
         "additionalProperties": false
       }
     },
@@ -218,8 +231,8 @@
       "input": {
         "type": "object",
         "properties": {
-          "response": {"type": "string"},
-          "sig": {"type": "string"}
+          "response": { "type": "string" },
+          "sig": { "type": "string" }
         },
         "required": ["response", "sig"],
         "additionalProperties": false

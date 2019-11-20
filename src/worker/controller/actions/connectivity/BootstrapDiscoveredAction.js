@@ -12,7 +12,9 @@ class BootstrapDiscoveredAction {
       return;
     }
     const success = this._controller.engNode().connectToBootstrap(otherPeer);
-    this._controller.logger().debug(`connection to bootstrap succeeded=${success}`)
+    this._controller
+      .logger()
+      .debug(`connection to bootstrap succeeded=${success}`);
   }
 }
 module.exports = BootstrapDiscoveredAction;

@@ -1,5 +1,5 @@
-const Policy = require('../policy');
-const utils = require('../../common/utils');
+const Policy = require("../policy");
+const utils = require("../../common/utils");
 
 class Msg {
   constructor(msg) {
@@ -15,13 +15,13 @@ class Msg {
     return this.policy.validJsonRpc(this.rawMsg);
   }
   jsonrpc() {
-    return this.rawMsg['jsonrpc'];
+    return this.rawMsg["jsonrpc"];
   }
   method() {
-    return this.rawMsg['method'];
+    return this.rawMsg["method"];
   }
   id() {
-    return this.rawMsg['id'];
+    return this.rawMsg["id"];
   }
   isValidJsonRpc() {
     return this.validJsonRpc;
@@ -39,17 +39,19 @@ class HeartBeatReqMsg extends Msg {
       msgParams = JSON.parse(msgParams);
     }
 
-    if ('jsonrpc' in msgParams) {
+    if ("jsonrpc" in msgParams) {
       finalMsg = msgParams;
-    } else if ('from' in msgParams && 'to' in msgParams) {
+    } else if ("from" in msgParams && "to" in msgParams) {
       finalMsg = {
-        'jsonrpc': '2.0',
-        'method': 'heartbeat',
-        'params': [{
-          'from': msgParams.from,
-          'to': msgParams.to,
-        }],
-        'id': utils.randId(),
+        jsonrpc: "2.0",
+        method: "heartbeat",
+        params: [
+          {
+            from: msgParams.from,
+            to: msgParams.to
+          }
+        ],
+        id: utils.randId()
       };
     }
 
@@ -59,10 +61,10 @@ class HeartBeatReqMsg extends Msg {
     }
   }
   from() {
-    return this.rawMsg['params'][0]['from'];
+    return this.rawMsg["params"][0]["from"];
   }
   to() {
-    return this.rawMsg['params'][0]['to'];
+    return this.rawMsg["params"][0]["to"];
   }
   toNetworkStream() {
     return JSON.stringify(this);
@@ -80,17 +82,17 @@ class HeartBeatResMsg extends Msg {
     if (utils.isString(msgParams)) {
       msgParams = JSON.parse(msgParams);
     }
-    if ('jsonrpc' in msgParams && 'result' in msgParams) {
+    if ("jsonrpc" in msgParams && "result" in msgParams) {
       finalMsg = msgParams;
-    } else if ('from' in msgParams && 'to' in msgParams && 'id' in msgParams) {
+    } else if ("from" in msgParams && "to" in msgParams && "id" in msgParams) {
       finalMsg = {
-        'jsonrpc': '2.0',
-        'result': {
-          'from': msgParams.from,
-          'to': msgParams.to,
-          'type': 'heartbeat',
+        jsonrpc: "2.0",
+        result: {
+          from: msgParams.from,
+          to: msgParams.to,
+          type: "heartbeat"
         },
-        'id': msgParams.id,
+        id: msgParams.id
       };
     }
 
@@ -100,13 +102,13 @@ class HeartBeatResMsg extends Msg {
     }
   }
   from() {
-    return this.rawMsg['result']['from'];
+    return this.rawMsg["result"]["from"];
   }
   to() {
-    return this.rawMsg['result']['to'];
+    return this.rawMsg["result"]["to"];
   }
   type() {
-    return this.rawMsg['result']['type'];
+    return this.rawMsg["result"]["type"];
   }
   toNetworkStream() {
     return JSON.stringify(this);
@@ -137,18 +139,24 @@ class FindPeersReqMsg extends Msg {
       msgParams = JSON.parse(msgParams);
     }
 
-    if ('jsonrpc' in msgParams) {
+    if ("jsonrpc" in msgParams) {
       finalMsg = msgParams;
-    } else if ('from' in msgParams && 'to' in msgParams && 'maxpeers' in msgParams) {
+    } else if (
+      "from" in msgParams &&
+      "to" in msgParams &&
+      "maxpeers" in msgParams
+    ) {
       finalMsg = {
-        'jsonrpc': '2.0',
-        'method': 'findpeers_req',
-        'params': [{
-          'from': msgParams.from,
-          'to': msgParams.to,
-          'maxpeers': msgParams.maxpeers,
-        }],
-        'id': utils.randId(),
+        jsonrpc: "2.0",
+        method: "findpeers_req",
+        params: [
+          {
+            from: msgParams.from,
+            to: msgParams.to,
+            maxpeers: msgParams.maxpeers
+          }
+        ],
+        id: utils.randId()
       };
     }
 
@@ -159,10 +167,10 @@ class FindPeersReqMsg extends Msg {
     }
   }
   from() {
-    return this.rawMsg['params'][0]['from'];
+    return this.rawMsg["params"][0]["from"];
   }
   to() {
-    return this.rawMsg['params'][0]['to'];
+    return this.rawMsg["params"][0]["to"];
   }
   toNetworkStream() {
     return JSON.stringify(this);
@@ -172,7 +180,7 @@ class FindPeersReqMsg extends Msg {
     return this.isValidJsonRpc();
   }
   maxPeers() {
-    return this.rawMsg['params'][0]['maxpeers'];
+    return this.rawMsg["params"][0]["maxpeers"];
   }
 }
 
@@ -182,17 +190,22 @@ class FindPeersResMsg extends Msg {
     if (utils.isString(msgParams)) {
       msgParams = JSON.parse(msgParams);
     }
-    if ('jsonrpc' in msgParams && 'result' in msgParams) {
+    if ("jsonrpc" in msgParams && "result" in msgParams) {
       finalMsg = msgParams;
-    } else if ('from' in msgParams && 'to' in msgParams && 'peers' in msgParams &&'id' in msgParams) {
+    } else if (
+      "from" in msgParams &&
+      "to" in msgParams &&
+      "peers" in msgParams &&
+      "id" in msgParams
+    ) {
       finalMsg = {
-        'jsonrpc': '2.0',
-        'result': {
-          'from': msgParams.from,
-          'to': msgParams.to,
-          'peers': msgParams.peers,
+        jsonrpc: "2.0",
+        result: {
+          from: msgParams.from,
+          to: msgParams.to,
+          peers: msgParams.peers
         },
-        'id': msgParams.id,
+        id: msgParams.id
       };
     }
 
@@ -203,13 +216,13 @@ class FindPeersResMsg extends Msg {
     }
   }
   from() {
-    return this.rawMsg['result']['from'];
+    return this.rawMsg["result"]["from"];
   }
   to() {
-    return this.rawMsg['result']['to'];
+    return this.rawMsg["result"]["to"];
   }
   peers() {
-    return this.rawMsg['result']['peers'];
+    return this.rawMsg["result"]["peers"];
   }
   toNetworkStream() {
     return JSON.stringify(this);
@@ -236,4 +249,3 @@ module.exports.HeartBeatReqMsg = HeartBeatReqMsg;
 module.exports.HeartBeatResMsg = HeartBeatResMsg;
 module.exports.FindPeersReqMsg = FindPeersReqMsg;
 module.exports.FindPeersResMsg = FindPeersResMsg;
-

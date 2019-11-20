@@ -1,35 +1,59 @@
-const Task = require('./Task');
-const Result = require('./Result');
-const constants = require('../../common/constants');
-const nodeUtils = require('../../common/utils');
+const Task = require("./Task");
+const Result = require("./Result");
+const constants = require("../../common/constants");
+const nodeUtils = require("../../common/utils");
 class DeployTask extends Task {
   /**
    * @param {JSON} deployReqMsg , all fields specified in the `expected` list in the func
    * @return {DeployTask} task
    * */
   static buildTask(deployReqMsg) {
-    const expected = ['taskId', 'preCode', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress', 'blockNumber'];
-    const isMissing = expected.some((attr)=>{
+    const expected = [
+      "taskId",
+      "preCode",
+      "encryptedArgs",
+      "encryptedFn",
+      "userDHKey",
+      "gasLimit",
+      "contractAddress",
+      "blockNumber"
+    ];
+    const isMissing = expected.some(attr => {
       return !(attr in deployReqMsg);
     });
-      // TODO:: check more stuff in each field when building the task
+    // TODO:: check more stuff in each field when building the task
     if (isMissing) {
       return null;
     } else {
       return new DeployTask(
-          deployReqMsg.taskId,
-          deployReqMsg.preCode,
-          deployReqMsg.encryptedArgs,
-          deployReqMsg.encryptedFn,
-          deployReqMsg.userDHKey,
-          deployReqMsg.gasLimit,
-          deployReqMsg.contractAddress,
-          deployReqMsg.blockNumber,
+        deployReqMsg.taskId,
+        deployReqMsg.preCode,
+        deployReqMsg.encryptedArgs,
+        deployReqMsg.encryptedFn,
+        deployReqMsg.userDHKey,
+        deployReqMsg.gasLimit,
+        deployReqMsg.contractAddress,
+        deployReqMsg.blockNumber
       );
     }
   }
-  constructor(taskId, preCode, encryptedArgs, encryptedFn, userDHKey, gasLimit, contractAddr, blockNumber) {
-    super(taskId, constants.CORE_REQUESTS.DeploySecretContract, contractAddr, gasLimit, blockNumber);
+  constructor(
+    taskId,
+    preCode,
+    encryptedArgs,
+    encryptedFn,
+    userDHKey,
+    gasLimit,
+    contractAddr,
+    blockNumber
+  ) {
+    super(
+      taskId,
+      constants.CORE_REQUESTS.DeploySecretContract,
+      contractAddr,
+      gasLimit,
+      blockNumber
+    );
     this._preCode = preCode;
     this._encryptedArgs = encryptedArgs;
     this._encryptedFn = encryptedFn;
@@ -48,7 +72,7 @@ class DeployTask extends Task {
     return this._userDHKey;
   }
   toDbJson() {
-    const output ={
+    const output = {
       status: this.getStatus(),
       taskId: this.getTaskId(),
       preCode: this.getPreCode(),
@@ -57,7 +81,7 @@ class DeployTask extends Task {
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
-      blockNumber: this.getBlockNumber(),
+      blockNumber: this.getBlockNumber()
     };
     if (this.isFinished()) {
       output.result = this._result.toDbJson();
@@ -71,7 +95,7 @@ class DeployTask extends Task {
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
-      contractAddress: this.getContractAddr(),
+      contractAddress: this.getContractAddr()
     };
   }
   static fromDbJson(taskObj) {
@@ -81,7 +105,10 @@ class DeployTask extends Task {
       if (taskObj.result && nodeUtils.isString(taskObj.result)) {
         taskObj.result = JSON.parse(taskObj.result);
       }
-      if (taskObj.result && taskObj.result.status !== constants.TASK_STATUS.FAILED) {
+      if (
+        taskObj.result &&
+        taskObj.result.status !== constants.TASK_STATUS.FAILED
+      ) {
         // here is string
         const result = Result.DeployResult.buildDeployResult(taskObj.result);
         task.setResult(result);

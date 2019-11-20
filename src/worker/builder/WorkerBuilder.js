@@ -9,9 +9,9 @@
  * idPath : '/path/to/id' or null,
  */
 
-const constants = require('../../common/constants');
-const EnigmaNode = require('../EnigmaNode');
-const ProtocolHandler = require('../handlers/ProtocolHandler');
+const constants = require("../../common/constants");
+const EnigmaNode = require("../EnigmaNode");
+const ProtocolHandler = require("../handlers/ProtocolHandler");
 
 /** WIP - load the node configration
  * @param {String} path, path to config or default in /config/debug.json
@@ -50,10 +50,9 @@ function _buildNode(config, logger) {
   options.nickname = config.nickname;
   options.pathPeerId = config.idPath;
   // parsed multi-addrs with port
-  maAddrs.forEach((ma)=>{
-    options.multiAddrs.push(ma+options.port);
+  maAddrs.forEach(ma => {
+    options.multiAddrs.push(ma + options.port);
   });
 
   return new EnigmaNode(options, new ProtocolHandler(logger), logger);
-};
-
+}

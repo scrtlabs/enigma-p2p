@@ -3,9 +3,9 @@
  * - turns it into a Task object
  * - sends to TaskManager
  * */
-const ComputeTask = require('../../../tasks/ComputeTask');
-const DeployTask = require('../../../tasks/DeployTask');
-const taskTypes = require('../../../../common/constants').CORE_REQUESTS;
+const ComputeTask = require("../../../tasks/ComputeTask");
+const DeployTask = require("../../../tasks/DeployTask");
+const taskTypes = require("../../../../common/constants").CORE_REQUESTS;
 
 class StartTaskExecutionAction {
   constructor(controller) {
@@ -33,13 +33,13 @@ class StartTaskExecutionAction {
     if (task) {
       this._controller.taskManager().addTaskUnverified(task);
     }
-    if(onResponse){
+    if (onResponse) {
       onResponse(null);
     }
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);

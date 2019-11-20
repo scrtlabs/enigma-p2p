@@ -1,4 +1,4 @@
-const Communicator = require('./Communicator');
+const Communicator = require("./Communicator");
 
 class Channel {
   /**
@@ -9,7 +9,7 @@ class Channel {
     const c1 = new Communicator();
     const c2 = new Communicator(c1);
     c1._setCommunicator(c2);
-    return {channel1: c1, channel2: c2};
+    return { channel1: c1, channel2: c2 };
   }
 }
 

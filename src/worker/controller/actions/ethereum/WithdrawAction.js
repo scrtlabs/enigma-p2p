@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class WithdrawAction {
   constructor(controller) {
@@ -11,7 +11,10 @@ class WithdrawAction {
 
     let err = null;
     try {
-      await this._controller.ethereum().api().withdraw(amount);
+      await this._controller
+        .ethereum()
+        .api()
+        .withdraw(amount);
       this._controller.logger().info(`[WITHDRAW] successful withdrawal`);
       success = true;
     } catch (e) {
@@ -24,7 +27,7 @@ class WithdrawAction {
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);
         else res(verificationResult);

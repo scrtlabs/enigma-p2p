@@ -1,9 +1,9 @@
 {
-  "bootstrapNodes" : [],
-  "port" : "0",
-  "nickname" : "peer",
-  "multiAddrs" : ["/ip4/0.0.0.0/tcp/"],
-  "namespace" : "ipfs",
-  "idPath" : null,
-  "isDiscover" : true
+  "bootstrapNodes": [],
+  "port": "0",
+  "nickname": "peer",
+  "multiAddrs": ["/ip4/0.0.0.0/tcp/"],
+  "namespace": "ipfs",
+  "idPath": null,
+  "isDiscover": true
 }

@@ -1,13 +1,11 @@
 // const dataGenerator = require('./DataGenerator');
-const StateUtil = require('../common/DbUtils');
-const level = require('level');
-
+const StateUtil = require("../common/DbUtils");
+const level = require("level");
 
 // let database_state = {
 //     'addr as bytes' : [], // contract byte code
 //     'addr||index as bytes' : [] // delta index bytes
 // };
-
 
 class DBAccessorMock {
   constructor(path) {
@@ -37,10 +35,10 @@ class DBAccessorMock {
     this._isExist(key, callback);
   }
   static strToByteArray(value) {
-    return value.split(',').map((val)=> parseInt(val));
+    return value.split(",").map(val => parseInt(val));
   }
   _isExist(key, callback) {
-    this.db().get(key, (err, value)=>{
+    this.db().get(key, (err, value) => {
       if (err) {
         callback(err);
       } else {
@@ -55,13 +53,15 @@ class DBAccessorMock {
     this._create(key, value, callback);
   }
   _create(key, value, callback) {
-    this._isExist(key, (noSuchValue, val)=>{
-      if (noSuchValue) { // ok to write new value
-        this.db().put(key, value, (err)=>{
+    this._isExist(key, (noSuchValue, val) => {
+      if (noSuchValue) {
+        // ok to write new value
+        this.db().put(key, value, err => {
           callback(err);
         });
-      } else { // value exists
-        callback('value exists cannot create');
+      } else {
+        // value exists
+        callback("value exists cannot create");
       }
     });
   }
@@ -70,7 +70,7 @@ class DBAccessorMock {
     this._get(key, callback);
   }
   _get(key, callback) {
-    this._isExist(key, (err, val)=>{
+    this._isExist(key, (err, val) => {
       callback(err, val);
     });
   }
@@ -79,11 +79,12 @@ class DBAccessorMock {
     this._update(key, callback);
   }
   _update(key, value, callback) {
-    this._isExist(key, (notExist, value)=>{
-      if (notExist) { // error, its update not create
-        callback('cannot update not-existing value');
+    this._isExist(key, (notExist, value) => {
+      if (notExist) {
+        // error, its update not create
+        callback("cannot update not-existing value");
       } else {
-        this.db().put(key, value, (err)=>{
+        this.db().put(key, value, err => {
           callback(err);
         });
       }
@@ -94,7 +95,7 @@ class DBAccessorMock {
     this._forceUpdate(key, callback);
   }
   _forceUpdate(key, value, callback) {
-    this.db().put(key, value, (err)=>{
+    this.db().put(key, value, err => {
       callback(err);
     });
   }
@@ -103,7 +104,7 @@ class DBAccessorMock {
     this._delete(key, callback);
   }
   _delete(key, callback) {
-    this.db().del(key, (err)=>{
+    this.db().del(key, err => {
       callback(err);
     });
   }
@@ -114,24 +115,24 @@ class DBAccessorMock {
    * err !== true && err => error
    */
   readAllKeysStream(onResult) {
-    this.db().createKeyStream()
-        .on('data', (key)=>{
-          key = DBAccessorMock.strToByteArray(key);
-          onResult(null, key);
-        })
-        .on('error', (err)=>{
-          onResult(err);
-        })
-        .on('end', ()=>{
-          onResult(true);
-        });
+    this.db()
+      .createKeyStream()
+      .on("data", key => {
+        key = DBAccessorMock.strToByteArray(key);
+        onResult(null, key);
+      })
+      .on("error", err => {
+        onResult(err);
+      })
+      .on("end", () => {
+        onResult(true);
+      });
   }
 }
 module.exports = DBAccessorMock;
 
 // const p ='/home/wildermind/WebstormProjects/enigma-p2p/src/sync_mocks/mockdb1';
 // const db = new DBAccessorMock(p);
-
 
 // const h1 = '0xdced2aaa90baa8526b1759608af74b6d8d49ac26a78f6278bcf3a50ffd14bc7a';
 // const h2 = '0xc2d60d91af2e04abc299f6e0a4a10e948648c0ada43da0a7d3d721b81d62c0d1';
@@ -164,5 +165,3 @@ module.exports = DBAccessorMock;
 //
 //     }
 // });
-
-

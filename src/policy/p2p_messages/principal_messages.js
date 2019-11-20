@@ -9,11 +9,15 @@ class MsgPrincipal {
 
   static build(jsonObj) {
     if (jsonObj && jsonObj.request && jsonObj.sig) {
-      const blockNumber = (jsonObj.blockNumber) ? jsonObj.blockNumber : null;
-      const addresses = (jsonObj.addresses) ? jsonObj.addresses : null;
-      return new MsgPrincipal(jsonObj.request, jsonObj.sig, addresses, blockNumber);
-    }
-    else {
+      const blockNumber = jsonObj.blockNumber ? jsonObj.blockNumber : null;
+      const addresses = jsonObj.addresses ? jsonObj.addresses : null;
+      return new MsgPrincipal(
+        jsonObj.request,
+        jsonObj.sig,
+        addresses,
+        blockNumber
+      );
+    } else {
       return null;
     }
   }
@@ -36,8 +40,8 @@ class MsgPrincipal {
 
   toJson() {
     let dict = {
-      'data': this._request,
-      'sig': this._sig
+      data: this._request,
+      sig: this._sig
     };
     if (this._blockNumber) {
       dict.block_number = this._blockNumber.toString();

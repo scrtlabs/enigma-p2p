@@ -1,5 +1,5 @@
-const constants = require('../../common/constants');
-const nodeUtils = require('../../common/utils');
+const constants = require("../../common/constants");
+const nodeUtils = require("../../common/utils");
 
 class Result {
   constructor(taskId, status) {
@@ -27,9 +27,9 @@ class Result {
    * @param {Json} rawResult
    * @return {Task} the concrete instance
    * */
-  static buildFromRaw(type,rawResult){
+  static buildFromRaw(type, rawResult) {
     let result = null;
-    switch(type){
+    switch (type) {
       case constants.CORE_REQUESTS.FailedTask:
         rawResult.status = constants.TASK_STATUS.FAILED;
         result = FailedResult.buildFailedResult(rawResult);
@@ -47,7 +47,16 @@ class Result {
   }
 }
 class ComputeResult extends Result {
-  constructor(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature) {
+  constructor(
+    taskId,
+    status,
+    output,
+    delta,
+    usedGas,
+    ethereumPayload,
+    ethereumAddress,
+    signature
+  ) {
     super(taskId, status);
     this._output = output;
     this._delta = delta;
@@ -60,20 +69,30 @@ class ComputeResult extends Result {
     if (nodeUtils.isString(result)) {
       result = JSON.parse(result);
     }
-    const expected = ['taskId', 'status', 'output', 'delta', 'usedGas', 'ethereumPayload', 'ethereumAddress', 'signature'];
-    const isMissing = expected.some((attr)=>{
+    const expected = [
+      "taskId",
+      "status",
+      "output",
+      "delta",
+      "usedGas",
+      "ethereumPayload",
+      "ethereumAddress",
+      "signature"
+    ];
+    const isMissing = expected.some(attr => {
       return !(attr in result);
     });
     if (isMissing) return null;
     return new ComputeResult(
-        result.taskId,
-        result.status,
-        result.output,
-        result.delta,
-        result.usedGas,
-        result.ethereumPayload,
-        result.ethereumAddress,
-        result.signature);
+      result.taskId,
+      result.status,
+      result.output,
+      result.delta,
+      result.usedGas,
+      result.ethereumPayload,
+      result.ethereumAddress,
+      result.signature
+    );
   }
   getOutput() {
     return this._output;
@@ -98,7 +117,7 @@ class ComputeResult extends Result {
   }
   getSignature() {
     return this._signature;
-  };
+  }
   toDbJson() {
     return JSON.stringify({
       taskId: this.getTaskId(),
@@ -108,36 +127,64 @@ class ComputeResult extends Result {
       usedGas: this.getUsedGas(),
       ethereumPayload: this.getEthPayload(),
       ethereumAddress: this.getEthAddr(),
-      signature: this.getSignature(),
+      signature: this.getSignature()
     });
   }
 }
 
-
 class DeployResult extends ComputeResult {
-  constructor(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature, preCodeHash) {
-    super(taskId, status, output, delta, usedGas, ethereumPayload, ethereumAddress, signature);
+  constructor(
+    taskId,
+    status,
+    output,
+    delta,
+    usedGas,
+    ethereumPayload,
+    ethereumAddress,
+    signature,
+    preCodeHash
+  ) {
+    super(
+      taskId,
+      status,
+      output,
+      delta,
+      usedGas,
+      ethereumPayload,
+      ethereumAddress,
+      signature
+    );
     this._preCodeHash = preCodeHash;
   }
   static buildDeployResult(result) {
     if (nodeUtils.isString(result)) {
       result = JSON.parse(result);
     }
-    const expected = ['taskId', 'status', 'output', 'delta', 'usedGas', 'ethereumPayload', 'ethereumAddress', 'signature', 'preCodeHash'];
-    const isMissing = expected.some((attr)=>{
+    const expected = [
+      "taskId",
+      "status",
+      "output",
+      "delta",
+      "usedGas",
+      "ethereumPayload",
+      "ethereumAddress",
+      "signature",
+      "preCodeHash"
+    ];
+    const isMissing = expected.some(attr => {
       return !(attr in result);
     });
     if (isMissing) return null;
     return new DeployResult(
-        result.taskId,
-        result.status,
-        result.output,
-        result.delta,
-        result.usedGas,
-        result.ethereumPayload,
-        result.ethereumAddress,
-        result.signature,
-        result.preCodeHash
+      result.taskId,
+      result.status,
+      result.output,
+      result.delta,
+      result.usedGas,
+      result.ethereumPayload,
+      result.ethereumAddress,
+      result.signature,
+      result.preCodeHash
     );
   }
   getPreCodeHash() {
@@ -153,7 +200,7 @@ class DeployResult extends ComputeResult {
       usedGas: this.getUsedGas(),
       ethereumPayload: this.getEthPayload(),
       ethereumAddress: this.getEthAddr(),
-      signature: this.getSignature(),
+      signature: this.getSignature()
     });
   }
 }
@@ -169,17 +216,18 @@ class FailedResult extends Result {
     if (nodeUtils.isString(errRes)) {
       errRes = JSON.parse(errRes);
     }
-    const expected = ['taskId', 'output', 'usedGas', 'signature'];
-    const isMissing = expected.some((attr)=>{
+    const expected = ["taskId", "output", "usedGas", "signature"];
+    const isMissing = expected.some(attr => {
       return !(attr in errRes);
     });
     if (isMissing) return null;
     return new FailedResult(
-        errRes.taskId,
-        constants.TASK_STATUS.FAILED,
-        errRes.output,
-        errRes.usedGas,
-        errRes.signature);
+      errRes.taskId,
+      constants.TASK_STATUS.FAILED,
+      errRes.output,
+      errRes.usedGas,
+      errRes.signature
+    );
   }
   getOutput() {
     return this._output;
@@ -196,7 +244,7 @@ class FailedResult extends Result {
       status: this.getStatus(),
       output: this.getOutput(),
       usedGas: this.getUsedGas(),
-      signature: this.getSignature(),
+      signature: this.getSignature()
     });
   }
 }
