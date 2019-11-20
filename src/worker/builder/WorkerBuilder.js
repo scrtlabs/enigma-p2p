@@ -2,7 +2,6 @@
  * isDiscover : true/false
  * Config:
  * bootstrapNodes : [],
- * optimalDht : 22,
  * port : 0, otherwise number
  * nickname : "nick1" optional,
  * multiAddrs : ['/ip4/0.0.0.0/tcp/']
@@ -47,7 +46,6 @@ function _buildNode(config, logger) {
   options.multiAddrs = [];
   options.dnsNodes = config.bootstrapNodes;
   options.namespace = config.namespace;
-  options.optimalDht = config.optimalDht;
   options.port = config.port;
   options.nickname = config.nickname;
   options.pathPeerId = config.idPath;

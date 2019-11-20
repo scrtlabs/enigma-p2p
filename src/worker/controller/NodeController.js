@@ -15,8 +15,6 @@ const nodeUtils = require('../../common/utils');
 const WorkerBuilder = require('../builder/WorkerBuilder');
 const Provider = require('../../worker/state_sync/provider/Provider');
 const Receiver = require('../../worker/state_sync/receiver/Receiver');
-const ConnectionManager = require('../handlers/ConnectionManager');
-const Stats = require('../Stats');
 const Logger = require('../../common/logger');
 const Policy = require('../../policy/policy');
 const PersistentStateCache = require('../../db/StateCache');
@@ -31,12 +29,8 @@ const NewTaskEncryptionKeyAction = require('./actions/NewTaskEncryptionKeyAction
 const SubscribeSelfSignKeyTopicPipelineAction = require('./actions/SubscribeSelfSignKeyTopicPipelineAction');
 const GetStateKeysAction = require('./actions/GetStateKeysAction');
 // connectivity
-const AfterOptimalDHTAction = require('./actions/connectivity/AfterOptimalDHTAction');
-const SendFindPeerRequestAction = require('./actions/connectivity/SendFindPeerRequestAction');
-const HandshakeUpdateAction = require('./actions/connectivity/HandshakeUpdateAction');
-const DoHandshakeAction = require('./actions/connectivity/DoHandshakeAction');
-const BootstrapFinishAction = require('./actions/connectivity/BootstrapFinishAction');
-const ConsistentDiscoveryAction = require('./actions/connectivity/ConsistentDiscoveryAction');
+const BootstrapDiscoveredAction = require('./actions/connectivity/BootstrapDiscoveredAction');
+const NewPeerAction = require('./actions/connectivity/NewPeerAction');
 //tasks
 const GetResultAction = require('./actions/tasks/GetResultAction');
 const StartTaskExecutionAction = require('./actions/tasks/StartTaskExecutionAction');
@@ -77,33 +71,33 @@ const CommitReceiptAction = require('./actions/ethereum/CommitReceiptAction');
 const GetWorkerParamsAction =  require('./actions/ethereum/GetWorkerParamsAction');
 
 class NodeController {
-  constructor(enigmaNode, protocolHandler, connectionManager, logger, extraConfig) {
+  constructor(enigmaNode, protocolHandler, logger, extraConfig) {
     this._policy = new Policy();
     // extra config (currently dbPath for taskManager)
     this._extraConfig = extraConfig;
     // initialize logger
     this._logger = logger;
-
     this._communicator = null;
     // init persistent cache
     // TODO:: currently it's ignored and not initialized _initStateCache()
     // this._cache = new PersistentStateCache('./some_db_name');
 
     this._engNode = enigmaNode;
-    this._connectionManager = connectionManager;
     this._protocolHandler = protocolHandler;
     // TODO:: take Provider form CTOR - currently uses _initContentProvider()
     this._provider = null;
     // TODO:: take Receiver form CTOR - currently uses _initContentReceiver()
     this._receiver = null;
-    // stats
-    this._stats = new Stats();
 
     // TODO:: taskManager see this._initTaskManager()
     this._taskManager = null;
 
     // // init ethereum api
     this._ethereumApi = null;
+
+    // TODO: consider a more cleaner approach
+    this._workerInitialzied = false;
+    this._workerInitInProgress = false;
 
     // init logic
     this._initController();
@@ -116,12 +110,8 @@ class NodeController {
       [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       // connectivity
-      [NOTIFICATION.PERSISTENT_DISCOVERY_DONE]: new AfterOptimalDHTAction(this),
-      [NOTIFICATION.FIND_PEERS_REQ]: new SendFindPeerRequestAction(this), // find peers request message
-      [NOTIFICATION.HANDSHAKE_UPDATE]: new HandshakeUpdateAction(this),
-      [NOTIFICATION.DISCOVERED]: new DoHandshakeAction(this),
-      [NOTIFICATION.BOOTSTRAP_FINISH]: new BootstrapFinishAction(this),
-      [NOTIFICATION.CONSISTENT_DISCOVERY]: new ConsistentDiscoveryAction(this),
+      [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
+      [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
       [NOTIFICATION.RECEIVED_NEW_RESULT]: new VerifyAndStoreResultAction(this), // very tasks result published stuff and store local
@@ -189,33 +179,17 @@ class NodeController {
     const finalConfig = nodeUtils.applyDelta(config, options);
     const enigmaNode = WorkerBuilder.build(finalConfig, _logger);
 
-    // create ConnectionManager
-    const connectionManager = new ConnectionManager(enigmaNode, _logger);
     // create the controller instance
-    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), connectionManager, _logger, options.extraConfig);
+    return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), _logger, options.extraConfig);
   }
   _initController() {
     this._initPrincipalNode();
     this._initEnigmaNode();
-    this._initConnectionManager();
     this._initProtocolHandler();
     this._initContentProvider();
     this._initContentReceiver();
     this._initTaskManager();
     // this._initCache();
-  }
-  _initConnectionManager() {
-    this._connectionManager.addNewContext(this._stats);
-
-    this._connectionManager.on('notify', (params)=>{
-      const notification = params.notification;
-
-      const action = this._actions[notification];
-
-      if (action !== undefined) {
-        this._actions[notification].execute(params);
-      }
-    });
   }
   /**
    * TODO:: currently it will generate db only if extraConfig provided
@@ -249,8 +223,8 @@ class NodeController {
     })
   }
   _initEnigmaNode() {
-    this._engNode.on('notify', (params)=>{
-      this._logger.info('[+] handshake with ' + params.from() + ' done, #' + params.seeds().length + ' seeds.' );
+    this._engNode.on('notify', (peer)=>{
+      this._logger.info('[+] connected to bootstrap' + peer.id.toB58String());
     });
   }
   _initProtocolHandler() {
@@ -316,7 +290,6 @@ class NodeController {
       amount: amount,
     });
   }
-
   async asyncInitializeWorkerProcess(params) {
     await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
   }
@@ -325,6 +298,22 @@ class NodeController {
    * */
   setEthereumApi(api) {
     this._ethereumApi = api;
+  }
+  startInitWorker() {
+    this._workerInitInProgress = true;
+  }
+  initWorkerDone() {
+    this._workerInitialzied = true;
+    this._workerInitInProgress = false;
+  }
+  canInitWorker() {
+    return (!this._workerInitialzied && !this._workerInitInProgress);
+  }
+  isWorkerInitialized() {
+    return this._workerInitialzied;
+  }
+  getAutoInitParams() {
+    return this._extraConfig.init;
   }
   /** * stop the node */
   async stop() {
@@ -388,12 +377,6 @@ class NodeController {
   }
   engNode() {
     return this._engNode;
-  }
-  connectionManager() {
-    return this._connectionManager;
-  }
-  stats() {
-    return this._stats;
   }
   provider() {
     return this._provider;
@@ -467,40 +450,11 @@ class NodeController {
   getLocalTips() {
     return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, {useCache: false});
   }
-  getAllOutboundHandshakes() {
-    const currentPeerIds = this.engNode().getAllPeersIds();
-
-    const handshakedIds = this.stats().getAllActiveOutbound(currentPeerIds);
-
-    return this.engNode().getPeersInfoList(handshakedIds);
+  getConnectedPeers() {
+    return this.engNode().getConnectedPeers();
   }
-  getAllInboundHandshakes() {
-    const currentPeerIds = this.engNode().getAllPeersIds();
-
-    const handshakedIds = this.stats().getAllActiveInbound(currentPeerIds);
-
-    return this.engNode().getPeersInfoList(handshakedIds);
-  }
-  getAllPeerBank() {
-    return this.connectionManager().getAllPeerBank();
-  }
-  // temp function for testing
-  // TODO:: read params from constants
-  tryConsistentDiscovery(callback) {
-    this._actions[NOTIFICATION['CONSISTENT_DISCOVERY']].execute({
-      'delay': 500,
-      'maxRetry': 10,
-      'timeout': 100000,
-      'callback': callback,
-    });
-  }
-  async asyncTryConsistentDiscovery(){
-    let result =  await this.asyncExecCmd(NOTIFICATION.CONSISTENT_DISCOVERY,{
-      delay : constants.CONSISTENT_DISCOVERY_PARAMS.DELAY,
-      maxRetry:  constants.CONSISTENT_DISCOVERY_PARAMS.MAX_RETRY,
-      timeout :  constants.CONSISTENT_DISCOVERY_PARAMS.TIMEOUT
-    });
-    return result;
+  getSelfPeerBookIds() {
+    return this.engNode().getSelfPeerBookIds();
   }
   /**
    * unsubscribe form a topic
@@ -566,18 +520,12 @@ class NodeController {
       );
     });
   }
-  /** temp should delete - is connection (no handshake related simple libp2p
+  /** is connection to a peer
    * @param {string} nodeId
+   * @return {bool} true/false
    */
-  isSimpleConnected(nodeId) {
-    const isConnected = this._engNode.isConnected(nodeId);
-    console.log('Connection test : ' + nodeId + ' ? ' + isConnected);
-  }
-  /** get self Peer Book (All connected peers)
-   * @return {Array}
-   */
-  getAllHandshakedPeers() {
-    return this.engNode().getAllPeersInfo();
+  isConnected(nodeId) {
+    return this._engNode.isConnected(nodeId);
   }
   /**
    * from TaskManager
@@ -586,18 +534,6 @@ class NodeController {
    * */
   async getTaskResult(taskId){
     return await this.asyncExecCmd(NOTIFICATION.GET_TASK_RESULT,{taskId : taskId});
-  }
-  /** temp - findPeersRequest
-   *  @param {PeerInfo} peerInfo,
-   *  @param {Function} onResponse callback , (err,request, response)=>{}
-   *  @param {Integer} maxPeers, optional, if empty or 0 will query for all peers
-   */
-  sendFindPeerRequest(peerInfo, onResponse, maxPeers) {
-    this._actions[NOTIFICATION.FIND_PEERS_REQ].execute({
-      peerInfo: peerInfo,
-      onResponse: onResponse,
-      maxPeers: maxPeers,
-    });
   }
   /** TODO:: add this as cli api + in the cli dump it into a file.;
    * TODO:: good for manual testing
@@ -701,7 +637,6 @@ class NodeController {
       },
     });
   }
-
   async asynctryAnnounce(){
     return new Promise((resolve,reject)=>{
       this.tryAnnounce((err ,ecids)=>{

@@ -1,6 +1,7 @@
 const EthereumServices = require('./EthereumServices');
 const EthereumVerifier = require('./EthereumVerifier');
 const EnigmaContractAPIBuilder = require('./EnigmaContractAPIBuilder');
+const constants = require('../common/constants');
 
 class EthereumAPI {
 
@@ -23,7 +24,9 @@ class EthereumAPI {
    *  }
    * */
   async init(config) {
-    let builder = new EnigmaContractAPIBuilder(this._logger);
+    const minimunConfirmations = Number.isInteger(config.minConfirmations) ? config.minConfirmations : constants.MINIMUM_CONFIRMATIONS;
+
+    let builder = new EnigmaContractAPIBuilder(this._logger).setMinimunConfirmations(minimunConfirmations);
     let res = await builder.setConfigAndBuild(config);
 
     this._api = res.api;

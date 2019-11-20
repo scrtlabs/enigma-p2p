@@ -14,12 +14,6 @@ module.exports.TEST_TREE = {
     '#5': true,
     '#6': true,
   },
-  'coverage' :{
-    'all' : true,
-    '#1' : true,
-    '#2' : true,
-    '#3' : true,
-  },
   'cache' :{
     'all' : true,
     '#1' : true
@@ -154,7 +148,6 @@ module.exports.TEST_TREE = {
     'all' : true,
     '#1' : true,
     '#2' : true,
-    '#3' : true,
   },
   'init_worker' : {
     'all' : true,

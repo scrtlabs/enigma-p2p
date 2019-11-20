@@ -44,34 +44,8 @@ describe('single_config_tests',()=> {
       resolve();
     });
   });
-  it('#2 Should do discovery and shutdown', async function() {
+  it('#2 Should test with proxy and shutdown', async function() {
     if (!tree['all'] || !tree['#2']) {
-      this.skip();
-    }
-    return new Promise(async resolve => {
-      const c = getConfig();
-      const bc = getBootsrapConfig();
-      let bCoreServer = getCoreServer(bc.core.uri);
-      let pCoreServer = getCoreServer(c.core.uri);
-      let bMainController = await EnvironmentBuilder.buildFromSingle(bc);
-      let pMainController = await EnvironmentBuilder.buildFromSingle(c);
-      expect(pMainController).toEqual(expect.anything());
-      assert(pMainController instanceof MainController, 'not main controller');
-      assert(bMainController instanceof MainController, 'not main controller');
-      await testUtils.sleep(5000);
-      let pOut = pMainController.getNode().getAllOutboundHandshakes().length;
-      let bIn = bMainController.getNode().getAllInboundHandshakes().length;
-      assert.strictEqual(1,  pOut, `${pOut} outbound connections`);
-      assert.strictEqual(1,  bIn, `${bIn} inbound connections`);
-      await pMainController.shutdownSystem();
-      await bMainController.shutdownSystem();
-      pCoreServer.disconnect();
-      bCoreServer.disconnect();
-      resolve();
-    });
-  });
-  it('#3 Should test with proxy and shutdown', async function() {
-    if (!tree['all'] || !tree['#3']) {
       this.skip();
     }
     return new Promise(async (resolve,reject) => {
@@ -98,10 +72,6 @@ describe('single_config_tests',()=> {
           reject(err);
         }
         assert.strictEqual('worker-signature-with-signed-by-the-private-key-of-the-sender-key', res.result.result.workerSig,'workersig dont match');
-        let pOut = pMainController.getNode().getAllOutboundHandshakes().length;
-        let bIn = bMainController.getNode().getAllInboundHandshakes().length;
-        assert.strictEqual(1,  pOut, `${pOut} outbound connections`);
-        assert.strictEqual(1,  bIn, `${bIn} inbound connections`);
         await pMainController.shutdownSystem();
         await bMainController.shutdownSystem();
         pCoreServer.disconnect();

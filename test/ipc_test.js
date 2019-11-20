@@ -11,17 +11,17 @@ const EnvironmentBuilder = require('../src/main_controller/EnvironmentBuilder');
 const expect = require('expect');
 
 
-it('#1 send acks to each other', async function() {
+it('#1 send acks to each other', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#1']) {
     this.skip();
   }
 
   return new Promise(async (resolve) => {
-    const uri = 'tcp://127.0.0.1:5555';
+    const uri = 'tcp://127.0.0.1:55555';
     let serverOk = false;
     let clientOk = false;
-    const fakeMessage = {id: 'deadbeaf', type: 'GetRegistrationParams'};
+    const fakeMessage = { id: 'deadbeaf', type: 'GetRegistrationParams' };
 
     const serverSocket = zmq.socket('rep');
     serverSocket.bindSync(uri);
@@ -30,7 +30,7 @@ it('#1 send acks to each other', async function() {
       if (JSON.parse(msg).type === 'GetRegistrationParams') {
         serverOk = true;
       }
-      serverSocket.send(JSON.stringify({'serverOk': true}));
+      serverSocket.send(JSON.stringify({ 'serverOk': true }));
     });
 
     const ipcClient = new IpcClient(uri);
@@ -48,7 +48,7 @@ it('#1 send acks to each other', async function() {
   });
 });
 
-it('#2 GetRegistrationParams - mock server', async function() {
+it('#2 GetRegistrationParams - mock server', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#2']) {
     this.skip();
@@ -57,33 +57,31 @@ it('#2 GetRegistrationParams - mock server', async function() {
   const reportSig = '0x9e6a05bf42a627e3066b0067dc98bc22670df0061e42eed6a5af51ffa2e3b41949b6b177980b68c43855d4df71b2817b30f54bc40566225e6b721eb21fc0aba9b58e043bfaaae320e8d9613d514c0694b36b3fe41588b15480a6f7a4d025c244af531c7145d37f8b28c223bfb46c157470246e3dbd4aa15681103df2c8fd47bb59f7b827de559992fd24260e1113912bd98ba5cd769504bb5f21471ecd4f7713f600ae5169761c9047c09d186ad91f5ff89893c13be15d11bb663099192bcf2ce81f3cbbc28c9db93ce1a4df1141372d0d738fd9d0924d1e4fe58a6e2d12a5d2f723e498b783a6355ca737c4b0feeae3285340171cbe96ade8d8b926b23a8c90';
   return new Promise(async (resolve) => {
     // start the server
-    const uri = 'tcp://127.0.0.1:5556';
+    const uri = 'tcp://127.0.0.1:55556';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(100);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
     const c2 = channels.channel2;
-    const coreRuntime = new CoreRuntime({uri: uri});
+    const coreRuntime = new CoreRuntime({ uri: uri });
     coreRuntime.setChannel(c2);
-    await nodeUtils.sleep(1000);
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetRegistrationParams},
-        constants.CORE_REQUESTS.GetRegistrationParams );
+    const reqEnv = new Envelop(true, { type: constants.CORE_REQUESTS.GetRegistrationParams },
+      constants.CORE_REQUESTS.GetRegistrationParams);
     c1.sendAndReceive(reqEnv)
-        .then((resEnv)=>{
-          expect(resEnv.content().result.report).toBe(report);
-          expect(resEnv.content().result.signature).toBe(reportSig);
-          expect(resEnv.content().result.signingKey.length).toBe(42);
+      .then((resEnv) => {
+        expect(resEnv.content().result.report).toBe(report);
+        expect(resEnv.content().result.signature).toBe(reportSig);
+        expect(resEnv.content().result.signingKey.length).toBe(42);
 
-          coreRuntime.disconnect();
-          coreServer.disconnect();
-          resolve();
-        });
+        coreRuntime.disconnect();
+        coreServer.disconnect();
+        resolve();
+      });
   });
 });
 
-it('#3 GetAllTips - mock server', async function() {
+it('#3 GetAllTips - mock server', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -94,21 +92,19 @@ it('#3 GetAllTips - mock server', async function() {
     'nickname': 'peer',
     'idPath': null,
   };
-  const uri = 'tcp://127.0.0.1:5557';
+  const uri = 'tcp://127.0.0.1:55557';
   return new Promise(async (resolve) => {
     // start the server (core)
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(1500);
     // start the client (enigma-p2p)
     const builder = new EnvironmentBuilder();
     const mainController = await builder
-        .setNodeConfig(peerConfig)
-        .setIpcConfig({uri: uri})
-        .build();
-    await nodeUtils.sleep(2000);
+      .setNodeConfig(peerConfig)
+      .setIpcConfig({ uri: uri })
+      .build();
     const fromCache = false;
-    mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates)=>{
+    mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates) => {
       expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
       expect(missingStates.length).toBe(3);
       expect(missingStates[0].key).toBe(10);
@@ -122,43 +118,41 @@ it('#3 GetAllTips - mock server', async function() {
   });
 });
 
-it('#4 getNewTaskEncryptionKey - mock server', async function() {
+it('#4 getNewTaskEncryptionKey - mock server', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#4']) {
     this.skip();
   }
-  const pubkey = '2ea8e4cefb78efd0725ed12b23b05079a0a433cc8a656f212accf58672fee44a20cfcaa50466237273e762e49ec912be613'+
+  const pubkey = '2ea8e4cefb78efd0725ed12b23b05079a0a433cc8a656f212accf58672fee44a20cfcaa50466237273e762e49ec912be613' +
     '58d5e90bff56a53a0ed42abfe27e3';
   return new Promise(async (resolve) => {
     // start the server
-    const uri = 'tcp://127.0.0.1:5558';
+    const uri = 'tcp://127.0.0.1:55558';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(1000);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
     const c2 = channels.channel2;
-    const coreRuntime = new CoreRuntime({uri: uri});
+    const coreRuntime = new CoreRuntime({ uri: uri });
     coreRuntime.setChannel(c2);
-    await nodeUtils.sleep(1000);
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.NewTaskEncryptionKey, userPubKey: pubkey},
-        constants.CORE_REQUESTS.NewTaskEncryptionKey );
+    const reqEnv = new Envelop(true, { type: constants.CORE_REQUESTS.NewTaskEncryptionKey, userPubKey: pubkey },
+      constants.CORE_REQUESTS.NewTaskEncryptionKey);
     c1.sendAndReceive(reqEnv)
-        .then((resEnv)=>{
-          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
-          expect(resEnv.id()).toBe(reqEnv.id());
-          expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
-          expect(resEnv.content().result.workerSig).toBeTruthy();
-          coreRuntime.disconnect();
-          coreServer.disconnect();
-          resolve();
-        });
+      .then((resEnv) => {
+        expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.NewTaskEncryptionKey);
+        expect(resEnv.id()).toBe(reqEnv.id());
+        expect(resEnv.content().id).toBe(reqEnv.content().id);
+        expect(resEnv.content().result.workerEncryptionKey).toBeTruthy();
+        expect(resEnv.content().result.workerSig).toBeTruthy();
+        coreRuntime.disconnect();
+        coreServer.disconnect();
+        resolve();
+      });
   });
 });
 
-it('#5 GetPTTRequest - mock server', async function() {
+it('#5 GetPTTRequest - mock server', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();
@@ -166,60 +160,56 @@ it('#5 GetPTTRequest - mock server', async function() {
 
   return new Promise(async (resolve) => {
     // start the server
-    const uri = 'tcp://127.0.0.1:6785';
+    const uri = 'tcp://127.0.0.1:66785';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(1000);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
     const c2 = channels.channel2;
-    const coreRuntime = new CoreRuntime({uri: uri});
+    const coreRuntime = new CoreRuntime({ uri: uri });
     coreRuntime.setChannel(c2);
-    await nodeUtils.sleep(1000);
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetPTTRequest},
-        constants.CORE_REQUESTS.GetPTTRequest);
+    const reqEnv = new Envelop(true, { type: constants.CORE_REQUESTS.GetPTTRequest },
+      constants.CORE_REQUESTS.GetPTTRequest);
     c1.sendAndReceive(reqEnv)
-        .then((resEnv) => {
-          expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
-          expect(resEnv.id()).toBe(reqEnv.id());
-          expect(resEnv.content().id).toBe(reqEnv.content().id);
-          expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_REQUEST_MOCK);
-          expect(resEnv.content().result.workerSig).toBeTruthy();
-          coreRuntime.disconnect();
-          coreServer.disconnect();
-          resolve();
-        });
+      .then((resEnv) => {
+        expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetPTTRequest);
+        expect(resEnv.id()).toBe(reqEnv.id());
+        expect(resEnv.content().id).toBe(reqEnv.content().id);
+        expect(resEnv.content().result.request).toBe(CoreServer.GET_PTT_REQUEST_MOCK);
+        expect(resEnv.content().result.workerSig).toBeTruthy();
+        coreRuntime.disconnect();
+        coreServer.disconnect();
+        resolve();
+      });
   });
 });
 
-it('#6 GetTips - mock server', async function() {
+it('#6 GetTips - mock server', async function () {
   const tree = TEST_TREE['ipc'];
   if (!tree['all'] || !tree['#6']) {
     this.skip();
   }
   return new Promise(async (resolve) => {
     // start the server
-    const uri = 'tcp://127.0.0.1:7896';
+    const uri = 'tcp://127.0.0.1:77896';
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
-    await nodeUtils.sleep(1000);
     // start the client
     const channels = Channel.biDirectChannel();
     const c1 = channels.channel1;
     const c2 = channels.channel2;
-    const coreRuntime = new CoreRuntime({uri: uri});
+    const coreRuntime = new CoreRuntime({ uri: uri });
     coreRuntime.setChannel(c2);
-    await nodeUtils.sleep(1000);
     const input = ['0x98456a', '0xdeadbeaf'];
-    const reqEnv = new Envelop(true, {type: constants.CORE_REQUESTS.GetTips, input: input},
+    const reqEnv = new Envelop(true, { type: constants.CORE_REQUESTS.GetTips, input: input },
       constants.CORE_REQUESTS.GetTips);
     c1.sendAndReceive(reqEnv)
       .then((resEnv) => {
         expect(resEnv.content().type).toBe(constants.CORE_REQUESTS.GetTips);
         expect(resEnv.id()).toBe(reqEnv.id());
         expect(resEnv.content().id).toBe(reqEnv.content().id);
-        for (let i=0; i<input.length; i++) {
+        for (let i = 0; i < input.length; i++) {
           expect(resEnv.content().result.tips[i].address).toEqual(input[i]);
           expect(resEnv.content().result.tips[i].key).toBeTruthy();
           expect(resEnv.content().result.tips[i].data).toBeTruthy();

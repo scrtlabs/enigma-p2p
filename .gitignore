@@ -3,11 +3,7 @@ node_modules
 
 ### Visual studio code ignore ###
 
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+.vscode/
 
 ### Webstorm IDE ignore files ###
 

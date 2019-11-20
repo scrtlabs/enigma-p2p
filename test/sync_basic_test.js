@@ -15,7 +15,7 @@ const constants = require('../src/common/constants');
 const MsgTypes = constants.P2P_MESSAGES;
 const DbUtils = require('../src/common/DbUtils');
 
-const SYNC_SCENARIOS = {EMPTY_DB: 1, PARTIAL_DB_WITH_SOME_ADDRESSES: 2, PARTIAL_DB_WITH_ALL_ADDRESSES: 3};
+const SYNC_SCENARIOS = { EMPTY_DB: 1, PARTIAL_DB_WITH_SOME_ADDRESSES: 2, PARTIAL_DB_WITH_ALL_ADDRESSES: 3 };
 
 const EnigmaContractAPIBuilder = require(path.join(__dirname, '../src/ethereum/EnigmaContractAPIBuilder'));
 const Verifier = require('../src/worker/state_sync/receiver/StateSyncReqVerifier');
@@ -25,28 +25,34 @@ const SyncMsgBuilder = require('../src/policy/p2p_messages/sync_messages').SyncM
 
 const parallel = require('async/parallel');
 
-
 async function initEthereumStuff() {
+  const workerAccount = new Web3().eth.accounts.create();
+
   const builder = new EnigmaContractAPIBuilder();
-  const res = await builder.createNetwork().deploy().build();
+  const res = await builder.setAccountKey(workerAccount.privateKey).setMinimunConfirmations(0).createNetwork().deploy().build();
   const enigmaContractApi = res.api;
   const web3 = enigmaContractApi.w3();
 
   const accounts = await web3.eth.getAccounts();
+  const WORKER_WEI_VALUE = 100000000000000000;
+  await web3.eth.sendTransaction({ from: accounts[4], to: workerAccount.address, value: WORKER_WEI_VALUE });
+
   const workerEnclaveSigningAddress = accounts[0];
-  const workerAddress = accounts[1];
+  const workerAddress = workerAccount.address;
   const workerReport = '0x123456';
   const signature = web3.utils.randomHex(32);
   const depositValue = 1000;
 
-  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, {from: workerAddress});
-  await enigmaContractApi.deposit(workerAddress, depositValue, {from: workerAddress});
-  await enigmaContractApi.login({from: workerAddress});
+  await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+  await enigmaContractApi.deposit(workerAddress, depositValue, { from: workerAddress });
+  await enigmaContractApi.login({ from: workerAddress });
 
-  return {enigmaContractAddress: res.enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
+  return {
+    enigmaContractAddress: res.enigmaContractAddress, enigmaContractApi: enigmaContractApi, web3: web3,
     workerEnclaveSigningAddress: workerEnclaveSigningAddress,
     workerAddress: workerAddress,
-    environment: res.environment};
+    environment: res.environment
+  };
 }
 
 async function stopEthereumStuff(environment) {
@@ -199,7 +205,8 @@ function prepareSyncTestData(scenario) {
         207, 92, 200, 194, 48, 70, 123, 210, 240, 15, 213, 37, 16, 235, 133, 77, 158, 220, 171, 33, 256, 22, 229, 31,
         82, 253, 160, 2, 1, 133, 12, 135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
         88, 135, 204, 213, 199, 50, 191, 7, 61, 104, 87, 210, 127, 76, 163, 11, 175, 114, 207, 167, 26, 249, 222, 222, 73, 175, 207, 222, 86, 42, 236, 92, 194, 214,
-        28, 195, 207, 222, 86, 42, 236, 92, 194, 214]},
+        28, 195, 207, 222, 86, 42, 236, 92, 194, 214]
+    },
     {
       address: [13, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 42],
       key: 0,
@@ -265,25 +272,27 @@ function prepareSyncTestData(scenario) {
 
 
 function syncTest(scenario) {
-  return new Promise(async (resolve)=>{
+  return new Promise(async (resolve) => {
     const res = prepareSyncTestData(scenario);
     const tips = res.tips;
-    const expectedMap= res.expected;
+    const expectedMap = res.expected;
 
     const bootstrapNodes = ['/ip4/0.0.0.0/tcp/' + B2Port + '/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm'];
 
     const dnsConfig = {
-      'bootstrapNodes': bootstrapNodes,
-      'port': B2Port,
-      'nickname': 'dns',
-      'idPath': B2Path,
+      bootstrapNodes: bootstrapNodes,
+      port: B2Port,
+      nickname: 'dns',
+      idPath: B2Path,
+      extraConfig: {}
     };
     const peerConfig = {
-      'bootstrapNodes': bootstrapNodes,
-      'nickname': 'peer',
+      bootstrapNodes: bootstrapNodes,
+      nickname: 'peer',
+      extraConfig: {}
     };
-    const dnsMockUri = 'tcp://127.0.0.1:4444';
-    const peerMockUri = 'tcp://127.0.0.1:5555';
+    const dnsMockUri = 'tcp://127.0.0.1:44444';
+    const peerMockUri = 'tcp://127.0.0.1:55555';
 
     const dnsMockCore = new CoreServer('dns');
     const peerMockCore = new CoreServer('peer');
@@ -308,40 +317,40 @@ function syncTest(scenario) {
     // start the dns
     const dnsBuilder = new EnvironmentBuilder();
     const dnsController = await dnsBuilder
-        .setNodeConfig(dnsConfig)
-        .setIpcConfig({uri: dnsMockUri})
-        .build();
+      .setNodeConfig(dnsConfig)
+      .setIpcConfig({ uri: dnsMockUri })
+      .build();
 
     // start the dns
     const peerBuilder = new EnvironmentBuilder();
     const peerController = await peerBuilder
-        .setNodeConfig(peerConfig)
-        .setIpcConfig({uri: peerMockUri})
-        .setEthereumConfig({enigmaContractAddress: enigmaContractAddress})
-        .build();
+      .setNodeConfig(peerConfig)
+      .setIpcConfig({ uri: peerMockUri })
+      .setEthereumConfig({ enigmaContractAddress: enigmaContractAddress })
+      .build();
 
     // write all states to ethereum
     await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
-    await testUtils.sleep(2000);
+    await testUtils.sleep(8000);
     waterfall([
-      (cb)=>{
+      (cb) => {
         // announce
-        dnsController.getNode().tryAnnounce((err, ecids)=>{
+        dnsController.getNode().tryAnnounce((err, ecids) => {
           assert.strictEqual(null, err, 'error announcing' + err);
           cb(null);
         });
       },
-      (cb)=>{
+      (cb) => {
         // sync
-        peerController.getNode().syncReceiverPipeline(async (err, statusResult)=>{
+        peerController.getNode().syncReceiverPipeline(async (err, statusResult) => {
           assert.strictEqual(null, err, 'error syncing' + err);
-          statusResult.forEach((result)=> {
+          statusResult.forEach((result) => {
             assert.strictEqual(true, result.success);
           });
           cb(null, statusResult);
         });
       },
-    ], async (err, statusResult)=>{
+    ], async (err, statusResult) => {
       assert.strictEqual(null, err, 'error in waterfall ' + err);
 
       // validate the results
@@ -380,7 +389,7 @@ function createSyncMsgForVerifierTest(type, data) {
 
   if (type === MsgTypes.SYNC_STATE_RES) {
     rawMsg.type = 'GetDeltas';
-    rawMsg.result = {deltas: data};
+    rawMsg.result = { deltas: data };
   } else if (type === MsgTypes.SYNC_BCODE_RES) {
     rawMsg.type = 'GetContract';
     rawMsg.result = {
@@ -442,100 +451,101 @@ function prepareDataForVerifierTest() {
     88, 135, 204]).toString('hex');
 
   const missing = {};
-  missing[address0] = {deltas: {0: crypto.hash(delta0_0), 1: crypto.hash(delta0_1)}, bytecodeHash: crypto.hash(bytecode)};
-  missing[address1] = {deltas: {0: crypto.hash(delta1_0)}};
+  missing[address0] = { deltas: { 0: crypto.hash(delta0_0), 1: crypto.hash(delta0_1) }, bytecodeHash: crypto.hash(bytecode) };
+  missing[address1] = { deltas: { 0: crypto.hash(delta1_0) } };
 
-  const wrongMsg1 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{address: address1, key: '1', data: delta1_0}]);
+  const wrongMsg1 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{ address: address1, key: '1', data: delta1_0 }]);
   const expectedErr1 = 'received an unknown index ' + '1' + ' for address ' + address1;
 
   let wrongAddress = web3.utils.randomHex(32);
   wrongAddress = address1.slice(2, address1.length);
 
-  const wrongMsg2 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{address: wrongAddress, key: '0', data: delta1_0}]);
+  const wrongMsg2 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{ address: wrongAddress, key: '0', data: delta1_0 }]);
   const expectedErr2 = 'received an unknown address ' + wrongAddress + ' in SyncStateRes';
 
-  const correctSyncStateMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{address: address1, key: '0', data: delta1_0}]);
+  const correctSyncStateMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{ address: address1, key: '0', data: delta1_0 }]);
 
   const wrongData1 = Array.from(delta1_0);
   wrongData1.push(130);
 
-  const wrongMsg3 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{address: address1, key: '0', data: wrongData1}]);
+  const wrongMsg3 = createSyncMsgForVerifierTest(MsgTypes.SYNC_STATE_RES, [{ address: address1, key: '0', data: wrongData1 }]);
   const expectedErr3 = 'delta received for address ' + address1 + ' in index ' + '0' + ' does not match remote hash';
 
-  const wrongMsg4 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {address: address1, bytecode: bytecode});
+  const wrongMsg4 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, { address: address1, bytecode: bytecode });
   const expectedErr4 = 'received a bytecodeHash for unknown address ' + address1;
 
-  const wrongMsg5 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {address: wrongAddress, bytecode: bytecode});
+  const wrongMsg5 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, { address: wrongAddress, bytecode: bytecode });
   const expectedErr5 = 'received an unknown address ' + wrongAddress + ' in SyncBcodeRes';
 
-  const correctSyncBytecodeMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {address: address0, bytecode: bytecode});
+  const correctSyncBytecodeMsg = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, { address: address0, bytecode: bytecode });
 
   const wrongData2 = Array.from(bytecode);
   wrongData2.push(130);
 
-  const wrongMsg6 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, {address: address0, bytecode: wrongData2});
+  const wrongMsg6 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_RES, { address: address0, bytecode: wrongData2 });
   const expectedErr6 = 'bytecodeHash received for address ' + address0 + ' does not match remote hash';
 
-  const wrongMsg7 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_REQ, {address: address0, bytecode: wrongData2});
+  const wrongMsg7 = createSyncMsgForVerifierTest(MsgTypes.SYNC_BCODE_REQ, { address: address0, bytecode: wrongData2 });
   const expectedErr7 = 'received an unknown msgType ' + MsgTypes.SYNC_BCODE_REQ;
 
-  const expected = [{msg: wrongMsg1, err: expectedErr1, res: false}, {msg: wrongMsg2, err: expectedErr2, res: false},
-    {msg: wrongMsg3, err: expectedErr3, res: false}, {msg: correctSyncStateMsg, err: null, res: true},
-    {msg: wrongMsg4, err: expectedErr4, res: false}, {msg: wrongMsg5, err: expectedErr5, res: false},
-    {msg: wrongMsg6, err: expectedErr6, res: false}, {msg: wrongMsg7, err: expectedErr7, res: false},
-    {msg: correctSyncBytecodeMsg, err: null, res: true}];
+  const expected = [{ msg: wrongMsg1, err: expectedErr1, res: false }, { msg: wrongMsg2, err: expectedErr2, res: false },
+  { msg: wrongMsg3, err: expectedErr3, res: false }, { msg: correctSyncStateMsg, err: null, res: true },
+  { msg: wrongMsg4, err: expectedErr4, res: false }, { msg: wrongMsg5, err: expectedErr5, res: false },
+  { msg: wrongMsg6, err: expectedErr6, res: false }, { msg: wrongMsg7, err: expectedErr7, res: false },
+  { msg: correctSyncBytecodeMsg, err: null, res: true }];
 
-  return {expected: expected, missing: missing};
+  return { expected: expected, missing: missing };
 }
 
-it('#1 should tryAnnounce action from mock-db no-cache', async function() {
+it('#1 should tryAnnounce action from mock-db no-cache', async function () {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#1']) {
     this.skip();
   }
-  return new Promise(async (resolve)=>{
-    const uri ='tcp://127.0.0.1:6111';
+  return new Promise(async (resolve) => {
+    const uri = 'tcp://127.0.0.1:6111';
     const coreServer = new CoreServer();
     const peerConfig = {
-      'bootstrapNodes': [],
-      'port': '0',
-      'nickname': 'peer',
-      'idPath': null,
+      bootstrapNodes: [],
+      port: '0',
+      nickname: 'peer',
+      idPath: null,
+      extraConfig: {}
     };
     let mainController;
     waterfall([
-      (cb)=>{
+      (cb) => {
         // start the mock server first
         coreServer.setProvider(true);
         coreServer.runServer(uri);
         cb(null);
       },
-      (cb)=>{
+      (cb) => {
         const builder = new EnvironmentBuilder();
         builder
-            .setNodeConfig(peerConfig)
-            .setIpcConfig({uri: uri})
-            .build().then((instance)=>{
-              mainController = instance;
-              cb(null);
-            });
+          .setNodeConfig(peerConfig)
+          .setIpcConfig({ uri: uri })
+          .build().then((instance) => {
+            mainController = instance;
+            cb(null);
+          });
       },
-      (cb)=>{
+      (cb) => {
         // announce
-        mainController.getNode().tryAnnounce((err, ecids)=>{
+        mainController.getNode().tryAnnounce((err, ecids) => {
           assert.strictEqual(null, err, 'error announcing' + err);
           cb(null, ecids);
         });
       },
-      (ecids, cb)=>{
+      (ecids, cb) => {
         // verify announcement FindContentProviderAction action
-        mainController.getNode().findProviders(ecids, (findProvidersResult)=>{
+        mainController.getNode().findProviders(ecids, (findProvidersResult) => {
           const keyCounter = findProvidersResult.getKeysList().length;
           assert.strictEqual(ecids.length, keyCounter, 'not enough keys');
           cb(null);
         });
       },
-    ], async (err)=>{
+    ], async (err) => {
       assert.strictEqual(null, err, 'error in waterfall ' + err);
       await mainController.getNode().stop();
       mainController.getIpcClient().disconnect();
@@ -545,7 +555,7 @@ it('#1 should tryAnnounce action from mock-db no-cache', async function() {
   });
 });
 
-it('#2 Perform a full sync scenario - from scratch', async function() {
+it('#2 Perform a full sync scenario - from scratch', async function () {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#2']) {
     this.skip();
@@ -554,7 +564,7 @@ it('#2 Perform a full sync scenario - from scratch', async function() {
   return syncTest(SYNC_SCENARIOS.EMPTY_DB);
 });
 
-it('#3 Perform a full sync scenario - from mid-with-some-addresses', async function() {
+it('#3 Perform a full sync scenario - from mid-with-some-addresses', async function () {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#3']) {
     this.skip();
@@ -562,7 +572,7 @@ it('#3 Perform a full sync scenario - from mid-with-some-addresses', async funct
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES);
 });
 
-it('#4 Perform a full sync scenario - from mid-with-all-addresses', async function() {
+it('#4 Perform a full sync scenario - from mid-with-all-addresses', async function () {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#4']) {
     this.skip();
@@ -570,13 +580,13 @@ it('#4 Perform a full sync scenario - from mid-with-all-addresses', async functi
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
 });
 
-it('#5 Test verifier', async function() {
+it('#5 Test verifier', async function () {
   const tree = TEST_TREE['sync_basic'];
   if (!tree['all'] || !tree['#5']) {
     this.skip();
   }
 
-  return new Promise(async (resolve)=> {
+  return new Promise(async (resolve) => {
     const res = prepareDataForVerifierTest();
 
     const expected = res.expected;

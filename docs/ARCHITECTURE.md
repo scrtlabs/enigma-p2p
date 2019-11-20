@@ -34,8 +34,6 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
     - [EnigmaNode](#enigmanode)
     - [P2P Messages](#p2p-messages)
     - [Incoming requests](#incoming-requests)
-    - [PeerBank](#peerbank)
-    - [Discovery and bootstrap](#discovery-and-bootstrap)
     - [State synchronization](#state-synchronization)
     - [PubSub - how to "broadcast"](#pubsub---how-to-%22broadcast%22)
     - [Connecting it all - controller](#connecting-it-all---controller)
@@ -46,7 +44,6 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 - [Running the tests](#running-the-tests)
 - [How it works](#how-it-works)
   - [Overview on start](#overview-on-start)
-  - [Persistent Peer Discovery](#persistent-peer-discovery)
   - [Syncing a Worker](#syncing-a-worker)
     - [Consensus](#consensus)
     - [Content Routing](#content-routing)
@@ -127,9 +124,8 @@ Everything is based on notifications and responses to those notifications.
 Notifications in the project come in 2 forms: 
 
 1) [EventEmitter](https://nodejs.org/api/events.html#events_events) 
-    - are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124)
-    - for example the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js#L299) will notify on a finished handshake and let the `NodeController` decide [what to do with it](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L72).
-
+    - Are used inside [Worker](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker) often. This is how the components communicate with the [NodeController](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L124).
+    
 2) Channels and communicators
 
     -Explained later in the `Main Controller` section, used for `request/response` type of communication unlike `EventEmitter` where it is stateless. 
@@ -137,7 +133,7 @@ Notifications in the project come in 2 forms:
 
 ### Command pattern and Actions 
 
-Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modidications to fit NodeJS style. 
+Since everything is Event driven it means that we want to trigger different things once some event occurs. The design here is based on classic [Command Pattern](https://en.wikipedia.org/wiki/Command_pattern) but with modifications to fit NodeJS style. 
 Terminology wise, it's called **Actions**. 
 Everywhere in the project `notifications` lead to `Actions`. 
 The rational here is that objects hold the **concrete implementation**  and Actions are the **operational logic**. 
@@ -263,15 +259,6 @@ The messages are used as [concrete classes](https://github.com/enigmampc/enigma-
 All the inbound messages get accepted by the [ProtocolHandler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L18) class. 
 Building on top of libp2p terminology, different messages are different protocols and each one gets its own [handler](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ProtcolHandler.js#L42). 
 
-### PeerBank 
-
-[PeerBank](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/PeerBank.js#L5) is a class that holds **potential** peers. Once the node connects to some `peer_x` it will be removed from the `PeerBank`.
-This is used to collect peers via `findpeers` message and the `seeds` that come from `Pong` messages.
-
-### Discovery and bootstrap 
-
-The login of what to do is implemented in the [ConnectionManager](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/handlers/ConnectionManager.js) but the operational logic is implemented in [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js), usage [example](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/controller/NodeController.js#L290).
-
 ### State synchronization
 
 **Receiver**
@@ -329,7 +316,7 @@ npm run test
 ```
 
 ## Troubleshooting
-If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the ports `5555`, `5556`, `5557`, `5558`, `6785`, `7890` (from `./test/ipc_test.js`).
+If while running the tests you recieve an `Address already in use` error, try running `sudo netstat -ltnp` to see which processes on your machine are already using one of the port that was reported as already in use (from `./test/ipc_test.js`).
 
 # How it works
 
@@ -348,11 +335,6 @@ Starting the node after Core. Set some configurations such as network settings, 
 
 Connect to hardcoded well-known Bootstrap nodes to get seeds (i.e peers) from.
 
-* Persistent Discovery
-
-Service that is always alive and optimizes for "Optimal DHT" state
-(i.e take care of connection stability).
-
 * Sync State
 
 Synchronize the Worker state: Secret contracts bytecode and deltas.
@@ -369,33 +351,6 @@ Such as Ethereum listener, JsonRpcAPI etc.
 
 Register with Enigma.sol with all the required steps including Enclave Report.
 
-## Persistent Peer Discovery
-
-**The goal:** 
-
-reach **optimal DHT** which [defaults to 8 outbound connections](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/common/constants.js#L65).
-
-The persistent peer discovery can be tested with `$discover` cli command. 
-This will trigger `CONSISTENT_DISCOVERY` notification which maps to [ConsistentDiscoveryAction](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/controller/actions/connectivity/ConsistentDiscoveryAction.js) with the following default params: 
-```json
-'delay': 500,
-'maxRetry': 10,
-'timeout': 100000,
-```
-
-This can be called upon everytime a [disconnect event](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/worker/handlers/ProtcolHandler.js#L300) happens. 
-
-
-First, Bootstrapping the network (happens before `ConsistentPeerDiscovery`). 
-We start handshaking `Bootstrap nodes` that are hardcoded into the code or added manually in the [cli](https://github.com/enigmampc/enigma-p2p/blob/013b687fedf334b0566720a98bf1f9799989a0fe/src/cli/cli_app.js#L171).
-
-<img src="./DiscoveryBoot.png"
-     alt="Implementation 5" />
-
-Then we do persistent discovery based on Visitor Pattern.
-
-<img src="./PersistentDiscovery.png"
-     alt="Implementation 6" />
 ## Syncing a Worker
 
 Worker synchronization is done using libp2p content routing mechanisms. 

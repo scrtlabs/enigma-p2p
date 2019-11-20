@@ -1,7 +1,5 @@
 {
-  "bootstrapNodes" : ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm",
-                      "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP"],
-  "optimalDht" : 4,
+  "bootstrapNodes" : [],
   "port" : "0",
   "nickname" : "peer",
   "multiAddrs" : ["/ip4/0.0.0.0/tcp/"],

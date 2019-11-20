@@ -14,7 +14,7 @@ const tempdir = require('tempdir');
  * */
 
 // all config per node
-const getDefault = ()=>{
+const getDefault = () => {
   return {
     withLogger: true, // with logger output to std
     isBootstrap: false, // if is event bootsrap node or not
@@ -40,16 +40,18 @@ const getDefault = ()=>{
 /**
  * create n number of nodes all connected to bStrap
  * */
-module.exports.createN = async (n, optionsOverride)=>{
+
+// TODO: look at basic_eth_test to adjust this code for the production writer (private key)
+module.exports.createN = async (n, optionsOverride) => {
   let optionsOverrideBStrap = {};
-  let optionsOverridePeer= {};
+  let optionsOverridePeer = {};
   let finalBstrapOpts = {};
   if (optionsOverride) {
     if (optionsOverride.bOpts) {
-      optionsOverrideBStrap= optionsOverride.bOpts;
+      optionsOverrideBStrap = optionsOverride.bOpts;
     }
     if (optionsOverride.pOpts) {
-      optionsOverridePeer= optionsOverride.pOpts;
+      optionsOverridePeer = optionsOverride.pOpts;
     }
   }
   if (optionsOverrideBStrap) {
@@ -58,28 +60,29 @@ module.exports.createN = async (n, optionsOverride)=>{
   finalBstrapOpts.isBootstrap = true;
   finalBstrapOpts = nodeUtils.applyDelta(getDefault(), optionsOverrideBStrap);
   optionsOverridePeer = nodeUtils.applyDelta(getDefault(), optionsOverridePeer);
+
   const bNode = await _createNode(finalBstrapOpts);
   const peers = [];
-  for (let i =0; i<n; ++i) {
+  for (let i = 0; i < n; ++i) {
     const p = await _createNode(optionsOverridePeer);
     peers.push(p);
   }
-  return {peers: peers, bNode: bNode};
+  return { peers: peers, bNode: bNode };
 };
 /**
  * craete connected 2 nodes
  * */
 
-module.exports.createTwo = async (optionsOverride)=>{
+module.exports.createTwo = async (optionsOverride) => {
   let optionsOverrideBStrap = {};
-  let optionsOverridePeer= {};
+  let optionsOverridePeer = {};
   let finalBstrapOpts = {};
   if (optionsOverride) {
     if (optionsOverride.bOpts) {
-      optionsOverrideBStrap= optionsOverride.bOpts;
+      optionsOverrideBStrap = optionsOverride.bOpts;
     }
     if (optionsOverride.pOpts) {
-      optionsOverridePeer= optionsOverride.pOpts;
+      optionsOverridePeer = optionsOverride.pOpts;
     }
   }
   if (optionsOverrideBStrap) {
@@ -91,17 +94,17 @@ module.exports.createTwo = async (optionsOverride)=>{
 };
 
 
-const _createTwo = async (optionsOverrideBStrap, optionsOverridePeer)=>{
+const _createTwo = async (optionsOverrideBStrap, optionsOverridePeer) => {
   const peerOpts = nodeUtils.applyDelta(getDefault(), optionsOverridePeer);
   const bNodeOpts = nodeUtils.applyDelta(getDefault(), optionsOverrideBStrap);
   // create bootstrap node here
   const bNode = await _createNode(bNodeOpts);
   // craete peeravishai@enigma.co
   const peer = await _createNode(peerOpts);
-  return {bNode: bNode, peer: peer};
+  return { bNode: bNode, peer: peer };
 };
 
-module.exports.createNode = async function(options) {
+module.exports.createNode = async function (options) {
   let final = {};
   if (options) {
     final = options;
@@ -110,7 +113,8 @@ module.exports.createNode = async function(options) {
   return await _createNode(final);
 };
 
-const _createNode = async (options)=>{
+// TODO: look at basic_eth_test to adjust this code for the production writer (private key)
+const _createNode = async (options) => {
   const nodeConfigObject = {
     'bootstrapNodes': _B1Addr,
     'port': null,
@@ -153,7 +157,7 @@ const _createNode = async (options)=>{
     const uri = 'tcp://127.0.0.1:' + port;
     coreServer = new CoreServer();
     coreServer.runServer(uri, options.stateful);
-    builder.setIpcConfig({uri: uri});
+    builder.setIpcConfig({ uri: uri });
   }
   if (options.withProxy) {
     let port;
@@ -168,6 +172,7 @@ const _createNode = async (options)=>{
   }
   if (options.withEth) {
     builder.setEthereumConfig({
+      minConfirmations: 0,
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
       ethereumAddress: options.ethWorkerAddress
@@ -190,12 +195,12 @@ const _createNode = async (options)=>{
       'file': false,
     });
   }
-  nodeConfigObject.extraConfig.principal = {uri: options.principalUri};
+  nodeConfigObject.extraConfig.principal = { uri: options.principalUri };
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
-  return {mainController: mainController, coreServer: coreServer, tasksDbPath: dbPath};
+  return { mainController: mainController, coreServer: coreServer, tasksDbPath: dbPath };
 };
 
-const rand = (min, max)=>{
+const rand = (min, max) => {
   return Math.ceil(Math.random() * (max - min) + min);
 };
 

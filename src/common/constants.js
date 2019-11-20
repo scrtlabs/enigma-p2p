@@ -9,21 +9,15 @@ module.exports.LOG_CONFIG = {
 };
 module.exports.NODE_NOTIFICATIONS = {
   'INIT_WORKER': 'iw', // init https://github.com/enigmampc/enigma-p2p#overview-on-start
-  'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address.
+  'DISCOVERED': 'discovered', // announcing that libp2p build a new PeerInfo from given address
+  'NEW_PEER_CONNECTED': 'connected', // announcing a new peer has connected
   // (ready to be discovered) -> 'peer:discovery' event.
-  'HANDSHAKE_OUTBOUND': 'hs_outbound', // performed handshake with node as outbound operation, e.g. outbound connection
-  'HANDSHAKE_INBOUND': 'hs_inbound', // performed answer to handshake // meaning responded to incoming request
-  'HANDSHAKE_UPDATE': 'handshake_update', // peer:discovery event handshake with pong msg // outbound connection
-  'BOOTSTRAP_FINISH': 'b_update_finish', // update of the connection manager bootstrap finished state
-  'CONSISTENT_DISCOVERY': 'c_discover', // run consistent discovery mechanism
   'PUBSUB_PUB': 'publish', // publish notification that activates a publish action
   'PUBSUB_SUB': 'subscribe', // subscribe to topic
   // TODO:: after PR https://github.com/ipfs/interface-js-ipfs-core/pull/437
   'PUBSUB_UNSUB': 'pubunsub', // unsubscribe from topic
-  'PERSISTENT_DISCOVERY_DONE': 'p_done', // persistent discovery is done, at the end of every attempt to get optimal DHT
   'STATE_SYNC_REQ': 'ssyncreq', // initial request from some remote peer to get states.the provider is receiving this.
   'FIND_CONTENT_PROVIDER': 'findcprovider', // given a list of descriptors find providers in the network
-  'FIND_PEERS_REQ': 'findpeerreq', // send a find peer request message
   'IDENTIFY_MISSING_STATES_FROM_REMOTE': 'identify', // identify the missing states, compare local with remote
   'TRY_RECEIVE_ALL': 'trcva', // try recieve all of the CID's
   'ANNOUNCE_ENG_CIDS': 'aengcids', // announce some general cids
@@ -50,7 +44,7 @@ module.exports.NODE_NOTIFICATIONS = {
   'VERIFY_NEW_TASK': 'verifyreq', // request to perform verification of task
   'TASK_VERIFIED': 'tverified', // request to perform a deploySecretContract or computeTask task
   'TASK_FINISHED': 'tfinished', // notify the task is finished, update network with result
-  'EXEC_TASK' : 'etask', // execute the task
+  'EXEC_TASK': 'etask', // execute the task
   'DEPLOY_SECRET_CONTRACT': 'dscontract', // deploySecretContract jsonrpc
   'RECEIVED_NEW_RESULT': 'rnresult', // result updates receoved from the task results topic
   'GET_TASK_STATUS': 'gtstatus', // get task status
@@ -73,7 +67,6 @@ module.exports.PROTOCOLS = {
   'PEERS_PEER_BOOK': '/getpeerbook',
   'FIND_PEERS': '/findpeers/0.1',
   'HANDSHAKE': '/handshake/0.1',
-  'GROUP_DIAL': '/groupdial',
   'HEARTBEAT': '/heartbeat/0.1',
   'STATE_SYNC': '/sync/0.1',
   'LOCAL_STATE_EXCHAGNE': '/localstateexchange/0.1',
@@ -92,12 +85,6 @@ module.exports.PUBSUB_TOPICS = {
   'TASK_RESULTS': '/taskresults/0.1',
 };
 
-module.exports.DHT_STATUS = {
-  CRITICAL_HIGH_DHT_SIZE: 20,
-  OPTIMAL_DHT_SIZE: 8,
-  MAX_OUTBOUND : 120,
-  CRITICAL_LOW_DHT_SIZE: 3,
-};
 module.exports.MSG_STATUS = {
   OK: 0,
   ERROR: 1,
@@ -105,14 +92,6 @@ module.exports.MSG_STATUS = {
   ERR_SELF_DIAL: 3,
 };
 
-module.exports.CONSISTENT_DISCOVERY_PARAMS = {
-  MAX_RETRY: 10, // stop if more than 10 tries
-  TIMEOUT: 100 * 1000, // stop if timeout millis
-  //TODO:: avishai add exponential backoff interval instead of StoppableTask
-  //TODO:: use 'retry' npm module with randomize flag (http://dthain.blogspot.com/2009/02/exponential-backoff-in-distributed.html)
-  //TODO: look at PRINCIPAL_NODE.retryOptions
-  DELAY: 500, // delay between each try millis
-};
 module.exports.CONTENT_ROUTING = {
   // each sync req msg should consist out of RANGE_SIZE this will determine the amount of "chunks" send over the stream each time.
   RANGE_LIMIT: 10,
@@ -276,7 +255,7 @@ module.exports.PRINCIPAL_NODE = {
   retryOptions: {
     retries: 10, // try 1 time and retry 10 times if needed, total = 11
     factor: 1.7, // https://www.wolframalpha.com/input/?i=Sum%5B1000*x%5Ek,+%7Bk,+0,+9%7D%5D+%3D+5+*+60+*+1000
-    minTimeout: 1* 1000, // the number of milliseconds before starting the first retry
+    minTimeout: 1 * 1000, // the number of milliseconds before starting the first retry
     maxTimeout: 2 * 60 * 1000, // the maximum number of milliseconds between two retries
     randomize: true
   },
@@ -284,3 +263,5 @@ module.exports.PRINCIPAL_NODE = {
 };
 
 module.exports.PTT_END_EVENT = "PTT";
+
+module.exports.MINIMUM_CONFIRMATIONS = 12;
