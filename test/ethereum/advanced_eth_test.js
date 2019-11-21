@@ -12,7 +12,7 @@ const Web3 = require("web3");
 
 const WORKER_WEI_VALUE = 100000000000000000;
 
-describe("State Sync", function() {
+describe("Ethereum advanced", function() {
   async function init() {
     const w3 = new Web3();
 
@@ -41,7 +41,7 @@ describe("State Sync", function() {
   let workerReport, signature;
   let enigmaContractAddress;
 
-  beforeEach(async () => {
+  async function start() {
     const x = await init();
     res = x.res;
     workerAccount = x.workerAccount;
@@ -53,12 +53,12 @@ describe("State Sync", function() {
     workerReport = testParameters.report;
     signature = api.w3().utils.randomHex(32);
     enigmaContractAddress = x.builder.enigmaContractAddress;
-  });
+  }
 
-  afterEach(async () => {
+  async function stop() {
     api.unsubscribeAll();
     await res.environment.destroy();
-  });
+  }
 
   it("empty local tips, partial local tips, partial local tips 2, full local tips", async function() {
     const tree = TEST_TREE.ethereum_advanced;
@@ -67,6 +67,7 @@ describe("State Sync", function() {
     }
 
     return new Promise(async function(resolve) {
+      await start();
       const web3 = api.w3();
 
       const secretContractAddress1 = utils.remove0x(web3.utils.randomHex(32)); // accounts[5];
@@ -240,6 +241,7 @@ describe("State Sync", function() {
 
                   api.unsubscribeAll();
                   await res.environment.destroy();
+                  await stop();
                   resolve();
                 }
               );
@@ -257,10 +259,12 @@ describe("State Sync", function() {
     }
 
     return new Promise(async resolve => {
+      await start();
       await res.environment.destroy();
 
-      StateSync.getRemoteMissingStates(api, [], (err, results) => {
+      StateSync.getRemoteMissingStates(api, [], async (err, results) => {
         assert.notStrictEqual(err, null);
+        await stop();
         resolve();
       });
     });
@@ -273,6 +277,7 @@ describe("State Sync", function() {
     }
 
     return new Promise(async function(resolve) {
+      await start();
       const web3 = api.w3();
 
       const services = new EthereumServices(api);
@@ -370,10 +375,7 @@ describe("State Sync", function() {
         { from: workerAddress }
       );
 
-      api.unsubscribeAll();
-
-      await res.environment.destroy();
-
+      await stop();
       resolve();
     });
   });
@@ -384,6 +386,7 @@ describe("State Sync", function() {
     }
 
     return new Promise(async function(resolve) {
+      await start();
       let ethereumApi = new EthereumAPI(new Logger({ cli: true }));
       await ethereumApi.init({ enigmaContractAddress: enigmaContractAddress });
 
