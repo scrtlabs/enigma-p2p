@@ -407,12 +407,32 @@ class CLI {
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
-    const n = this._node;
-    process.on("SIGINT", async function() {
+
+    const gracefullShutDown = async err => {
+      if (err) {
+        console.log("----> received error <------");
+        console.log(err);
+      }
       console.log("----> closing gracefully <------");
-      await n.stop();
+      try {
+        await this._commands.logout();
+      } catch (e) {
+        // console.log(e);
+      }
       process.exit();
-    });
+    };
+
+    // do something when app is closing
+    process.on("exit", gracefullShutDown);
+
+    // catches ctrl+c event
+    process.on("SIGINT", gracefullShutDown);
+    process.on("SIGHUP", gracefullShutDown);
+    process.on("SIGTERM", gracefullShutDown);
+    process.on("SIGQUIT", gracefullShutDown);
+
+    // catches uncaught exceptions
+    process.on("uncaughtException", gracefullShutDown);
 
     let err = await this._setup();
     if (err) {
