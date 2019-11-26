@@ -3,6 +3,7 @@ const assert = require("assert");
 const testBuilder = require("./testUtils/quickBuilderUtil");
 const testUtils = require("./testUtils/utils");
 const ethTestUtils = require("./ethereum/utils");
+const constants = require("../src/common/constants");
 
 const noLoggerOpts = {
   bOpts: {
@@ -82,10 +83,11 @@ it("#1 run init and healthCheck", async function() {
     coreServer.setReceiverTips(noTipsReceiver);
 
     await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
-    let hc = await testPeer.mainController.healthCheck();
+
+    // request the check straight forward
+    let hc = await testPeer.mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.HEALTH_CHECK, {});
     // assertion checks
     assert.strictEqual(hc.status, true);
-
     assert.strictEqual(hc.core.status, true);
     assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
     assert.strictEqual(hc.ethereum.status, true);

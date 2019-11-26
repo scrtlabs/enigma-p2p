@@ -37,6 +37,8 @@ class CLI {
     this._isLonelyNode = false;
     this._minConfirmations = null;
     this._principalNode = null;
+    this._healthCheckPort = null;
+    this._healthCheckUrl = null;
 
     this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
     this._B1Port = "10300";
@@ -318,6 +320,12 @@ class CLI {
       .option("--lonely-node", "is it the only node in a system", () => {
         this._isLonelyNode = true;
       })
+      .option("--health-check-port [value]", "start a service for health check queries", port => {
+        this._healthCheckPort = port;
+      })
+      .option("--health-check-url [value]", "define the health check queries url", url => {
+        this._healthCheckUrl = url;
+      })
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -396,7 +404,7 @@ class CLI {
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
         console.log("Connecting to Principal Node at " + this._principalNode);
-        nodeConfig.extraConfig = { principal: { uri: this._principalNode } };
+        nodeConfig.extraConfig.principal = { uri: this._principalNode };
       }
       nodeConfig.extraConfig.tm = {
         dbPath: tempdir.sync()
@@ -404,6 +412,9 @@ class CLI {
     }
     if (this._autoInit) {
       nodeConfig.extraConfig.init = { amount: this._depositValue };
+    }
+    if (this._healthCheckPort || this._healthCheckUrl) {
+      nodeConfig.extraConfig.webserver = { healthCheck: { port: this._healthCheckPort, url: this._healthCheckUrl } };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
