@@ -414,11 +414,6 @@ class CLI {
         console.log(err);
       }
       console.log("----> closing gracefully <------");
-      try {
-        await this._commands.logout();
-      } catch (e) {
-        // console.log(e);
-      }
       process.exit();
     };
 
