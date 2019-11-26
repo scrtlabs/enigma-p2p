@@ -318,6 +318,9 @@ class CLI {
       .option("--lonely-node", "is it the only node in a system", () => {
         this._isLonelyNode = true;
       })
+      .option("--logout-and-exit", "Log out and then exit", () => {
+        this._logoutExit = true;
+      })
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -407,6 +410,11 @@ class CLI {
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
+
+    if (this._logoutExit) {
+      await this._commands.logout();
+      process.exit(0);
+    }
 
     const gracefullShutDown = async err => {
       if (err) {
