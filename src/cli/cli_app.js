@@ -422,7 +422,7 @@ class CLI {
         console.log(err);
       }
       console.log("----> closing gracefully <------");
-      process.exit();
+      process.exit(1);
     };
 
     // do something when app is closing
