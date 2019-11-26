@@ -69,7 +69,7 @@ class EthereumVerifier {
    *                                    {Integer} gasLimit
    */
   verifyTaskCreation(task, blockNumber, workerAddress) {
-    return new Promise(resolve => {
+    return new Promise(async resolve => {
       let result = {
         isVerified: false,
         gasLimit: null,
@@ -85,21 +85,20 @@ class EthereumVerifier {
         return resolve(result);
       }
       this._createTaskCreationListener(task, blockNumber, workerAddress, resolve);
-      this._verifyTaskCreationNow(task).then(async res => {
-        if (res.canBeVerified) {
-          this.deleteTaskCreationListener(task.getTaskId());
-          if (res.isVerified) {
-            let res2 = await this.verifySelectedWorker(task, res.taskParams.blockNumber, workerAddress);
-            result.error = res2.error;
-            result.isVerified = res2.isVerified;
-            result.gasLimit = res.taskParams.gasLimit;
-            result.blockNumber = res.taskParams.blockNumber;
-          } else {
-            result.error = res.error;
-          }
-          resolve(result);
+      const res = await this._verifyTaskCreationNow(task);
+      if (res.canBeVerified) {
+        this.deleteTaskCreationListener(task.getTaskId());
+        if (res.isVerified) {
+          const res2 = await this.verifySelectedWorker(task, res.taskParams.blockNumber, workerAddress);
+          result.error = res2.error;
+          result.isVerified = res2.isVerified;
+          result.gasLimit = res.taskParams.gasLimit;
+          result.blockNumber = res.taskParams.blockNumber;
+        } else {
+          result.error = res.error;
         }
-      });
+        resolve(result);
+      }
     });
   }
 
@@ -112,19 +111,18 @@ class EthereumVerifier {
    *                                    {Error} error
    */
   verifyTaskSubmission(task, blockNumber, contractAddress, localTip) {
-    return new Promise(resolve => {
+    return new Promise(async resolve => {
       let result = { isVerified: false, error: null };
       if (!(task instanceof Result)) {
         result.error = new errors.TypeErr("Wrong task result type");
         return resolve(result);
       }
       this._createTaskSubmissionListener(task, blockNumber, resolve);
-      this._verifyTaskSubmissionNow(task, contractAddress, localTip).then(res => {
-        if (res.canBeVerified) {
-          this.deleteTaskSubmissionListener(task.getTaskId());
-          resolve({ error: res.error, isVerified: res.isVerified });
-        }
-      });
+      const res = await this._verifyTaskSubmissionNow(task, contractAddress, localTip);
+      if (res.canBeVerified) {
+        this.deleteTaskSubmissionListener(task.getTaskId());
+        resolve({ error: res.error, isVerified: res.isVerified });
+      }
     });
   }
 
