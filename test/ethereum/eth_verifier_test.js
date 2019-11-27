@@ -19,7 +19,7 @@ describe("Eth verifier tests", function() {
     const builder = await ControllerBuilder.createNode();
     const controller = builder.mainController;
 
-    let {
+    const {
       params,
       expectedAddress,
       expectedParams,
@@ -66,7 +66,7 @@ describe("Eth verifier tests", function() {
     let taskId;
     let inputsHash;
     const gasLimit = 989;
-    let blockNumber = expectedParams.firstBlockNumber + 50;
+    const blockNumber = expectedParams.firstBlockNumber + 50;
 
     taskData.blockNumber = blockNumber;
 
@@ -116,7 +116,7 @@ describe("Eth verifier tests", function() {
       this.skip();
     }
 
-    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
+    const { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
 
     const task = DeployTask.buildTask(taskData);
     const res = await controller.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {
@@ -133,7 +133,7 @@ describe("Eth verifier tests", function() {
       this.skip();
     }
 
-    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
+    const { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
 
     const task = ComputeTask.buildTask(taskData);
     const res = await controller.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.VERIFY_NEW_TASK, {
@@ -151,7 +151,7 @@ describe("Eth verifier tests", function() {
       this.skip();
     }
 
-    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
+    const { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, true);
 
     coreServer.setSigningKey(web3Utils.randomHex(20));
 
@@ -170,7 +170,7 @@ describe("Eth verifier tests", function() {
       this.skip();
     }
 
-    let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
+    const { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, true);
 
     controller
       .getNode()
@@ -194,7 +194,7 @@ describe("Eth verifier tests", function() {
     }
 
     return new Promise(async function(resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
+      const { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
 
       const callback = async err => {
         await controller.shutdownSystem();
@@ -226,7 +226,7 @@ describe("Eth verifier tests", function() {
     }
 
     return new Promise(async function(resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
+      const { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
 
       const callback = async err => {
         await controller.shutdownSystem();
@@ -258,7 +258,7 @@ describe("Eth verifier tests", function() {
     }
 
     return new Promise(async function(resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
+      const { controller, coreServer, dbPath, taskData, gasLimit } = await init(true, false);
 
       const callback = async err => {
         await controller.shutdownSystem();
@@ -292,7 +292,7 @@ describe("Eth verifier tests", function() {
     }
 
     return new Promise(async function(resolve) {
-      let { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
+      const { controller, coreServer, dbPath, taskData, gasLimit } = await init(false, false);
 
       const callback = async err => {
         await controller.shutdownSystem();
