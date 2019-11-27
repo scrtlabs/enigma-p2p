@@ -149,12 +149,10 @@ class EthereumVerifier {
    * @param {string} workerAddress - Worker address
    * @return {Promise} returning {Boolean} true if the worker is in the selected group
    */
-  verifySelectedWorker(task, blockNumber, workerAddress) {
-    return new Promise(resolve => {
-      let secretContractAddress = task.getContractAddr();
-      const res = this._verifySelectedWorker(secretContractAddress, workerAddress, blockNumber);
-      return resolve({ error: res.error, isVerified: res.isVerified });
-    });
+  async verifySelectedWorker(task, blockNumber, workerAddress) {
+    let secretContractAddress = task.getContractAddr();
+    const res = await this._verifySelectedWorker(secretContractAddress, workerAddress, blockNumber);
+    return { error: res.error, isVerified: res.isVerified };
   }
 
   _createTaskCreationListener(task, blockNumber, workerAddress, resolve) {
