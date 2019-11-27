@@ -4,14 +4,11 @@ node_js:
   - "10.16"
 
 install:
-  - npm install -g truffle@5.0.15
   - npm install
 
 script:
   - npm test
-  - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then
-      echo $TRAVIS_BRANCH ; npm run test-tree;
-    fi
+  - if [ ${TRAVIS_BRANCH} == "develop" ] || [ ${TRAVIS_BRANCH} == "master" ]; then echo $TRAVIS_BRANCH ; npm run test-tree; fi
 
 after_success:
   - npm run report-coverage
