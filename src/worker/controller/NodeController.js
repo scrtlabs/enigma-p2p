@@ -237,7 +237,7 @@ class NodeController {
     if (this._extraConfig && this._extraConfig.webserver) {
       conf = this._extraConfig.webserver;
       this._webserver = new WebServer(conf, this.logger());
-      this._webserver.init();
+      this._webserver.start();
       this._webserver.on("notify", params => {
         const notification = params.notification;
         const action = this._actions[notification];
@@ -365,6 +365,9 @@ class NodeController {
       await this._taskManager.asyncStopAndDropDb();
     } else if (this._taskManager && this._extraConfig.tm.dbPath) {
       await this._taskManager.asyncStop();
+    }
+    if (this._webserver) {
+      this._webserver.stop();
     }
   }
 
