@@ -111,6 +111,7 @@ describe("Eth verifier tests", function() {
   }
 
   it("Verify new deploy task verification action", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#1"]) {
       this.skip();
@@ -128,6 +129,7 @@ describe("Eth verifier tests", function() {
   });
 
   it("Verify new compute task verification action", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#2"]) {
       this.skip();
@@ -146,6 +148,8 @@ describe("Eth verifier tests", function() {
   });
 
   it("Compute task verification action wrong worker address", async function() {
+    this.timeout(20000);
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#3"]) {
       this.skip();
@@ -165,6 +169,8 @@ describe("Eth verifier tests", function() {
   });
 
   it("Deploy task verification action ethereum exception", async function() {
+    this.timeout(20000);
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#4"]) {
       this.skip();
@@ -188,6 +194,7 @@ describe("Eth verifier tests", function() {
   });
 
   it("Verify deploy task submission action", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#5"]) {
       this.skip();
@@ -220,6 +227,7 @@ describe("Eth verifier tests", function() {
   });
 
   it("Verify compute task submission action", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#6"]) {
       this.skip();
@@ -252,6 +260,7 @@ describe("Eth verifier tests", function() {
   });
 
   it("Deploy task submission action verification error", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#7"]) {
       this.skip();
@@ -286,6 +295,7 @@ describe("Eth verifier tests", function() {
   });
 
   it("Compute task submission action ethereum exception", async function() {
+    this.timeout(20000);
     const tree = TEST_TREE.ethereum_integration;
     if (!tree["all"] || !tree["#8"]) {
       this.skip();
