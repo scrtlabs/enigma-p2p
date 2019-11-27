@@ -30,6 +30,7 @@ describe("Eth verifier tests", function() {
 
     ethereumAPI.api().setEpochSize(epochSize);
     ethereumAPI.api().setWorkerParams(Array.from(params));
+    ethereumAPI.api().setWorkerGroup([expectedAddress]);
     await ethereumAPI.init();
 
     controller.getNode().setEthereumApi(ethereumAPI);
