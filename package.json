@@ -10,9 +10,9 @@
     "temp-dir": "/tmp/enigma-p2p"
   },
   "scripts": {
-    "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 200000",
+    "test": "nyc mocha --timeout 200000 ./test/**/*_test.js",
     "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9 || true",
-    "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
+    "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
     "test-tree": "node scripts/test_tree_validation.js"
@@ -74,6 +74,7 @@
     "eslint": "^5.7.0",
     "eslint-config-google": "^0.12.0",
     "eslint-plugin-babel": "^5.2.1",
+    "nyc": "^14.1.1",
     "tempdir": "^2.0.0",
     "ws": "^7.0.0"
   },
