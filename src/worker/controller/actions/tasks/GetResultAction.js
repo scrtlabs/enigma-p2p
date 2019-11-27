@@ -7,7 +7,7 @@ class GetResultAction {
     let task = await this._controller.taskManager().asyncGetTask(taskId);
     return task.getResult();
   }
-  async asyncExecute(params){
+  async asyncExecute(params) {
     return this.execute(params);
   }
 }

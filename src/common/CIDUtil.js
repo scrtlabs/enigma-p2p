@@ -1,6 +1,6 @@
-const CID = require('cids');
-const multihash = require('multihashes');
-const Web3 = require('web3');
+const CID = require("cids");
+const multihash = require("multihashes");
+const Web3 = require("web3");
 
 class CIDUtil {
   /**
@@ -16,15 +16,15 @@ class CIDUtil {
   }
 
   /** cast Ethereum keccack256 function into a CID
-     * @param {String} ethHash, with 0x len 66, 64 without 0x, both inputs are fine
-     * @return {CID} cid representing the input.
-     * */
+   * @param {String} ethHash, with 0x len 66, 64 without 0x, both inputs are fine
+   * @return {CID} cid representing the input.
+   * */
   static createCID(ethHash) {
     try {
       const h = CIDUtil.parseHashStr(ethHash);
-      const buffHash = Buffer.from(h, 'hex');
-      const mh = multihash.encode(buffHash, 'keccak-256');
-      return new CID(1, 'eth-block', mh);
+      const buffHash = Buffer.from(h, "hex");
+      const mh = multihash.encode(buffHash, "keccak-256");
+      return new CID(1, "eth-block", mh);
     } catch (err) {
       // console.log('[-] err creating cid {%s}', err);
       return null;
@@ -40,12 +40,12 @@ class CIDUtil {
   }
 
   /** remove 0x from the hash if existing
-     * @param {String} h, keccack256 hash
-     * @return {String} hash without 0x or the same
-     * */
+   * @param {String} h, keccack256 hash
+   * @return {String} hash without 0x or the same
+   * */
   static parseHashStr(h) {
     let final = null;
-    if (h.length == 64 ) {
+    if (h.length == 64) {
       final = h;
     } else if (h.length == 66) {
       final = h.substring(2, h.length);

@@ -1,4 +1,4 @@
-const errors = require('../../../../common/errors');
+const errors = require("../../../../common/errors");
 /**
  * Find content providers to provide data
  * Takes list of hashes -> turns them into cid's
@@ -10,17 +10,17 @@ class GetLocalTipsOfRemote {
   }
   async execute(params) {
     let peerB58Id = params.peerB58Id;
-    if(!peerB58Id){
+    if (!peerB58Id) {
       return null;
     }
-    try{
+    try {
       let peerInfo = await this._controller.engNode().lookUpPeer(peerB58Id);
-      if(!peerInfo){
+      if (!peerInfo) {
         throw new errors.P2PErr(`no such peer ${b58Id}`);
       }
-      let remoteTips =  await this._controller.engNode().getLocalStateOfRemote(peerInfo);
+      let remoteTips = await this._controller.engNode().getLocalStateOfRemote(peerInfo);
       return remoteTips;
-    }catch(e){
+    } catch (e) {
       this._controller.logger().error(`GetLocalTipsOfRemote Action ${e}`);
       return null;
     }

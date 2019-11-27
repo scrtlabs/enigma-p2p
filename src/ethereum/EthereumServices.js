@@ -1,6 +1,6 @@
-const EventEmitter = require('events');
+const EventEmitter = require("events");
 
-const constants = require('../common/constants');
+const constants = require("../common/constants");
 
 let servicesMap = {};
 
@@ -10,14 +10,15 @@ servicesMap[constants.ETHEREUM_EVENTS.TaskSuccessSubmission] = [constants.RAW_ET
 servicesMap[constants.ETHEREUM_EVENTS.TaskFailureSubmission] = [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed];
 servicesMap[constants.ETHEREUM_EVENTS.TaskFailureDueToEthereumCB] = [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH];
 servicesMap[constants.ETHEREUM_EVENTS.TaskCancelled] = [constants.RAW_ETHEREUM_EVENTS.TaskFeeReturned];
-servicesMap[constants.ETHEREUM_EVENTS.SecretContractDeployment] = [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed];
-
+servicesMap[constants.ETHEREUM_EVENTS.SecretContractDeployment] = [
+  constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed
+];
 
 class EthereumServices extends EventEmitter {
   /**
-     * {EnigmaContractReaderAPI} enigmaContractAPI
-     *
-     * */
+   * {EnigmaContractReaderAPI} enigmaContractAPI
+   *
+   * */
   constructor(enigmaContractAPI) {
     super();
     this._api = enigmaContractAPI;
@@ -25,24 +26,24 @@ class EthereumServices extends EventEmitter {
   }
 
   /**
-     * init services
-     * @param {Array<string>} desiredServices
-     * */
+   * init services
+   * @param {Array<string>} desiredServices
+   * */
   initServices(desiredServices) {
     if (desiredServices !== undefined && desiredServices !== null) {
-      desiredServices.forEach((service)=> {
+      desiredServices.forEach(service => {
         this._initService(service);
       });
     } else {
-      Object.keys(this._servicesMap).forEach((service)=> {
+      Object.keys(this._servicesMap).forEach(service => {
         this._initService(service);
       });
     }
   }
 
   _initService(serviceName) {
-    this._servicesMap[serviceName].forEach((eventName)=> {
-      this._api.subscribe(eventName, {}, (err, event)=>{
+    this._servicesMap[serviceName].forEach(eventName => {
+      this._api.subscribe(eventName, {}, (err, event) => {
         if (err) {
           this.emit(serviceName, err);
         } else {
@@ -53,6 +54,5 @@ class EthereumServices extends EventEmitter {
     });
   }
 }
-
 
 module.exports = EthereumServices;

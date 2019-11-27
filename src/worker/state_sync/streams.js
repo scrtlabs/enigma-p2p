@@ -1,7 +1,7 @@
-const Verifier = require('./receiver/StateSyncReqVerifier');
-const EncoderUtil = require('../../common/EncoderUtil');
-const constants = require('../../common/constants');
-const SyncMsgMgmgt = require('../../policy/p2p_messages/sync_messages');
+const Verifier = require("./receiver/StateSyncReqVerifier");
+const EncoderUtil = require("../../common/EncoderUtil");
+const constants = require("../../common/constants");
+const SyncMsgMgmgt = require("../../policy/p2p_messages/sync_messages");
 const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
 /**
  * global methods
@@ -14,7 +14,7 @@ const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
 const globalState = {
   providerContext: null,
   receiverContext: null,
-  logger: null,
+  logger: null
 };
 
 /**
@@ -24,11 +24,13 @@ const globalState = {
 
 // TODO: remove this all together and move to a local state
 //  (due to binding between tests, the following lines had to be commented out)
-module.exports.setGlobalState = (state)=>{
-  if (state.providerContext) {// && globalState.providerContext === null){
+module.exports.setGlobalState = state => {
+  if (state.providerContext) {
+    // && globalState.providerContext === null){
     globalState.providerContext = state.providerContext;
   }
-  if (state.receiverContext) {// && globalState.receiverContext === null){
+  if (state.receiverContext) {
+    // && globalState.receiverContext === null){
     globalState.receiverContext = state.receiverContext;
   }
   if (state.logger && globalState.logger === null) {
@@ -44,7 +46,7 @@ module.exports.setGlobalState = (state)=>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.verificationStream = (read)=>{
+module.exports.verificationStream = read => {
   return _verificationStream(read);
 };
 
@@ -57,7 +59,7 @@ module.exports.verificationStream = (read)=>{
 //   return _toDbStream(read);
 // };
 
-module.exports.fromDbStream = (read) =>{
+module.exports.fromDbStream = read => {
   return _fromDbStream(read);
 };
 /**
@@ -67,7 +69,7 @@ module.exports.fromDbStream = (read) =>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.requestParserStream = (read) =>{
+module.exports.requestParserStream = read => {
   return _requestParserStream(read);
 };
 
@@ -76,14 +78,14 @@ module.exports.requestParserStream = (read) =>{
  * and parse them into network mode (i.e msgpack etc.)
  * */
 
-module.exports.toNetworkParser = (read) =>{
+module.exports.toNetworkParser = read => {
   return _toNetworkParse(read);
 };
 
 /** Parse the request state sync msg from the reciever before passing the request to the provider stream
  * msgpack serialize */
 
-module.exports.toNetworkSyncReqParser = (read)=>{
+module.exports.toNetworkSyncReqParser = read => {
   return _toNetworkSyncReqParser(read);
 };
 /**
@@ -92,19 +94,19 @@ module.exports.toNetworkSyncReqParser = (read)=>{
  * @param {stream} read
  * @return {function()}
  * */
-module.exports.throughDbStream = (read)=>{
+module.exports.throughDbStream = read => {
   return _throughDbStream(read);
 };
 function _throughDbStream(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
+    read(end, (end, data) => {
       if (data != null) {
-        fakeSaveToDb(data, (err, status)=>{
-          if (!status || err ) {
-            globalState.logger.error('some fake error saving to db ');
+        fakeSaveToDb(data, (err, status) => {
+          if (!status || err) {
+            globalState.logger.error("some fake error saving to db ");
             throw end;
           } else {
-            cb(end, {status: status, data: data});
+            cb(end, { status: status, data: data });
           }
         });
       } else {
@@ -142,9 +144,9 @@ function _parseFromDbToNetwork(dbResult, callback) {
 // returns the result directly into the other peer stream (source)
 function _toNetworkParse(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
-      if (data!=null) {
-        _parseFromDbToNetwork(data, (err, parsedResult)=>{
+    read(end, (end, data) => {
+      if (data != null) {
+        _parseFromDbToNetwork(data, (err, parsedResult) => {
           if (err) {
             cb(err, null);
           } else {
@@ -167,25 +169,25 @@ function _fakeFromDbStream(syncReqMsg, callback) {
     queryType = constants.CORE_REQUESTS.GetDeltas;
   } else {
     // TODO:: handle error
-    globalState.logger.error('error in _fakeFromDbStream');
+    globalState.logger.error("error in _fakeFromDbStream");
   }
   globalState.providerContext.dbRequest({
     dbQueryType: queryType,
     requestMsg: syncReqMsg,
-    onResponse: (ctxErr, dbResult) =>{
+    onResponse: (ctxErr, dbResult) => {
       callback(ctxErr, dbResult);
-    },
+    }
   });
 }
 
 // fake load from the database, this will return the deltas for the requester
 function _fromDbStream(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
+    read(end, (end, data) => {
       if (data != null) {
-        _fakeFromDbStream(data, (err, dbResult)=>{
+        _fakeFromDbStream(data, (err, dbResult) => {
           if (err) {
-            console.log('error in fakeFromDbStream {%s}', err);
+            console.log("error in fakeFromDbStream {%s}", err);
             cb(err, null);
           } else {
             cb(end, dbResult);
@@ -207,15 +209,15 @@ function _requestParser(data, callback) {
   let parsedData = JSON.parse(data);
   parsedData = SyncMsgBuilder.msgReqFromObjNoValidation(parsedData);
   if (parsedData === null) {
-    err = 'error building request message';
+    err = "error building request message";
   }
   return callback(err, parsedData);
 }
 function _requestParserStream(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
+    read(end, (end, data) => {
       if (data != null) {
-        _requestParser(data, (err, parsed)=>{
+        _requestParser(data, (err, parsed) => {
           if (err) {
             cb(true, null);
           } else {
@@ -234,22 +236,22 @@ function _requestParserStream(read) {
 // the objects are either SYNC_STATE_RES or SYNC_BCODE_RES
 function fakeSaveToDb(msgObj, callback) {
   if (msgObj === null || msgObj === undefined) {
-    const err = 'error saving to db';
+    const err = "error saving to db";
     globalState.logger.error(err);
     return callback(err);
   }
   globalState.receiverContext.dbWrite({
     data: msgObj,
-    callback: (err, status)=>{
+    callback: (err, status) => {
       callback(err, status);
-    },
+    }
   });
 }
 
 function _verificationStream(read) {
   return function readble(end, cb) {
-    read(end, (end, data)=>{
-      if (data !=null) {
+    read(end, (end, data) => {
+      if (data != null) {
         data = EncoderUtil.decode(data);
         data = JSON.parse(data);
         data = SyncMsgBuilder.msgResFromObjNoValidation(data);
@@ -258,11 +260,11 @@ function _verificationStream(read) {
         }
         // TODO:: placeholder for future ethereum veirfier.
         // verify the data
-        Verifier.verify(globalState.receiverContext.getRemoteMissingStatesMap(), data, (err, isOk)=>{
+        Verifier.verify(globalState.receiverContext.getRemoteMissingStatesMap(), data, (err, isOk) => {
           if (isOk) {
             return cb(end, data);
           } else {
-            return cb('Error in verification with Ethereum: ' + err, null);
+            return cb("Error in verification with Ethereum: " + err, null);
           }
         });
       } else {

@@ -28,7 +28,7 @@ Assuming this data structure as a consensus mechanism on the Ethereum network
 
 ### The flow of a new node in the network ####:
 
-0) Bootstrap, reach optimal DHT
+0) Bootstrap
 1) Load local state
 2) Build "Hits Map" from RemoteState(Ethereum) - LocalState
 3) Sync the "Hits Map" - synchronize from other peers // STATE_SYNC_REQ/RES

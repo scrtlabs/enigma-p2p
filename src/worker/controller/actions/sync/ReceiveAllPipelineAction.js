@@ -1,10 +1,10 @@
-const constants = require('../../../../common/constants');
-const errs = require('../../../../common/errors');
+const constants = require("../../../../common/constants");
+const errs = require("../../../../common/errors");
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
-const waterfall = require('async/waterfall');
-const EngCid = require('../../../../common/EngCID');
+const waterfall = require("async/waterfall");
+const EngCid = require("../../../../common/EngCID");
 
-const util = require('util');
+const util = require("util");
 
 /**
  * RECEIVER SIDE
@@ -24,20 +24,19 @@ class ReceiveAllPipelineAction {
     const onEnd = params.onEnd;
 
     if (this._running) {
-      return onEnd(new errs.SyncReceiverErr('already running'));
+      return onEnd(new errs.SyncReceiverErr("already running"));
     }
     this._running = true;
-    const getMissingStates = (cb)=>{
-      this._controller.execCmd(
-          NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
-            cache: cache,
-            onResponse: (err, res) => {
-              if (err) {
-                return cb(err);
-              }
-              return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
-            },
-          });
+    const getMissingStates = cb => {
+      this._controller.execCmd(NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
+        cache: cache,
+        onResponse: (err, res) => {
+          if (err) {
+            return cb(err);
+          }
+          return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
+        }
+      });
     };
     const parseResults = (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
       let err = null;
@@ -59,21 +58,28 @@ class ReceiveAllPipelineAction {
       this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
         descriptorsList: ecidList,
         isEngCid: true,
-        next: (findProviderResult) => {
+        next: findProviderResult => {
           return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
-        },
+        }
       });
     };
-    const parseProviders = (findProviderResult, ecids, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
+    const parseProviders = (
+      findProviderResult,
+      ecids,
+      missingStatesMap,
+      tempEcidToAddrMap,
+      remoteMissingStatesMap,
+      cb
+    ) => {
       if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
-        cb(new errs.SyncReceiverErr('[-] some error finding providers !'));
+        cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
       }
       // parse to 1 object: cid => {providers, msgs} -> simple :)
       const allReceiveData = [];
-      ecids.forEach((ecid) => {
+      ecids.forEach(ecid => {
         allReceiveData.push({
           requestMessages: missingStatesMap[ecid.getScAddress()],
-          providers: findProviderResult.getProvidersFor(ecid),
+          providers: findProviderResult.getProvidersFor(ecid)
         });
       });
       return cb(null, allReceiveData, remoteMissingStatesMap);
@@ -84,16 +90,10 @@ class ReceiveAllPipelineAction {
         remoteMissingStatesMap: remoteMissingStatesMap,
         onFinish: (err, allResults) => {
           cb(err, allResults);
-        },
+        }
       });
     };
-    waterfall([
-      getMissingStates,
-      parseResults,
-      findPRovider,
-      parseProviders,
-      receiveAll,
-    ], (err, result) => {
+    waterfall([getMissingStates, parseResults, findPRovider, parseProviders, receiveAll], (err, result) => {
       this._running = false;
       onEnd(err, result);
     });

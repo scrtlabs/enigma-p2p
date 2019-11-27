@@ -41,20 +41,20 @@
  * -    secret contract users will query the workers via this API
  */
 
-const Channel = require('./channels/Channel');
-const constants = require('../common/constants');
-const DummyAction = require('./actions/DummyAction');
-const DbAction = require('./actions/DbAction');
-const ProxyAction = require('./actions/ProxyAction');
+const Channel = require("./channels/Channel");
+const constants = require("../common/constants");
+const DummyAction = require("./actions/DummyAction");
+const DbAction = require("./actions/DbAction");
+const ProxyAction = require("./actions/ProxyAction");
 class MainController {
   constructor(runtimes) {
     let notifications = constants.MAIN_CONTROLLER_NOTIFICATIONS;
     this._runtimes = runtimes;
     // actions
     this._actions = {
-      'dummy': new DummyAction(this),
-      [notifications.Proxy] : new ProxyAction(this),
-      [notifications.DbRequest] : new DbAction(this),
+      dummy: new DummyAction(this),
+      [notifications.Proxy]: new ProxyAction(this),
+      [notifications.DbRequest]: new DbAction(this)
     };
     // runtime communicators
     this._communicators = {};
@@ -65,7 +65,7 @@ class MainController {
   /**
    * Stop the PROGRAM completely.
    * */
-  async stopAll(){
+  async stopAll() {
     // //TODO:: add stop all Runtimes
     // let jobs = [];
     // this._runtimes.forEach(rt=>{
@@ -81,17 +81,20 @@ class MainController {
   }
   start() {
     // start each runtime in order
-    this._runtimes.forEach((runtime)=>{
+    this._runtimes.forEach(runtime => {
       // setup a channel
       const channels = Channel.biDirectChannel();
       const thisCommunicator = channels.channel1;
       const rtCommunicatior = channels.channel2;
       // save the communicator
-      this._communicators[runtime.type()] = {rtCommunicator : rtCommunicatior , thisCommunicator : thisCommunicator};
+      this._communicators[runtime.type()] = {
+        rtCommunicator: rtCommunicatior,
+        thisCommunicator: thisCommunicator
+      };
       // dispatch the other side of the channel
       runtime.setChannel(rtCommunicatior);
       // set a response method
-      thisCommunicator.setOnMessage((envelop)=>{
+      thisCommunicator.setOnMessage(envelop => {
         const action = this._actions[envelop.type()];
         if (action) {
           action.execute(thisCommunicator, envelop);
@@ -112,8 +115,3 @@ module.exports = MainController;
 //   runtime.sendMsg({"req" : "wassup?"});
 //
 // }
-
-
-
-
-

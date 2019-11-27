@@ -3,12 +3,11 @@
  * it builds and passes a request to core through the ipc.
  * then, it responds with the result back to the task manager.
  * */
-const Result = require('../../../tasks/Result');
-const constants = require('../../../../common/constants');
+const Result = require("../../../tasks/Result");
+const constants = require("../../../../common/constants");
 const taskTypes = constants.CORE_REQUESTS;
-const Envelop = require('../../../../main_controller/channels/Envelop');
-const DeployTask = require('../../../../worker/tasks/DeployTask');
-
+const Envelop = require("../../../../main_controller/channels/Envelop");
+const DeployTask = require("../../../../worker/tasks/DeployTask");
 
 class ExecuteTaskAction {
   constructor(controller) {
@@ -20,22 +19,26 @@ class ExecuteTaskAction {
     // If this is a deploy task, trigger PTT for the specific contract address
     if (task instanceof DeployTask) {
       try {
-        await this._controller.asyncExecCmd(
-          constants.NODE_NOTIFICATIONS.GET_STATE_KEYS,
-          {
-            addresses: [task.getContractAddr()],
-            blockNumber: task.getBlockNumber()
-          });
+        await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_STATE_KEYS, {
+          addresses: [task.getContractAddr()],
+          blockNumber: task.getBlockNumber()
+        });
         this._controller.logger().debug(`finished GET_STATE_KEYS for ${task.getTaskId()}`);
       } catch (e) {
-        return this._controller.logger().error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
+        return this._controller
+          .logger()
+          .error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
       }
     }
 
-    const requestEnv = new Envelop(true, {
-      type: task.getTaskType(),
-      input: task.toCoreJson(),
-    }, constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest);
+    const requestEnv = new Envelop(
+      true,
+      {
+        type: task.getTaskType(),
+        input: task.toCoreJson()
+      },
+      constants.MAIN_CONTROLLER_NOTIFICATIONS.DbRequest
+    );
     let responseEnvelop = null;
     try {
       responseEnvelop = await this._controller.communicator().sendAndReceive(requestEnv);
@@ -46,7 +49,7 @@ class ExecuteTaskAction {
     // check for system error
     if (response.msg) {
       // TODO:: what happens to the stored task? its still IN-PROGRESS state in the task manager.
-      return this._controller.logger().error('response from Core' + JSON.stringify(response));
+      return this._controller.logger().error("response from Core" + JSON.stringify(response));
     }
     let result = null;
     if (response.result) {
@@ -56,21 +59,26 @@ class ExecuteTaskAction {
       case taskTypes.FailedTask:
         response.result.status = constants.TASK_STATUS.FAILED;
         result = Result.FailedResult.buildFailedResult(response.result);
-        this._controller.logger().debug('received failed result');
+        this._controller.logger().debug("received failed result");
         break;
       case taskTypes.DeploySecretContract:
         response.result.status = constants.TASK_STATUS.SUCCESS;
         result = Result.DeployResult.buildDeployResult(response.result);
-        this._controller.logger().debug('received deploy result');
+        this._controller.logger().debug("received deploy result");
         break;
       case taskTypes.ComputeTask:
         response.result.status = constants.TASK_STATUS.SUCCESS;
         result = Result.ComputeResult.buildComputeResult(response.result);
         if (result.hasDelta()) {
-          this._controller.logger().debug('received compute result for contract:' + task.getContractAddr() + ' delta-key:' + result.getDelta().key);
-        }
-        else {
-          this._controller.logger().debug('received compute result for contract:' + task.getContractAddr() + ' ,no delta');
+          this._controller
+            .logger()
+            .debug(
+              "received compute result for contract:" + task.getContractAddr() + " delta-key:" + result.getDelta().key
+            );
+        } else {
+          this._controller
+            .logger()
+            .debug("received compute result for contract:" + task.getContractAddr() + " ,no delta");
         }
         break;
     }
@@ -82,7 +90,7 @@ class ExecuteTaskAction {
         this._controller.logger().error(e);
       }
     } else {
-      this._controller.logger().error('failed building Result from Task');
+      this._controller.logger().error("failed building Result from Task");
     }
   }
 }

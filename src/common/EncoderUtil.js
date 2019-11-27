@@ -1,4 +1,4 @@
-const msgpack = require('msgpack-lite');
+const msgpack = require("msgpack-lite");
 
 class EncoderUtil {
   static encode(rawObject) {
@@ -11,7 +11,7 @@ class EncoderUtil {
   static encodeToNetwork(rawObject) {
     const encodedBuffer = EncoderUtil.encode(rawObject);
     if (encodedBuffer) {
-      const encodedByteArray =[...encodedBuffer];
+      const encodedByteArray = [...encodedBuffer];
       return encodedByteArray;
     }
     return null;
@@ -29,10 +29,10 @@ class EncoderUtil {
     return decoded;
   }
   static hexToAscii(hex) {
-    if (!(typeof hex === 'number' || typeof hex == 'string')) {
-      return '';
+    if (!(typeof hex === "number" || typeof hex == "string")) {
+      return "";
     }
-    hex = hex.toString().replace(/\s+/gi, '');
+    hex = hex.toString().replace(/\s+/gi, "");
     const stack = [];
     for (let n = 0; n < hex.length; n += 2) {
       const code = parseInt(hex.substr(n, 2), 16);
@@ -40,10 +40,9 @@ class EncoderUtil {
         stack.push(String.fromCharCode(code));
       }
     }
-    return stack.join('');
+    return stack.join("");
   }
 }
-
 
 module.exports = EncoderUtil;
 

@@ -1,6 +1,6 @@
-const parallel = require('async/parallel');
-const EventEmitter = require('events').EventEmitter;
-const EnigmaContract = require('./EnigmaContractMock');
+const parallel = require("async/parallel");
+const EventEmitter = require("events").EventEmitter;
+const EnigmaContract = require("./EnigmaContractMock");
 
 /** logic
  * IGNORING DB for now - all in memory
@@ -23,7 +23,7 @@ class HitMap {
   }
   getAllContractAddrs() {
     const addrs = [];
-    for (let k=0; k<addrs.length; k++) {
+    for (let k = 0; k < addrs.length; k++) {
       addrs.push(k);
     }
     return addrs;
@@ -35,7 +35,7 @@ class HitMap {
     return null;
   }
   addContract(addr, deltasNum) {
-    const contractState =this.getContractState(addr);
+    const contractState = this.getContractState(addr);
 
     if (contractState) {
       return false;
@@ -73,34 +73,32 @@ class StateHitsMapManager extends EventEmitter {
     this._enigmaContract = new EnigmaContract();
   }
   buildHitMap() {
-    this.markHitMapDeltas((err, hitMap)=>{
-      console.log('got hit map.');
+    this.markHitMapDeltas((err, hitMap) => {
+      console.log("got hit map.");
     });
   }
   markHitMapDeltas(callback) {
-    this.createEmptyStateMap((hitMap)=>{
+    this.createEmptyStateMap(hitMap => {
       const addrs = hitMap.getAllContractAddrs();
       const jobs = [];
 
-      addrs.forEach((addr)=>{
-        jobs.push((cb)=>{
-          this._deltasGetterPerContract(addr,
-              hitMap.getDeltasNum(addr),
-              (err, results)=>{
-                results.forEach((res)=>{
-                  const index = res.index;
-                  const address = res.address;
-                  const deltaHash = res.deltaHash;
+      addrs.forEach(addr => {
+        jobs.push(cb => {
+          this._deltasGetterPerContract(addr, hitMap.getDeltasNum(addr), (err, results) => {
+            results.forEach(res => {
+              const index = res.index;
+              const address = res.address;
+              const deltaHash = res.deltaHash;
 
-                  hitMap.addDeltaHit(address, index, deltaHash);
-                });
+              hitMap.addDeltaHit(address, index, deltaHash);
+            });
 
-                cb(err, hitMap);
-              });
+            cb(err, hitMap);
+          });
         });
       });
 
-      parallel(jobs, (err, res)=>{
+      parallel(jobs, (err, res) => {
         callback(err, hitMap);
       });
     });
@@ -108,46 +106,44 @@ class StateHitsMapManager extends EventEmitter {
   _deltasGetterPerContract(addr, deltasNum, callback) {
     const jobs = [];
 
-    for (let i=0; i<deltasNum; ++i) {
-      jobs.push((cb)=>{
-        this._enigmaContract.getStateDeltaHash(addr, i,
-            (err, hash)=>{
-              cb(err, {
-                'address': addr,
-                'index': i,
-                'deltaHash': hash,
-              });
-            });
+    for (let i = 0; i < deltasNum; ++i) {
+      jobs.push(cb => {
+        this._enigmaContract.getStateDeltaHash(addr, i, (err, hash) => {
+          cb(err, {
+            address: addr,
+            index: i,
+            deltaHash: hash
+          });
+        });
       });
     }
-    parallel(jobs, (err, results)=>{
+    parallel(jobs, (err, results) => {
       callback(err, results);
     });
   }
   getAllAddresses(callback) {
-    this._enigmaContract.getContractAddresses((err, addrs)=>{
+    this._enigmaContract.getContractAddresses((err, addrs) => {
       callback(err, addrs);
     });
   }
   createEmptyStateMap(callback) {
     const hitMap = new HitMap();
 
-    this.getAllAddresses((err, addrs)=>{
+    this.getAllAddresses((err, addrs) => {
       if (err) throw err;
 
       const jobs = [];
-      addrs.forEach((addr)=>{
-        jobs.push((cb)=>{
-          this._enigmaContract.countStateDeltas(addr,
-              (err, num)=>{
-                cb(err, {'address': addr, 'deltasNum': num});
-              });
+      addrs.forEach(addr => {
+        jobs.push(cb => {
+          this._enigmaContract.countStateDeltas(addr, (err, num) => {
+            cb(err, { address: addr, deltasNum: num });
+          });
         });
       });
-      parallel(jobs, (err, results)=>{
+      parallel(jobs, (err, results) => {
         if (err) throw err;
 
-        results.forEach((result)=>{
+        results.forEach(result => {
           const addr = result.address;
           const deltasNum = result.deltasNum;
           hitMap.addContract(addr, deltasNum);
@@ -158,8 +154,5 @@ class StateHitsMapManager extends EventEmitter {
   }
 }
 
-
 const hitsManager = new StateHitsMapManager();
 hitsManager.buildHitMap();
-
-

@@ -4,9 +4,9 @@
  * - publish the result to the results topic
  * - publish the result back to etherum
  * */
-const constants = require('../../../../common/constants');
-const DeployTask = require('../../../tasks/DeployTask');
-const EngCid = require('../../../../common/EngCID');
+const constants = require("../../../../common/constants");
+const DeployTask = require("../../../tasks/DeployTask");
+const EngCid = require("../../../../common/EngCID");
 
 class PublishTaskResultAction {
   constructor(controller) {
@@ -19,8 +19,7 @@ class PublishTaskResultAction {
 
     if (task.isSuccess()) {
       taskType = task.getTaskType();
-    }
-    else {
+    } else {
       taskType = constants.CORE_REQUESTS.FailedTask;
     }
 
@@ -29,14 +28,14 @@ class PublishTaskResultAction {
       message: JSON.stringify({
         contractAddress: task.getContractAddr(),
         result: task.getResult().toDbJson(),
-        type: taskType,
-      }),
+        type: taskType
+      })
     });
 
     // commit to Ethereum
     if (this._controller.hasEthereum()) {
       err = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.COMMIT_RECEIPT, {
-        task: task,
+        task: task
       });
       if (err) {
         this._controller.logger().info(`[PUBLISH_ANNOUNCE_TASK] error occurred in task ${task.getTaskId()} commit`);
@@ -44,17 +43,16 @@ class PublishTaskResultAction {
     }
 
     // announce as provider if its deployment and successful and no error occurred in task's commit
-    if (task instanceof DeployTask && task.getResult().isSuccess() && !err){ //
+    if (task instanceof DeployTask && task.getResult().isSuccess() && !err) {
+      //
       let ecid = EngCid.createFromSCAddress(task.getContractAddr());
       if (ecid) {
         try {
-          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS,{engCids : [ecid]});
-        }
-        catch(e) {
+          await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.ANNOUNCE_ENG_CIDS, { engCids: [ecid] });
+        } catch (e) {
           this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
         }
-      }
-      else {
+      } else {
         this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
       }
     }

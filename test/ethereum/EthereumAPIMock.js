@@ -1,10 +1,9 @@
-const EnigmaContractMock = require('./EnigmaContractMock');
-const EthereumAPI = require('../../src/ethereum/EthereumAPI');
-const EthereumServices = require('../../src/ethereum/EthereumServices');
-const EthereumVerifier = require('../../src/ethereum/EthereumVerifier');
+const EnigmaContractMock = require("./EnigmaContractMock");
+const EthereumAPI = require("../../src/ethereum/EthereumAPI");
+const EthereumServices = require("../../src/ethereum/EthereumServices");
+const EthereumVerifier = require("../../src/ethereum/EthereumVerifier");
 
 class EthereumAPIMock extends EthereumAPI {
-
   constructor(logger) {
     super(logger);
     this._api = new EnigmaContractMock();
@@ -17,8 +16,7 @@ class EthereumAPIMock extends EthereumAPI {
     await this._verifier.init();
   }
 
-  async destroy() {
-  }
+  async destroy() {}
 }
 
 module.exports = EthereumAPIMock;

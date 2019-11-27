@@ -1,14 +1,14 @@
-const EventEmitter = require('events').EventEmitter;
-const CIDUtil = require('../../../common/CIDUtil');
-const EngCID = require('../../../common/EngCID');
-const EncoderUtil = require('../../../common/EncoderUtil');
-const parallel = require('async/parallel');
-const Policy = require('../../../policy/policy');
-const FindProviderResult = require('./FindProviderResult');
-const pull = require('pull-stream');
-const streams = require('../streams');
-const waterfall = require('async/waterfall');
-const constants = require('../../../common/constants');
+const EventEmitter = require("events").EventEmitter;
+const CIDUtil = require("../../../common/CIDUtil");
+const EngCID = require("../../../common/EngCID");
+const EncoderUtil = require("../../../common/EncoderUtil");
+const parallel = require("async/parallel");
+const Policy = require("../../../policy/policy");
+const FindProviderResult = require("./FindProviderResult");
+const pull = require("pull-stream");
+const streams = require("../streams");
+const waterfall = require("async/waterfall");
+const constants = require("../../../common/constants");
 
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -18,17 +18,17 @@ class Receiver extends EventEmitter {
     this._engNode = enigmaNode;
     this._logger = logger;
     this._remoteMissingStatesMap = null;
-    streams.setGlobalState({logger: this._logger, receiverContext: this});
+    streams.setGlobalState({ logger: this._logger, receiverContext: this });
   }
 
   /**
-     * internal wrapper - Find provider for some CID
-     * @param {EngCID} engCid, the content cid
-     * @param {Integer} timeout, in milliseconds before returning an error
-     * @param {Function} callback, (err,providers)=>{} , providers is {PeerInfo}
-     * */
+   * internal wrapper - Find provider for some CID
+   * @param {EngCID} engCid, the content cid
+   * @param {Integer} timeout, in milliseconds before returning an error
+   * @param {Function} callback, (err,providers)=>{} , providers is {PeerInfo}
+   * */
   _findProvider(engCid, timeout, callback) {
-    this._engNode.findContentProvider(engCid, timeout, (err, providers)=>{
+    this._engNode.findContentProvider(engCid, timeout, (err, providers) => {
       callback(err, providers);
     });
   }
@@ -37,59 +37,59 @@ class Receiver extends EventEmitter {
    * specifying the concrete Action
    * */
   notify(params) {
-    this.emit('notify', params);
+    this.emit("notify", params);
   }
   /**
    * Calls the worker/DbWriteAction
    * @param {JSON} request ,must contain the fields: , callback(err,status) , data
    * */
   dbWrite(request) {
-    if (request.hasOwnProperty('callback') && request.hasOwnProperty('data')) {
+    if (request.hasOwnProperty("callback") && request.hasOwnProperty("data")) {
       request.notification = constants.NODE_NOTIFICATIONS.UPDATE_DB;
       this.notify(request);
     } else {
       // TODO:: callback might be a missing field for some reason BUT it's ok since it better to crash here than sleep, fix later gracefully.
-      request.callback('err missing fields');
+      request.callback("err missing fields");
     }
   }
   /** find providers for some content in a batch mode
-     * On error check findProviderResult.isCompleteError() => general error in the process
-     * findProviderResult.isErrors() => means that some had errors.
-     *
-     * @callback findProviderResult
-     * @param {Array<String>} descriptorsList - each element is a byte representation of some content
-      * * //TODO:: remove withEngCid to default true, leave now for compatability
-      * @param {Boolean} withEngCid , if false: generate ecid
-     * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
-     * */
+   * On error check findProviderResult.isCompleteError() => general error in the process
+   * findProviderResult.isErrors() => means that some had errors.
+   *
+   * @callback findProviderResult
+   * @param {Array<String>} descriptorsList - each element is a byte representation of some content
+   * * //TODO:: remove withEngCid to default true, leave now for compatability
+   * @param {Boolean} withEngCid , if false: generate ecid
+   * @param {Function} callback , (FindProviderResult)=>{} , class {FindProviderResult}
+   * */
   findProvidersBatch(descriptorsList, withEngCid, callback) {
     const timeout = constants.CONTENT_ROUTING.TIMEOUT_FIND_PROVIDER;
     let engCids = descriptorsList;
     if (!withEngCid) {
-      engCids = descriptorsList.map((desc)=>{
+      engCids = descriptorsList.map(desc => {
         const h = CIDUtil.hashKeccack256(desc);
         return EngCID.createFromKeccack256(h);
       });
     }
     const jobs = [];
     // define each jobs
-    engCids.forEach((ecid)=>{
-      jobs.push((cb)=>{
-        this._findProvider(ecid, timeout, (err, providers)=>{
-          cb(null, {error: err, ecid: ecid, providers: providers});
+    engCids.forEach(ecid => {
+      jobs.push(cb => {
+        this._findProvider(ecid, timeout, (err, providers) => {
+          cb(null, { error: err, ecid: ecid, providers: providers });
         });
       });
     });
     // execute jobs
-    parallel(jobs, (err, result)=>{
+    parallel(jobs, (err, result) => {
       const findProviderResult = new FindProviderResult();
       if (err) {
-        this._logger.error('[-] complete error findProvidersBatch ' + err);
+        this._logger.error("[-] complete error findProvidersBatch " + err);
         findProviderResult.setCompleteError();
       } else {
-        result.forEach((res)=>{
+        result.forEach(res => {
           if (res.error) {
-            this._logger.error('[-] error in findProvider specific CID ' + res.error);
+            this._logger.error("[-] error in findProvider specific CID " + res.error);
             findProviderResult.addErroredProviderResult(res.ecid, res.error);
           } else {
             findProviderResult.addProviderResult(res.ecid, res.providers);
@@ -105,32 +105,32 @@ class Receiver extends EventEmitter {
    * @param {Function} callback , (err,ResultList)=>{}
    * */
   trySyncOneContractOneRequest(peerInfo, stateSyncReqMsgs, callback) {
-    this._engNode.startStateSyncRequest(peerInfo, (err, connectionStream)=>{
+    this._engNode.startStateSyncRequest(peerInfo, (err, connectionStream) => {
       if (err) {
         return callback(err);
       }
       pull(
-          pull.values(stateSyncReqMsgs),
-          streams.toNetworkSyncReqParser,
-          connectionStream,
-          streams.verificationStream,
-          streams.throughDbStream,
-          pull.map((data)=>{
-            const status = {};
-            status.ipcType = data.status.type;
-            status.msgType = data.data.type();
-            status.success = data.status.success;
-            status.payload = data.data;
-            return status;
-          }),
-          pull.collect((err, resultList)=>{
-            if (err) {
-              this._logger.error('collection err ' + err);
-              return callback(err, resultList);
-            } else {
-              return callback(null, resultList);
-            }
-          }),
+        pull.values(stateSyncReqMsgs),
+        streams.toNetworkSyncReqParser,
+        connectionStream,
+        streams.verificationStream,
+        streams.throughDbStream,
+        pull.map(data => {
+          const status = {};
+          status.ipcType = data.status.type;
+          status.msgType = data.data.type();
+          status.success = data.status.success;
+          status.payload = data.data;
+          return status;
+        }),
+        pull.collect((err, resultList) => {
+          if (err) {
+            this._logger.error("collection err " + err);
+            return callback(err, resultList);
+          } else {
+            return callback(null, resultList);
+          }
+        })
       );
     });
   }
@@ -151,8 +151,8 @@ class Receiver extends EventEmitter {
     const jobs = [];
     // init first job
     const ctx = this;
-    jobs.push((cb)=>{
-      ctx.trySyncOneContractOneRequest(providersList[0], stateSyncMsgs, (err, resultList)=>{
+    jobs.push(cb => {
+      ctx.trySyncOneContractOneRequest(providersList[0], stateSyncMsgs, (err, resultList) => {
         let isDone = true;
         if (err) {
           // general error - retry
@@ -166,14 +166,14 @@ class Receiver extends EventEmitter {
     });
 
     // init rest of the jobs except the last one
-    for (let i=1; i<providersList.length -1; ++i) {
-      jobs.push((isDone, resultList, cb)=>{
+    for (let i = 1; i < providersList.length - 1; ++i) {
+      jobs.push((isDone, resultList, cb) => {
         if (isDone) {
           // were done.
           return cb(null, isDone, resultList);
         } else {
           // retry
-          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err, resultList)=>{
+          ctx.trySyncOneContractOneRequest(providersList[i], stateSyncMsgs, (err, resultList) => {
             let isDone = true;
             if (err) {
               // general error - retry
@@ -186,13 +186,13 @@ class Receiver extends EventEmitter {
       });
     }
 
-    jobs.push((isDone, resultList, cb)=>{
+    jobs.push((isDone, resultList, cb) => {
       if (isDone) {
         // were done.
         return cb(null, isDone, resultList);
       } else {
         // some error - retry
-        ctx.trySyncOneContractOneRequest(providersList[providersList.length-1], stateSyncMsgs, (err, resultList)=>{
+        ctx.trySyncOneContractOneRequest(providersList[providersList.length - 1], stateSyncMsgs, (err, resultList) => {
           // finish regardless if it worked or not.
           if (err) {
             // finish with error
@@ -205,7 +205,7 @@ class Receiver extends EventEmitter {
       }
     });
 
-    waterfall(jobs, (err, isDone, resultList)=>{
+    waterfall(jobs, (err, isDone, resultList) => {
       callback(err, isDone, resultList);
     });
   }
@@ -225,5 +225,3 @@ class Receiver extends EventEmitter {
   }
 }
 module.exports = Receiver;
-
-

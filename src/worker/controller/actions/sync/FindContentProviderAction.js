@@ -1,5 +1,4 @@
-
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 const STAT_TYPES = constants.STAT_TYPES;
 const STATUS = constants.MSG_STATUS;
 
@@ -16,11 +15,10 @@ class FindContentProviderAction {
     const descriptorsList = params.descriptorsList;
     const next = params.next;
     const isEngCid = params.isEngCid;
-    this._controller.receiver()
-        .findProvidersBatch(descriptorsList, isEngCid, (findProviderResult)=>{
-        // TODO:: add error param to the callback.
-          next(findProviderResult);
-        });
+    this._controller.receiver().findProvidersBatch(descriptorsList, isEngCid, findProviderResult => {
+      // TODO:: add error param to the callback.
+      next(findProviderResult);
+    });
   }
 }
 module.exports = FindContentProviderAction;

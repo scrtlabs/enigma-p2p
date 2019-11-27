@@ -1,5 +1,5 @@
-const MsgPrincipal = require('../../../policy/p2p_messages/principal_messages');
-const constants = require('../../../common/constants');
+const MsgPrincipal = require("../../../policy/p2p_messages/principal_messages");
+const constants = require("../../../common/constants");
 
 class GetStateKeysAction {
   constructor(controller) {
@@ -30,61 +30,64 @@ class GetStateKeysAction {
 
     // First, set PTT flag (and validate that no PTT is in progress now)
     if (!this._controller.principal().startPTT()) {
-      const err = 'PTT in progress.. aborting GetStateKeysAction';
+      const err = "PTT in progress.. aborting GetStateKeysAction";
       this._controller.logger().error(err);
       return onResponse(err);
     }
 
     const onPTTRequestResponse = async (err, coreResponse) => {
-      if (err || coreResponse.type === 'Error') {
-        if (coreResponse && coreResponse.type === 'Error') {
+      if (err || coreResponse.type === "Error") {
+        if (coreResponse && coreResponse.type === "Error") {
           err = coreResponse.msg;
         }
-        return this._handleError(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`,
-          err, onResponse);
+        return this._handleError(
+          `Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(coreResponse)}`,
+          err,
+          onResponse
+        );
       }
 
       let principalResponse;
       try {
-        principalResponse = await this._controller.principal().getStateKeys(this._buildRequestMsg(coreResponse, params));
-      }
-      catch (err) {
+        principalResponse = await this._controller
+          .principal()
+          .getStateKeys(this._buildRequestMsg(coreResponse, params));
+      } catch (err) {
         // TODO: Errors.
-        return this._handleError(`Failed Principal node connection: ${err.code} - ${err.message}`,
-          err, onResponse);
+        return this._handleError(`Failed Principal node connection: ${err.code} - ${err.message}`, err, onResponse);
       }
-      this._pttResponse({response: principalResponse.data, sig: principalResponse.sig}, (err, response) => {
-        if (err || response.type === 'Error' || response.result.errors.length > 0) {
-          if (response && coreResponse.type === 'Error') {
+      this._pttResponse({ response: principalResponse.data, sig: principalResponse.sig }, (err, response) => {
+        if (err || response.type === "Error" || response.result.errors.length > 0) {
+          if (response && coreResponse.type === "Error") {
             err = coreResponse.msg;
           } else if (response && response.result && response.result.errors.length > 0) {
             err = response.result;
           }
-          return this._handleError(`Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`,
-            err, onResponse);
+          return this._handleError(
+            `Failed Core connection: err: ${JSON.stringify(err)}, coreResponse: ${JSON.stringify(response)}`,
+            err,
+            onResponse
+          );
         }
         this._controller.principal().onPTTEnd();
         return onResponse(null);
       });
     };
 
-    let dbRequestParams =  {
+    let dbRequestParams = {
       dbQueryType: constants.CORE_REQUESTS.GetPTTRequest,
-      onResponse: onPTTRequestResponse,
+      onResponse: onPTTRequestResponse
     };
 
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, dbRequestParams);
   }
 
   _pttResponse(params, cb) {
-    this._controller.execCmd(
-      constants.NODE_NOTIFICATIONS.DB_REQUEST,
-      {
-        dbQueryType: constants.CORE_REQUESTS.PTTResponse,
-        input: params,
-        onResponse: cb,
-      },
-    );
+    this._controller.execCmd(constants.NODE_NOTIFICATIONS.DB_REQUEST, {
+      dbQueryType: constants.CORE_REQUESTS.PTTResponse,
+      input: params,
+      onResponse: cb
+    });
   }
 
   _buildRequestMsg(coreResponse, params) {

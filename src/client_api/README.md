@@ -34,6 +34,7 @@ curl -H "Content-Type: application/json" -d '{"jsonrpc": "2.0", "id":1, "method"
 	}
 }
 ```
+
 ## deploySecretContract
 
 Deploys a Secret Contract onto the Enigma Network.
@@ -50,7 +51,6 @@ Deploys a Secret Contract onto the Enigma Network.
 **Returns**
 
 `deploySentResult` (Boolean) - Returns `true` if the inputs were broadcasted successfully, otherwise `false`
-
 
 **Example**
 
@@ -111,14 +111,15 @@ Queries the node for the status of a given Task identified by its `taskId`. The 
 
 `workerAddress` - target worker address
 
-`withResult` - **OPTIONAL** defaults to `false`. 
-if set to `true` will return the `output` of the task if and only if the task status is `SUCCESS` or `FAILED` and exists. 
+`withResult` - **OPTIONAL** defaults to `false`.
+if set to `true` will return the `output` of the task if and only if the task status is `SUCCESS` or `FAILED` and exists.
 
 **Returns**
 
 ## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
 
 `result` - status of one of the following values:
+
 - `null`: TaskId not found
 - `UNVERIFIED`: TaskId exists, but it has not been verified
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
@@ -159,6 +160,7 @@ Queries the node for the potential result of a given Task identified by its `tas
 ## **See [TASKS_LIFE_CYCLE_DOCS](../../docs/TASKS_LIFE_CYCLE_DOCS.md) for in depth about statuses**
 
 `result` - status of one of the following values:
+
 - `null`: TaskId not found
 - `UNVERIFIED`: TaskId exists, but it has not been verified
 - `INPROGRESS`: TaskId exists and it has been verified, in-progress
@@ -168,15 +170,15 @@ Queries the node for the potential result of a given Task identified by its `tas
 
 `output` - byte array representing the output of the computation.
 
-`delta` - The delta that was added 
+`delta` - The delta that was added
 
-`usedGas` - the gas that was used during the computation 
+`usedGas` - the gas that was used during the computation
 
-`ethereumPayload`  - ethereum payload
+`ethereumPayload` - ethereum payload
 
-`ethereumAddress` - ethereum address for payload call 
+`ethereumAddress` - ethereum address for payload call
 
-`signature` - signature of the computation result 
+`signature` - signature of the computation result
 
 **Example**
 

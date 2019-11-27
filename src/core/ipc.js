@@ -1,24 +1,23 @@
-const nodeUtils = require('../common/utils');
-const zmq = require('zeromq');
-const EventEmitter = require('events').EventEmitter;
-const Logger = require('../common/logger');
-const SCHEMES = require('./core_messages_scheme');
-const validate = require('jsonschema').validate;
-const errors = require('../common/errors');
-
+const nodeUtils = require("../common/utils");
+const zmq = require("zeromq");
+const EventEmitter = require("events").EventEmitter;
+const Logger = require("../common/logger");
+const SCHEMES = require("./core_messages_scheme");
+const validate = require("jsonschema").validate;
+const errors = require("../common/errors");
 
 class IpcClient extends EventEmitter {
   constructor(uri, logger) {
     super();
-    this._socket = zmq.socket('req');
+    this._socket = zmq.socket("req");
     this._uri = uri;
 
     if (logger) {
       this._logger = logger;
     } else {
       this._logger = new Logger({
-        'level': 'debug',
-        'cli': true,
+        level: "debug",
+        cli: true
       });
     }
 
@@ -29,7 +28,7 @@ class IpcClient extends EventEmitter {
   }
   connect() {
     this._socket.connect(this._uri);
-    this._logger.debug('IPC connected to ' + this._uri );
+    this._logger.debug("IPC connected to " + this._uri);
   }
   disconnect() {
     this._socket.disconnect(this._uri);
@@ -55,12 +54,13 @@ class IpcClient extends EventEmitter {
       const result = validate(msg, finalScheme, {
         rewrite: (instance, schema) => {
           const obj = {};
-          if (typeof instance != 'object' || !schema.properties) return instance; // Checks if either instance or schema isn't of type object
-          for (const n in schema.properties) { // Looks over the fields in the schema and copy only them from the instance.
+          if (typeof instance != "object" || !schema.properties) return instance; // Checks if either instance or schema isn't of type object
+          for (const n in schema.properties) {
+            // Looks over the fields in the schema and copy only them from the instance.
             if (n in instance) obj[n] = instance[n];
           }
           return obj;
-        },
+        }
       });
       // console.dir(result, {depth: null, colors: true});
       if (!result.valid) {
@@ -79,7 +79,7 @@ class IpcClient extends EventEmitter {
     this._socket.send(JSON.stringify(finalMsg));
   }
   _initContextListener() {
-    this._socket.on('message', (msg) => {
+    this._socket.on("message", msg => {
       msg = JSON.parse(msg);
       const callback = this._msgMapping[msg.id];
       if (callback) {
@@ -96,7 +96,7 @@ class IpcClient extends EventEmitter {
    * */
   async sendJsonAndReceive(msg, callback) {
     if (!msg.id) {
-      callback(new errors.MissingFieldsErr('Missing msg ID'));
+      callback(new errors.MissingFieldsErr("Missing msg ID"));
     }
     this._msgMapping[msg.id] = callback;
     try {
@@ -110,9 +110,9 @@ class IpcClient extends EventEmitter {
    * @param {Function} responseCallback
    * */
   setResponseHandler(responseCallback) {
-    this._socket.on('message', (msg)=>{
+    this._socket.on("message", msg => {
       msg = JSON.parse(msg);
-      this.emit('message', msg);
+      this.emit("message", msg);
       responseCallback(msg);
     });
   }

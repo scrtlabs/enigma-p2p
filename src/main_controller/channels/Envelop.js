@@ -1,7 +1,6 @@
-const nodeUtils = require('../../common/utils');
+const nodeUtils = require("../../common/utils");
 
 class Envelop {
-
   /** @param {Boolean/string} sequenceOrId
    *  -- if sequenceOrId is True generate new random id, if sequenceOrId is a string=> it is already id. (hence the name ;-) )
    *  @param {Object} obj, the data being passed
@@ -19,18 +18,21 @@ class Envelop {
     // for response envelop we reuse the id from the original request
     if (sequenceOrId && nodeUtils.isString(sequenceOrId)) {
       this._id = sequenceOrId;
-    } else if (sequenceOrId === true) { // initialize a request with id for response
+    } else if (sequenceOrId === true) {
+      // initialize a request with id for response
       this._id = nodeUtils.randId();
     } else {
-      console.log('[-] error initializing envelop sequenceOrId must be either a string ID or a `true` to generate one randomally!');
+      console.log(
+        "[-] error initializing envelop sequenceOrId must be either a string ID or a `true` to generate one randomally!"
+      );
       this._validEnvelop = false;
     }
     // attach id to msg if missing
-    if (!('id' in this._obj) && this._id !== false) {
+    if (!("id" in this._obj) && this._id !== false) {
       this._obj.id = nodeUtils.randId();
     }
   }
-  isValidEnvelop(){
+  isValidEnvelop() {
     return this._validEnvelop;
   }
   type() {

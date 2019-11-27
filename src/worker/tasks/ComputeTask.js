@@ -1,15 +1,23 @@
-const Task = require('./Task');
-const Result = require('./Result');
-const constants = require('../../common/constants');
-const nodeUtils = require('../../common/utils');
+const Task = require("./Task");
+const Result = require("./Result");
+const constants = require("../../common/constants");
+const nodeUtils = require("../../common/utils");
 class ComputeTask extends Task {
   /**
    * @param {JSON} computeReqMsg , all fields specified in the `expected` list in the func
    * @return {ComputeTask} task
    * */
   static buildTask(computeReqMsg) {
-    const expected = ['taskId', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress', 'blockNumber'];
-    const isMissing = expected.some((attr)=>{
+    const expected = [
+      "taskId",
+      "encryptedArgs",
+      "encryptedFn",
+      "userDHKey",
+      "gasLimit",
+      "contractAddress",
+      "blockNumber"
+    ];
+    const isMissing = expected.some(attr => {
       return !(attr in computeReqMsg);
     });
     // TODO:: check more stuff in each field when building the task
@@ -17,13 +25,13 @@ class ComputeTask extends Task {
       return null;
     } else {
       return new ComputeTask(
-          computeReqMsg.taskId,
-          computeReqMsg.encryptedArgs,
-          computeReqMsg.encryptedFn,
-          computeReqMsg.userDHKey,
-          computeReqMsg.gasLimit,
-          computeReqMsg.contractAddress,
-          computeReqMsg.blockNumber
+        computeReqMsg.taskId,
+        computeReqMsg.encryptedArgs,
+        computeReqMsg.encryptedFn,
+        computeReqMsg.userDHKey,
+        computeReqMsg.gasLimit,
+        computeReqMsg.contractAddress,
+        computeReqMsg.blockNumber
       );
     }
   }
@@ -64,7 +72,7 @@ class ComputeTask extends Task {
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
-      contractAddress: this.getContractAddr(),
+      contractAddress: this.getContractAddr()
     };
   }
   static fromDbJson(taskObj) {

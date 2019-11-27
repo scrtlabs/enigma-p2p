@@ -1,30 +1,39 @@
-const Task = require('./Task');
-const Result = require('./Result');
-const constants = require('../../common/constants');
-const nodeUtils = require('../../common/utils');
+const Task = require("./Task");
+const Result = require("./Result");
+const constants = require("../../common/constants");
+const nodeUtils = require("../../common/utils");
 class DeployTask extends Task {
   /**
    * @param {JSON} deployReqMsg , all fields specified in the `expected` list in the func
    * @return {DeployTask} task
    * */
   static buildTask(deployReqMsg) {
-    const expected = ['taskId', 'preCode', 'encryptedArgs', 'encryptedFn', 'userDHKey', 'gasLimit', 'contractAddress', 'blockNumber'];
-    const isMissing = expected.some((attr)=>{
+    const expected = [
+      "taskId",
+      "preCode",
+      "encryptedArgs",
+      "encryptedFn",
+      "userDHKey",
+      "gasLimit",
+      "contractAddress",
+      "blockNumber"
+    ];
+    const isMissing = expected.some(attr => {
       return !(attr in deployReqMsg);
     });
-      // TODO:: check more stuff in each field when building the task
+    // TODO:: check more stuff in each field when building the task
     if (isMissing) {
       return null;
     } else {
       return new DeployTask(
-          deployReqMsg.taskId,
-          deployReqMsg.preCode,
-          deployReqMsg.encryptedArgs,
-          deployReqMsg.encryptedFn,
-          deployReqMsg.userDHKey,
-          deployReqMsg.gasLimit,
-          deployReqMsg.contractAddress,
-          deployReqMsg.blockNumber,
+        deployReqMsg.taskId,
+        deployReqMsg.preCode,
+        deployReqMsg.encryptedArgs,
+        deployReqMsg.encryptedFn,
+        deployReqMsg.userDHKey,
+        deployReqMsg.gasLimit,
+        deployReqMsg.contractAddress,
+        deployReqMsg.blockNumber
       );
     }
   }
@@ -48,7 +57,7 @@ class DeployTask extends Task {
     return this._userDHKey;
   }
   toDbJson() {
-    const output ={
+    const output = {
       status: this.getStatus(),
       taskId: this.getTaskId(),
       preCode: this.getPreCode(),
@@ -57,7 +66,7 @@ class DeployTask extends Task {
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
       contractAddress: this.getContractAddr(),
-      blockNumber: this.getBlockNumber(),
+      blockNumber: this.getBlockNumber()
     };
     if (this.isFinished()) {
       output.result = this._result.toDbJson();
@@ -71,7 +80,7 @@ class DeployTask extends Task {
       encryptedFn: this.getEncryptedFn(),
       userDHKey: this.getUserDHKey(),
       gasLimit: this.getGasLimit(),
-      contractAddress: this.getContractAddr(),
+      contractAddress: this.getContractAddr()
     };
   }
   static fromDbJson(taskObj) {

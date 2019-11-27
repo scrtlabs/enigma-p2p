@@ -1,4 +1,4 @@
-const constants = require('../../../../common/constants');
+const constants = require("../../../../common/constants");
 
 class RegisterAction {
   constructor(controller) {
@@ -7,17 +7,19 @@ class RegisterAction {
   async execute(params) {
     const onResult = params.onResponse;
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
-      onResponse: async (err, regParams)=>{
+      onResponse: async (err, regParams) => {
         let success = false;
         if (err) {
           this._controller.logger().error(`[REGISTER] error=  ${err}`);
-        }
-        else {
+        } else {
           const signerAddress = regParams.result.signingKey;
           const report = regParams.result.report;
           const signature = regParams.result.signature;
           try {
-            await this._controller.ethereum().api().register(signerAddress, report, signature);
+            await this._controller
+              .ethereum()
+              .api()
+              .register(signerAddress, report, signature);
             this._controller.logger().info(`[REGISTER] successful registration`);
             success = true;
           } catch (e) {
@@ -28,12 +30,12 @@ class RegisterAction {
         if (onResult) {
           onResult(err, success);
         }
-      },
+      }
     });
   }
   async asyncExecute(params) {
     const action = this;
-    return new Promise((res, rej)=>{
+    return new Promise((res, rej) => {
       if (!params) params = {};
       params.onResponse = function(err, verificationResult) {
         if (err) rej(err);

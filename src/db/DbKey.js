@@ -1,4 +1,4 @@
-const DbUtils = require('../common/DbUtils');
+const DbUtils = require("../common/DbUtils");
 
 class DbKey {
   constructor(byteKey, hexAddr, idx) {
@@ -9,7 +9,7 @@ class DbKey {
     if (idx) {
       this._isContract = false;
     }
-    if (this._hexAddr && this._hexAddr.slice(0, 2) === '0x') {
+    if (this._hexAddr && this._hexAddr.slice(0, 2) === "0x") {
       this._hexAddr = this._hexAddr.slice(2);
     }
   }
