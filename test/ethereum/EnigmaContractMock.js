@@ -8,6 +8,7 @@ class EnigmaContractMock {
     this._eventListeners = {};
     this._workersParams = [];
     this._except = false;
+    this._workerGroup = [];
   }
 
   setTaskParams(taskId, blockNumber, status, gasLimit, inputsHash, outputHash) {
@@ -91,6 +92,14 @@ class EnigmaContractMock {
     return {
       eth: { getBlockNumber: this.getEthereumBlockNumberAsync.bind(this) }
     };
+  }
+
+  setWorkerGroup(wg) {
+    this._workerGroup = wg;
+  }
+
+  getWorkerGroup() {
+    return this._workerGroup;
   }
 }
 

@@ -363,6 +363,28 @@ class EnigmaContractReaderAPI {
   }
 
   /**
+   * Worker selection algorithm
+   * @param {string} secretContractAddress
+   * @param {number} blockNumber the task was mined
+   * @return {Promise<Array>} list of workers
+   */
+  async getWorkerGroup(secretContractAddress, blockNumber) {
+    return new Promise(async (resolve, reject) => {
+      const currentBlockNumber = await nodeUtils.getEthereumBlockNumber(this.w3());
+      const confirmedBlockNumber = currentBlockNumber - this.minimumConfirmations;
+      this._enigmaContract.methods
+        .getWorkerGroup(blockNumber, secretContractAddress)
+        .call(this._defaultTrxOptions, confirmedBlockNumber, (error, data) => {
+          if (error) {
+            reject(error);
+            return;
+          }
+          resolve(data);
+        });
+    });
+  }
+
+  /**
    * * Get Epoch size
    * @return {Promise} returning {Integer} : epochSize
    * */

@@ -151,13 +151,8 @@ class EthereumVerifier {
    */
   verifySelectedWorker(task, blockNumber, workerAddress) {
     return new Promise(resolve => {
-      const params = this._findWorkerParamForTask(blockNumber);
-      if (!params) {
-        const err = new errors.TaskValidityErr("Epoch params are missing for the task " + task.getTaskId());
-        return resolve({ error: err, isVerified: false });
-      }
       let secretContractAddress = task.getContractAddr();
-      const res = this._verifySelectedWorker(secretContractAddress, workerAddress, params);
+      const res = this._verifySelectedWorker(secretContractAddress, workerAddress, blockNumber);
       return resolve({ error: res.error, isVerified: res.isVerified });
     });
   }
@@ -187,7 +182,7 @@ class EthereumVerifier {
       }
       const res = this._verifyTaskCreateParams(event.inputsHash, task);
       if (res.isVerified) {
-        let res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
+        const res2 = await this.verifySelectedWorker(task, event.blockNumber, workerAddress);
         return resolve({
           error: res2.error,
           isVerified: res2.isVerified,
@@ -528,13 +523,18 @@ class EthereumVerifier {
    * Verify that the worker address is in the selected workers group for the given secret contract address
    * @param {string} secretContractAddress - Secret contract address
    * @param {string} workerAddress - Worker address
-   * @param {JSON} params - task epoch params
+   * @param {number} blockNumber - task creation blockNumber
    * @return {{isVerified: boolean, error: null}} : isVerified - true if the worker is in the selected group
    *                   err - null or Error Class
    */
-  _verifySelectedWorker(secretContractAddress, workerAddress, params) {
-    let result = { error: null, isVerified: true };
-    let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
+  async _verifySelectedWorker(secretContractAddress, workerAddress, blockNumber) {
+    const result = { error: null, isVerified: true };
+    let [selectedWorker] = await EthereumVerifier.selectWorkerGroup(
+      this._contractApi,
+      secretContractAddress,
+      blockNumber,
+      1
+    );
     selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
     if (selectedWorker !== workerAddress) {
       const err = new errors.WorkerSelectionVerificationErr(
@@ -550,44 +550,12 @@ class EthereumVerifier {
    * Select the workers weighted-randomly based on the staked token amount that will run the computation task
    *
    * @param {string} scAddr - Secret contract address
-   * @param {Object} params - Worker params
-   * @param {number} workerGroupSize - Number of workers to be selected for task
-   * @return {Array} An array of selected workers where each selected worker is chosen with probability equal to
+   * @param {number} blockNumber - Task creation block number
+   * @return {Promise<Array>} An array of selected workers where each selected worker is chosen with probability equal to
    * number of staked tokens
    */
-  static selectWorkerGroup(secretContractAddress, params, workerGroupSize) {
-    // Find total number of staked tokens for workers
-    const tokenCpt = params.balances.reduce((a, b) => JSBI.add(a, b), JSBI.BigInt(0));
-    let nonce = 0;
-    const selectedWorkers = [];
-    do {
-      // Unique hash for epoch, secret contract address, and nonce
-      const hash = cryptography.hash(
-        abi.rawEncode(
-          ["uint256", "bytes32", "uint256"],
-          [params.seed.toString(10), nodeUtils.add0x(secretContractAddress), nonce]
-        )
-      );
-
-      // Find random number between [0, tokenCpt)
-      let randVal = JSBI.remainder(cryptography.toBN(hash), tokenCpt);
-      let selectedWorker = params.workers[params.workers.length - 1];
-      // Loop through each worker, subtracting worker's balance from the random number computed above. Once the
-      // decrementing randVal becomes negative, add the worker whose balance caused this to the list of selected
-      // workers. If worker has already been selected, increase nonce by one, resulting in a new hash computed above.
-      for (let i = 0; i < params.workers.length; i++) {
-        randVal = JSBI.subtract(randVal, params.balances[i]);
-        if (randVal <= 0) {
-          selectedWorker = params.workers[i];
-          break;
-        }
-      }
-      if (!selectedWorkers.includes(selectedWorker)) {
-        selectedWorkers.push(selectedWorker);
-      }
-      nonce++;
-    } while (selectedWorkers.length < workerGroupSize);
-    return selectedWorkers;
+  static async selectWorkerGroup(api, secretContractAddress, blockNumber) {
+    return await api.getWorkerGroup(secretContractAddress, blockNumber);
   }
 
   _findWorkerParamForTask(blockNumber) {

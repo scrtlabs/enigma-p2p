@@ -227,6 +227,7 @@ describe("Verifier tests", function() {
     const ethereumAPI = new EthereumAPIMock(logger);
     ethereumAPI.api().setTaskTimeout(100);
     ethereumAPI.api().setEthereumBlockNumber(100);
+    ethereumAPI.api().setWorkerGroup([web3Utils.randomHex(20)]);
     await ethereumAPI.init();
 
     return defaultsDeep(
@@ -254,6 +255,8 @@ describe("Verifier tests", function() {
     ethereumAPI.api().setWorkerParams(Array.from(params));
     ethereumAPI.api().setTaskTimeout(100);
     ethereumAPI.api().setEthereumBlockNumber(100);
+    ethereumAPI.api().setWorkerGroup([web3Utils.randomHex(20)]);
+
     await ethereumAPI.init();
 
     return {
@@ -275,6 +278,7 @@ describe("Verifier tests", function() {
   }
 
   it("Verify task submission when receipt is already mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#1"]) {
       this.skip();
@@ -310,6 +314,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#2"]) {
       this.skip();
@@ -348,6 +353,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong delta hash in deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#3"]) {
       this.skip();
@@ -386,6 +392,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong output hash in deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#4"]) {
       this.skip();
@@ -423,6 +430,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good failed task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#5"]) {
       this.skip();
@@ -446,6 +454,7 @@ describe("Verifier tests", function() {
   });
 
   it("Unexpected failed deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#6"]) {
       this.skip();
@@ -473,6 +482,7 @@ describe("Verifier tests", function() {
   });
 
   it("Unexpected non-failed deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#7"]) {
       this.skip();
@@ -506,6 +516,7 @@ describe("Verifier tests", function() {
   });
 
   it("Unexpected event for deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#8"]) {
       this.skip();
@@ -539,6 +550,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#9"]) {
       this.skip();
@@ -579,6 +591,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong delta hash in compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#10"]) {
       this.skip();
@@ -618,6 +631,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong output hash in compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#11"]) {
       this.skip();
@@ -656,6 +670,7 @@ describe("Verifier tests", function() {
   });
 
   it("Unexpected failed compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#12"]) {
       this.skip();
@@ -683,6 +698,7 @@ describe("Verifier tests", function() {
   });
 
   it("Unexpected non-failed compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#13"]) {
       this.skip();
@@ -715,6 +731,7 @@ describe("Verifier tests", function() {
   });
 
   it("Delete listener compute task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#14"]) {
       this.skip();
@@ -752,6 +769,7 @@ describe("Verifier tests", function() {
   });
 
   it("Delete listener deploy task submission pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#15"]) {
       this.skip();
@@ -789,178 +807,83 @@ describe("Verifier tests", function() {
     });
   });
 
-  it("Verify worker selection algorithm", async function() {
-    const tree = TEST_TREE.verifier;
-    if (!tree["all"] || !tree["#16"]) {
-      this.skip();
-    }
-
-    return new Promise(async function(resolve) {
-      let a = await initStuffForWorkerSelection();
-
-      // 1.Verify only the algorithm
-      const observed = EthereumVerifier.selectWorkerGroup(a.secretContractAddress, a.expectedParams, 1)[0];
-      assert.strictEqual(observed, a.expectedAddress);
-
-      // 2. Verify the entire flow of params update
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
-
-      // with using ComputeTask
-      let task = new ComputeTask(
-        web3Utils.randomHex(32),
-        "encryptedArgs",
-        "encryptedFn",
-        "userDHKey",
-        5,
-        a.secretContractAddress
-      );
-      let res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3Utils.randomHex(32));
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
-
-      // with using DeployTask
-      task = new DeployTask(
-        a.secretContractAddress,
-        "preCode",
-        "encryptedArgs",
-        "encryptedFn",
-        "userDHKey",
-        5,
-        a.secretContractAddress
-      );
-
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, web3Utils.randomHex(32));
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
-
-      // now add another param and expect the task to be verified
-      blockNumber = 550;
-      let event = {
-        seed: a.expectedParams.seed,
-        firstBlockNumber: 500,
-        workers: a.expectedParams.workers,
-        balances: a.expectedParams.balances,
-        nonce: a.expectedParams.nonce
-      };
-      a.apiMock.triggerEvent("WorkersParameterized", event);
-
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, true);
-      assert.strictEqual(res.error, null);
-
-      // verify unexpected past block number
-      blockNumber = 50;
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.TaskValidityErr, true);
-
-      // trigger a problematic event and expect that the workers params array won'y be updated
-      blockNumber = 150;
-      event = {
-        seed: a.expectedParams.seed,
-        blockNumber: 600,
-        workers: a.expectedParams.workers,
-        balances: a.expectedParams.balances,
-        nonce: a.expectedParams.nonce
-      };
-      a.apiMock.triggerEvent("WorkersParameterized", event);
-
-      res = await a.verifier.verifySelectedWorker(task, blockNumber, a.expectedAddress);
-      assert.strictEqual(res.isVerified, false);
-      assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true); // and not instanceof errors.TaskValidityErr
-
-      resolve();
-    });
-  });
-
   it("Deploy task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#17"]) {
       this.skip();
     }
 
-    return new Promise(async function(resolve) {
-      let a = await initStuffForTaskCreation();
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
+    const a = await initStuffForTaskCreation();
+    const blockNumber = a.expectedParams.firstBlockNumber + 50;
 
-      let task = new DeployTask(
-        a.secretContractAddress,
-        a.preCode,
-        a.encryptedArgs,
-        a.encryptedFn,
-        a.userDHKey,
-        a.gasLimit,
-        a.secretContractAddress,
-        0
-      );
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+    const task = new DeployTask(
+      a.secretContractAddress,
+      a.preCode,
+      a.encryptedArgs,
+      a.encryptedFn,
+      a.userDHKey,
+      a.gasLimit,
+      a.secretContractAddress,
+      0
+    );
+    const status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        cryptography.hash(a.preCode),
-        a.userDHKey
-      ]);
+    const inputsHash = cryptography.hashArray([
+      a.encryptedFn,
+      a.encryptedArgs,
+      cryptography.hash(a.preCode),
+      a.userDHKey
+    ]);
 
-      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
-      a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress).then(res => {
-        assert.strictEqual(res.isVerified, true);
-        assert.strictEqual(res.error, null);
-        assert.strictEqual(res.gasLimit, a.gasLimit);
-        assert.strictEqual(res.blockNumber, blockNumber);
-        resolve();
-      });
-    });
+    a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+    const res = await a.verifier.verifyTaskCreation(task, blockNumber, a.expectedAddress);
+    assert.strictEqual(res.isVerified, true);
+    assert.strictEqual(res.error, null);
+    assert.strictEqual(res.gasLimit, a.gasLimit);
+    assert.strictEqual(res.blockNumber, blockNumber);
   });
 
   it("Wrong worker in deploy task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#18"]) {
       this.skip();
     }
 
-    return new Promise(async function(resolve) {
-      let a = await initStuffForTaskCreation();
+    const a = await initStuffForTaskCreation();
 
-      let task = new DeployTask(
-        a.secretContractAddress,
-        a.preCode,
-        a.encryptedArgs,
-        a.encryptedFn,
-        a.userDHKey,
-        a.gasLimit,
-        a.secretContractAddress
-      );
-      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+    const task = new DeployTask(
+      a.secretContractAddress,
+      a.preCode,
+      a.encryptedArgs,
+      a.encryptedFn,
+      a.userDHKey,
+      a.gasLimit,
+      a.secretContractAddress
+    );
+    const status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
 
-      let blockNumber = a.expectedParams.firstBlockNumber + 50;
-      let inputsHash = cryptography.hashArray([
-        a.encryptedFn,
-        a.encryptedArgs,
-        cryptography.hash(a.preCode),
-        a.userDHKey
-      ]);
+    const blockNumber = a.expectedParams.firstBlockNumber + 50;
+    const inputsHash = cryptography.hashArray([
+      a.encryptedFn,
+      a.encryptedArgs,
+      cryptography.hash(a.preCode),
+      a.userDHKey
+    ]);
 
-      a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
-      a.verifier
-        .verifyTaskCreation(task, blockNumber, web3Utils.toChecksumAddress(web3Utils.randomHex(20)))
-        .then(res => {
-          assert.strictEqual(res.isVerified, false);
-          assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
-          resolve();
-        });
-    });
+    a.apiMock.setTaskParams(a.secretContractAddress, blockNumber, status, a.gasLimit, inputsHash);
+    const res = await a.verifier.verifyTaskCreation(
+      task,
+      blockNumber,
+      web3Utils.toChecksumAddress(web3Utils.randomHex(20))
+    );
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.WorkerSelectionVerificationErr, true);
   });
 
   it("Wrong task status in deploy task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#19"]) {
       this.skip();
@@ -998,6 +921,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong task status in deploy task creation post-mined 2", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#20"]) {
       this.skip();
@@ -1035,6 +959,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good deploy task creation pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#21"]) {
       this.skip();
@@ -1081,6 +1006,7 @@ describe("Verifier tests", function() {
   });
 
   it("Deploy task creation cancellation", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#22"]) {
       this.skip();
@@ -1120,6 +1046,7 @@ describe("Verifier tests", function() {
   });
 
   it("Compute task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#23"]) {
       this.skip();
@@ -1152,6 +1079,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong worker in compute task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#24"]) {
       this.skip();
@@ -1178,6 +1106,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong task status in compute task creation post-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#25"]) {
       this.skip();
@@ -1208,6 +1137,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong task status in compute task creation post-mined 2", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#26"]) {
       this.skip();
@@ -1238,6 +1168,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good compute task creation pre-mined", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#27"]) {
       this.skip();
@@ -1278,6 +1209,7 @@ describe("Verifier tests", function() {
   });
 
   it("Compute task creation cancellation", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#28"]) {
       this.skip();
@@ -1316,6 +1248,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong deploy task creation pre-mined due to selection algorithm", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#29"]) {
       this.skip();
@@ -1360,6 +1293,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong compute task creation pre-mined due to selection algorithm", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#30"]) {
       this.skip();
@@ -1397,6 +1331,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong compute task creation post-mined due to wrong worker address", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#31"]) {
       this.skip();
@@ -1427,6 +1362,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong deploy task creation post-mined due to wrong worker address", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#32"]) {
       this.skip();
@@ -1463,6 +1399,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong task creation post-mined due to wrong task type", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#33"]) {
       this.skip();
@@ -1480,6 +1417,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong deploy task creation post-mined due to wrong delta key", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#34"]) {
       this.skip();
@@ -1516,6 +1454,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong task creation post-mined due to wrong task type", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#35"]) {
       this.skip();
@@ -1533,6 +1472,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong deploy task creation post-mined due to wrong inputs hash", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#36"]) {
       this.skip();
@@ -1564,6 +1504,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong compute task creation post-mined due to wrong inputs hash", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#37"]) {
       this.skip();
@@ -1594,6 +1535,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong compute task submission pre-mined due to wrong key", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#38"]) {
       this.skip();
@@ -1634,6 +1576,7 @@ describe("Verifier tests", function() {
   });
 
   it("Good compute task submission pre-mined - no delta", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#39"]) {
       this.skip();
@@ -1674,6 +1617,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong compute task submission pre-mined - no delta and wrong output", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#40"]) {
       this.skip();
@@ -1714,6 +1658,7 @@ describe("Verifier tests", function() {
   });
 
   it("Wrong deploy task submission pre-mined - no delta", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#41"]) {
       this.skip();
@@ -1752,6 +1697,7 @@ describe("Verifier tests", function() {
   });
 
   it("Compute task submission failed due to ethereum", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#42"]) {
       this.skip();
@@ -1784,6 +1730,7 @@ describe("Verifier tests", function() {
   });
 
   it("Deploy task submission failed due to ethereum", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#43"]) {
       this.skip();
@@ -1817,6 +1764,7 @@ describe("Verifier tests", function() {
   });
 
   it("Check deploy creation timeout", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#44"]) {
       this.skip();
@@ -1863,6 +1811,7 @@ describe("Verifier tests", function() {
   });
 
   it("Check compute creation timeout", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#45"]) {
       this.skip();
@@ -1902,6 +1851,7 @@ describe("Verifier tests", function() {
   });
 
   it("Check compute task submission timeout", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#46"]) {
       this.skip();
@@ -1941,6 +1891,7 @@ describe("Verifier tests", function() {
   });
 
   it("Check deploy task submission timeout", async function() {
+    this.timeout(5000);
     const tree = TEST_TREE.verifier;
     if (!tree["all"] || !tree["#47"]) {
       this.skip();
