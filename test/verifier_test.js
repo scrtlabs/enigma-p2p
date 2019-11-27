@@ -255,7 +255,7 @@ describe("Verifier tests", function() {
     ethereumAPI.api().setWorkerParams(Array.from(params));
     ethereumAPI.api().setTaskTimeout(100);
     ethereumAPI.api().setEthereumBlockNumber(100);
-    ethereumAPI.api().setWorkerGroup([web3Utils.randomHex(20)]);
+    ethereumAPI.api().setWorkerGroup([expectedAddress]);
 
     await ethereumAPI.init();
 
