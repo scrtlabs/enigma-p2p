@@ -38,34 +38,32 @@ it("#2 Should test dialing to a bootstrap", async function() {
   if (!tree["all"] || !tree["#2"]) {
     this.skip();
   }
-  return new Promise(async resolve => {
-    let bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
-    let bootstrapController = NodeController.initDefaultTemplate({
-      port: B1Port,
-      idPath: B1Path,
-      nickname: "bootstrap",
-      bootstrapNodes: bootstrapNodes,
-      extraConfig: {}
-    });
-    let peerController = NodeController.initDefaultTemplate({
-      nickname: "peer",
-      bootstrapNodes: bootstrapNodes,
-      extraConfig: {}
-    });
 
-    await bootstrapController.engNode().syncRun();
-    await peerController.engNode().syncRun();
-    await testUtils.sleep(3000);
-
-    assert.strictEqual(bootstrapController.isConnected(peerController.getSelfB58Id()), true);
-    assert.strictEqual(bootstrapController.getConnectedPeers().length, 1);
-    assert.strictEqual(peerController.isConnected(bootstrapController.getSelfB58Id()), true);
-    assert.strictEqual(peerController.getConnectedPeers().length, 1);
-
-    await bootstrapController.engNode().syncStop();
-    await peerController.engNode().syncStop();
-    resolve();
+  const bootstrapNodes = ["/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+  const bootstrapController = NodeController.initDefaultTemplate({
+    port: B1Port,
+    idPath: B1Path,
+    nickname: "bootstrap",
+    bootstrapNodes: bootstrapNodes,
+    extraConfig: {}
   });
+  const peerController = NodeController.initDefaultTemplate({
+    nickname: "peer",
+    bootstrapNodes: bootstrapNodes,
+    extraConfig: {}
+  });
+
+  await bootstrapController.engNode().syncRun();
+  await peerController.engNode().syncRun();
+  await testUtils.sleep(3000);
+
+  assert.strictEqual(bootstrapController.isConnected(peerController.getSelfB58Id()), true);
+  assert.strictEqual(bootstrapController.getConnectedPeers().length, 1);
+  assert.strictEqual(peerController.isConnected(bootstrapController.getSelfB58Id()), true);
+  assert.strictEqual(peerController.getConnectedPeers().length, 1);
+
+  await bootstrapController.engNode().syncStop();
+  await peerController.engNode().syncStop();
 });
 
 it("#3 Should test libp2p discovery", async function() {
