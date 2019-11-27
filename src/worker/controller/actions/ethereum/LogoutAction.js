@@ -9,12 +9,18 @@ class LogoutAction {
     let logoutSuccess = false;
     let err = null;
 
+    const api = this._controller.ethereum().api();
+
     try {
-      await this._controller
-        .ethereum()
-        .api()
-        .logout();
-      this._controller.logger().info(`[LOGOUT] successful logout`);
+      const workerAddress = api.getWorkerAddress();
+      const { status } = await api.getWorker(workerAddress);
+      if (status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
+        this._controller.logger().info(`[LOGOUT] already logged out`);
+      } else {
+        await api.logout();
+        this._controller.logger().info(`[LOGOUT] successful logout`);
+      }
+
       logoutSuccess = true;
     } catch (e) {
       this._controller.logger().error(`[LOGOUT] error in logout error=  ${e}`);

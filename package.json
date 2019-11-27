@@ -11,6 +11,8 @@
   },
   "scripts": {
     "test": "find ./test -name '*_test.js' | npx nyc xargs env mocha --timeout 200000",
+    "truffle-develop": "cd ./test/ethereum/scripts && truffle develop",
+    "truffle-migrate-print-contract-address": "cd ./test/ethereum/scripts; truffle compile >/dev/null; truffle migrate --reset 2>/dev/null | grep -A 4 \"Replacing 'Enigma'\" | grep 'contract address' | awk '{print $NF}'",
     "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9 || true",
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",

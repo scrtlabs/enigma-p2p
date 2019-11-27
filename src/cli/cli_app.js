@@ -82,7 +82,7 @@ class CLI {
       },
       lookup: async args => {
         const b58Addr = args[1];
-        let peerInfo = await this._node.lookUpPeer(b58Addr);
+        const peerInfo = await this._node.lookUpPeer(b58Addr);
         console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
         if (peerInfo) {
           console.log("Listening on:");
@@ -93,7 +93,7 @@ class CLI {
       },
       remoteTips: async args => {
         const b58Addr = args[1];
-        let tips = await this._node.getLocalStateOfRemote(b58Addr);
+        const tips = await this._node.getLocalStateOfRemote(b58Addr);
         console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
         if (tips) {
           tips.forEach(tip => {
@@ -194,7 +194,7 @@ class CLI {
       },
       getResult: async args => {
         const taskId = args[1];
-        let result = await this._node.getTaskResult(taskId);
+        const result = await this._node.getTaskResult(taskId);
         console.log(`-------------> Result for ${taskId} <-------------`);
         console.log(result);
         console.log(`>----------------------------------------------<`);
@@ -318,6 +318,9 @@ class CLI {
       .option("--lonely-node", "is it the only node in a system", () => {
         this._isLonelyNode = true;
       })
+      .option("--logout-and-exit", "Log out and then exit", () => {
+        this._logoutExit = true;
+      })
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -366,7 +369,7 @@ class CLI {
       let accountKey = this._ethereumKey;
       if (this._enigmaContractAbiPath) {
         try {
-          let raw = await utils.readFile(this._enigmaContractAbiPath);
+          const raw = await utils.readFile(this._enigmaContractAbiPath);
           enigmaContractAbi = JSON.parse(raw).abi;
         } catch (e) {
           console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
@@ -407,16 +410,36 @@ class CLI {
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
-    const n = this._node;
-    process.on("SIGINT", async function() {
-      console.log("----> closing gracefully <------");
-      await n.stop();
-      process.exit();
-    });
 
-    let err = await this._setup();
+    if (this._logoutExit) {
+      await this._commands.logout();
+      process.exit(0);
+    }
+
+    const gracefullShutDown = async err => {
+      if (err) {
+        console.log("----> received error <------");
+        console.log(err);
+      }
+      console.log("----> closing gracefully <------");
+      process.exit(1);
+    };
+
+    // do something when app is closing
+    process.on("exit", gracefullShutDown);
+
+    // catches ctrl+c event
+    process.on("SIGINT", gracefullShutDown);
+    process.on("SIGHUP", gracefullShutDown);
+    process.on("SIGTERM", gracefullShutDown);
+    process.on("SIGQUIT", gracefullShutDown);
+
+    // catches uncaught exceptions
+    process.on("uncaughtException", gracefullShutDown);
+
+    const err = await this._setup();
     if (err) {
-      process.exit();
+      process.exit(1);
     }
   }
   async _setup() {
