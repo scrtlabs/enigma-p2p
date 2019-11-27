@@ -533,8 +533,7 @@ class EthereumVerifier {
       blockNumber,
       1
     );
-    selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
-    if (selectedWorker !== workerAddress) {
+    if (selectedWorker !== nodeUtils.add0x(workerAddress)) {
       const err = new errors.WorkerSelectionVerificationErr(
         "Not the selected worker for the " + secretContractAddress + " task"
       );
