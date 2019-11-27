@@ -306,7 +306,6 @@ There are more things in [Worker](https://github.com/enigmampc/enigma-p2p/tree/m
 # Running the tests
 
 ```bash
-sudo npm install -g truffle
 git clone git@github.com:enigmampc/enigma-p2p.git
 cd enigma-p2p
 npm install

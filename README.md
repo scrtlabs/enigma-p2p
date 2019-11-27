@@ -33,7 +33,6 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 - [NodeJS](https://nodejs.org/en/)
 - [Optional - Network Configuration]()
 - [Optional - Docker](https://www.docker.com/)
-- [During development for running tests - Global Truffle](https://truffleframework.com/)
 
 ## Installing
 
