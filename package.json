@@ -76,6 +76,7 @@
     "eslint-plugin-babel": "^5.2.1",
     "nyc": "^14.1.1",
     "tempdir": "^2.0.0",
+    "truffle": "^5.1.1",
     "ws": "^7.0.0"
   },
   "contributors": [
