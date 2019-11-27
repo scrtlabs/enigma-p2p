@@ -3,7 +3,7 @@ class BootstrapDiscoveredAction {
     this._controller = controller;
   }
 
-  execute(params) {
+  async execute(params) {
     params = params.params;
     const otherPeer = params.peer;
 
@@ -11,13 +11,8 @@ class BootstrapDiscoveredAction {
     if (this._controller.engNode().arePeersConnected()) {
       return;
     }
-    this._controller.engNode().connectToBootstrap(otherPeer, err => {
-      let success = false;
-      if (!err) {
-        success = true;
-      }
-      this._controller.logger().debug(`connection to bootstrap succeeded=${success}`);
-    });
+    const success = await this._controller.engNode().connectToBootstrap(otherPeer);
+    this._controller.logger().debug(`connection to bootstrap succeeded=${success}`);
   }
 }
 module.exports = BootstrapDiscoveredAction;

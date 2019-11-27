@@ -806,67 +806,6 @@ class NodeController {
       amount: amount
     });
   }
-
-  /**
-   * @returns {JSON} result }
-   * */
-  async healthCheck() {
-    let healthCheckResult = {
-      status: false,
-      core: {
-        status: false,
-        registrationParams: {
-          signKey: null
-        }
-      },
-      ethereum: {
-        status: false,
-        uri: null,
-        contract_addr: null
-      }
-      // TODO: consider adding a periodic once there
-      /*state: {
-        status: false,
-        missing: null
-      }*/
-    };
-
-    // core
-    try {
-      let regParams = await this.asyncGetRegistrationParams();
-      healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
-      healthCheckResult.core.status = healthCheckResult.core.registrationParams.signKey != null;
-    } catch (e) {
-      healthCheckResult.core.status = false;
-    }
-
-    // ethereum
-    if (this.hasEthereum()) {
-      try {
-        let eth = await this.ethereum().healthCheck();
-        healthCheckResult.ethereum.uri = eth.url;
-        healthCheckResult.ethereum.contract_addr = eth.enigmaContractAddress;
-        healthCheckResult.ethereum.status = eth.isConnected;
-      } catch (e) {
-        healthCheckResult.ethereum.status = false;
-      }
-    }
-
-    // sync
-    /*try {
-      let missingStates = await this.getNode().asyncIdentifyMissingStates();
-      healthCheckResult.state.missing = missingStates["missingStatesMap"];
-      if (healthCheckResult.state.missing && Object.keys(healthCheckResult.state.missing).length === 0) {
-        healthCheckResult.state.status = true;
-      }
-    } catch (e) {
-      healthCheckResult.state.status = false;
-    }*/
-
-    // overall_status
-    healthCheckResult.status = healthCheckResult.core.status && healthCheckResult.ethereum.status; // && healthCheckResult.state.status;
-    return healthCheckResult;
-  }
 }
 
 module.exports = NodeController;

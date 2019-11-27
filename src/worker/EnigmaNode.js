@@ -12,6 +12,7 @@ const Messages = require("../policy/p2p_messages/messages");
 const nodeUtils = require("../common/utils");
 const Logger = require("../common/logger");
 const errors = require("../common/errors");
+const { promisify } = require("util");
 
 class EnigmaNode extends EventEmitter {
   constructor(config, protocolHandler, logger) {
@@ -491,15 +492,17 @@ class EnigmaNode extends EventEmitter {
    * @param {PeerInfo} peerInfo, the peer to dial to
    * @return {boolean} true in a success, false otherwise
    */
-  connectToBootstrap(peerInfo, callback) {
-    this.dial(peerInfo, (connectionErr, connection) => {
-      if (connectionErr) {
-        this._logger.error(`Failed connecting to a bootstrap node= ${connectionErr}`);
-      } else {
-        this.notify(peerInfo);
-      }
-      callback(connectionErr);
-    });
+  async connectToBootstrap(peerInfo) {
+    const dial = promisify(this.dial).bind(this);
+    try {
+      await dial(peerInfo);
+    } catch (connectionErr) {
+      this._logger.error(`Failed connecting to a bootstrap node= ${connectionErr}`);
+      return false;
+    }
+
+    this.notify(peerInfo);
+    return true;
   }
   /**
    * Notify observer (Some controller subscribed)
