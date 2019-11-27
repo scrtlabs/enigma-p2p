@@ -527,13 +527,13 @@ class EthereumVerifier {
    */
   async _verifySelectedWorker(secretContractAddress, workerAddress, blockNumber) {
     const result = { error: null, isVerified: true };
-    let [selectedWorker] = await EthereumVerifier.selectWorkerGroup(
+    const [selectedWorker] = await EthereumVerifier.selectWorkerGroup(
       this._contractApi,
       secretContractAddress,
       blockNumber,
       1
     );
-    if (selectedWorker !== nodeUtils.add0x(workerAddress)) {
+    if (nodeUtils.add0x(selectedWorker) !== nodeUtils.add0x(workerAddress)) {
       const err = new errors.WorkerSelectionVerificationErr(
         "Not the selected worker for the " + secretContractAddress + " task"
       );
