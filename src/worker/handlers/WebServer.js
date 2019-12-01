@@ -51,7 +51,7 @@ class WebServer extends EventEmitter {
         if (result.status) {
           res.send("OK");
         } else {
-          next(500);
+          next(WEB_SERVER_CONSTANTS.error_code);
         }
       }
     });

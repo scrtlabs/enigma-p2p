@@ -268,6 +268,7 @@ module.exports.MINIMUM_CONFIRMATIONS = 12;
 module.exports.WEB_SERVER_CONSTANTS = {
   HEALTH_CHECK: {
     port: 12345,
-    url: "/healthcheck"
+    url: "/healthcheck",
+    error_code: 500
   }
 };

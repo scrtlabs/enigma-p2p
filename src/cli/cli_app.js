@@ -320,10 +320,10 @@ class CLI {
       .option("--lonely-node", "is it the only node in a system", () => {
         this._isLonelyNode = true;
       })
-      .option("--health-check-port [value]", "start a service for health check queries", port => {
+      .option("--health [value]", "start a service for health check queries", port => {
         this._healthCheckPort = port;
       })
-      .option("--health-check-url [value]", "define the health check queries url", url => {
+      .option("--health-url [value]", "define the health check queries url", url => {
         this._healthCheckUrl = url;
       })
       .option("--logout-and-exit", "Log out and then exit", () => {
