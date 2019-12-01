@@ -3,6 +3,7 @@ const assert = require("assert");
 const testBuilder = require("./testUtils/quickBuilderUtil");
 const testUtils = require("./testUtils/utils");
 const ethTestUtils = require("./ethereum/utils");
+const constants = require("../src/common/constants");
 
 const noLoggerOpts = {
   bOpts: {
@@ -83,15 +84,13 @@ it("#1 run init and healthCheck", async function() {
 
     await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
 
+    // request the check straight forward
+    let hc = await testPeer.mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.HEALTH_CHECK, {});
     // assertion checks
-    // we check what was previously the health check:
-    // receiving the registration params + checking the missing states
-
-    let coreUri = testPeer.mainController.getIpcClient().getUri();
-    let regParams = await testPeer.mainController.getNode().asyncGetRegistrationParams();
-
-    assert.strictEqual(coreUri != null, true);
-    assert.strictEqual(regParams.result.signingKey.length, 42);
+    assert.strictEqual(hc.status, true);
+    assert.strictEqual(hc.core.status, true);
+    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
+    assert.strictEqual(hc.ethereum.status, true);
 
     let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
 

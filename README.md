@@ -20,7 +20,9 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
   - [Installing globally with nvm](#installing-globally-with-nvm)
 - [Running the Node](#running-the-node)
 - [Running the tests](#running-the-tests)
-- [JSON RPC API](#json-rpc-api)
+- [Interacting with the node](#interacting-with-the-node)
+    - [JSON RPC API](#json-rpc-api)
+    - [Node health check](#node-health-check)
 - [Built With](#built-with)
 - [Developers](#developers)
 - [Authors](#authors)
@@ -93,7 +95,7 @@ Example:
 1. launch a Bootstrap node:
 
 ```
-node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db --mock-core
+node cli_app.js -i B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db --mock-core
 ```
 
 2. launch a regular worker node that will connect to the bootstrap:
@@ -130,35 +132,49 @@ Tests are based on `Mocha` and can invoked by typing:
 
 `$npm test`
 
-# JSON RPC API
+# Interacting with the node
+## JSON RPC API
 
-The [api](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md) for interacting with a proxy node.
+The [API](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md) for interacting with a proxy node.
 
 Usage example:
 
 1. Start a bootstrap node which is also a **Proxy**
 
 ```
-node cli_app.js -i B1 -b B1 -p B1 --core 127.0.0.1:1543 --proxy 3346 --random-db
+node cli_app.js -i B1 -p B1 --core 127.0.0.1:1543 --mock-core --proxy 3346 --random-db
 ```
 
-2. start a regular worker that is **NOT** a proxy
+2. Start a regular worker that is **NOT** a proxy
 
 ```
-node cli_app.js -b B1 --core 127.0.0.1:6000 --random-db
+node cli_app.js -b B1 --core 127.0.0.1:6000 --mock-core --random-db
 ```
 
-3. IMPORTANT: assuming the worker from #2 is the selected one type `selfSubscribe` in the CLI so that the worker will subscribe to its own sign key. The key will be printed to std, copy it:
+3. IMPORTANT: assuming the worker from #2 is the selected one, type `selfSubscribe` in the CLI so that the worker will subscribe to its own sign key. The key will be printed to std, copy it:
 
 ```
    [Wed Mar 27 2019 17:41:06 GMT+0200 (Israel Standard Time)] DEBUG subscribed to [0xd71c1bccb4b238cea332201bab1cd0fa70bec080] self signKey
 ```
 
-4. user wanting to call `getWorkerEncryptionKey` with `curl` see [example](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md#getworkerencryptionkey) and use the key from step 3 as the `workerAddress` parameter.
+4. User wanting to call `getWorkerEncryptionKey` with `curl` see [example](https://github.com/enigmampc/enigma-p2p/blob/develop/src/client_api/README.md#getworkerencryptionkey) and use the key from step 3 as the `workerAddress` parameter.
 
 <img src="docs/jsonrpc.png"
      alt="streams flow " />
-
+     
+## Node health check
+The node health check currently consists from the following checks:
+- The ability to interact with core
+- The ability to interact with Ethereum
+To enable the health check, start the node with `--health` parameter. For example:
+```
+node cli_app.js -i B1 -p B1 --core 127.0.0.1:1543 --mock-core --health 12345
+```
+To query node state, `curl` can be used:
+```
+curl http://localhost:12345/healthcheck
+```
+  
 # Built With
 
 - [NodeJS](https://nodejs.org/en/)
