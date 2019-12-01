@@ -166,11 +166,12 @@ node cli_app.js -b B1 --core 127.0.0.1:6000 --mock-core --random-db
 The node health check currently consists from the following checks:
 - The ability to interact with core
 - The ability to interact with Ethereum
+
 To enable the health check, start the node with `--health` parameter. For example:
 ```
 node cli_app.js -i B1 -p B1 --core 127.0.0.1:1543 --mock-core --health 12345
 ```
-To query node state, `curl` can be used:
+To query node's state, `curl` can be used:
 ```
 curl http://localhost:12345/healthcheck
 ```
