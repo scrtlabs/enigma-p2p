@@ -21,15 +21,19 @@ class FacadeController extends MainController {
       throw new Error("Runtime does not implement type()");
     }
   }
+
   getNode() {
     return this._runtimesMap[runtimesTypes.Node];
   }
+
   getIpcClient() {
     return this._runtimesMap[runtimesTypes.Core];
   }
+
   getJsonRpcServer() {
     return this._runtimesMap[runtimesTypes.JsonRpc];
   }
+
   async shutdownSystem() {
     if (this.getJsonRpcServer()) {
       this.getJsonRpcServer().close();
