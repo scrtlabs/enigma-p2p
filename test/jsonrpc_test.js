@@ -119,6 +119,9 @@ describe("JsonRPC tests", () => {
             builder
               .setNodeConfig(proxyConfig)
               .setIpcConfig({ uri: workerCoreUri })
+              .setLoggerConfig({
+                name: "WorkerController",
+                level: "debug"})
               .build()
               .then(instance => {
                 workerController = instance;

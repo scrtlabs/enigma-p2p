@@ -40,7 +40,7 @@ class CLI {
     this._isLonelyNode = false;
     this._minConfirmations = null;
     this._principalNode = null;
-
+    this._logLevel = null;
     this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
     this._B1Port = "10300";
     this._B2Path = path.join(__dirname, "../../test/testUtils/id-d");
@@ -324,6 +324,9 @@ class CLI {
       .option("--logout-and-exit", "Log out and then exit", () => {
         this._logoutExit = true;
       })
+      .option("-l, --log-level [value]", "Set the log level (default - info)", logLevel => {
+        this._logLevel = logLevel ? logLevel : "info";
+      })
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -365,6 +368,8 @@ class CLI {
         peerId: null
       });
     }
+
+    builder.setLoggerConfig({name: "MainController", level: this._logLevel});
     /** init Ethereum API
      * */
     if (this._initEthereum) {
@@ -387,6 +392,7 @@ class CLI {
           return;
         }
       }
+
       builder.setEthereumConfig({
         urlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
