@@ -215,7 +215,7 @@ describe("TaskManager isolated tests", () => {
     if (!tree["all"] || !tree["#5"]) {
       this.skip();
     }
-    this.timeout(10000);
+    this.timeout(30000);
     return new Promise(async resolve => {
       dbPath = tempdir.sync();
       let unFinishedDeployNum = 250,
