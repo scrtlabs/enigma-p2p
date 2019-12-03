@@ -3,7 +3,7 @@ const constants = require("./constants");
 const LOG_CONFIG = constants.LOG_CONFIG;
 
 class Logger {
-  constructor(options) {
+  constructor(options = {}) {
     const logName = options.hasOwnProperty("name") ? options.name : "P2P";
     const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
     log4js.configure( {
