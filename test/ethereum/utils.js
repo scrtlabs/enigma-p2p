@@ -147,6 +147,11 @@ module.exports.createDataForSelectionAlgorithm = function() {
   };
 };
 
+/**
+ * Transform a list of states to a corresponding map.
+ * @param {Array<Object>} statesList - list of states in the format {address, key, data}
+ * @return {Object} a map whose keys are addresses and each object is a map of states (key=>data)
+ * */
 module.exports.transformStatesListToMap = statesList => {
   const statesMap = {};
   for (let i = 0; i < statesList.length; ++i) {
@@ -190,6 +195,11 @@ module.exports.advanceXConfirmations = async function(web3, confirmations = cons
   }
 };
 
+/**
+ * Transform a list of states to a corresponding map.
+ * @param {Array<Object>} statesList - list of states in the format {address, key, data}
+ * @return {Object} a map whose keys are addresses and each object is a map of states (key=>data)
+ * */
 // add the whole DB_PROVIDER as a state in ethereum. ethereum must be running for this worker
 module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclaveSigningAddress) => {
   for (const address in this.PROVIDERS_DB_MAP) {
