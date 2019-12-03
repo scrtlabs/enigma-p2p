@@ -1,75 +1,49 @@
-const fs = require("fs");
-const Log = require("log");
+const log4js = require("log4js");
 const constants = require("./constants");
 const LOG_CONFIG = constants.LOG_CONFIG;
 
 class Logger {
   constructor(options) {
-    this._options = {};
-    this._options.level = LOG_CONFIG.level;
-    this._options.cli = LOG_CONFIG.cli;
-    this._options.file = LOG_CONFIG.file;
-    this._options.pretty = false;
+    const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
+    log4js.configure( {
+      appenders: {
+        file: {
+          type: "file",
+          filename: LOG_CONFIG.file,
+          maxLogSize: 10 * 1024 * 1024, // = 10Mb
+          backups: 5, // keep five backup files
+          compress: true, // compress the backups
+          encoding: "utf-8",
+          mode: 0o0640,
+          flags: "w+",
+        },
+        out: {type: "stdout"},
 
-    if (options != undefined) {
-      if (options.level !== undefined) {
-        this._options.level = options.level;
-      }
-      if (options.cli !== undefined) {
-        this._options.cli = options.cli;
-      }
-      if (options.file !== undefined) {
-        this._options.file = options.file;
-      }
-      if (options.cli === undefined && options.pretty === true) {
-        this._options.pretty = true;
-      }
-    }
-
-    // initialize loggers
-
-    this._cliLogger = null;
-    this._fileLogger = null;
-
-    if (this._options.cli) {
-      this._cliLogger = new Log(this._options.level);
-    }
-    if (this._options.file) {
-      this._fileLogger = new Log(this._options.level, fs.createWriteStream(this._options.file));
-    }
+      },
+      categories:
+        {default: {appenders: ["file", "out"], level: logLevel}},
+    });
+    this.logger = log4js.getLogger();
   }
-  _log(content, type) {
-    if (process.env.NODE_ENV == "test") {
-      return;
-    }
-
-    if (this._cliLogger != null) {
-      this._cliLogger[type](content);
-    }
-    if (this._fileLogger != null) {
-      this._fileLogger[type](content);
-    }
-  }
-
   debug(content) {
-    this._log(content, "debug");
+    this.logger.debug(content);
   }
   info(content) {
-    this._log(content, "info");
+    this.logger.info(content);
   }
   error(content) {
-    this._log(content, "error");
+    this.logger.error(content);
+  }
+  warn(content) {
+    this.logger.error(content);
+  }
+  fatal(content) {
+    this.logger.error(content);
+  }
+  trace(content) {
+    this.logger.error(content);
   }
 }
 
 module.exports = Logger;
 
-//
-// let l = new Logger({
-//     "level" : "debug",
-//     "cli" : true
-// });
-//
-// l.debug("hello");
-// l.info("not hello");
-// l.error("bad bad ");
