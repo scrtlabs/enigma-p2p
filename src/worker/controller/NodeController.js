@@ -173,7 +173,7 @@ class NodeController {
     if (logger) {
       _logger = logger;
     } else {
-      _logger = new Logger();
+      _logger = new Logger({name: "NodeController"});
     }
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);

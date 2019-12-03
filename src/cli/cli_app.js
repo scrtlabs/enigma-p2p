@@ -12,6 +12,9 @@ const tempdir = require("tempdir");
 const utils = require("../common/utils");
 const constants = require("../common/constants");
 
+const log4js = require("log4js");
+const logger = log4js.getLogger("cli");
+
 //TODO:: add to manager events with spinner link below
 //https://github.com/codekirei/node-multispinner/blob/master/extras/examples/events.js
 // const Multispinner = require('multispinner')
@@ -73,7 +76,7 @@ class CLI {
         try {
           await this._node.asyncInitializeWorkerProcess({ amount: amount });
         } catch (err) {
-          console.log("[-] ERROR $init ", err);
+          logger.info("[-] ERROR $init ", err);
         }
       },
       addPeer: args => {
@@ -83,39 +86,39 @@ class CLI {
       lookup: async args => {
         const b58Addr = args[1];
         const peerInfo = await this._node.lookUpPeer(b58Addr);
-        console.log(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
+        logger.info(`--------------> PeerInfo ${b58Addr} Lookup <--------------`);
         if (peerInfo) {
-          console.log("Listening on:");
-          peerInfo.multiaddrs.forEach(ma => console.log(ma.toString()));
+          logger.info("Listening on:");
+          peerInfo.multiaddrs.forEach(ma => logger.info(ma.toString()));
         } else {
-          console.log("Not Found");
+          logger.info("Not Found");
         }
       },
       remoteTips: async args => {
         const b58Addr = args[1];
         const tips = await this._node.getLocalStateOfRemote(b58Addr);
-        console.log(`--------------> tips of  ${b58Addr} Lookup <--------------`);
+        logger.info(`--------------> tips of  ${b58Addr} Lookup <--------------`);
         if (tips) {
           tips.forEach(tip => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+            logger.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
-          console.log(`-> total of ${tips.length} secret contracts.`);
+          logger.info(`-> total of ${tips.length} secret contracts.`);
         } else {
-          console.log("Not Found");
+          logger.info("Not Found");
         }
       },
       getAddr: () => {
         const addrs = this._node.getSelfAddrs();
-        console.log("---> self addrs : <---- ");
-        console.log(addrs);
-        console.log(">------------------------<");
+        logger.info("---> self addrs : <---- ");
+        logger.info(addrs);
+        logger.info(">------------------------<");
       },
       getConnectedPeers: () => {
         const peers = this._node.getConnectedPeers();
-        console.log("getConnectedPeers: ", peers);
-        console.log(">------------------------<");
+        logger.info("getConnectedPeers: ", peers);
+        logger.info(">------------------------<");
       },
       broadcast: args => {
         const msg = args[1];
@@ -132,14 +135,14 @@ class CLI {
       },
       monitorSubscribe: args => {
         if (args.length < 2) {
-          return console.log("error please use $monitorSubscribe <topic str name>");
+          return logger.info("error please use $monitorSubscribe <topic str name>");
         }
         const topic = args[1];
         this._node.monitorSubscribe(topic);
       },
       publish: args => {
         if (args.length < 3) {
-          return console.log("error please $publish <topic> <str msg>");
+          return logger.info("error please $publish <topic> <str msg>");
         }
         const topic = args[1];
         const message = args[2];
@@ -151,41 +154,41 @@ class CLI {
       getRegistration: args => {
         this._node.getRegistrationParams((err, result) => {
           if (err) {
-            console.log("err in getRegistration" + err);
+            logger.info("err in getRegistration" + err);
           } else {
             const out = {};
             out.report = result.result.report;
             out.signature = result.result.signature;
             out.singingKey = result.result.signingKey;
-            console.log(out);
+            logger.info(out);
           }
         });
       },
       isConnected: args => {
         const id = args[1];
         const isConnected = this._node.isConnected(id);
-        console.log("Connection test : " + id + " ? " + isConnected);
+        logger.info("Connection test : " + id + " ? " + isConnected);
       },
       topics: async args => {
         const list = await this._node.getTopics();
-        console.log("----> topics <-----");
+        logger.info("----> topics <-----");
         list.forEach(t => {
-          console.log(t);
+          logger.info(t);
         });
       },
       tips: async args => {
-        console.log("----------------> local tips <----------------");
+        logger.info("----------------> local tips <----------------");
         try {
           // addr -> index + hash
           const tips = await this._node.getLocalTips();
           tips.forEach(tip => {
             const deltaHash = cryptography.hash(tip.data);
             const hexAddr = DbUtils.toHexString(tip.address);
-            console.log(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
+            logger.info(`address: ${hexAddr} => key: ${tip.key} hash: ${deltaHash}`);
           });
-          console.log(`-> total of ${tips.length} secret contracts.`);
+          logger.info(`-> total of ${tips.length} secret contracts.`);
         } catch (e) {
-          console.log(e);
+          logger.info(e);
         }
       },
       unsubscribe: async args => {
@@ -195,9 +198,9 @@ class CLI {
       getResult: async args => {
         const taskId = args[1];
         const result = await this._node.getTaskResult(taskId);
-        console.log(`-------------> Result for ${taskId} <-------------`);
-        console.log(result);
-        console.log(`>----------------------------------------------<`);
+        logger.info(`-------------> Result for ${taskId} <-------------`);
+        logger.info(result);
+        logger.info(`>----------------------------------------------<`);
       },
       register: async () => {
         await this._node.register();
@@ -217,34 +220,34 @@ class CLI {
         await this._node.withdraw(amount);
       },
       help: args => {
-        console.log("---> Commands List <---");
-        console.log("addPeer <address> : connect to a new peer manualy.");
-        console.log("announce : announce the network worker synchronized on states");
-        console.log("broadcast <message> : broadcast a message to the whole network");
-        console.log("deposit <amount>: deposit to Enigma contract");
-        console.log("getAddr : get the multiaddress of the node. ");
-        console.log("getConnectedPeers : get the list of connected peer Ids");
-        console.log("getRegistration : get the registration params of the node. ");
-        console.log("getResult <taskId>: check locally if task result exists");
-        console.log("help : help");
-        console.log("identify : output to std all the missing state, i.e what needs to be synced");
-        console.log("init : init all the required steps for the worker");
-        console.log("isConnected <PeerId>: check if some peer is connected");
-        console.log("login : login to Enigma contract");
-        console.log("logout : logout from Enigma contract");
-        console.log("lookup <b58 address> : lookup a peer in the network");
-        console.log(
+        logger.info("---> Commands List <---");
+        logger.info("addPeer <address> : connect to a new peer manualy.");
+        logger.info("announce : announce the network worker synchronized on states");
+        logger.info("broadcast <message> : broadcast a message to the whole network");
+        logger.info("deposit <amount>: deposit to Enigma contract");
+        logger.info("getAddr : get the multiaddress of the node. ");
+        logger.info("getConnectedPeers : get the list of connected peer Ids");
+        logger.info("getRegistration : get the registration params of the node. ");
+        logger.info("getResult <taskId>: check locally if task result exists");
+        logger.info("help : help");
+        logger.info("identify : output to std all the missing state, i.e what needs to be synced");
+        logger.info("init : init all the required steps for the worker");
+        logger.info("isConnected <PeerId>: check if some peer is connected");
+        logger.info("login : login to Enigma contract");
+        logger.info("logout : logout from Enigma contract");
+        logger.info("lookup <b58 address> : lookup a peer in the network");
+        logger.info(
           "monitorSubscribe <topic name> : subscribe to any event in the network and print to std every time there is a publish"
         );
-        console.log("publish <topic> <str msg> : publish <str msg> on topic <topic> to the network");
-        console.log("register : register to Enigma contract");
-        console.log("remoteTips <b58 address> : look up the tips of some remote peer");
-        console.log("selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)");
-        console.log("sync : sync the worker from the network and get all the missing states");
-        console.log("tips : output to std the local existing states, tips");
-        console.log("topics : list of subscribed topics");
-        console.log("withdraw <amount>: withdraw from Enigma contract");
-        console.log(">------------------------<");
+        logger.info("publish <topic> <str msg> : publish <str msg> on topic <topic> to the network");
+        logger.info("register : register to Enigma contract");
+        logger.info("remoteTips <b58 address> : look up the tips of some remote peer");
+        logger.info("selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)");
+        logger.info("sync : sync the worker from the network and get all the missing states");
+        logger.info("tips : output to std the local existing states, tips");
+        logger.info("topics : list of subscribed topics");
+        logger.info("withdraw <amount>: withdraw from Enigma contract");
+        logger.info(">------------------------<");
       }
     };
     this._initInitialFlags();
@@ -372,7 +375,7 @@ class CLI {
           const raw = await utils.readFile(this._enigmaContractAbiPath);
           enigmaContractAbi = JSON.parse(raw).abi;
         } catch (e) {
-          console.log(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
+          logger.info(`Error in reading enigma contract API ${this._enigmaContractAbiPath}`);
           return;
         }
       }
@@ -380,7 +383,7 @@ class CLI {
         try {
           accountKey = await utils.readFile(this._ethereumKeyPath);
         } catch (e) {
-          console.log(`Error in reading account key ${this._ethereumKeyPath}`);
+          logger.info(`Error in reading account key ${this._ethereumKeyPath}`);
           return;
         }
       }
@@ -398,7 +401,7 @@ class CLI {
 
     if (this._randomTasksDbPath || this._principalNode) {
       if (this._principalNode) {
-        console.log("Connecting to Principal Node at " + this._principalNode);
+        logger.info("Connecting to Principal Node at " + this._principalNode);
         nodeConfig.extraConfig = { principal: { uri: this._principalNode } };
       }
       nodeConfig.extraConfig.tm = {
@@ -418,10 +421,10 @@ class CLI {
 
     const gracefullShutDown = async err => {
       if (err) {
-        console.log("----> received error <------");
-        console.log(err);
+        logger.info("----> received error <------");
+        logger.info(err);
       }
-      console.log("----> closing gracefully <------");
+      logger.info("----> closing gracefully <------");
       process.exit(1);
     };
 
@@ -448,13 +451,13 @@ class CLI {
     if (this._autoInit && this._isLonelyNode) {
       this._node.initializeWorkerProcess(this._depositValue, err => {
         if (err) {
-          console.log("[-] ERROR with automatic worker initialization: ", err);
+          logger.info("[-] ERROR with automatic worker initialization: ", err);
         }
       });
     }
   }
   start() {
-    console.log(Parsers.opener);
+    // logger.info(Parsers.opener);
     const cmds = this._commands;
     readline
       .createInterface({
@@ -467,7 +470,7 @@ class CLI {
         if (cmds[args[0]]) {
           cmds[args[0]](args);
         } else {
-          console.log("XXX no such command XXX ");
+          logger.info("XXX no such command XXX ");
         }
       });
     return this;

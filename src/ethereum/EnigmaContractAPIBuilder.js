@@ -32,7 +32,7 @@ class EnigmaContractAPIBuilder {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({ cli: false });
+      this._logger = new Logger({ name: "EnigmaContractAPIBuilder"});
     }
 
     return this;

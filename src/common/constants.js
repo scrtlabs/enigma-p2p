@@ -3,9 +3,8 @@ module.exports.configPath = "../../../configs/debug";
 module.exports.ID_LEN = 46;
 
 module.exports.LOG_CONFIG = {
-  level: "debug",
+  level: "info",
   file: "peer.log",
-  cli: true
 };
 module.exports.NODE_NOTIFICATIONS = {
   INIT_WORKER: "iw", // init https://github.com/enigmampc/enigma-p2p#overview-on-start

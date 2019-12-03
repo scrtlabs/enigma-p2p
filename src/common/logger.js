@@ -4,6 +4,7 @@ const LOG_CONFIG = constants.LOG_CONFIG;
 
 class Logger {
   constructor(options) {
+    const logName = options.hasOwnProperty("name") ? options.name : "P2P";
     const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
     log4js.configure( {
       appenders: {
@@ -18,12 +19,13 @@ class Logger {
           flags: "w+",
         },
         out: {type: "stdout"},
-
+        err: {type: "stderr"},
       },
       categories:
-        {default: {appenders: ["file", "out"], level: logLevel}},
+        {[logName]: {appenders: ["file", "out"], level: logLevel},
+          default: {appenders: ["err"], level: "info"}},
     });
-    this.logger = log4js.getLogger();
+    this.logger = log4js.getLogger(logName);
   }
   debug(content) {
     this.logger.debug(content);
@@ -35,13 +37,13 @@ class Logger {
     this.logger.error(content);
   }
   warn(content) {
-    this.logger.error(content);
+    this.logger.warn(content);
   }
   fatal(content) {
-    this.logger.error(content);
+    this.logger.fatal(content);
   }
   trace(content) {
-    this.logger.error(content);
+    this.logger.trace(content);
   }
 }
 

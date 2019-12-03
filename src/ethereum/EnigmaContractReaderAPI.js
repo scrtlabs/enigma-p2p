@@ -39,7 +39,7 @@ class EnigmaContractReaderAPI {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger();
+      this._logger = new Logger({name: "EnigmaContractReaderAPI"});
     }
 
     const conf = JSON.parse(JSON.stringify(config)); // deep copy

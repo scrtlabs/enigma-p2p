@@ -24,7 +24,7 @@ class EnigmaNode extends EventEmitter {
     } else {
       this._logger = new Logger({
         level: "debug",
-        cli: true
+        name: "EnigmaNode",
       });
     }
 

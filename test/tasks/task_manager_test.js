@@ -74,8 +74,7 @@ describe("TaskManager isolated tests", () => {
     // runs before all tests in this block
     logger = new Logger({
       level: "debug",
-      cli: false,
-      file: false
+      name: "task_test_manager",
     });
     dbPath = tempdir.sync();
   });
