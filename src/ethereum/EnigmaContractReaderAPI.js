@@ -473,7 +473,7 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.TaskRecordCreated]: event => {
         return {
-          taskId: event.returnValues.taskId,
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           inputsHash: event.returnValues.inputsHash,
           gasLimit: parseInt(event.returnValues.gasLimit),
           gasPrice: parseInt(event.returnValues.gasPx),

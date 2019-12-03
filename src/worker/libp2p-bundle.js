@@ -1,7 +1,7 @@
 const libp2p = require("libp2p");
 const TCP = require("libp2p-tcp");
 const Mplex = require("libp2p-mplex");
-// const SECIO = require('libp2p-secio');
+const SECIO = require("libp2p-secio");
 const KadDHT = require("libp2p-kad-dht");
 const defaultsDeep = require("@nodeutils/defaults-deep");
 const Bootstrap = require("libp2p-bootstrap");
@@ -15,7 +15,7 @@ class PeerBundle extends libp2p {
       modules: {
         transport: [TCP, WS],
         streamMuxer: [Mplex, SPDY],
-        // connEncryption: [ SECIO ],
+        connEncryption: [SECIO],
         peerDiscovery: [Bootstrap],
         dht: KadDHT
       },

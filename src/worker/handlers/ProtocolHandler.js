@@ -24,7 +24,6 @@ class ProtocolHandler extends EventEmitter {
     }
 
     this._protocols = [
-      PROTOCOLS["PEERS_PEER_BOOK"],
       PROTOCOLS["HEARTBEAT"],
       PROTOCOLS["GROUP_DIAL"],
       PROTOCOLS["FIND_PEERS"],
@@ -50,12 +49,15 @@ class ProtocolHandler extends EventEmitter {
     this.handlers[PUBSUB_TOPICS.BROADCAST] = this.onPubsubBroadcast.bind(this);
     this.handlers[PUBSUB_TOPICS.TASK_RESULTS] = this.onTaskResultPublish.bind(this);
   }
+
   getProtocolsList() {
     return this._protocols;
   }
+
   getSubscriptionsList() {
     return this._subscriptions;
   }
+
   /**
    * Notify observer (Some controller subscribed)
    * @param {Json} params, MUTS CONTAIN notification field
@@ -63,6 +65,7 @@ class ProtocolHandler extends EventEmitter {
   notify(params) {
     this.emit("notify", params);
   }
+
   /** Handle is a dispatching function
    * It is triggered everytime an EnigmaNode needs to dispatch some dialProtocol
    * @param {string} protocolName
@@ -78,6 +81,7 @@ class ProtocolHandler extends EventEmitter {
     }
     this.handlers[protocolName](nodeBundle, params);
   }
+
   /** Handle subscriptions publish event
    *  @param {Json} params {worker:EnigmaNode}
    *  @param {Json} message (from and data fields)
@@ -88,9 +92,11 @@ class ProtocolHandler extends EventEmitter {
       this.handlers[topicIDs[0]](params, message);
     }
   }
+
   tempFallback(protocolName) {
     this._logger.error("[-] Err invalid protocolName: " + protocolName);
   }
+
   /** /findpeers/0.0
    * On a findpeers request msg
    * @param {PeerBundle} nodeBundle
@@ -126,6 +132,7 @@ class ProtocolHandler extends EventEmitter {
       params.connection
     );
   }
+
   /** This is NOT a connection establishment.
    * This simply means that a given boostrap node string has turned into a PeerInfo
    * and now the worker can dial to the peer.
@@ -140,6 +147,7 @@ class ProtocolHandler extends EventEmitter {
     }
     this.notify({ notification: NOTIFICATION.DISCOVERED, params: params });
   }
+
   /** Response to a heart-beat request.
    * @param {PeerBundle} nodeBundle , the libp2p bundle
    * @param {Json} params , {worker,connection,peer,protocol}
@@ -169,6 +177,7 @@ class ProtocolHandler extends EventEmitter {
       params.connection
     );
   }
+
   /** Triggers every time a new connection is established -
    * When a remote peer dialed. (no protocol specification)
    * @param {PeerBundle} nodeBundle , the libp2p bundle
@@ -183,6 +192,7 @@ class ProtocolHandler extends EventEmitter {
       params: params
     });
   }
+
   /** On peer disconnect
    * @param {PeerBundle} nodeBundle, libp2p bundle
    * @param {Json} params , {worker,connection,peer,protocol}
@@ -191,6 +201,7 @@ class ProtocolHandler extends EventEmitter {
   onPeerDisconnect(nodeBundle, params) {
     this._logger.info("peer disconnected from " + params.peer.id.toB58String());
   }
+
   /**
    * Dispatching a a state sync request.
    * The provider reacts and respondes to a STATE_SYNC protocol
@@ -200,6 +211,7 @@ class ProtocolHandler extends EventEmitter {
   onStateSync(nodeBundle, params) {
     this.notify({ notification: NOTIFICATION.STATE_SYNC_REQ, params: params });
   }
+
   onLocalStateExchange(nodeBundle, params) {
     this._logger.debug("[LOCAL_STATE] got local state request from remote peer.");
     this.notify({
@@ -220,6 +232,7 @@ class ProtocolHandler extends EventEmitter {
       }
     });
   }
+
   /**
    * This function is a response when subscribed to pubsub BROADCAST topic
    * @param {Json} params (from and data fields)
@@ -240,6 +253,7 @@ class ProtocolHandler extends EventEmitter {
     this._logger.info(out);
     console.log("----------------------------------------------------");
   }
+
   onTaskResultPublish(params, message) {
     const selfId = params.worker.getSelfIdB58Str();
     const from = message.from;
