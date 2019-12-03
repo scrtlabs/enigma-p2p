@@ -3,7 +3,7 @@ module.exports.configPath = "../../../configs/debug";
 module.exports.ID_LEN = 46;
 
 module.exports.LOG_CONFIG = {
-  level: "info",
+  level: "debug",
   file: "peer.log",
 };
 module.exports.NODE_NOTIFICATIONS = {
