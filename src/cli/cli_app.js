@@ -248,7 +248,7 @@ class CLI {
         logger.info("topics : list of subscribed topics");
         logger.info("withdraw <amount>: withdraw from Enigma contract");
         logger.info(">------------------------<");
-      }
+      },
     };
     this._initInitialFlags();
     this._initEnvironment();
