@@ -334,8 +334,8 @@ class CLI {
         this._logoutExit = true;
       })
       .option("-l, --log-level [value]", "Set the log level (default - info)", logLevel => {
-        this._logLevel = logLevel ? logLevel : "info";
-      })
+        this._logLevel = logLevel;
+      }, "info")
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
