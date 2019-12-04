@@ -40,7 +40,7 @@ class CLI {
     this._isLonelyNode = false;
     this._minConfirmations = null;
     this._principalNode = null;
-    this._logLevel = null;
+    this._logLevel = "info";
     this._healthCheckPort = null;
     this._healthCheckUrl = null;
 
@@ -333,8 +333,8 @@ class CLI {
       .option("--logout-and-exit", "Log out and then exit", () => {
         this._logoutExit = true;
       })
-      .option("-l, --log-level [value]", "Set the log level (default - info)", logLevel => {
-        this._logLevel = logLevel;
+      .option("-l, --log-level <value>", "[Optional] Set the log level (default - info)", value => {
+        this._logLevel = value;
       }, "info")
       .option(
         "--deposit-and-login [value]",
