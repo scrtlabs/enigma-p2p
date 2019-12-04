@@ -119,9 +119,6 @@ describe("JsonRPC tests", () => {
             builder
               .setNodeConfig(proxyConfig)
               .setIpcConfig({ uri: workerCoreUri })
-              .setLoggerConfig({
-                name: "WorkerController1",
-                level: "debug"})
               .build()
               .then(instance => {
                 workerController = instance;
@@ -137,9 +134,6 @@ describe("JsonRPC tests", () => {
             const builder = new EnvironmentBuilder();
             builder
               .setNodeConfig(workerConfig)
-              .setLoggerConfig({
-                name: "WorkerController2",
-                level: "debug"})
               .setJsonRpcConfig({ port: JsonRpcPort, peerId: null })
               .build()
               .then(instance => {
