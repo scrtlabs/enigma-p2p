@@ -20,9 +20,13 @@ class Logger {
         },
         out: {type: "stdout"},
         err: {type: "stderr"},
+        cli: {type: "stdout", layout: {
+          type: "pattern",
+          pattern: "[%d] [CLI] %m%n"}},
       },
       categories:
         {[logName]: {appenders: ["file", "out"], level: logLevel},
+          cli: {appenders: ["cli"], level: "info"},
           default: {appenders: ["err"], level: "info"}},
     });
     this.logger = log4js.getLogger(logName);

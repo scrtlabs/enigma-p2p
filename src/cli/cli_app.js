@@ -439,15 +439,18 @@ class CLI {
 
     const gracefullShutDown = async err => {
       if (err) {
-        logger.info("----> received error <------");
-        logger.info(err);
+        logger.trace("----> received error <------");
+        logger.trace(err);
       }
-      logger.info("----> closing gracefully <------");
       process.exit(1);
     };
 
+    const goodbyeMessage = async () => {
+      logger.info("P2P Shutdown successfully");
+    };
+
     // do something when app is closing
-    process.on("exit", gracefullShutDown);
+    process.on("exit", goodbyeMessage);
 
     // catches ctrl+c event
     process.on("SIGINT", gracefullShutDown);
@@ -475,7 +478,7 @@ class CLI {
     }
   }
   start() {
-    // logger.info(Parsers.opener);
+    logger.info("Welcome to Enigma P2P");
     const cmds = this._commands;
     readline
       .createInterface({
