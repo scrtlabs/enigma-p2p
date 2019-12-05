@@ -196,7 +196,7 @@ describe("JsonRPC tests", () => {
     workerController.getNode().selfSubscribeAction();
     await testUtils.sleep(1000);
     capcon.stopCapture(process.stdout);
-    id = output.match(/DEBUG subscribed to \[(.*)\]/)[1];
+    id = output.match(/subscribed to \[(.*)\]/)[1];
 
     let response = await new Promise((resolve, reject) => {
       JsonRpcClient.request("getWorkerEncryptionKey", { workerAddress: id, userPubKey: userPubKey }, (err, res) => {

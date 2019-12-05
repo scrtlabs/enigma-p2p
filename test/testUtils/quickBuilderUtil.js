@@ -193,8 +193,7 @@ const _createNode = async options => {
   }
   if (!options.withLogger) {
     builder.setLoggerConfig({
-      cli: false,
-      file: false
+      name: "P2P",
     });
   }
   nodeConfigObject.extraConfig.principal = { uri: options.principalUri };
