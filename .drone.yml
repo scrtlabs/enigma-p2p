@@ -26,8 +26,6 @@ steps:
       - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_p2p_${DRONE_BUILD_NUMBER}/" .env
       - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
       - |
-        # The arrays and for loop below are for consistency across drone.yml files in the other repositories,
-        # and in case it changes again in the future, it will be easier to add an element to the array
         /bin/bash -c '
         declare -a PROJECTS=(contract client)
         declare -A DOCKER_IMAGES=([contract]=contract [client]=client)
