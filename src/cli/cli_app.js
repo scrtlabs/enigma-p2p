@@ -32,9 +32,9 @@ class CLI {
     this._enigmaContractAddress = null;
     this._enigmaContractAbiPath = null;
     this._ethereumWebsocketProvider = null;
-    this._ethereumKeyPath = null;
-    this._ethereumKey = null;
-    this._ethereumAddress = null;
+    this._operationalKeyPath = null;
+    this._operationalKey = null;
+    this._operationalAddress = null;
     this._stakingAddress = null;
 
     this._autoInit = false;
@@ -311,11 +311,11 @@ class CLI {
       })
       .option("--ethereum-key-path [value]", "specify the Ethereum key path", path => {
         this._initEthereum = true;
-        this._ethereumKeyPath = path;
+        this._operationalKeyPath = path;
       })
       .option("--ethereum-key [value]", "specify the Ethereum key", key => {
         this._initEthereum = true;
-        this._ethereumKey = key;
+        this._operationalKey = key;
       })
       .option("--principal-node [value]", "specify the address:port of the Principal Node", addrPortstr => {
         this._principalNode = addrPortstr;
@@ -394,7 +394,7 @@ class CLI {
      * */
     if (this._initEthereum) {
       let enigmaContractAbi = null;
-      let accountKey = this._ethereumKey;
+      let operationalKey = this._operationalKey;
       if (this._enigmaContractAbiPath) {
         try {
           const raw = await utils.readFile(this._enigmaContractAbiPath);
@@ -404,11 +404,11 @@ class CLI {
           return;
         }
       }
-      if (this._ethereumKeyPath) {
+      if (this._operationalKeyPath) {
         try {
-          accountKey = await utils.readFile(this._ethereumKeyPath);
+          operationalKey = await utils.readFile(this._operationalKeyPath);
         } catch (e) {
-          logger.info(`Error in reading account key ${this._ethereumKeyPath}`);
+          logger.info(`Error in reading account key ${this._operationalKeyPath}`);
           return;
         }
       }
@@ -416,9 +416,9 @@ class CLI {
       builder.setEthereumConfig({
         urlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
-        accountAddress: this._ethereumAddress,
+        operationalAddress: this._operationalAddress,
         enigmaContractAbi,
-        accountKey,
+        operationalKey,
         minConfirmations: this._minConfirmations,
         stakingAddress: this._stakingAddress
       });

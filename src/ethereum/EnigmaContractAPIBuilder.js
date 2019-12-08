@@ -24,8 +24,8 @@ class EnigmaContractAPIBuilder {
     this.useDeployedFlag = false;
     this.web3 = null;
     this.api = null;
-    this.ethereumAddress = null;
-    this.accountKey = null;
+    this.operationalAddress = null;
+    this.operationalKey = null;
     this.minimunConfirmations = null;
     this.environment = {};
     this.config = defaultConfig;
@@ -202,22 +202,22 @@ class EnigmaContractAPIBuilder {
   /**
    * configuring and building the api instance
    * @param {JSON} options
-   *  {accountAddress - wallet address
+   *  {operationalAddress - operational address
+   *   stakingAddress - staking address
    *   enigmaContractAddress - the deployed Enigma contract to connect to
    *   urlProvider - the transport url
    *   enigmaContractAbi - Enigma contract ABI
-   *   accountKey - wallet key
+   *   operationalKey - operational key
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
   async setConfigAndBuild(options) {
     let res;
     let config = {};
 
-    const operationalAddress = options.accountAddress ? options.accountAddress : null;
-    const operationalKey = options.accountKey ? options.accountKey : null;
-    const stakingAddress = options.stakingAddress ? options.stakingAddress : null;
-    const minimunConfirmations = Number.isInteger(options.minConfirmations)
-      ? options.minConfirmations
+    const { operationalAddress, operationalKey, stakingAddress, minConfirmations } = options;
+
+    const minimunConfirmations = Number.isInteger(minConfirmations)
+      ? minConfirmations
       : constants.MINIMUM_CONFIRMATIONS;
 
     if (options.enigmaContractAddress) {
