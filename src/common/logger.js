@@ -1,11 +1,13 @@
 const log4js = require("log4js");
 const constants = require("./constants");
 const LOG_CONFIG = constants.LOG_CONFIG;
+const format = require("date-format");
 
 class Logger {
   constructor(options = {}) {
-    const logName = options.hasOwnProperty("name") ? options.name : "P2P";
+    const logName = options.hasOwnProperty("name") ? options.name : "Logger";
     const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
+
     log4js.configure( {
       appenders: {
         file: {
@@ -18,14 +20,17 @@ class Logger {
           mode: 0o0640,
           flags: "w+",
         },
-        out: {type: "stdout"},
+        out: {type: "stdout", layout: {
+          type: "pattern",
+          pattern: format.asString("yyyy-MM-ddThh:mm:ss.SSS", new Date(new Date().toUTCString().slice(0, -4))) + "Z %[%p%] [P2P-%c] - %m%n"},
+        },
         err: {type: "stderr"},
         cli: {type: "stdout", layout: {
           type: "pattern",
-          pattern: "[%d] [CLI] %m%n"}},
+          pattern: format.asString("yyyy-MM-ddThh:mm:ss.SSS", new Date(new Date().toUTCString().slice(0, -4))) + "Z [CLI] %m%n"}},
       },
       categories:
-        {[logName]: {appenders: ["file", "out"], level: logLevel},
+        {[logName]: {appenders: ["file", "out"], level: logLevel, enableCallStack: true},
           cli: {appenders: ["cli"], level: "info"},
           default: {appenders: ["err"], level: "info"}},
     });
