@@ -35,6 +35,8 @@ class CLI {
     this._ethereumKeyPath = null;
     this._ethereumKey = null;
     this._ethereumAddress = null;
+    this._stakingAddress = null;
+
     this._autoInit = false;
     this._depositValue = null;
     this._isLonelyNode = false;
@@ -251,7 +253,7 @@ class CLI {
         logger.info("topics : list of subscribed topics");
         logger.info("withdraw <amount>: withdraw from Enigma contract");
         logger.info(">------------------------<");
-      },
+      }
     };
     this._initInitialFlags();
     this._initEnvironment();
@@ -333,9 +335,14 @@ class CLI {
       .option("--logout-and-exit", "Log out and then exit", () => {
         this._logoutExit = true;
       })
-      .option("-l, --log-level <value>", "[Optional] Set the log level (default - info)", value => {
-        this._logLevel = value;
-      }, "info")
+      .option(
+        "-l, --log-level <value>",
+        "[Optional] Set the log level (default - info)",
+        value => {
+          this._logLevel = value;
+        },
+        "info"
+      )
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -351,6 +358,10 @@ class CLI {
           this._minConfirmations = +minConfirmations;
         }
       )
+      .option("--staking-address [value]", "specify the Ethereum staking public address", address => {
+        this._initEthereum = true;
+        this._stakingAddress = address;
+      })
       .parse(process.argv);
   }
   _getFinalConfig() {
@@ -378,7 +389,7 @@ class CLI {
       });
     }
 
-    builder.setLoggerConfig({name: "MainController", level: this._logLevel});
+    builder.setLoggerConfig({ name: "MainController", level: this._logLevel });
     /** init Ethereum API
      * */
     if (this._initEthereum) {
@@ -408,7 +419,8 @@ class CLI {
         accountAddress: this._ethereumAddress,
         enigmaContractAbi,
         accountKey,
-        minConfirmations: this._minConfirmations
+        minConfirmations: this._minConfirmations,
+        stakingAddress: this._stakingAddress
       });
     }
     const nodeConfig = this._getFinalConfig();

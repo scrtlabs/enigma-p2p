@@ -19,7 +19,7 @@ describe("Ethereum advanced", function() {
     const workerAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
     const res = await builder
-      .setAccountKey(workerAccount.privateKey)
+      .setOperationalKey(workerAccount.privateKey)
       .setMinimunConfirmations(0)
       .createNetwork()
       .deploy()
