@@ -268,6 +268,11 @@ module.exports.WEB_SERVER_CONSTANTS = {
   HEALTH_CHECK: {
     port: 12345,
     url: "/healthcheck",
-    error_code: 500
+    error_code: 500,
+  },
+  MGMT: {
+    port: 23456,
+    url: "/mgmt",
+    errorCode: 500,
   }
 };

@@ -21,6 +21,7 @@ const PersistentStateCache = require("../../db/StateCache");
 const TaskManager = require("../tasks/TaskManager");
 const PrincipalNode = require("../handlers/PrincipalNode");
 const WebServer = require("../handlers/WebServer");
+const ManagementServer = require("../handlers/ManagementServer");
 // actions
 const InitWorkerAction = require("./actions/InitWorkerAction");
 const PubsubPublishAction = require("./actions/PubsubPublishAction");
@@ -195,6 +196,7 @@ class NodeController {
     this._initContentReceiver();
     this._initTaskManager();
     this._initWebServer();
+    this._initManagementServer();
     // this._initCache();
   }
 
@@ -230,6 +232,22 @@ class NodeController {
     this._principal.on(constants.PTT_END_EVENT, () => {
       this._logger.info("Finished PTT");
     });
+  }
+
+  _initManagementServer() {
+    let conf = {};
+    if (this._extraConfig && this._extraConfig.webserver) {
+      conf = this._extraConfig.webserver;
+      this._mgmt = new ManagementServer(conf, this.logger());
+      this._mgmt.start();
+      this._mgmt.on("notify", params => {
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if (action !== undefined) {
+          this._actions[notification].execute(params);
+        }
+      });
+    }
   }
 
   _initWebServer() {

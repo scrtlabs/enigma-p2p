@@ -17,6 +17,7 @@
     "report-coverage": "npx nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "lint": "eslint src",
     "lint:fix": "eslint --fix src",
+    "start": "node src/cli/cli_app.js",
     "test-tree": "node scripts/test_tree_validation.js"
   },
   "author": "isan rivkin",
