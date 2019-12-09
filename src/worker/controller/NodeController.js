@@ -177,7 +177,7 @@ class NodeController {
     if (logger) {
       _logger = logger;
     } else {
-      _logger = new Logger({name: "NodeController"});
+      _logger = new Logger({ name: "NodeController" });
     }
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
@@ -250,7 +250,7 @@ class NodeController {
 
   _initEnigmaNode() {
     this._engNode.on("notify", peer => {
-      this._logger.info("[+] connected to bootstrap" + peer.id.toB58String());
+      this._logger.info("[+] connected to bootstrap " + peer.id.toB58String());
     });
   }
 
