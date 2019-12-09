@@ -32,9 +32,11 @@ class CLI {
     this._enigmaContractAddress = null;
     this._enigmaContractAbiPath = null;
     this._ethereumWebsocketProvider = null;
-    this._ethereumKeyPath = null;
-    this._ethereumKey = null;
-    this._ethereumAddress = null;
+    this._operationalKeyPath = null;
+    this._operationalKey = null;
+    this._operationalAddress = null;
+    this._stakingAddress = null;
+
     this._autoInit = false;
     this._depositValue = null;
     this._isLonelyNode = false;
@@ -251,7 +253,7 @@ class CLI {
         logger.info("topics : list of subscribed topics");
         logger.info("withdraw <amount>: withdraw from Enigma contract");
         logger.info(">------------------------<");
-      },
+      }
     };
     this._initInitialFlags();
     this._initEnvironment();
@@ -309,11 +311,11 @@ class CLI {
       })
       .option("--ethereum-key-path [value]", "specify the Ethereum key path", path => {
         this._initEthereum = true;
-        this._ethereumKeyPath = path;
+        this._operationalKeyPath = path;
       })
       .option("--ethereum-key [value]", "specify the Ethereum key", key => {
         this._initEthereum = true;
-        this._ethereumKey = key;
+        this._operationalKey = key;
       })
       .option("--principal-node [value]", "specify the address:port of the Principal Node", addrPortstr => {
         this._principalNode = addrPortstr;
@@ -333,9 +335,14 @@ class CLI {
       .option("--logout-and-exit", "Log out and then exit", () => {
         this._logoutExit = true;
       })
-      .option("-l, --log-level <value>", "[Optional] Set the log level (default - info)", value => {
-        this._logLevel = value;
-      }, "info")
+      .option(
+        "-l, --log-level <value>",
+        "[Optional] Set the log level (default - info)",
+        value => {
+          this._logLevel = value;
+        },
+        "info"
+      )
       .option(
         "--deposit-and-login [value]",
         "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
@@ -351,6 +358,10 @@ class CLI {
           this._minConfirmations = +minConfirmations;
         }
       )
+      .option("--staking-address [value]", "specify the Ethereum staking public address", address => {
+        this._initEthereum = true;
+        this._stakingAddress = address;
+      })
       .parse(process.argv);
   }
   _getFinalConfig() {
@@ -378,12 +389,12 @@ class CLI {
       });
     }
 
-    builder.setLoggerConfig({name: "MainController", level: this._logLevel});
+    builder.setLoggerConfig({ name: "MainController", level: this._logLevel });
     /** init Ethereum API
      * */
     if (this._initEthereum) {
       let enigmaContractAbi = null;
-      let accountKey = this._ethereumKey;
+      let operationalKey = this._operationalKey;
       if (this._enigmaContractAbiPath) {
         try {
           const raw = await utils.readFile(this._enigmaContractAbiPath);
@@ -393,11 +404,11 @@ class CLI {
           return;
         }
       }
-      if (this._ethereumKeyPath) {
+      if (this._operationalKeyPath) {
         try {
-          accountKey = await utils.readFile(this._ethereumKeyPath);
+          operationalKey = await utils.readFile(this._operationalKeyPath);
         } catch (e) {
-          logger.info(`Error in reading account key ${this._ethereumKeyPath}`);
+          logger.info(`Error in reading account key ${this._operationalKeyPath}`);
           return;
         }
       }
@@ -405,10 +416,11 @@ class CLI {
       builder.setEthereumConfig({
         urlProvider: this._ethereumWebsocketProvider,
         enigmaContractAddress: this._enigmaContractAddress,
-        accountAddress: this._ethereumAddress,
+        operationalAddress: this._operationalAddress,
         enigmaContractAbi,
-        accountKey,
-        minConfirmations: this._minConfirmations
+        operationalKey,
+        minConfirmations: this._minConfirmations,
+        stakingAddress: this._stakingAddress
       });
     }
     const nodeConfig = this._getFinalConfig();

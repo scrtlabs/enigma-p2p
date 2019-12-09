@@ -34,7 +34,7 @@ async function initEthereumStuff() {
 
   const builder = new EnigmaContractAPIBuilder();
   const res = await builder
-    .setAccountKey(workerAccount.privateKey)
+    .setOperationalKey(workerAccount.privateKey)
     .setMinimunConfirmations(0)
     .createNetwork()
     .deploy()
