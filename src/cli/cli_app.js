@@ -441,6 +441,9 @@ class CLI {
     if (this._healthCheckPort || this._healthCheckUrl) {
       nodeConfig.extraConfig.webserver = { healthCheck: { port: this._healthCheckPort, url: this._healthCheckUrl } };
     }
+
+    nodeConfig.extraConfig.mgmt = { mgmtBase: { } };
+
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();
 

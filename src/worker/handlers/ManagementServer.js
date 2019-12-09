@@ -48,11 +48,11 @@ class ManagementServer extends EventEmitter {
 
   async performAction(notification, req, res, next) {
     //res.send("OK");
-    this._logger.info(`Got notification ${notification}`);
+    this._logger.info(`Management Server: Got notification for ${notification}`);
     this.notify({
       notification: notification,
-      callback: (err, result) => {
-        if (result.status) {
+      onResponse: (err, result) => {
+        if (result) {
           res.send("OK");
         } else {
           next(WEB_SERVER_CONSTANTS.error_code);

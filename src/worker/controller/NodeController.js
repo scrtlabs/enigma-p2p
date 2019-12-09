@@ -236,8 +236,8 @@ class NodeController {
 
   _initManagementServer() {
     let conf = {};
-    if (this._extraConfig && this._extraConfig.webserver) {
-      conf = this._extraConfig.webserver;
+    if (this._extraConfig && this._extraConfig.mgmt) {
+      conf = this._extraConfig.mgmt;
       this._mgmt = new ManagementServer(conf, this.logger());
       this._mgmt.start();
       this._mgmt.on("notify", params => {
