@@ -307,7 +307,7 @@ class CLI {
       })
       .option("--ethereum-address [value]", "specify the Ethereum public address", address => {
         this._initEthereum = true;
-        this._ethereumAddress = address;
+        this._operationalAddress = address;
       })
       .option("--ethereum-key-path [value]", "specify the Ethereum key path", path => {
         this._initEthereum = true;
