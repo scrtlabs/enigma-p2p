@@ -54,7 +54,7 @@ steps:
           make clone-core BRANCH=${DRONE_BRANCH}
           make clone-km BRANCH=${DRONE_BRANCH}
         else
-          make clone-p2p BRANCH=develop
+          make clone-core BRANCH=develop
           make clone-km BRANCH=develop
         fi
       - make build-km DOCKER_TAG=$DOCKER_TAG

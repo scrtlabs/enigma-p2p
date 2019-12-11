@@ -187,6 +187,7 @@ class EnigmaContractAPIBuilder {
         this.enigmaContractABI,
         this.web3,
         this.logger(),
+        this.operationalAddress,
         this.minimunConfirmations
       );
     }
