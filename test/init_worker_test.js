@@ -8,7 +8,8 @@ const constants = require("../src/common/constants");
 const noLoggerOpts = {
   bOpts: {
     withLogger: false,
-    withEth: true
+    withEth: true,
+    ethStakingAddress: "0x1fdd35bb4ae68f61539852c279d55a71c0e32754"
   },
   pOpts: {
     withLogger: false
@@ -35,19 +36,18 @@ async function prepareEthData(controller) {
     .api();
   const accounts = await api.w3().eth.getAccounts();
   const workerAddress = accounts[1];
+  const stakingAddress = accounts[3];
   const workerReport = "0x123456";
   const signature = api.w3().utils.randomHex(32);
-  const depositValue = 1000;
   const workerEnclaveSigningAddress = accounts[2];
 
   await api.register(workerEnclaveSigningAddress, workerReport, signature, {
     from: workerAddress
   });
-  await api.deposit(workerAddress, depositValue, { from: workerAddress });
   await api.login({ from: workerAddress });
   await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
 
-  return workerAddress;
+  return { workerAddress, stakingAddress };
 }
 
 // todo: create a DB for the coreServer which is stored in memory and
@@ -65,13 +65,13 @@ it("#1 run init and healthCheck", async function() {
     let bNodeCoreServer = bNode.coreServer; // mock
 
     // connect the bootstrap node to ethereum
-    const workerAddress = await prepareEthData(bNodeController);
+    const { workerAddress, stakingAddress } = await prepareEthData(bNodeController);
 
     // start the tested node
     const testPeer = await testBuilder.createNode({
       withEth: true,
       ethWorkerAddress: workerAddress,
-      stateful: true
+      ethStakingAddress: stakingAddress
     });
     await testUtils.sleep(1000);
 
