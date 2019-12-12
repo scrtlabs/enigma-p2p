@@ -1,13 +1,15 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
 import "openzeppelin-solidity/contracts/cryptography/ECDSA.sol";
+import "openzeppelin-solidity/contracts/ownership/Ownable.sol";
 import "./utils/SolRsaVerify.sol";
 
 import { WorkersImpl } from "./impl/WorkersImpl.sol";
 import { PrincipalImpl } from "./impl/PrincipalImpl.sol";
 import { TaskImpl } from "./impl/TaskImpl.sol";
+import { UpgradeImpl } from "./impl/UpgradeImpl.sol";
 import { SecretContractImpl } from "./impl/SecretContractImpl.sol";
 import { EnigmaCommon } from "./impl/EnigmaCommon.sol";
 import { EnigmaState } from "./impl/EnigmaState.sol";
@@ -16,24 +18,39 @@ import { EnigmaStorage } from "./impl/EnigmaStorage.sol";
 import { Getters } from "./impl/Getters.sol";
 import { ERC20 } from "./interfaces/ERC20.sol";
 
-contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
+contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
     using SafeMath for uint256;
+    using SafeMath for uint64;
     using ECDSA for bytes32;
 
     // ========================================== Constructor ==========================================
 
     constructor(address _tokenAddress, address _principal, address _exchangeRate, uint _epochSize,
-        uint _timeoutThreshold) public {
+        uint _timeoutThreshold, bytes memory _mrSigner, bytes memory _isvSvn) public {
         state.engToken = ERC20(_tokenAddress);
         state.epochSize = _epochSize;
         state.taskTimeoutSize = _timeoutThreshold * state.epochSize;
         state.principal = _principal;
         state.exchangeRate = _exchangeRate;
+        state.updatedEnigmaContractAddress = address(this);
         state.stakingThreshold = 1;
         state.workerGroupSize = 1;
+        state.mrSigner = _mrSigner;
+        state.isvSvn = _isvSvn;
     }
 
     // ========================================== Modifiers ==========================================
+
+    /**
+    * Checks if the custodian wallet is not registered as a worker
+    *
+    * @param _user The custodian address of the worker
+    */
+    modifier workerUnregistered(address _user) {
+        EnigmaCommon.Worker memory worker = state.workers[_user];
+        require(worker.status == EnigmaCommon.WorkerStatus.Unregistered, "Registered worker");
+        _;
+    }
 
     /**
     * Checks if the custodian wallet is registered as a worker
@@ -47,55 +64,73 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     }
 
     /**
+    * Checks if staking address balance is 0
+    *
+    */
+    modifier emptyBalance() {
+        require(state.workers[state.stakingToOperatingAddresses[msg.sender]].balance == 0,
+            "Worker's balance is not empty");
+        _;
+    }
+
+    /**
     * Checks if the custodian wallet is logged in as a worker
     *
-    * @param _user The custodian address of the worker
     */
-    modifier workerLoggedIn(address _user) {
-        EnigmaCommon.Worker memory worker = state.workers[_user];
+    modifier workerLoggedIn() {
+        EnigmaCommon.Worker memory worker = state.workers[msg.sender];
         require(worker.status == EnigmaCommon.WorkerStatus.LoggedIn, "Worker not logged in");
         _;
     }
 
     /**
-    * Checks if the custodian wallet is logged out as a worker
+    * Checks if the staking address or operating address is logged in
     *
-    * @param _user The custodian address of the worker
     */
-    modifier workerLoggedOut(address _user) {
-        EnigmaCommon.Worker memory worker = state.workers[_user];
-        require(worker.status == EnigmaCommon.WorkerStatus.LoggedOut, "Worker not logged out");
+    modifier stakingOrOperatingAddressLoggedIn() {
+        require((state.workers[msg.sender].status == EnigmaCommon.WorkerStatus.LoggedIn) ||
+            state.workers[state.stakingToOperatingAddresses[msg.sender]].status == EnigmaCommon.WorkerStatus.LoggedIn,
+            "Worker not logged in");
+        _;
+    }
+
+    /**
+    * Checks if the staking address or operating address is registered
+    *
+    */
+    modifier stakingOrOperatingAddressRegistered() {
+        require((state.workers[msg.sender].status != EnigmaCommon.WorkerStatus.Unregistered) ||
+        state.workers[state.stakingToOperatingAddresses[msg.sender]].status != EnigmaCommon.WorkerStatus.Unregistered,
+            "Unregistered worker");
         _;
     }
 
     /**
     * Checks if worker can log in
     *
-    * @param _user The custodian address of the worker
     */
-    modifier canLogIn(address _user) {
-        EnigmaCommon.Worker memory worker = state.workers[_user];
+    modifier canLogIn() {
+        EnigmaCommon.Worker memory worker = state.workers[msg.sender];
         // MOCK
         //require(getFirstBlockNumber(block.number) != 0, "Principal node has not been initialized");
         require(worker.status == EnigmaCommon.WorkerStatus.LoggedOut, "Worker not registered or not logged out");
-        require(worker.balance >= state.stakingThreshold, "Worker's balance is not sufficient");
+        // MOCK
+        //require(worker.balance >= state.stakingThreshold, "Worker's balance is not sufficient");
         _;
     }
 
     /**
     * Checks if the worker can withdraw
     *
-    * @param _user The custodian address of the worker
     */
-    modifier canWithdraw(address _user) {
-        EnigmaCommon.Worker memory worker = state.workers[_user];
+    modifier canWithdraw() {
+        EnigmaCommon.Worker memory worker = state.workers[state.stakingToOperatingAddresses[msg.sender]];
         require(worker.status == EnigmaCommon.WorkerStatus.LoggedOut, "Worker not registered or not logged out");
         EnigmaCommon.WorkerLog memory workerLog = WorkersImpl.getLatestWorkerLogImpl(worker, block.number);
         require(workerLog.workerEventType == EnigmaCommon.WorkerLogType.LogOut,
             "Worker's last log is not of LogOut type");
-        // MOCK
-        //require(getFirstBlockNumber(block.number) > workerLog.blockNumber,
-        //    "Cannot withdraw in same epoch as log out event");
+        require(getFirstBlockNumber(block.number) > workerLog.blockNumber,
+            "Cannot withdraw in same epoch as log out event");
         _;
     }
 
@@ -105,7 +140,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * @param _scAddr Secret contract address
     */
     modifier contractUndefined(bytes32 _scAddr) {
-        require(state.contracts[_scAddr].status == EnigmaCommon.SecretContractStatus.Undefined, "Secret contract already deployed");
+        require(state.contracts[_scAddr].status == EnigmaCommon.SecretContractStatus.Undefined,
+            "Secret contract already deployed");
         _;
     }
 
@@ -115,7 +151,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * @param _scAddr Secret contract address
     */
     modifier contractDeployed(bytes32 _scAddr) {
-        require(state.contracts[_scAddr].status == EnigmaCommon.SecretContractStatus.Deployed, "Secret contract not deployed");
+        require(state.contracts[_scAddr].status == EnigmaCommon.SecretContractStatus.Deployed,
+            "Secret contract not deployed");
         _;
     }
 
@@ -132,12 +169,52 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     /**
     * Ensure signing key used for registration is unique
     *
+    */
+    modifier areOperatingAndStakingDiff(address _stakingAddress) {
+        require(_stakingAddress != msg.sender, "Operating address not different from staking address");
+        _;
+    }
+
+    /**
+    * Ensure staking address can set an operating address
+    *
+    */
+    modifier canSetOperatingAddress(address _operatingAddress) {
+        require(state.stakingToOperatingAddresses[msg.sender] == address(0),
+            "Staking address currently tied to an in-use operating address");
+        require(state.workers[_operatingAddress].stakingAddress == msg.sender,
+            "Invalid staking address for this operating address");
+        _;
+    }
+
+    /**
+    * Ensure signing key used for registration is unique
+    *
     * @param _signer Signing key
     */
     modifier isUniqueSigningKey(address _signer) {
         for (uint i = 0; i < state.workerAddresses.length; i++) {
-            require(state.workers[state.workerAddresses[i]].signer != _signer, "Not a unique signing key");
+            require(state.workers[state.workerAddresses[i]].signer != _signer,
+                "Not a unique signing key");
         }
+        _;
+    }
+
+    /**
+    * Ensure that the contract's context is the updated contract
+    *
+    */
+    modifier isUpdatedEnigmaContract() {
+        require(address(this) == state.updatedEnigmaContractAddress, "Not updated Enigma contract");
+        _;
+    }
+
+    /**
+    * Ensure the sender of the recent call is the updated contract
+    *
+    */
+    modifier fromUpdatedEnigmaContract() {
+        require(msg.sender == state.updatedEnigmaContractAddress, "Not from updated Enigma contract");
         _;
     }
 
@@ -148,15 +225,32 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * worker. This should be called by every worker (and the principal)
     * node in order to receive tasks.
     *
+    * @param _stakingAddress The operating address
     * @param _signer The signer address, derived from the enclave public key
     * @param _report The RLP encoded report returned by the IAS
     * @param _signature Signature
     */
-    function register(address _signer, bytes memory _report, bytes memory _signature)
+    function register(address _stakingAddress, address _signer, bytes memory _report, bytes memory _signature)
     public
+    isUpdatedEnigmaContract
+    workerUnregistered(msg.sender)
     isUniqueSigningKey(_signer)
+    areOperatingAndStakingDiff(_stakingAddress)
     {
-        WorkersImpl.registerImpl(state, _signer, _report, _signature);
+        WorkersImpl.registerImpl(state, _stakingAddress, _signer, _report, _signature);
+    }
+
+    /**
+    * Unregisters a staking address' worker.
+    *
+    */
+    function unregister()
+    public
+    isUpdatedEnigmaContract
+    stakingOrOperatingAddressRegistered
+    emptyBalance
+    {
+        WorkersImpl.unregisterImpl(state);
     }
 
     /**
@@ -167,7 +261,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     */
     function deposit(address _custodian, uint _amount)
     public
-    workerRegistered(_custodian)
+    isUpdatedEnigmaContract
+    workerRegistered(state.stakingToOperatingAddresses[_custodian])
     {
         WorkersImpl.depositImpl(state, _custodian, _amount);
     }
@@ -179,7 +274,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     */
     function withdraw(uint _amount)
     public
-    canWithdraw(msg.sender)
+    canWithdraw
     {
         WorkersImpl.withdrawImpl(state, _amount);
     }
@@ -188,14 +283,14 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     * Login worker. Worker must be registered to do so, and must be logged in at start of epoch to be part of worker
     * selection process.
     */
-    function login() public canLogIn(msg.sender) {
+    function login() public canLogIn {
         WorkersImpl.loginImpl(state);
     }
 
     /**
     * Logout worker. Worker must be logged in to do so.
     */
-    function logout() public workerLoggedIn(msg.sender) {
+    function logout() public stakingOrOperatingAddressLoggedIn {
         WorkersImpl.logoutImpl(state);
     }
 
@@ -214,7 +309,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         bytes memory _sig
     )
     public
-    workerLoggedIn(msg.sender)
+    isUpdatedEnigmaContract
+    workerLoggedIn
     contractUndefined(_taskId)
     {
         TaskImpl.deploySecretContractFailureImpl(state, _taskId, _codeHash, _gasUsed, _sig);
@@ -225,7 +321,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     *
     * @param _gasUsed Gas used for task
     * @param _optionalEthereumContractAddress Initial state delta hash as a result of the contract's constructor
-    * @param _bytes32s (taskId, preCodeHash, codeHash, initStateDeltaHash)
+    * @param _bytes32s [taskId, preCodeHash, codeHash, initStateDeltaHash]
     * @param _optionalEthereumData Initial state delta hash as a result of the contract's constructor
     * @param _sig Worker's signature for deployment
     */
@@ -237,7 +333,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         bytes memory _sig
     )
     public
-    workerLoggedIn(msg.sender)
+    isUpdatedEnigmaContract
+    workerLoggedIn
     contractUndefined(_bytes32s[0])
     {
         TaskImpl.deploySecretContractImpl(state, _gasUsed, _optionalEthereumContractAddress, _bytes32s,
@@ -293,6 +390,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         uint _nonce
     )
     public
+    onlyOwner
+    isUpdatedEnigmaContract
     {
         TaskImpl.createDeploymentTaskRecordImpl(state, _inputsHash, _gasLimit, _gasPx, _firstBlockNumber, _nonce);
     }
@@ -314,6 +413,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         uint _firstBlockNumber
     )
     public
+    isUpdatedEnigmaContract
     {
         TaskImpl.createTaskRecordImpl(state, _inputsHash, _gasLimit, _gasPx, _firstBlockNumber);
     }
@@ -336,7 +436,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         bytes memory _sig
     )
     public
-    workerLoggedIn(msg.sender)
+    isUpdatedEnigmaContract
+    workerLoggedIn
     contractDeployed(_bytes32s[0])
     {
         TaskImpl.commitReceiptImpl(state, _gasUsed, _optionalEthereumContractAddress,
@@ -361,7 +462,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
         bytes memory _sig
     )
     public
-    workerLoggedIn(msg.sender)
+    isUpdatedEnigmaContract
+    workerLoggedIn
     contractDeployed(_scAddr)
     {
         TaskImpl.commitTaskFailureImpl(state, _scAddr, _taskId, _outputHash, _gasUsed, _sig);
@@ -389,6 +491,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     */
     function setWorkersParams(uint _blockNumber, uint _seed, bytes memory _sig)
     public
+    isUpdatedEnigmaContract
     workerRegistered(msg.sender)
     {
         PrincipalImpl.setWorkersParamsImpl(state, _blockNumber, _seed, _sig);
@@ -477,5 +580,64 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters {
     returns (uint)
     {
         return WorkersImpl.verifyReportImpl(_data, _signature);
+    }
+
+    /**
+    * Upgrade Enigma Contract
+    * @param _updatedEnigmaContractAddress Updated newly-deployed Enigma contract address
+    */
+    function upgradeEnigmaContract(address _updatedEnigmaContractAddress)
+    public
+    onlyOwner
+    isUpdatedEnigmaContract
+    {
+        return UpgradeImpl.upgradeEnigmaContractImpl(state, _updatedEnigmaContractAddress);
+    }
+
+    /**
+    * Transfer worker stake from old contract to new contract upon registration
+    * @param _operatingAddress Operating Address
+    * @param _stakingAddress Newly-registered worker address
+    * @param _sig Signature
+    */
+    function transferWorkerStakePostUpgrade(address _operatingAddress, address _stakingAddress, bytes memory _sig)
+    public
+    fromUpdatedEnigmaContract
+    returns (uint256)
+    {
+        return UpgradeImpl.transferWorkerStakePostUpgradeImpl(state, _operatingAddress, _stakingAddress, _sig);
+    }
+
+    /**
+    * Set mrSigner
+    * @param _mrSigner mrSigner
+    */
+    function setMrSigner(bytes memory _mrSigner)
+    public
+    onlyOwner
+    {
+        state.mrSigner = _mrSigner;
+    }
+
+    /**
+    * Set isvSvn
+    * @param _isvSvn mrSigner
+    */
+    function setIsvSvn(bytes memory _isvSvn)
+    public
+    onlyOwner
+    {
+        state.isvSvn = _isvSvn;
+    }
+
+    /**
+    * Set operating address for a particular staking address
+    * @param _operatingAddress Operating Address
+    */
+    function setOperatingAddress(address _operatingAddress)
+    public
+    canSetOperatingAddress(_operatingAddress)
+    {
+        WorkersImpl.setOperatingAddressImpl(state, _operatingAddress);
     }
 }
