@@ -5,6 +5,7 @@ const Logger = require("../common/logger");
 const path = require("path");
 const { exec, spawn } = require("child_process");
 const Web3 = require("web3");
+const constants = require("../common/constants");
 const utils = require("../common/utils");
 const defaultsDeep = require("@nodeutils/defaults-deep");
 
@@ -23,8 +24,8 @@ class EnigmaContractAPIBuilder {
     this.useDeployedFlag = false;
     this.web3 = null;
     this.api = null;
-    this.ethereumAddress = null;
-    this.accountKey = null;
+    this.operationalAddress = null;
+    this.operationalKey = null;
     this.minimunConfirmations = null;
     this.environment = {};
     this.config = defaultConfig;
@@ -32,7 +33,7 @@ class EnigmaContractAPIBuilder {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({ cli: false });
+      this._logger = new Logger({ name: "EnigmaContractAPIBuilder" });
     }
 
     return this;
@@ -52,21 +53,30 @@ class EnigmaContractAPIBuilder {
     return this;
   }
   /**
-   * set the Ethereum address to be used in all transactions
+   * set the operational Ethereum address to be used in all transactions
    * @param {string} address
    * @return {EnigmaContractAPIBuilder} this
    * */
-  setEthereumAddress(address) {
-    this.ethereumAddress = address;
+  setOperationalAddress(address) {
+    this.operationalAddress = address;
     return this;
   }
   /**
-   * set the Ethereum account key to be used in all transactions
+   * set the staking Ethereum address to be used in all transactions
+   * @param {string} address
+   * @return {EnigmaContractAPIBuilder} this
+   * */
+  setStakingAddress(address) {
+    this.stakingAddress = address;
+    return this;
+  }
+  /**
+   * set the Ethereum operational account key to be used in all transactions
    * @param {string} key
    * @return {EnigmaContractAPIBuilder} this
    * */
-  setAccountKey(key) {
-    this.accountKey = key;
+  setOperationalKey(key) {
+    this.operationalKey = key;
     return this;
   }
 
@@ -151,14 +161,15 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      if (this.accountKey) {
+      if (this.operationalKey) {
         this.api = await new EnigmaContractProductionWriterAPI(
           this.enigmaContractAddress,
           this.enigmaContractABI,
           this.web3,
           this.logger(),
-          this.ethereumAddress,
-          this.accountKey,
+          this.operationalAddress,
+          this.operationalKey,
+          this.stakingAddress,
           this.minimunConfirmations
         );
       } else {
@@ -167,7 +178,7 @@ class EnigmaContractAPIBuilder {
           this.enigmaContractABI,
           this.web3,
           this.logger(),
-          this.ethereumAddress
+          this.operationalAddress
         );
       }
     } else {
@@ -176,6 +187,7 @@ class EnigmaContractAPIBuilder {
         this.enigmaContractABI,
         this.web3,
         this.logger(),
+        this.operationalAddress,
         this.minimunConfirmations
       );
     }
@@ -191,33 +203,26 @@ class EnigmaContractAPIBuilder {
   /**
    * configuring and building the api instance
    * @param {JSON} options
-   *  {accountAddress - wallet address
+   *  {operationalAddress - operational address
+   *   stakingAddress - staking address
    *   enigmaContractAddress - the deployed Enigma contract to connect to
    *   urlProvider - the transport url
    *   enigmaContractAbi - Enigma contract ABI
-   *   accountKey - wallet key
+   *   operationalKey - operational key
    * @return {JSON} {api - the EnigmaContract API, environment - the environment for the api creation}
    * */
   async setConfigAndBuild(options) {
     let res;
-    let ethereumAddress = null;
+    let config = {};
 
-    // urlProvider: this._ethereumWebsocketProvider,
-    // enigmaContractAddress: this._enigmaContractAddress,
-    // accountAddress: this._ethereumAddress,
-    // enigmaContractAbiPath: this._enigmaContractAbiPath,
-    // accountKeyPath: this._ethereumKeyPath
+    const { operationalAddress, operationalKey, stakingAddress, minConfirmations } = options;
 
-    if (options.accountAddress) {
-      ethereumAddress = options.accountAddress;
-    }
-
-    if (options.accountKey) {
-      this.accountKey = options.accountKey;
-    }
+    const minimunConfirmations = Number.isInteger(minConfirmations)
+      ? minConfirmations
+      : constants.MINIMUM_CONFIRMATIONS;
 
     if (options.enigmaContractAddress) {
-      let config = { enigmaContractAddress: options.enigmaContractAddress };
+      config = { enigmaContractAddress: options.enigmaContractAddress };
       if (options.urlProvider) {
         config.url = options.urlProvider;
       }
@@ -225,12 +230,18 @@ class EnigmaContractAPIBuilder {
         config.enigmaContractABI = options.enigmaContractAbi;
       }
       res = await this.useDeployed(config)
-        .setEthereumAddress(ethereumAddress)
+        .setOperationalAddress(operationalAddress)
+        .setOperationalKey(operationalKey)
+        .setStakingAddress(stakingAddress)
+        .setMinimunConfirmations(minimunConfirmations)
         .build();
     } else {
-      res = await this.createNetwork()
+      res = await this.createNetwork(config)
         .deploy()
-        .setEthereumAddress(ethereumAddress)
+        .setOperationalAddress(operationalAddress)
+        .setOperationalKey(operationalKey)
+        .setStakingAddress(stakingAddress)
+        .setMinimunConfirmations(minimunConfirmations)
         .build();
     }
     return res;

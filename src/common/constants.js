@@ -5,7 +5,6 @@ module.exports.ID_LEN = 46;
 module.exports.LOG_CONFIG = {
   level: "debug",
   file: "peer.log",
-  cli: true
 };
 module.exports.NODE_NOTIFICATIONS = {
   INIT_WORKER: "iw", // init https://github.com/enigmampc/enigma-p2p#overview-on-start
@@ -56,7 +55,8 @@ module.exports.NODE_NOTIFICATIONS = {
   LOGOUT: "logout", // logout from Enigma contract
   DEPOSIT: "deposit", // deposit stacking to Enigma contract
   WITHDRAW: "withdraw", // withdraw stacking to Enigma contract
-  GET_ETH_WORKER_PARAM: "getworkparams" // get worker params set in Enigma contract
+  GET_ETH_WORKER_PARAM: "getworkparams", // get worker params set in Enigma contract
+  HEALTH_CHECK: "healthcheck"
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -64,9 +64,7 @@ module.exports.PROTOCOLS = {
   PEER_CONNECT: "peer:connect",
   PEER_DISCONNECT: "peer:disconnect",
   ECHO: "/echo",
-  PEERS_PEER_BOOK: "/getpeerbook",
   FIND_PEERS: "/findpeers/0.1",
-  HANDSHAKE: "/handshake/0.1",
   HEARTBEAT: "/heartbeat/0.1",
   STATE_SYNC: "/sync/0.1",
   LOCAL_STATE_EXCHAGNE: "/localstateexchange/0.1"
@@ -265,3 +263,11 @@ module.exports.PRINCIPAL_NODE = {
 module.exports.PTT_END_EVENT = "PTT";
 
 module.exports.MINIMUM_CONFIRMATIONS = 12;
+
+module.exports.WEB_SERVER_CONSTANTS = {
+  HEALTH_CHECK: {
+    port: 12345,
+    url: "/healthcheck",
+    error_code: 500
+  }
+};

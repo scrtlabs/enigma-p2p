@@ -28,6 +28,7 @@
   "extends":"google",
 
   "rules": {
+    "quotes": [2, "double", { "avoidEscape": true }],
     "camelcase": [2, { "properties": "always" }],
     "max-len": [2, 160, 4],
     "babel/no-invalid-this": 1,

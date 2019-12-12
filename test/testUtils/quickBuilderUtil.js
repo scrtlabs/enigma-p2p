@@ -33,7 +33,8 @@ const getDefault = () => {
     withTasksDb: true, // with tasks database
     taskDbPath: null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
     principalUri: null,
-    stateful: false // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
+    stateful: false,
+    webserver: null // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
   };
 };
 
@@ -192,11 +193,13 @@ const _createNode = async options => {
   }
   if (!options.withLogger) {
     builder.setLoggerConfig({
-      cli: false,
-      file: false
+      name: "Logger"
     });
   }
   nodeConfigObject.extraConfig.principal = { uri: options.principalUri };
+  if (options.webserver) {
+    nodeConfigObject.extraConfig.webserver = options.webserver;
+  }
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {
     mainController: mainController,

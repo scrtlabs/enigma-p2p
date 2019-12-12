@@ -11,6 +11,8 @@
   },
   "scripts": {
     "test": "nyc mocha --timeout 200000 ./test/**/*_test.js",
+    "truffle-develop": "cd ./test/ethereum/scripts && truffle develop",
+    "truffle-migrate-print-contract-address": "cd ./test/ethereum/scripts; truffle compile >/dev/null; truffle migrate --reset 2>/dev/null | grep -A 4 \"Replacing 'Enigma'\" | grep 'contract address' | awk '{print $NF}'",
     "kill-truffle": "ps aux | grep truffle | grep -v grep | awk '{print $2}' | xargs kill -9 || true",
     "report-coverage": "nyc report --reporter=text-lcov > coverage.lcov && npx codecov",
     "test-tree": "node scripts/test_tree_validation.js"
@@ -29,11 +31,13 @@
     "cors": "^2.8.5",
     "ethereumjs-abi": "^0.6.7",
     "expect": "^24.1.0",
+    "express": "^4.17.1",
     "fs": "0.0.1-security",
     "jayson": "^3.0.1",
     "jsbi": "^2.0.5",
     "jsonschema": "^1.2.4",
     "level": "^4.0.0",
+    "log4js": "^6.1.0",
     "libp2p": "^0.23.0",
     "libp2p-bootstrap": "^0.9.3",
     "libp2p-kad-dht": "^0.14.13",
@@ -60,7 +64,8 @@
     "unix-timestamp": "^0.2.0",
     "web3": "1.0.0-beta.37",
     "web3-utils": "1.0.0-beta.37",
-    "zeromq": "^5.1.0"
+    "zeromq": "^5.1.0",
+    "date-format": "^3.0.0"
   },
   "devDependencies": {
     "axios": "^0.18.1",
