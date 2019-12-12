@@ -17,10 +17,12 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
     logger,
     workerAddress,
     privateKey,
+    stakingAddress,
     minimumConfirmations = constants.MINIMUM_CONFIRMATIONS
   ) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
     this._privateKey = privateKey;
+    this._stakingAddres = stakingAddress;
     this.minimumConfirmations = minimumConfirmations;
   }
   /**
@@ -45,7 +47,12 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         gas: res.transactionOptions.gas,
         // this encodes the ABI of the method and th
         data: this._enigmaContract.methods
-          .register(utils.add0x(signerAddress), utils.add0x(report), utils.add0x(signature))
+          .register(
+            utils.add0x(this._stakingAddres),
+            utils.add0x(signerAddress),
+            utils.add0x(report),
+            utils.add0x(signature)
+          )
           .encodeABI()
       };
 
@@ -63,129 +70,6 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
           if (confNumber >= this.minimumConfirmations) {
             signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-            resolve(null);
-          }
-        });
-    });
-  }
-  /**
-   * Step 2 in registration : stake ENG's (TO DA MOON)
-   * @param {string} custodian - the worker address
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: null, in failure: error
-   * */
-  deposit(custodian, amount, txParams = null) {
-    return new Promise(async (resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      const tx = {
-        from: res.transactionOptions.from,
-        to: this._enigmaContractAddress,
-        gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.deposit(custodian, amount).encodeABI()
-      };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const signedTransaction = this._web3.eth
-        .sendSignedTransaction(signedTx.rawTransaction)
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (this.minimumConfirmations === 0 || !Number.isInteger(this.minimumConfirmations)) {
-            resolve(null);
-          }
-        })
-        .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-          if (confNumber >= this.minimumConfirmations) {
-            signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-            //let events = this._parseEvents(receipt);
-            resolve(null);
-          }
-        });
-    });
-  }
-  /**
-   * Step 2 in registration : stake ENG's of the current worker(TO DA MOON)
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: null, in failure: error
-   * */
-  selfDeposit(amount, txParams = null) {
-    return new Promise(async (resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      let workerAddress = this.getWorkerAddress();
-      if (!workerAddress) {
-        reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
-        return;
-      }
-      const tx = {
-        from: res.transactionOptions.from,
-        to: this._enigmaContractAddress,
-        gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.deposit(workerAddress, amount).encodeABI()
-      };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const signedTransaction = this._web3.eth
-        .sendSignedTransaction(signedTx.rawTransaction)
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (this.minimumConfirmations === 0 || !Number.isInteger(this.minimumConfirmations)) {
-            resolve(null);
-          }
-        })
-        .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-          if (confNumber >= this.minimumConfirmations) {
-            signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-            //let events = this._parseEvents(receipt);
-            resolve(null);
-          }
-        });
-    });
-  }
-  /**
-   * Withdraw worker's stake (full or partial)
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: null, in failure: error
-   * */
-  withdraw(amount, txParams) {
-    return new Promise(async (resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      const tx = {
-        from: res.transactionOptions.from,
-        to: this._enigmaContractAddress,
-        gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.withdraw(amount).encodeABI()
-      };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
-      const signedTransaction = this._web3.eth
-        .sendSignedTransaction(signedTx.rawTransaction)
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
-          if (this.minimumConfirmations === 0 || !Number.isInteger(this.minimumConfirmations)) {
-            resolve(null);
-          }
-        })
-        .on(ETHEREUM_CONFIRMATION_EVENT, (confNumber, receipt) => {
-          if (confNumber >= this.minimumConfirmations) {
-            signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
-            //let events = this._parseEvents(receipt);
             resolve(null);
           }
         });

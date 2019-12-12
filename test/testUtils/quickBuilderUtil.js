@@ -27,13 +27,15 @@ const getDefault = () => {
     withEth: false,
     ethExistingAddr: null, // optional, if null create else connect to existing
     ethWorkerAddress: null, // optional
+    ethStakingAddress: null, //optional
     ethWS: null, // optional, websocket provider
     withProxy: false,
     proxyPort: null, // optional, either set port or random
     withTasksDb: true, // with tasks database
     taskDbPath: null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
     principalUri: null,
-    stateful: false // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
+    stateful: false,
+    webserver: null // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
   };
 };
 
@@ -176,7 +178,8 @@ const _createNode = async options => {
       minConfirmations: 0,
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
-      ethereumAddress: options.ethWorkerAddress
+      operationalAddress: options.ethWorkerAddress,
+      stakingAddress: options.ethStakingAddress
     });
   }
   let dbPath = null;
@@ -192,11 +195,13 @@ const _createNode = async options => {
   }
   if (!options.withLogger) {
     builder.setLoggerConfig({
-      cli: false,
-      file: false
+      name: "Logger"
     });
   }
   nodeConfigObject.extraConfig.principal = { uri: options.principalUri };
+  if (options.webserver) {
+    nodeConfigObject.extraConfig.webserver = options.webserver;
+  }
   mainController = await builder.setNodeConfig(nodeConfigObject).build();
   return {
     mainController: mainController,

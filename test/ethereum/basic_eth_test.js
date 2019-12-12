@@ -6,6 +6,7 @@ const constants = require("../../src/common/constants");
 const utils = require("../../src/common/utils");
 const Web3 = require("web3");
 const ethTestUtils = require("./utils");
+const TEST_TREE = require("../test_tree").TEST_TREE;
 
 const WORKER_WEI_VALUE = 100000000000000000;
 
@@ -20,13 +21,19 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     };
   }
 
+  // GLOBALS
+  let res, workerAccount;
+  let accounts, workerEnclaveSigningAddress, workerAddress, workerReport, signature, api;
+
   async function init(minConfirmations) {
     const w3 = new Web3();
 
     const workerAccount = w3.eth.accounts.create();
+    const stakingAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
     const res = await builder
-      .setAccountKey(workerAccount.privateKey)
+      .setOperationalKey(workerAccount.privateKey)
+      .setStakingAddress(stakingAccount.address)
       .setMinimunConfirmations(minConfirmations)
       .createNetwork()
       .deploy()
@@ -42,10 +49,12 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     return { res, workerAccount, builder };
   }
 
-  var res, workerAccount;
-  var accounts, workerEnclaveSigningAddress, workerAddress, workerReport, signature, api;
+  async function stop() {
+    api.unsubscribeAll();
+    await res.environment.destroy();
+  }
 
-  beforeEach(async () => {
+  async function start() {
     const x = await init(constants.MINIMUM_CONFIRMATIONS);
     res = x.res;
     workerAccount = x.workerAccount;
@@ -56,40 +65,55 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     workerAddress = workerAccount.address;
     workerReport = testParameters.report;
     signature = api.w3().utils.randomHex(32);
-  });
-
-  afterEach(async () => {
-    api.unsubscribeAll();
-    await res.environment.destroy();
-  });
+  }
 
   it("check default minConfirmation is set", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#1"]) {
+      this.skip();
+    }
+    await start();
     assert.strictEqual(api.minimumConfirmations, constants.MINIMUM_CONFIRMATIONS);
+    await stop();
   });
 
   it("check non-default minConfirmation is set", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#2"]) {
+      this.skip();
+    }
+    await start();
     await res.environment.destroy();
 
     const x = await init(15);
     res = x.res;
     api = res.api;
-
     assert.strictEqual(api.minimumConfirmations, 15);
-
-    // await res.environment.destroy(); will be called in afterEach
+    await stop();
   });
 
   it("worker register", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#3"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
 
     const worker = await api.getWorker(workerAddress);
     assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+    await stop();
   });
 
-  it("worker register event", async () => {
+  it("worker register event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#4"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       eventSubscribe(
         api,
         constants.RAW_ETHEREUM_EVENTS.Registered,
@@ -100,6 +124,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
           const worker = await api.getWorker(workerAddress);
           assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+          await stop();
           resolve();
         })
       );
@@ -111,61 +136,15 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     });
   });
 
-  it("worker deposit", async function() {
-    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await registerPromise;
-
-    const depositValue = 1000;
-    const depositPromise = api.deposit(workerAddress, depositValue, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
-
-    const worker = await api.getWorker(workerAddress);
-    assert.strictEqual(worker.balance, depositValue);
-  });
-
-  it("worker deposit event", async function() {
-    return new Promise(async resolve => {
-      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await registerPromise;
-
-      const depositValue = 1000;
-
-      eventSubscribe(
-        api,
-        constants.RAW_ETHEREUM_EVENTS.DepositSuccessful,
-        {},
-        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.DepositSuccessful, async result => {
-          assert.strictEqual(result.from, workerAddress);
-          assert.strictEqual(result.value, depositValue);
-
-          const worker = await api.getWorker(workerAddress);
-          assert.strictEqual(worker.balance, depositValue);
-          resolve();
-        })
-      );
-
-      api.deposit(workerAddress, depositValue, { from: workerAddress });
-      ethTestUtils.advanceXConfirmations(api.w3());
-    });
-  });
-
   it("worker login", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#5"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -173,10 +152,16 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
     const worker = await api.getWorker(workerAddress);
     assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
+    await stop();
   });
 
   it("worker login event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#6"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
@@ -191,15 +176,10 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
           assert.strictEqual(result.workerAddress, workerAddress);
           const worker = await api.getWorker(workerAddress);
           assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDIN);
+          await stop();
           resolve();
         })
       );
-
-      const depositePromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositePromise;
 
       api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -207,6 +187,11 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it('"verify" worker enclave report', async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#7"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
@@ -215,18 +200,18 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const { report } = await api.getReport(workerAddress);
     assert.strictEqual(worker.report, report);
     assert.strictEqual(worker.report, workerReport);
+    await stop();
   });
 
   it("worker deploy secret contract", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#8"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -264,21 +249,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
     const observedCodeHash = await api.getContractParams(secretContractAddress);
     assert.strictEqual(observedCodeHash.codeHash, codeHash);
+    await stop();
   });
 
   it("worker deploy secret contract event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#9"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
-
-      const depositPromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositPromise;
 
       const loginPromise = api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -307,7 +292,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
           const observedCodeHash = await api.getContractParams(secretContractAddress);
           assert.strictEqual(observedCodeHash.codeHash, codeHash);
-
+          await stop();
           resolve();
         })
       );
@@ -328,15 +313,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker deploy secret contract failure", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#10"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -360,21 +344,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
     const countSCsAfter = await api.countSecretContracts();
     assert.strictEqual(countSCsAfter, 0);
+    await stop();
   });
 
   it("worker deploy secret contract failure event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#11"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
-
-      const depositPromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositPromise;
 
       const loginPromise = api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -397,6 +381,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
           const countSCsAfter = await api.countSecretContracts();
           assert.strictEqual(countSCsAfter, 0);
+          await stop();
           resolve();
         })
       );
@@ -409,15 +394,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker logout", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#12"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -432,21 +416,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
     const loggedOutWorker = await api.getWorker(workerAddress);
     assert.strictEqual(loggedOutWorker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+    await stop();
   });
 
   it("worker logout event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#13"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
-
-      const depositePromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositePromise;
 
       const loginPromise = api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -460,6 +444,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
           assert.strictEqual(result.workerAddress, workerAddress);
           const worker = await api.getWorker(workerAddress);
           assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT);
+          await stop();
           resolve();
         })
       );
@@ -469,101 +454,15 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     });
   });
 
-  it("worker withdraw", async function() {
-    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await registerPromise;
-
-    const depositValue = 1000;
-    const withdrawValue = 10;
-
-    const depositPromise = api.deposit(workerAddress, depositValue, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
-
-    const workerBefore = await api.getWorker(workerAddress);
-    assert.strictEqual(workerBefore.balance, depositValue);
-
-    // We have to login/logout because of a weird behavior in Enigma.sol:
-    // https://github.com/enigmampc/enigma-contract/blob/08346f20aad4ff7377a7ff1f737e9a3ab76d0c04/contracts/Enigma.sol#L87-L96
-    // TODO remove the login/logout sequence when the behavior is fixed in Enigma.sol
-    const loginPromise = api.login({ from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await loginPromise;
-
-    const logoutPromise = api.logout({ from: workerAddress });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await logoutPromise;
-
-    const withdrawPromise = api.withdraw(withdrawValue, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await withdrawPromise;
-
-    const workerAfter = await api.getWorker(workerAddress);
-    assert.strictEqual(workerAfter.balance, depositValue - withdrawValue);
-  });
-
-  it("worker withdraw event", async function() {
-    return new Promise(async resolve => {
-      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await registerPromise;
-
-      const depositValue = 1000;
-      const withdrawValue = 10;
-
-      const depositPromise = api.deposit(workerAddress, depositValue, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositPromise;
-
-      const workerBefore = await api.getWorker(workerAddress);
-      assert.strictEqual(workerBefore.balance, depositValue);
-
-      // We have to login/logout because of a weird behavior in Enigma.sol:
-      // https://github.com/enigmampc/enigma-contract/blob/08346f20aad4ff7377a7ff1f737e9a3ab76d0c04/contracts/Enigma.sol#L87-L96
-      // TODO remove the login/logout sequence when the behavior is fixed in Enigma.sol
-      const loginPromise = api.login({ from: workerAddress });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await loginPromise;
-
-      const logoutPromise = api.logout({ from: workerAddress });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await logoutPromise;
-
-      eventSubscribe(
-        api,
-        constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful,
-        {},
-        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.WithdrawSuccessful, async result => {
-          const workerAfter = await api.getWorker(workerAddress);
-          assert.strictEqual(workerAfter.balance, depositValue - withdrawValue);
-          resolve();
-        })
-      );
-
-      api.withdraw(withdrawValue, { from: workerAddress });
-      ethTestUtils.advanceXConfirmations(api.w3());
-    });
-  });
-
   it("worker commit receipt", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#14"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -612,21 +511,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     assert.strictEqual(receipt.ReceiptVerified.stateDeltaHash, stateDeltaHash);
     assert.strictEqual(receipt.ReceiptVerified.stateDeltaHashIndex, 1);
     assert.strictEqual(receipt.ReceiptVerified.taskId, taskId);
+    await stop();
   });
 
   it("worker commit receipt event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#15"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
-
-      const depositPromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositPromise;
 
       const loginPromise = api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -667,6 +566,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
           assert.strictEqual(receipt.stateDeltaHash, stateDeltaHash);
           assert.strictEqual(receipt.stateDeltaHashIndex, 1);
           assert.strictEqual(receipt.taskId, taskId);
+          await stop();
           resolve();
         })
       );
@@ -686,15 +586,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
   });
 
   it("worker commit task failure", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#16"]) {
+      this.skip();
+    }
+    await start();
     const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
     await registerPromise;
-
-    const depositPromise = api.deposit(workerAddress, 1000, {
-      from: workerAddress
-    });
-    ethTestUtils.advanceXConfirmations(api.w3());
-    await depositPromise;
 
     const loginPromise = api.login({ from: workerAddress });
     ethTestUtils.advanceXConfirmations(api.w3());
@@ -729,21 +628,21 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
 
     assert.strictEqual(receipt.ReceiptFailed.signature, signature);
     assert.strictEqual(receipt.ReceiptFailed.taskId, taskId);
+    await stop();
   });
 
   it("worker commit task failure event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#17"]) {
+      this.skip();
+    }
     return new Promise(async resolve => {
+      await start();
       const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
       ethTestUtils.advanceXConfirmations(api.w3());
       await registerPromise;
-
-      const depositPromise = api.deposit(workerAddress, 1000, {
-        from: workerAddress
-      });
-      ethTestUtils.advanceXConfirmations(api.w3());
-      await depositPromise;
 
       const loginPromise = api.login({ from: workerAddress });
       ethTestUtils.advanceXConfirmations(api.w3());
@@ -779,6 +678,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async receipt => {
           assert.strictEqual(receipt.signature, signature);
           assert.strictEqual(receipt.taskId, taskId);
+          await stop();
           resolve();
         })
       );

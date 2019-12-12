@@ -20,6 +20,7 @@ const Policy = require("../../policy/policy");
 const PersistentStateCache = require("../../db/StateCache");
 const TaskManager = require("../tasks/TaskManager");
 const PrincipalNode = require("../handlers/PrincipalNode");
+const WebServer = require("../handlers/WebServer");
 // actions
 const InitWorkerAction = require("./actions/InitWorkerAction");
 const PubsubPublishAction = require("./actions/PubsubPublishAction");
@@ -28,6 +29,7 @@ const GetRegistrationParamsAction = require("./actions/GetRegistrationParamsActi
 const NewTaskEncryptionKeyAction = require("./actions/NewTaskEncryptionKeyAction");
 const SubscribeSelfSignKeyTopicPipelineAction = require("./actions/SubscribeSelfSignKeyTopicPipelineAction");
 const GetStateKeysAction = require("./actions/GetStateKeysAction");
+const HealthCheckAction = require("./actions/HealthCheckAction");
 // connectivity
 const BootstrapDiscoveredAction = require("./actions/connectivity/BootstrapDiscoveredAction");
 const NewPeerAction = require("./actions/connectivity/NewPeerAction");
@@ -65,8 +67,6 @@ const GetStatusProxyAction = require("./actions/proxy/GetStatusProxyAction");
 const RegisterAction = require("./actions/ethereum/RegisterAction");
 const LoginAction = require("./actions/ethereum/LoginAction");
 const LogoutAction = require("./actions/ethereum/LogoutAction");
-const DepositAction = require("./actions/ethereum/DepositAction");
-const WithdrawAction = require("./actions/ethereum/WithdrawAction");
 const CommitReceiptAction = require("./actions/ethereum/CommitReceiptAction");
 const GetWorkerParamsAction = require("./actions/ethereum/GetWorkerParamsAction");
 
@@ -109,6 +109,7 @@ class NodeController {
       [NOTIFICATION.REGISTRATION_PARAMS]: new GetRegistrationParamsAction(this), // reg params from core
       [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
+      [NOTIFICATION.HEALTH_CHECK]: new HealthCheckAction(this),
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
@@ -147,12 +148,11 @@ class NodeController {
       [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
       [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
-      [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
-      [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
       [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this) // get worker params set in enigma contract
     };
   }
+
   /**
    * Static method a quick node builder to initiate the Controller with a template built in.
    * Example:
@@ -173,7 +173,7 @@ class NodeController {
     if (logger) {
       _logger = logger;
     } else {
-      _logger = new Logger();
+      _logger = new Logger({ name: "NodeController" });
     }
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
@@ -182,6 +182,7 @@ class NodeController {
     // create the controller instance
     return new NodeController(enigmaNode, enigmaNode.getProtocolHandler(), _logger, options.extraConfig);
   }
+
   _initController() {
     this._initPrincipalNode();
     this._initEnigmaNode();
@@ -189,8 +190,10 @@ class NodeController {
     this._initContentProvider();
     this._initContentReceiver();
     this._initTaskManager();
+    this._initWebServer();
     // this._initCache();
   }
+
   /**
    * TODO:: currently it will generate db only if extraConfig provided
    * TODO:: because of tests and multiple instances and path collision.
@@ -208,10 +211,12 @@ class NodeController {
       });
     }
   }
+
   _initCache() {
     // TODO:: start the cache service
     // this._cache.start()
   }
+
   _initPrincipalNode() {
     let conf = {};
     if (this._extraConfig) {
@@ -222,11 +227,29 @@ class NodeController {
       this._logger.info("Finished PTT");
     });
   }
+
+  _initWebServer() {
+    let conf = {};
+    if (this._extraConfig && this._extraConfig.webserver) {
+      conf = this._extraConfig.webserver;
+      this._webserver = new WebServer(conf, this.logger());
+      this._webserver.start();
+      this._webserver.on("notify", params => {
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if (action !== undefined) {
+          this._actions[notification].execute(params);
+        }
+      });
+    }
+  }
+
   _initEnigmaNode() {
     this._engNode.on("notify", peer => {
-      this._logger.info("[+] connected to bootstrap" + peer.id.toB58String());
+      this._logger.info("[+] connected to bootstrap " + peer.id.toB58String());
     });
   }
+
   _initProtocolHandler() {
     this._protocolHandler.on("notify", params => {
       const notification = params.notification;
@@ -236,6 +259,7 @@ class NodeController {
       }
     });
   }
+
   _initContentProvider() {
     this._provider = new Provider(this._engNode, this._logger);
     this._provider.on("notify", params => {
@@ -246,6 +270,7 @@ class NodeController {
       }
     });
   }
+
   _initContentReceiver() {
     this._receiver = new Receiver(this._engNode, this._logger);
     this._receiver.on("notify", params => {
@@ -256,6 +281,7 @@ class NodeController {
       }
     });
   }
+
   /** stop Ethereum, if needed
    * */
   async _stopEthereum() {
@@ -263,6 +289,7 @@ class NodeController {
       await this._ethereumApi.destroy();
     }
   }
+
   /** *********************
    * public methods
    *********************/
@@ -270,6 +297,7 @@ class NodeController {
   async start() {
     await this.engNode().syncRun();
   }
+
   /** replace existing or add new action
    * @param {string} name
    * @param {Action} action
@@ -277,44 +305,51 @@ class NodeController {
   overrideAction(name, action) {
     this._actions[name] = action;
   }
+
   /** init worker processes
    * once this done the worker can start receiving task
    * i.e already registred and sync
    * should be called after start() method was called
-   * @param {Number} amount- mandatory, amount to deposit as stake.
    * @param {Function} callback - optional , (err)=>{} once done
    * */
-  initializeWorkerProcess(amount, callback) {
+  initializeWorkerProcess(callback) {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
-      callback: callback,
-      amount: amount
+      callback: callback
     });
   }
+
   async asyncInitializeWorkerProcess(params) {
     await this.asyncExecCmd(NOTIFICATION.INIT_WORKER, params);
   }
+
   /** set Ethereum API
    * @param {EthereumAPI} api
    * */
   setEthereumApi(api) {
     this._ethereumApi = api;
   }
+
   startInitWorker() {
     this._workerInitInProgress = true;
   }
+
   initWorkerDone() {
     this._workerInitialzied = true;
     this._workerInitInProgress = false;
   }
+
   canInitWorker() {
     return !this._workerInitialzied && !this._workerInitInProgress;
   }
+
   isWorkerInitialized() {
     return this._workerInitialzied;
   }
-  getAutoInitParams() {
+
+  isAutoInit() {
     return this._extraConfig.init;
   }
+
   /** * stop the node */
   async stop() {
     await this.engNode().syncStop();
@@ -325,7 +360,11 @@ class NodeController {
     } else if (this._taskManager && this._extraConfig.tm.dbPath) {
       await this._taskManager.asyncStop();
     }
+    if (this._webserver) {
+      this._webserver.stop();
+    }
   }
+
   /**
    * "Runtime Id" required method for the main controller
    * @return {String}
@@ -333,6 +372,7 @@ class NodeController {
   type() {
     return constants.RUNTIME_TYPE.Node;
   }
+
   /**
    * Set the communication channel, required for the main controller
    * This communicator class is the communication with the main controller
@@ -350,6 +390,7 @@ class NodeController {
       }
     });
   }
+
   /** Get the main controller communicator
    * This is suppose to be used by the Actions that receive an envelop and need to reply.
    * @return {Communicator} _communicator
@@ -357,42 +398,53 @@ class NodeController {
   communicator() {
     return this._communicator;
   }
+
   /** Get the cache object for the state tips and contracts that are stored locally.
    * @return {PersistentStateCache}
    * */
   cache() {
     return this._cache;
   }
+
   principal() {
     return this._principal;
   }
+
   taskManager() {
     return this._taskManager;
   }
+
   ethereum() {
     return this._ethereumApi;
   }
+
   logger() {
     return this._logger;
   }
+
   engNode() {
     return this._engNode;
   }
+
   provider() {
     return this._provider;
   }
+
   receiver() {
     return this._receiver;
   }
+
   policy() {
     return this._policy;
   }
+
   // ----------------- API Methods  ------------------ //
   execCmd(cmd, params) {
     if (this._actions[cmd]) {
       this._actions[cmd].execute(params);
     }
   }
+
   async asyncExecCmd(cmd, params) {
     return new Promise(async (resolve, reject) => {
       if (this._actions[cmd]) {
@@ -407,6 +459,7 @@ class NodeController {
       }
     });
   }
+
   addPeer(maStr) {
     nodeUtils.connectionStrToPeerInfo(maStr, (err, peerInfo) => {
       const action = NOTIFICATION["DISCOVERED"];
@@ -417,15 +470,19 @@ class NodeController {
       }
     });
   }
+
   async getTopics() {
     return await this.engNode().getTopics();
   }
+
   getSelfB58Id() {
     return this.engNode().getSelfIdB58Str();
   }
+
   getSelfAddrs() {
     return this.engNode().getListeningAddrs();
   }
+
   /**
    * given id lookup a peer in the network
    * does not attempt to connect
@@ -440,6 +497,7 @@ class NodeController {
       return null;
     }
   }
+
   async getLocalStateOfRemote(b58Id) {
     try {
       return await this._actions[NOTIFICATION.GET_REMOTE_TIPS].execute({
@@ -449,15 +507,19 @@ class NodeController {
       return null;
     }
   }
+
   getLocalTips() {
     return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, { useCache: false });
   }
+
   getConnectedPeers() {
     return this.engNode().getConnectedPeers();
   }
+
   getSelfPeerBookIds() {
     return this.engNode().getSelfPeerBookIds();
   }
+
   /**
    * unsubscribe form a topic
    * @param {string} topic
@@ -467,6 +529,7 @@ class NodeController {
   unsubscribeTopic(topic, handler) {
     this.engNode().unsubscribe(topic, handler);
   }
+
   /**
    * monitor some topic, simply prints to std whenever some peer publishes to that topic
    * @param {string} topic
@@ -485,18 +548,22 @@ class NodeController {
       }
     });
   }
+
   hasEthereum() {
     return this._ethereumApi;
   }
+
   broadcast(content) {
     this.publish(TOPICS.BROADCAST, content);
   }
+
   publish(topic, message) {
     this._actions[NOTIFICATION.PUBSUB_PUB].execute({
       topic: topic,
       message: message
     });
   }
+
   /** temp run self subscribe command */
   async selfSubscribeAction() {
     return new Promise((res, rej) => {
@@ -511,6 +578,7 @@ class NodeController {
       });
     });
   }
+
   /**
    * @return {Promise<string>} signingKey of the sub topic
    * */
@@ -518,12 +586,16 @@ class NodeController {
     return new Promise((res, rej) => {
       this.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
         onResponse: (err, regParams) => {
-          if (err) return rej(err);
-          else return res(regParams.result.signingKey);
+          if (err) {
+            return rej(err);
+          } else {
+            return res(regParams.result.signingKey);
+          }
         }
       });
     });
   }
+
   /** is connection to a peer
    * @param {string} nodeId
    * @return {bool} true/false
@@ -531,6 +603,7 @@ class NodeController {
   isConnected(nodeId) {
     return this._engNode.isConnected(nodeId);
   }
+
   /**
    * from TaskManager
    * @param {string} taskId
@@ -541,6 +614,7 @@ class NodeController {
       taskId: taskId
     });
   }
+
   /** TODO:: add this as cli api + in the cli dump it into a file.;
    * TODO:: good for manual testing
    * returns the current local tips
@@ -554,6 +628,7 @@ class NodeController {
       cache: fromCache
     });
   }
+
   /** get the registration params from core
    * @param {Function} callback , (err,result)=>{}
    * Result object - {signingKey,report, signature}
@@ -565,14 +640,19 @@ class NodeController {
       }
     });
   }
+
   async asyncGetRegistrationParams(callback) {
     return new Promise((res, rej) => {
       this.getRegistrationParams((err, result) => {
-        if (err) rej(err);
-        else res(result);
+        if (err) {
+          rej(err);
+        } else {
+          res(result);
+        }
       });
     });
   }
+
   /**
    * identify and print to log the missing states
    * @{Function} callback , optional (err,missingStates)=>{}
@@ -598,6 +678,7 @@ class NodeController {
       }
     });
   }
+
   async asyncIdentifyMissingStates() {
     return new Promise((resolve, reject) => {
       this.identifyMissingStates((err, missingStatesMsgsMap) => {
@@ -609,6 +690,7 @@ class NodeController {
       });
     });
   }
+
   // TODO make it usable to execute this pipeline
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
@@ -621,6 +703,7 @@ class NodeController {
       }
     });
   }
+
   /**
    * Announce the network the contents the worker is holding.
    * This will be used to route requests to this announcing node.
@@ -643,6 +726,7 @@ class NodeController {
       }
     });
   }
+
   async asynctryAnnounce() {
     return new Promise((resolve, reject) => {
       this.tryAnnounce((err, ecids) => {
@@ -654,6 +738,7 @@ class NodeController {
       });
     });
   }
+
   /** Find a list of providers for each ecid
    * @param {Array<EngCid>} ecids
    * @param {Function} callback (findProviderResult)=>{}
@@ -667,6 +752,7 @@ class NodeController {
       }
     });
   }
+
   /** promise based version of findProviders */
   asyncFindProviders(ecids) {
     return new Promise((resolve, reject) => {
@@ -675,39 +761,27 @@ class NodeController {
       });
     });
   }
+
   /** Login to Enigma contract
    * @return {Promise} returning boolean indicating a successful login
    * */
   login() {
     return this._actions[NOTIFICATION.LOGIN].asyncExecute();
   }
+
   /** Logout to Enigma contract
    * @return {Promise} returning boolean indicating a successful logout
    * */
   logout() {
     return this._actions[NOTIFICATION.LOGOUT].asyncExecute();
   }
+
   /** Register to Enigma contract
    * @return {Promise} returning boolean indicating a successful registration
    * */
   register() {
     return this._actions[NOTIFICATION.REGISTER].asyncExecute();
   }
-  /** Deposit to Enigma contract
-   * @param {Integer} amount
-   * @return {Promise} returning boolean indicating a successful deposit
-   * */
-  deposit(amount) {
-    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({ amount: amount });
-  }
-  /** Withdraw to Enigma contract
-   * @param {Integer} amount
-   * @return {Promise} returning boolean indicating a successful withdrawal
-   * */
-  withdraw(amount) {
-    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({
-      amount: amount
-    });
-  }
 }
+
 module.exports = NodeController;

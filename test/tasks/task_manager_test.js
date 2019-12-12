@@ -73,9 +73,8 @@ describe("TaskManager isolated tests", () => {
     }
     // runs before all tests in this block
     logger = new Logger({
-      level: "debug",
-      cli: false,
-      file: false
+      level: "error",
+      name: "task_test_manager",
     });
     dbPath = tempdir.sync();
   });
@@ -216,7 +215,7 @@ describe("TaskManager isolated tests", () => {
     if (!tree["all"] || !tree["#5"]) {
       this.skip();
     }
-    this.timeout(10000);
+    this.timeout(30000);
     return new Promise(async resolve => {
       dbPath = tempdir.sync();
       let unFinishedDeployNum = 250,

@@ -12,8 +12,9 @@ const ETHEREUM_RECEIPT_EVENT = "receipt";
 const ETHEREUM_ERROR_EVENT = "error";
 
 class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
-  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress) {
+  constructor(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, stakingAddress) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress, 0);
+    this._stakingAddres = stakingAddress;
   }
   /**
    * Step 1 in registration
@@ -32,97 +33,18 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         return;
       }
       this._enigmaContract.methods
-        .register(utils.add0x(signerAddress), utils.add0x(report), utils.add0x(signature))
+        .register(
+          utils.add0x(this._stakingAddres),
+          utils.add0x(signerAddress),
+          utils.add0x(report),
+          utils.add0x(signature)
+        )
         .send(res.transactionOptions)
         // .on('confirmation', (confirmationNumber, receipt) => {
         //   console.log("at register confirmation. number=", confirmationNumber);
         //   console.log("at register confirmation. receipt=", JSON.stringify(receipt));
         //   resolve(receipt);
         // })
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, receipt => {
-          let events = receipt.events ? this._parseEvents(receipt.events) : null;
-          resolve(events);
-        });
-    });
-  }
-  /**
-   * Step 2 in registration : stake ENG's (TO DA MOON)
-   * @param {string} custodian - the worker address
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: Enigma contract emitted events, in failure: error
-   * */
-  deposit(custodian, amount, txParams = null) {
-    return new Promise((resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      this._enigmaContract.methods
-        .deposit(custodian, amount)
-        .send(res.transactionOptions)
-        // .on(ETHEREUM_CONFIRMATION_EVENT, (confirmationNumber, receipt) => {
-        //   console.log("at deposit confirmation. number=", confirmationNumber);
-        //   resolve(receipt);
-        // })
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, receipt => {
-          let events = receipt.events ? this._parseEvents(receipt.events) : null;
-          resolve(events);
-        });
-    });
-  }
-  /**
-   * Step 2 in registration : stake ENG's of the current worker(TO DA MOON)
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: Enigma contract emitted events, in failure: error
-   * */
-  selfDeposit(amount, txParams = null) {
-    return new Promise((resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      let workerAddress = this.getWorkerAddress();
-      if (!workerAddress) {
-        reject(new errors.InputErr("Missing worker-address when calling selfDeposit"));
-      }
-      this._enigmaContract.methods
-        .deposit(workerAddress, amount)
-        .send(res.transactionOptions)
-        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
-          reject(error);
-        })
-        .on(ETHEREUM_RECEIPT_EVENT, receipt => {
-          let events = receipt.events ? this._parseEvents(receipt.events) : null;
-          resolve(events);
-        });
-    });
-  }
-  /**
-   * Withdraw worker's stake (full or partial)
-   * @param {Integer} amount
-   * @param {JSON} txParams
-   * @return {Promise} in success: Enigma contract emitted events, in failure: error
-   * */
-  withdraw(amount, txParams) {
-    return new Promise((resolve, reject) => {
-      let res = this.getTransactionOptions(txParams);
-      if (res.error) {
-        reject(res.error);
-        return;
-      }
-      this._enigmaContract.methods
-        .withdraw(amount)
-        .send(res.transactionOptions)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
           reject(error);
         })
