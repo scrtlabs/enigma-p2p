@@ -1,12 +1,14 @@
 const log4js = require("log4js");
 const constants = require("./constants");
 const LOG_CONFIG = constants.LOG_CONFIG;
+const format = require("date-format");
 
 class Logger {
   constructor(options = {}) {
-    const logName = options.hasOwnProperty("name") ? options.name : "P2P";
+    const logName = options.hasOwnProperty("name") ? options.name : "Logger";
     const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
-    log4js.configure( {
+
+    log4js.configure({
       appenders: {
         file: {
           type: "file",
@@ -16,18 +18,40 @@ class Logger {
           compress: true, // compress the backups
           encoding: "utf-8",
           mode: 0o0640,
-          flags: "w+",
+          flags: "w+"
         },
-        out: {type: "stdout"},
-        err: {type: "stderr"},
-        cli: {type: "stdout", layout: {
-          type: "pattern",
-          pattern: "[%d] [CLI] %m%n"}},
+        out: {
+          type: "stdout",
+          layout: {
+            type: "pattern",
+            pattern:
+              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
+              "Z %[%p%] [P2P-%c] - %m"
+          }
+        },
+        err: {
+          type: "stderr",
+          layout: {
+            type: "pattern",
+            pattern:
+              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
+              "Z %[%p%] [P2P-%c] - %m"
+          }
+        },
+        cli: {
+          type: "stdout",
+          layout: {
+            type: "pattern",
+            pattern:
+              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) + "Z [CLI] %m"
+          }
+        }
       },
-      categories:
-        {[logName]: {appenders: ["file", "out"], level: logLevel},
-          cli: {appenders: ["cli"], level: "info"},
-          default: {appenders: ["err"], level: "info"}},
+      categories: {
+        [logName]: { appenders: ["file", "out"], level: logLevel, enableCallStack: true },
+        cli: { appenders: ["cli"], level: "info" },
+        default: { appenders: ["err"], level: "info" }
+      }
     });
     this.logger = log4js.getLogger(logName);
   }
@@ -52,4 +76,3 @@ class Logger {
 }
 
 module.exports = Logger;
-
