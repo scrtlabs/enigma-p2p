@@ -2,7 +2,6 @@ const JSBI = require("jsbi");
 const abi = require("ethereumjs-abi");
 const web3Utils = require("web3-utils");
 const crypto = require("../../src/common/cryptography");
-const DB_PROVIDER = require("../../src/core/core_server_mock/data/provider_db");
 const DbUtils = require("../../src/common/DbUtils");
 const nodeUtils = require("../../src/common/utils");
 const constants = require("../../src/common/constants");
@@ -155,7 +154,7 @@ module.exports.createDataForSelectionAlgorithm = function() {
 module.exports.transformStatesListToMap = statesList => {
   const statesMap = {};
   for (let i = 0; i < statesList.length; ++i) {
-    const address = statesList[i].address;
+    const address = JSON.stringify(statesList[i].address);
     if (!(address in statesMap)) {
       statesMap[address] = {};
     }
@@ -165,8 +164,6 @@ module.exports.transformStatesListToMap = statesList => {
   }
   return statesMap;
 };
-
-module.exports.PROVIDERS_DB_MAP = this.transformStatesListToMap(DB_PROVIDER);
 
 module.exports.advanceXConfirmations = async function(web3, confirmations = constants.MINIMUM_CONFIRMATIONS) {
   let initialEthereumBlockNumber = await nodeUtils.getEthereumBlockNumber(web3);
@@ -196,17 +193,17 @@ module.exports.advanceXConfirmations = async function(web3, confirmations = cons
 };
 
 /**
- * Transform a list of states to a corresponding map.
- * @param {Array<Object>} statesList - list of states in the format {address, key, data}
- * @return {Object} a map whose keys are addresses and each object is a map of states (key=>data)
+ * Set Ethereum with the states provided
+ * @param {EnigmaContractWriterApI} api
+ * @param {web3} web3
+ * @param {String} workerAddress
+ * @param {String} workerEnclaveSigningAddress
+ * @return {Object} statesMap - a map whose keys are addresses and each object is a map of states (key=>data)
  * */
-// add the whole DB_PROVIDER as a state in ethereum. ethereum must be running for this worker
-module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclaveSigningAddress) => {
-  for (const address in this.PROVIDERS_DB_MAP) {
-    const secretContractData = this.PROVIDERS_DB_MAP[address];
-    const addressInByteArray = address.split(",").map(function(item) {
-      return parseInt(item, 10);
-    });
+module.exports.setEthereumState = async (api, web3, workerAddress, workerEnclaveSigningAddress, statesMap) => {
+  for (const address in statesMap) {
+    const secretContractData = statesMap[address];
+    const addressInByteArray = JSON.parse(address);
 
     const hexString = "0x" + DbUtils.toHexString(addressInByteArray);
     const codeHash = crypto.hash(secretContractData[-1]);

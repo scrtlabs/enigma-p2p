@@ -15,6 +15,9 @@ const constants = require("../src/common/constants");
 const MsgTypes = constants.P2P_MESSAGES;
 const DbUtils = require("../src/common/DbUtils");
 
+const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
+const PROVIDERS_DB_MAP = ethTestUtils.transformStatesListToMap(DB_PROVIDER);
+
 const SYNC_SCENARIOS = {
   EMPTY_DB: 1,
   PARTIAL_DB_WITH_SOME_ADDRESSES: 2,
@@ -112,7 +115,7 @@ function prepareSyncTestData(scenario) {
 
   if (scenario === SYNC_SCENARIOS.EMPTY_DB) {
     res.tips = [];
-    res.expected = ethTestUtils.PROVIDERS_DB_MAP;
+    res.expected = PROVIDERS_DB_MAP;
   } else if (scenario === SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES) {
     res.tips = [{
       address: [13, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 42],
@@ -346,7 +349,7 @@ function syncTest(scenario) {
       .build();
 
     // write all states to ethereum
-    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress);
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, PROVIDERS_DB_MAP);
     await testUtils.sleep(8000);
     waterfall(
       [
@@ -443,7 +446,7 @@ it("#1 should tryAnnounce action from mock-db no-cache", async function() {
       [
         cb => {
           // start the mock server first
-          coreServer.setProvider(true);
+          //coreServer.setProvider(true);
           coreServer.runServer(uri);
           cb(null);
         },
@@ -490,7 +493,6 @@ it("#2 Perform a full sync scenario - from scratch", async function() {
   if (!tree["all"] || !tree["#2"]) {
     this.skip();
   }
-
   return syncTest(SYNC_SCENARIOS.EMPTY_DB);
 });
 
@@ -508,6 +510,127 @@ it("#4 Perform a full sync scenario - from mid-with-all-addresses", async functi
     this.skip();
   }
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
+});
+
+it("#6 debug bytecode", async function() {
+  const tree = TEST_TREE["sync_basic"];
+  if (!tree["all"] || !tree["#6"]) {
+    this.skip();
+  }
+  return new Promise(async resolve => {
+    const contractAddress = Object.keys(PROVIDERS_DB_MAP)[0];
+    const statesMap = { [contractAddress]: PROVIDERS_DB_MAP[contractAddress] };
+    const tips = [];
+    const expectedMap = statesMap;
+    //console.log("statesMap=", statesMap);
+
+    const bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
+
+    const dnsConfig = {
+      bootstrapNodes: bootstrapNodes,
+      port: B2Port,
+      nickname: "dns",
+      idPath: B2Path,
+      extraConfig: {}
+    };
+    const peerConfig = {
+      bootstrapNodes: bootstrapNodes,
+      nickname: "peer",
+      extraConfig: {}
+    };
+    const dnsMockUri = "tcp://127.0.0.1:44444";
+    const peerMockUri = "tcp://127.0.0.1:55555";
+
+    const dnsMockCore = new CoreServer("dns");
+    const peerMockCore = new CoreServer("peer");
+
+    // define as provider to start with provider_db
+    // start the dns mock server (core)
+    dnsMockCore.runServer(dnsMockUri, expectedMap);
+
+    // start the peer mock server (core)
+    peerMockCore.runServer(peerMockUri, {});
+    // set empty tips array
+    //peerMockCore.setReceiverTips(tips);
+    await testUtils.sleep(1500);
+    const ethereumInfo = await initEthereumStuff();
+    const api = ethereumInfo.enigmaContractApi;
+    const web3 = ethereumInfo.web3;
+    const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
+    const workerAddress = ethereumInfo.workerAddress;
+    const enigmaContractAddress = ethereumInfo.enigmaContractAddress;
+
+    // start the dns
+    const dnsBuilder = new EnvironmentBuilder();
+    const dnsController = await dnsBuilder
+      .setNodeConfig(dnsConfig)
+      .setIpcConfig({ uri: dnsMockUri })
+      .build();
+
+    // start the dns
+    const peerBuilder = new EnvironmentBuilder();
+    const peerController = await peerBuilder
+      .setNodeConfig(peerConfig)
+      .setIpcConfig({ uri: peerMockUri })
+      .setEthereumConfig({ enigmaContractAddress: enigmaContractAddress })
+      .build();
+
+    // write all states to ethereum
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, statesMap);
+    await testUtils.sleep(8000);
+    waterfall(
+      [
+        cb => {
+          // announce
+          dnsController.getNode().tryAnnounce((err, ecids) => {
+            assert.strictEqual(null, err, "error announcing" + err);
+            cb(null);
+          });
+        },
+        cb => {
+          // sync
+          peerController.getNode().syncReceiverPipeline(async (err, statusResult) => {
+            assert.strictEqual(null, err, "error syncing" + err);
+            statusResult.forEach(result => {
+              assert.strictEqual(true, result.success);
+            });
+            cb(null, statusResult);
+          });
+        }
+      ],
+      async (err, statusResult) => {
+        assert.strictEqual(null, err, "error in waterfall " + err);
+
+        // validate the results
+        const missingstatesMap = syncResultMsgToStatesMap(statusResult);
+        assert.strictEqual(Object.entries(missingstatesMap).length, Object.entries(expectedMap).length);
+        for (const [address, data] of Object.entries(missingstatesMap)) {
+          assert.strictEqual(
+            Object.entries(missingstatesMap[address]).length,
+            Object.entries(expectedMap[address]).length
+          );
+          for (const [key, delta] of Object.entries(missingstatesMap[address])) {
+            for (let i = 0; i < missingstatesMap[address][key].length; ++i) {
+              assert.strictEqual(missingstatesMap[address][key][i], expectedMap[address][key][i]);
+            }
+          }
+        }
+        await dnsController.getNode().stop();
+        dnsController.getIpcClient().disconnect();
+
+        await peerController.getNode().stop();
+        peerController.getIpcClient().disconnect();
+
+        dnsMockCore.disconnect();
+        peerMockCore.disconnect();
+
+        await stopEthereumStuff(ethereumInfo.environment);
+
+        await testUtils.sleep(2000);
+        resolve();
+      }
+    );
+  });
 });
 
 // prettier-ignore
