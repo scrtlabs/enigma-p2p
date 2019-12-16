@@ -33,6 +33,7 @@ const GetStateKeysAction = require("./actions/GetStateKeysAction");
 const HealthCheckAction = require("./actions/HealthCheckAction");
 // connectivity
 const BootstrapDiscoveredAction = require("./actions/connectivity/BootstrapDiscoveredAction");
+const GetPeersAction = require("./actions/connectivity/GetPeers");
 const NewPeerAction = require("./actions/connectivity/NewPeerAction");
 //tasks
 const GetResultAction = require("./actions/tasks/GetResultAction");
@@ -113,6 +114,7 @@ class NodeController {
       [NOTIFICATION.HEALTH_CHECK]: new HealthCheckAction(this),
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
+      [NOTIFICATION.GET_PEERS]: new GetPeersAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response

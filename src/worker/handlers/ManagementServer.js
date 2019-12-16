@@ -3,6 +3,7 @@ const http = require("http");
 const EventEmitter = require("events").EventEmitter;
 const constants = require("../../common/constants");
 const WEB_SERVER_CONSTANTS = constants.WEB_SERVER_CONSTANTS;
+const GET_PEERS_CONST = constants.NODE_NOTIFICATIONS.GET_PEERS;
 
 const mgmtActions = [
   constants.NODE_NOTIFICATIONS.REGISTER,
@@ -30,6 +31,7 @@ class ManagementServer extends EventEmitter {
     mgmtActions.forEach( (item) => {
       this._app.get(`${this._mgmtUrl}/${item}`, this.performAction.bind(this, item));
     } );
+    this._app.get(`${this._mgmtUrl}/connections`, this.getPeers.bind(this));
     this._logger.debug(`listening on port ${this._mgmtPort} for management on URL ${this._mgmtUrl}`);
   }
 
@@ -45,6 +47,18 @@ class ManagementServer extends EventEmitter {
   notify(params) {
     this.emit("notify", params);
   }
+  async getPeers(req, res, next) {
+    this.notify({
+      notification: GET_PEERS_CONST,
+      callback: (err, result) => {
+        if (Number.isInteger(result)) {
+          res.json(result.toString());
+        } else {
+          next(WEB_SERVER_CONSTANTS.error_code);
+        }
+      }
+    });
+  }
 
   async performAction(notification, req, res, next) {
     //res.send("OK");
@@ -52,8 +66,8 @@ class ManagementServer extends EventEmitter {
     this.notify({
       notification: notification,
       onResponse: (err, result) => {
-        if (result) {
-          res.send("OK");
+        if (Number.isInteger(result)) {
+          res.send(result);
         } else {
           next(WEB_SERVER_CONSTANTS.error_code);
         }
