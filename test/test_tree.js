@@ -36,11 +36,7 @@ module.exports.TEST_TREE = {
     "#14": true,
     "#15": true,
     "#16": true,
-    "#17": true,
-    "#18": true,
-    "#19": true,
-    "#20": true,
-    "#21": true
+    "#17": true
   },
   ethereum_advanced: {
     all: true,

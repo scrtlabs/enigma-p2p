@@ -9,20 +9,27 @@ steps:
       - name: sock
         path: /var/run/docker.sock
     commands:
-      - git clone https://github.com/enigmampc/discovery-docker-network.git
-      - cd discovery-docker-network && cp .env-template .env
-      - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_${DRONE_BUILD_NUMBER}/" .env
       - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
+      - export MATCHING_BRANCH_DOCKER="$(git ls-remote --heads https://github.com/enigmampc/docker-environment.git ${DRONE_BRANCH} | wc -l)"
+      - export MATCHING_BRANCH_INTEGRATION="$(git ls-remote --heads https://github.com/enigmampc/integration-tests.git ${DRONE_BRANCH} | wc -l)"
       - export DOCKER_TAG=p2p_${DRONE_BUILD_NUMBER}
+      - |
+        if [[ "$MATCHING_BRANCH_DOCKER" -eq 1 ]]; then
+          # which includes master and develop because these always exist
+          git clone --single-branch --branch ${DRONE_BRANCH} https://github.com/enigmampc/docker-environment.git
+        else
+          # otherwise we are on a feature branch, and we will build against develop
+          git clone --single-branch --branch develop https://github.com/enigmampc/docker-environment.git
+        fi
+      - cd docker-environment && cp .env.template .env
+      - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_p2p_${DRONE_BUILD_NUMBER}/" .env
       - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
       - |
         /bin/bash -c '
-        declare -a PROJECTS=(core km contract)
-        declare -A DOCKER_IMAGES=([core]=enigma_core_hw [km]=enigma_km_hw [contract]=enigma_contract)
-        declare -A GIT_BRANCH_ARG=([core]=GIT_BRANCH_CORE [km]=GIT_BRANCH_CORE [contract]=GIT_BRANCH_CONTRACT)
-        declare -A PROJECT_DIRECTORY=([core]=enigma-core [km]=enigma-core [contract]=enigma-contract)
-        declare -A PROJECT_BRANCH_FOUND=([core]=$MATCHING_BRANCH_CORE [km]=$MATCHING_BRANCH_CORE [contract]=$MATCHING_BRANCH_CONTRACT)
+        declare -a PROJECTS=(contract client)
+        declare -A DOCKER_IMAGES=([contract]=contract [client]=client)
+        declare -A PROJECT_BRANCH_FOUND=([contract]=$MATCHING_BRANCH_CONTRACT [client]=$MATCHING_BRANCH_INTEGRATION)
         for project in $${PROJECTS[@]}; do
           DOCKER_IMAGE="enigmampc/$${DOCKER_IMAGES[$project]}"
           if [[ "$DRONE_BRANCH" == "master" ]]; then
@@ -32,20 +39,28 @@ steps:
             docker pull "$DOCKER_IMAGE:develop"
             docker tag "$DOCKER_IMAGE:develop" "$DOCKER_IMAGE:$DOCKER_TAG"
           else
-            cd "$${PROJECT_DIRECTORY[$project]}"
-            if [[ "$project" == "km" ]]; then
-              docker build -f Dockerfile.km --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
-            elif [[ "$project" == "core" ]]; then
-              docker build --build-arg GIT_BRANCH_CORE=${DRONE_BRANCH} --build-arg SGX_MODE=HW -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+            if [[ "$project" == "contract" ]]; then
+              make clone-contract BRANCH=${DRONE_BRANCH}
+              make build-contract DOCKER_TAG=$DOCKER_TAG
             else
-              docker build --build-arg "$${GIT_BRANCH_ARG[$project]}=${DRONE_BRANCH}" -t "$DOCKER_IMAGE:$DOCKER_TAG" --no-cache .
+              make clone-client-solo BRANCH=${DRONE_BRANCH}
+              make build-client DOCKER_TAG=$DOCKER_TAG
             fi
-            cd ..
           fi
         done'
-      - cd enigma-p2p && docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache . && cd ..
+      - make clone-p2p BRANCH=${DRONE_BRANCH}
+      - |
+        if [[ "$MATCHING_BRANCH_CORE" -eq 1 ]]; then
+          make clone-core BRANCH=${DRONE_BRANCH}
+          make clone-km BRANCH=${DRONE_BRANCH}
+        else
+          make clone-core BRANCH=develop
+          make clone-km BRANCH=develop
+        fi
+      - make build-km DOCKER_TAG=$DOCKER_TAG
+      - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
-      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml -f docker-compose.test.yml up --scale core=$NODES --scale p2p=$NODES --exit-code-from client && export RESULT=$? || export RESULT=$?
+      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client & sleep 240 && docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
       - if [ $RESULT -ne 0 ]; then exit 1; fi
 
@@ -67,11 +82,20 @@ steps:
       PASSWORD:
         from_secret: password
     commands:
-      - cd discovery-docker-network/enigma-p2p
+      - cd docker-environment
       - echo $PASSWORD | docker login -u $USERNAME --password-stdin
       - if [[ ${DRONE_BRANCH} == "master" ]]; then export DOCKER_TAG=latest; else export DOCKER_TAG=develop; fi
-      - docker build --build-arg GIT_BRANCH_P2P=${DRONE_BRANCH} -t enigmampc/enigma_p2p:$DOCKER_TAG --no-cache .
-      - docker push enigmampc/enigma_p2p:$DOCKER_TAG
+      - make clone-core BRANCH=${DRONE_BRANCH}
+      - make clone-p2p BRANCH=${DRONE_BRANCH}
+      - make clone-km BRANCH=${DRONE_BRANCH}
+      - make build-km SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
+      - make build-worker SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
+      - make build-km DOCKER_TAG=$DOCKER_TAG
+      - make build-worker DOCKER_TAG=$DOCKER_TAG
+      - docker push enigmampc/worker_sw:$DOCKER_TAG
+      - docker push enigmampc/key_management_sw:$DOCKER_TAG
+      - docker push enigmampc/worker_hw:$DOCKER_TAG
+      - docker push enigmampc/key_management_hw:$DOCKER_TAG
 
 volumes:
   - name: sock

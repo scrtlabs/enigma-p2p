@@ -17,9 +17,11 @@ describe("Ethereum advanced", function() {
     const w3 = new Web3();
 
     const workerAccount = w3.eth.accounts.create();
+    const stakingAccount = w3.eth.accounts.create();
     const builder = new EnigmaContractAPIBuilder();
     const res = await builder
-      .setAccountKey(workerAccount.privateKey)
+      .setOperationalKey(workerAccount.privateKey)
+      .setStakingAddress(stakingAccount.address)
       .setMinimunConfirmations(0)
       .createNetwork()
       .deploy()
@@ -76,14 +78,12 @@ describe("Ethereum advanced", function() {
       const codeHash2 = api.w3().utils.sha3(web3.utils.randomHex(32));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
       const gasUsed = 10;
-      const depositValue = 1000;
       const optionalEthereumData = "0x00";
       const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
-      await api.deposit(workerAddress, depositValue, { from: workerAddress });
       await api.login({ from: workerAddress });
 
       await api.deploySecretContract(
@@ -288,14 +288,12 @@ describe("Ethereum advanced", function() {
       const outputHash1 = web3.utils.randomHex(32);
       const outputHash2 = web3.utils.randomHex(32);
       const outputHash3 = web3.utils.randomHex(32);
-      const depositValue = 1000;
       const optionalEthereumData = "0x00";
       const optionalEthereumContractAddress = "0x0000000000000000000000000000000000000000";
 
       await api.register(workerEnclaveSigningAddress, workerReport, signature, {
         from: workerAddress
       });
-      await api.deposit(workerAddress, depositValue, { from: workerAddress });
       await api.login({ from: workerAddress });
 
       await api.deploySecretContract(

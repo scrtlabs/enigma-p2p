@@ -67,8 +67,6 @@ const GetStatusProxyAction = require("./actions/proxy/GetStatusProxyAction");
 const RegisterAction = require("./actions/ethereum/RegisterAction");
 const LoginAction = require("./actions/ethereum/LoginAction");
 const LogoutAction = require("./actions/ethereum/LogoutAction");
-const DepositAction = require("./actions/ethereum/DepositAction");
-const WithdrawAction = require("./actions/ethereum/WithdrawAction");
 const CommitReceiptAction = require("./actions/ethereum/CommitReceiptAction");
 const GetWorkerParamsAction = require("./actions/ethereum/GetWorkerParamsAction");
 
@@ -150,8 +148,6 @@ class NodeController {
       [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
       [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
-      [NOTIFICATION.DEPOSIT]: new DepositAction(this), // deposit to enigma contract
-      [NOTIFICATION.WITHDRAW]: new WithdrawAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
       [NOTIFICATION.GET_ETH_WORKER_PARAM]: new GetWorkerParamsAction(this) // get worker params set in enigma contract
     };
@@ -177,7 +173,7 @@ class NodeController {
     if (logger) {
       _logger = logger;
     } else {
-      _logger = new Logger();
+      _logger = new Logger({ name: "NodeController" });
     }
     const config = WorkerBuilder.loadConfig(path);
     const finalConfig = nodeUtils.applyDelta(config, options);
@@ -250,7 +246,7 @@ class NodeController {
 
   _initEnigmaNode() {
     this._engNode.on("notify", peer => {
-      this._logger.info("[+] connected to bootstrap" + peer.id.toB58String());
+      this._logger.info("[+] connected to bootstrap " + peer.id.toB58String());
     });
   }
 
@@ -314,13 +310,11 @@ class NodeController {
    * once this done the worker can start receiving task
    * i.e already registred and sync
    * should be called after start() method was called
-   * @param {Number} amount- mandatory, amount to deposit as stake.
    * @param {Function} callback - optional , (err)=>{} once done
    * */
-  initializeWorkerProcess(amount, callback) {
+  initializeWorkerProcess(callback) {
     this._actions[NOTIFICATION.INIT_WORKER].execute({
-      callback: callback,
-      amount: amount
+      callback: callback
     });
   }
 
@@ -352,7 +346,7 @@ class NodeController {
     return this._workerInitialzied;
   }
 
-  getAutoInitParams() {
+  isAutoInit() {
     return this._extraConfig.init;
   }
 
@@ -787,24 +781,6 @@ class NodeController {
    * */
   register() {
     return this._actions[NOTIFICATION.REGISTER].asyncExecute();
-  }
-
-  /** Deposit to Enigma contract
-   * @param {Integer} amount
-   * @return {Promise} returning boolean indicating a successful deposit
-   * */
-  deposit(amount) {
-    return this._actions[NOTIFICATION.DEPOSIT].asyncExecute({ amount: amount });
-  }
-
-  /** Withdraw to Enigma contract
-   * @param {Integer} amount
-   * @return {Promise} returning boolean indicating a successful withdrawal
-   * */
-  withdraw(amount) {
-    return this._actions[NOTIFICATION.WITHDRAW].asyncExecute({
-      amount: amount
-    });
   }
 }
 

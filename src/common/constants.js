@@ -4,8 +4,7 @@ module.exports.ID_LEN = 46;
 
 module.exports.LOG_CONFIG = {
   level: "debug",
-  file: "peer.log",
-  cli: true
+  file: "peer.log"
 };
 module.exports.NODE_NOTIFICATIONS = {
   INIT_WORKER: "iw", // init https://github.com/enigmampc/enigma-p2p#overview-on-start
@@ -51,11 +50,9 @@ module.exports.NODE_NOTIFICATIONS = {
   GET_STATE_KEYS: "getstatekeys", // PTT process
   // ethereum related
   COMMIT_RECEIPT: "creceipt", // commit computation result on chain
-  REGISTER: "register", // withdraw stacking to Enigma contract
+  REGISTER: "register", // register to Enigma contract
   LOGIN: "login", // login to Enigma contract
   LOGOUT: "logout", // logout from Enigma contract
-  DEPOSIT: "deposit", // deposit stacking to Enigma contract
-  WITHDRAW: "withdraw", // withdraw stacking to Enigma contract
   GET_ETH_WORKER_PARAM: "getworkparams", // get worker params set in Enigma contract
   HEALTH_CHECK: "healthcheck"
 };

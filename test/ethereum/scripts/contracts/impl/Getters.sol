@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.12;
 pragma experimental ABIEncoderV2;
 
 import {EnigmaCommon} from "./EnigmaCommon.sol";
@@ -20,6 +20,16 @@ contract Getters is EnigmaStorage {
     }
 
     /**
+    * Get operating address from staking address
+    *
+    * @param _stakingAddress Worker's staking address
+    * @return Operating address
+    */
+    function getOperatingAddressFromStakingAddress(address _stakingAddress) public view returns (address) {
+        return state.stakingToOperatingAddresses[_stakingAddress];
+    }
+
+    /**
     * Get Worker struct from a given worker's ethereum address
     *
     * @param _worker Worker's ethereum address
@@ -33,7 +43,7 @@ contract Getters is EnigmaStorage {
     * Get Worker struct from a given worker's signing address
     *
     * @param _signer Worker's signing address
-    * @return Ethereum address
+    * @return Ethereum operating address
     * @return Worker struct
     */
     function getWorkerFromSigningAddress(address _signer) public view returns (address, EnigmaCommon.Worker memory) {
@@ -113,5 +123,32 @@ contract Getters is EnigmaStorage {
     */
     function getAllSecretContractAddresses() public view returns (bytes32[] memory) {
         return state.scAddresses;
+    }
+
+    /**
+    * Get updated Enigma contract address
+    *
+    * @return Updated Enigma contract address
+    */
+    function getUpdatedEnigmaContractAddress() public view returns (address) {
+        return state.updatedEnigmaContractAddress;
+    }
+
+    /**
+    * Get mrSigner
+    *
+    * @return mrSigner
+    */
+    function getMrSigner() public view returns (bytes memory) {
+        return state.mrSigner;
+    }
+
+    /**
+    * Get isvSvn
+    *
+    * @return isvSvn
+    */
+    function getIsvSvn() public view returns (bytes memory) {
+        return state.isvSvn;
     }
 }

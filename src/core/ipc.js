@@ -16,8 +16,8 @@ class IpcClient extends EventEmitter {
       this._logger = logger;
     } else {
       this._logger = new Logger({
+        name: "IpcClient",
         level: "debug",
-        cli: true
       });
     }
 

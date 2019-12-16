@@ -25,7 +25,7 @@ class EnigmaNode extends EventEmitter {
     } else {
       this._logger = new Logger({
         level: "debug",
-        cli: true
+        name: "EnigmaNode"
       });
     }
 
@@ -368,7 +368,7 @@ class EnigmaNode extends EventEmitter {
   syncStart() {
     return new Promise((res, rej) => {
       this.start(() => {
-        this._logger.info(this.nickName() + " has started. id = " + this.getSelfIdB58Str());
+        this._logger.info(this.getSelfIdB58Str() + " has started ");
         res(this);
       });
     });
