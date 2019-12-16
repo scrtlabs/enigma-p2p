@@ -31,10 +31,12 @@ const parallel = require("async/parallel");
 
 async function initEthereumStuff() {
   const workerAccount = new Web3().eth.accounts.create();
+  const stakingAccount = new Web3().eth.accounts.create();
 
   const builder = new EnigmaContractAPIBuilder();
   const res = await builder
     .setOperationalKey(workerAccount.privateKey)
+    .setStakingAddress(stakingAccount.address)
     .setMinimunConfirmations(0)
     .createNetwork()
     .deploy()
@@ -54,12 +56,8 @@ async function initEthereumStuff() {
   const workerAddress = workerAccount.address;
   const workerReport = "0x123456";
   const signature = web3.utils.randomHex(32);
-  const depositValue = 1000;
 
   await enigmaContractApi.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
-  await enigmaContractApi.deposit(workerAddress, depositValue, {
-    from: workerAddress
-  });
   await enigmaContractApi.login({ from: workerAddress });
 
   return {

@@ -38,7 +38,6 @@ class CLI {
     this._stakingAddress = null;
 
     this._autoInit = false;
-    this._depositValue = null;
     this._isLonelyNode = false;
     this._minConfirmations = null;
     this._principalNode = null;
@@ -216,20 +215,11 @@ class CLI {
       logout: async () => {
         await this._node.logout();
       },
-      deposit: async args => {
-        const amount = args[1];
-        await this._node.deposit(amount);
-      },
-      withdraw: async args => {
-        const amount = args[1];
-        await this._node.withdraw(amount);
-      },
       help: args => {
         logger.info("---> Commands List <---");
         logger.info("addPeer <address> : connect to a new peer manualy.");
         logger.info("announce : announce the network worker synchronized on states");
         logger.info("broadcast <message> : broadcast a message to the whole network");
-        logger.info("deposit <amount>: deposit to Enigma contract");
         logger.info("getAddr : get the multiaddress of the node. ");
         logger.info("getConnectedPeers : get the list of connected peer Ids");
         logger.info("getRegistration : get the registration params of the node. ");
@@ -251,7 +241,6 @@ class CLI {
         logger.info("sync : sync the worker from the network and get all the missing states");
         logger.info("tips : output to std the local existing states, tips");
         logger.info("topics : list of subscribed topics");
-        logger.info("withdraw <amount>: withdraw from Enigma contract");
         logger.info(">------------------------<");
       }
     };
@@ -307,7 +296,7 @@ class CLI {
       })
       .option("--ethereum-address [value]", "specify the Ethereum public address", address => {
         this._initEthereum = true;
-        this._ethereumAddress = address;
+        this._operationalAddress = address;
       })
       .option("--ethereum-key-path [value]", "specify the Ethereum key path", path => {
         this._initEthereum = true;
@@ -342,14 +331,6 @@ class CLI {
           this._logLevel = value;
         },
         "info"
-      )
-      .option(
-        "--deposit-and-login [value]",
-        "deposit and login the worker, specify the amount to be deposited, while running automatic initialization",
-        value => {
-          this._autoInit = true;
-          this._depositValue = value;
-        }
       )
       .option(
         "--min-confirmations [value]",
@@ -436,7 +417,7 @@ class CLI {
       };
     }
     if (this._autoInit) {
-      nodeConfig.extraConfig.init = { amount: this._depositValue };
+      nodeConfig.extraConfig.init = { autoInit: true };
     }
     if (this._healthCheckPort || this._healthCheckUrl) {
       nodeConfig.extraConfig.webserver = { healthCheck: { port: this._healthCheckPort, url: this._healthCheckUrl } };
@@ -485,7 +466,7 @@ class CLI {
     // TODO: consider what to do with this!!!
     // The reason it is here to handle the case of one node in the system (mainly for testing purposes)
     if (this._autoInit && this._isLonelyNode) {
-      this._node.initializeWorkerProcess(this._depositValue, err => {
+      this._node.initializeWorkerProcess(err => {
         if (err) {
           logger.info("[-] ERROR with automatic worker initialization: ", err);
         }

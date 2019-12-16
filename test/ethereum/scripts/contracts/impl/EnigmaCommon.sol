@@ -1,4 +1,4 @@
-pragma solidity ^0.5.0;
+pragma solidity ^0.5.12;
 pragma experimental ABIEncoderV2;
 
 import "openzeppelin-solidity/contracts/math/SafeMath.sol";
@@ -12,6 +12,7 @@ import { Bytes } from "../utils/Bytes.sol";
  */
 library EnigmaCommon {
     using SafeMath for uint256;
+    using SafeMath for uint64;
     using Bytes for bytes;
     using Bytes for uint64;
 
@@ -29,6 +30,7 @@ library EnigmaCommon {
     }
 
     struct Worker {
+        address stakingAddress; // Staking address
         address signer; // Enclave address
         WorkerStatus status; // Unregistered: 0, LoggedIn: 1, LoggedOut: 2
         bytes report; // Decided to store this as one  RLP encoded attribute for easier external storage in the future

@@ -27,6 +27,7 @@ const getDefault = () => {
     withEth: false,
     ethExistingAddr: null, // optional, if null create else connect to existing
     ethWorkerAddress: null, // optional
+    ethStakingAddress: null, //optional
     ethWS: null, // optional, websocket provider
     withProxy: false,
     proxyPort: null, // optional, either set port or random
@@ -177,7 +178,8 @@ const _createNode = async options => {
       minConfirmations: 0,
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
-      ethereumAddress: options.ethWorkerAddress
+      operationalAddress: options.ethWorkerAddress,
+      stakingAddress: options.ethStakingAddress
     });
   }
   let dbPath = null;
@@ -193,7 +195,7 @@ const _createNode = async options => {
   }
   if (!options.withLogger) {
     builder.setLoggerConfig({
-      name: "P2P",
+      name: "Logger"
     });
   }
   nodeConfigObject.extraConfig.principal = { uri: options.principalUri };

@@ -26,6 +26,7 @@ class EnigmaContractAPIBuilder {
     this.api = null;
     this.operationalAddress = null;
     this.operationalKey = null;
+    this.stakingAddress = null;
     this.minimunConfirmations = null;
     this.environment = {};
     this.config = defaultConfig;
@@ -178,7 +179,8 @@ class EnigmaContractAPIBuilder {
           this.enigmaContractABI,
           this.web3,
           this.logger(),
-          this.operationalAddress
+          this.operationalAddress,
+          this.stakingAddress
         );
       }
     } else {
@@ -187,6 +189,7 @@ class EnigmaContractAPIBuilder {
         this.enigmaContractABI,
         this.web3,
         this.logger(),
+        this.operationalAddress,
         this.minimunConfirmations
       );
     }
