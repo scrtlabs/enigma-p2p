@@ -6,6 +6,7 @@ const CoreServer = require("../src/core/core_server_mock/core_server");
 const EnvironmentBuilder = require("../src/main_controller/EnvironmentBuilder");
 const testUtils = require("./testUtils/utils");
 const ethTestUtils = require("./ethereum/utils");
+const utils = require("../src/common/utils");
 const crypto = require("../src/common/cryptography");
 
 const B2Path = path.join(__dirname, "./testUtils/id-l");
@@ -16,7 +17,7 @@ const MsgTypes = constants.P2P_MESSAGES;
 const DbUtils = require("../src/common/DbUtils");
 
 const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
-const PROVIDERS_DB_MAP = ethTestUtils.transformStatesListToMap(DB_PROVIDER);
+const PROVIDERS_DB_MAP = utils.transformStatesListToMap(DB_PROVIDER);
 
 const SYNC_SCENARIOS = {
   EMPTY_DB: 1,
@@ -139,7 +140,7 @@ function prepareSyncTestData(scenario) {
           28, 195, 207, 222, 86, 42, 236, 92, 194, 214],
       }];
 
-    res.expected = ethTestUtils.transformStatesListToMap([{
+    res.expected = utils.transformStatesListToMap([{
       address: [76, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 33],
       key: 2,
       data: [135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,
@@ -252,7 +253,7 @@ function prepareSyncTestData(scenario) {
           88, 135, 204],
       }];
 
-    res.expected = ethTestUtils.transformStatesListToMap([{
+    res.expected = utils.transformStatesListToMap([{
       address: [76, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 33],
       key: 1,
       data: [135, 94, 144, 211, 23, 61, 150, 36, 31, 55, 178, 42, 128, 60, 194, 192, 182, 190, 227, 136, 133, 252, 128, 213,

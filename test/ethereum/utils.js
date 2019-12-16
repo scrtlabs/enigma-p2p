@@ -146,25 +146,6 @@ module.exports.createDataForSelectionAlgorithm = function() {
   };
 };
 
-/**
- * Transform a list of states to a corresponding map.
- * @param {Array<Object>} statesList - list of states in the format {address, key, data}
- * @return {Object} a map whose keys are addresses and each object is a map of states (key=>data)
- * */
-module.exports.transformStatesListToMap = statesList => {
-  const statesMap = {};
-  for (let i = 0; i < statesList.length; ++i) {
-    const address = JSON.stringify(statesList[i].address);
-    if (!(address in statesMap)) {
-      statesMap[address] = {};
-    }
-    const key = statesList[i].key;
-    const delta = statesList[i].data;
-    statesMap[address][key] = delta;
-  }
-  return statesMap;
-};
-
 module.exports.advanceXConfirmations = async function(web3, confirmations = constants.MINIMUM_CONFIRMATIONS) {
   let initialEthereumBlockNumber = await nodeUtils.getEthereumBlockNumber(web3);
   let ethereumBlockNumber = 0;

@@ -340,9 +340,6 @@ class MockCoreServer {
       const byteArray = JSON.parse(address);
       return DbUtils.toHexString(byteArray);
     });
-    //console.log("this._db=", this._db);
-    console.log("keys=", JSON.stringify(addresses));
-    console.log("addresses=", JSON.stringify(addresses));
     return {
       type: msg.type,
       id: msg.id,

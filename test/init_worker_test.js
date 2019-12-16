@@ -2,11 +2,12 @@ const tree = require("./test_tree").TEST_TREE.init_worker;
 const assert = require("assert");
 const testBuilder = require("./testUtils/quickBuilderUtil");
 const testUtils = require("./testUtils/utils");
+const utils = require("../src/common/utils");
 const ethTestUtils = require("./ethereum/utils");
 const constants = require("../src/common/constants");
 
 const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
-const PROVIDERS_DB_MAP = ethTestUtils.transformStatesListToMap(DB_PROVIDER);
+const PROVIDERS_DB_MAP = utils.transformStatesListToMap(DB_PROVIDER);
 
 const noLoggerOpts = {
   bOpts: {
