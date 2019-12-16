@@ -88,7 +88,7 @@ function syncResultMsgToStatesMap(resultMsgs) {
       if (msg.type() == MsgTypes.SYNC_STATE_RES) {
         const deltas = msg.deltas();
         for (let k = 0; k < deltas.length; ++k) {
-          const address = DbUtils.hexToBytes(deltas[k].address);
+          const address = JSON.stringify(DbUtils.hexToBytes(deltas[k].address));
           if (!(address in statesMap)) {
             statesMap[address] = {};
           }
@@ -98,7 +98,7 @@ function syncResultMsgToStatesMap(resultMsgs) {
         }
       } else {
         // (msg.type() == MsgTypes.SYNC_BCODE_RES)
-        const address = DbUtils.hexToBytes(msg.address());
+        const address = JSON.stringify(DbUtils.hexToBytes(msg.address()));
         if (!(address in statesMap)) {
           statesMap[address] = {};
         }
@@ -114,8 +114,9 @@ function prepareSyncTestData(scenario) {
   const res = {};
 
   if (scenario === SYNC_SCENARIOS.EMPTY_DB) {
-    res.tips = [];
     res.expected = PROVIDERS_DB_MAP;
+    res.providerDB = PROVIDERS_DB_MAP;
+    res.receiverDB = {};
   } else if (scenario === SYNC_SCENARIOS.PARTIAL_DB_WITH_SOME_ADDRESSES) {
     res.tips = [{
       address: [13, 214, 171, 4, 67, 23, 118, 195, 84, 56, 103, 199, 97, 21, 226, 55, 220, 54, 212, 246, 174, 203, 51, 171, 28, 30, 63, 158, 131, 64, 181, 42],
@@ -293,8 +294,7 @@ function prepareSyncTestData(scenario) {
 function syncTest(scenario) {
   return new Promise(async resolve => {
     const res = prepareSyncTestData(scenario);
-    const tips = res.tips;
-    const expectedMap = res.expected;
+    const { providerDB, receiverDB, expected } = res;
 
     const bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
 
@@ -316,15 +316,12 @@ function syncTest(scenario) {
     const dnsMockCore = new CoreServer("dns");
     const peerMockCore = new CoreServer("peer");
 
-    // define as provider to start with provider_db
-    dnsMockCore.setProvider(true);
     // start the dns mock server (core)
-    dnsMockCore.runServer(dnsMockUri);
+    dnsMockCore.runServer(dnsMockUri, providerDB);
 
     // start the peer mock server (core)
-    peerMockCore.runServer(peerMockUri);
-    // set empty tips array
-    peerMockCore.setReceiverTips(tips);
+    peerMockCore.runServer(peerMockUri, receiverDB);
+
     await testUtils.sleep(1500);
     const ethereumInfo = await initEthereumStuff();
     const api = ethereumInfo.enigmaContractApi;
@@ -349,7 +346,7 @@ function syncTest(scenario) {
       .build();
 
     // write all states to ethereum
-    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, PROVIDERS_DB_MAP);
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, providerDB);
     await testUtils.sleep(8000);
     waterfall(
       [
@@ -376,15 +373,15 @@ function syncTest(scenario) {
 
         // validate the results
         const missingstatesMap = syncResultMsgToStatesMap(statusResult);
-        assert.strictEqual(Object.entries(missingstatesMap).length, Object.entries(expectedMap).length);
+        assert.strictEqual(Object.entries(missingstatesMap).length, Object.entries(expected).length);
         for (const [address, data] of Object.entries(missingstatesMap)) {
           assert.strictEqual(
             Object.entries(missingstatesMap[address]).length,
-            Object.entries(expectedMap[address]).length
+            Object.entries(expected[address]).length
           );
           for (const [key, delta] of Object.entries(missingstatesMap[address])) {
             for (let i = 0; i < missingstatesMap[address][key].length; ++i) {
-              assert.strictEqual(missingstatesMap[address][key][i], expectedMap[address][key][i]);
+              assert.strictEqual(missingstatesMap[address][key][i], expected[address][key][i]);
             }
           }
         }
@@ -519,10 +516,7 @@ it("#6 debug bytecode", async function() {
   }
   return new Promise(async resolve => {
     const contractAddress = Object.keys(PROVIDERS_DB_MAP)[0];
-    const statesMap = { [contractAddress]: PROVIDERS_DB_MAP[contractAddress] };
-    const tips = [];
-    const expectedMap = statesMap;
-    //console.log("statesMap=", statesMap);
+    const expectedMap = { [contractAddress]: PROVIDERS_DB_MAP[contractAddress] };
 
     const bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
 
@@ -544,14 +538,11 @@ it("#6 debug bytecode", async function() {
     const dnsMockCore = new CoreServer("dns");
     const peerMockCore = new CoreServer("peer");
 
-    // define as provider to start with provider_db
     // start the dns mock server (core)
     dnsMockCore.runServer(dnsMockUri, expectedMap);
 
     // start the peer mock server (core)
     peerMockCore.runServer(peerMockUri, {});
-    // set empty tips array
-    //peerMockCore.setReceiverTips(tips);
     await testUtils.sleep(1500);
     const ethereumInfo = await initEthereumStuff();
     const api = ethereumInfo.enigmaContractApi;
@@ -576,7 +567,7 @@ it("#6 debug bytecode", async function() {
       .build();
 
     // write all states to ethereum
-    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, statesMap);
+    await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, expectedMap);
     await testUtils.sleep(8000);
     waterfall(
       [

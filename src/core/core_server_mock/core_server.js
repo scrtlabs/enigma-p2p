@@ -195,7 +195,7 @@ class MockCoreServer {
       inputMap[address] = r;
     });
     for (let [address, data] of Object.entries(db)) {
-      const dbAddr = DbUtils.toHexString(address);
+      const dbAddr = DbUtils.toHexString(JSON.parse(address));
       if (inputMap[dbAddr]) {
         const from = inputMap[dbAddr].from;
         const to = inputMap[dbAddr].to;

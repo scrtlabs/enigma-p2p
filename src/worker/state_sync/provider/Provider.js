@@ -3,15 +3,16 @@ const CIDUtil = require("../../../common/CIDUtil");
 const EngCID = require("../../../common/EngCID");
 const parallel = require("async/parallel");
 const pull = require("pull-stream");
-const streams = require("../streams");
 const constants = require("../../../common/constants");
+const EncoderUtil = require("../../../common/EncoderUtil");
+const SyncMsgMgmgt = require("../../../policy/p2p_messages/sync_messages");
+const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
 
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
     super();
     this._enigmaNode = enigmaNode;
     this._logger = logger;
-    streams.setGlobalState({ logger: this._logger, providerContext: this });
   }
   /** provide content in a batch of CID's
    * @param {Array<String>} descriptorsList - each element is a byte representation of some content
@@ -89,14 +90,89 @@ class Provider extends EventEmitter {
       // read msg requests one-by-one
       connectionStream,
       // parse the message
-      streams.requestParserStream,
+      this._requestParserStream.bind(this),
       // get the requested data from db (i.e array of deltas)
-      streams.fromDbStream,
+      this._fromDbStream.bind(this),
       // serialize the database result into a network stream
-      streams.toNetworkParser,
+      this._toNetworkParse.bind(this),
       // send the result to the msg request back to the receiver
       connectionStream
     );
+  }
+  // this takes result from the db (done by the provider) and
+  // returns the result directly into the other peer stream (source)
+  _toNetworkParse(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          if (data.type === constants.CORE_REQUESTS.GetDeltas) {
+            data.msgType = constants.P2P_MESSAGES.SYNC_STATE_RES;
+          } else if (data.type === constants.CORE_REQUESTS.GetContract) {
+            data.msgType = constants.P2P_MESSAGES.SYNC_BCODE_RES;
+          }
+          data = EncoderUtil.encode(JSON.stringify(data));
+          cb(end, data);
+        } else {
+          cb(end, null);
+        }
+      });
+    };
+  }
+
+  // fake load from the database, this will return the deltas for the requester
+  _fromDbStream(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          // TODO:: create a db call ...
+          // TODO:: validate that the range < limit here or somewhere else.
+          let queryType = null;
+          if (data.type() === constants.P2P_MESSAGES.SYNC_BCODE_REQ) {
+            queryType = constants.CORE_REQUESTS.GetContract;
+          } else if (data.type() === constants.P2P_MESSAGES.SYNC_STATE_REQ) {
+            queryType = constants.CORE_REQUESTS.GetDeltas;
+          } else {
+            // TODO:: handle error
+            const err = `wrong message type=${queryType} in fromDBstrem`;
+            this._logger.error(err);
+            cb(err, null);
+          }
+          this.dbRequest({
+            dbQueryType: queryType,
+            requestMsg: data,
+            onResponse: (err, dbResult) => {
+              if (err) {
+                cb(err, null);
+              } else {
+                cb(end, dbResult);
+              }
+            }
+          });
+        } else {
+          cb(end, null);
+        }
+      });
+    };
+  }
+
+  _requestParserStream(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          // TODO:: validate network input validity
+          data = EncoderUtil.decode(data);
+          let parsedData = JSON.parse(data);
+          parsedData = SyncMsgBuilder.msgReqFromObjNoValidation(parsedData);
+          if (parsedData === null) {
+            cb(true, null);
+          } else {
+            cb(end, parsedData);
+          }
+        } else {
+          cb(end, null);
+        }
+      });
+    };
   }
 }
 

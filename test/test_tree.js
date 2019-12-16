@@ -66,12 +66,12 @@ module.exports.TEST_TREE = {
     "#4": true
   },
   sync_basic: {
-    all: false,
-    "#1": false,
-    "#2": false,
+    all: true,
+    "#1": true,
+    "#2": true,
     "#3": false,
     "#4": false,
-    "#5": false,
+    "#5": true,
     "#6": true
   },
   sync_network: {
