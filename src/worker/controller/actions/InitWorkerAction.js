@@ -17,7 +17,7 @@
  * Register to Enigma.sol
  * should be done manually, no point automating this. get the info with $getRegistration cli cmd.
  * */
-
+const fs = require("fs");
 const errors = require("../../../common/errors");
 const constants = require("../../../common/constants");
 const waterfall = require("async/waterfall");
@@ -115,6 +115,7 @@ class InitWorkerAction {
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN ||
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
         ) {
+          fs.writeFile(constants.STATUS_FILE_PATH, constants.STATUS.Registered, "utf8", () => {});
           this._controller.logger().info("InitWorkerAction- worker is already logged-in");
           return;
         }

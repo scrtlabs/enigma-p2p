@@ -23,7 +23,7 @@ class RegisterAction {
                 .api()
                 .register(signerAddress, report, signature);
             this._controller.logger().info("[REGISTER] successful registration");
-            fs.writeFile(constants.STATUS_FILE_PATH, "Registered", "utf8", () => {});
+            fs.writeFile(constants.STATUS_FILE_PATH, constants.STATUS.Registered, "utf8", () => {});
             success = true;
           } catch (e) {
             this._controller.logger().error(`[REGISTER] error=  ${e}`);

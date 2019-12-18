@@ -277,3 +277,10 @@ module.exports.WEB_SERVER_CONSTANTS = {
 };
 
 module.exports.STATUS_FILE_PATH = "/root/.enigma/status";
+/**
+ * Ethereum Enigma contract events, defined by the different services exposed by the EthereumServices
+ * */
+module.exports.STATUS = {
+  Registered: "Registered",
+  LoggedIn: "Logged In",
+};
