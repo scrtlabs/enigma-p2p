@@ -275,3 +275,5 @@ module.exports.WEB_SERVER_CONSTANTS = {
     errorCode: 500,
   }
 };
+
+module.exports.STATUS_FILE_PATH = "/root/.enigma/status";
