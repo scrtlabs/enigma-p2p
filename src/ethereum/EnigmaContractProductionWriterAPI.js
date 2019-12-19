@@ -57,7 +57,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         chainId: await this.getChainId()
       };
 
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const signedTransaction = this._web3.eth
         .sendSignedTransaction(signedTx.rawTransaction)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
@@ -130,7 +130,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           .encodeABI(),
         chainId: await this.getChainId()
       };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
@@ -188,7 +188,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         chainId: await this.getChainId()
       };
 
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const signedTransaction = this._web3.eth
         .sendSignedTransaction(signedTx.rawTransaction)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
@@ -226,7 +226,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         chainId: await this.getChainId()
       };
 
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const signedTransaction = this._web3.eth
         .sendSignedTransaction(signedTx.rawTransaction)
         .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
@@ -304,7 +304,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         chainId: await this.getChainId()
       };
 
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
@@ -374,7 +374,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           .encodeABI(),
         chainId: await this.getChainId()
       };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
@@ -430,7 +430,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
           .encodeABI(),
         chainId: await this.getChainId()
       };
-      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, utils.add0x(this._privateKey));
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
