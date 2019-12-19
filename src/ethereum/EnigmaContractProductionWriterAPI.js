@@ -132,7 +132,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let deployedEvents = await this._parsePastEvents(
+        const deployedEvents = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
           { taskId: utils.add0x(taskId) },
           blockNumber
@@ -140,7 +140,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         if (deployedEvents && Object.keys(deployedEvents).length > 0) {
           resolve(deployedEvents);
         } else {
-          let failedEvents = await this._parsePastEvents(
+          const failedEvents = await this._parsePastEvents(
             constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
             { taskId: utils.add0x(taskId) },
             blockNumber
@@ -303,48 +303,22 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let possibleEvents;
-        try {
-          possibleEvents = await this._enigmaContract.getPastEvents("allEvents", { fromBlock: blockNumber });
-        } catch (e) {
-          reject(e);
-          return;
-        }
-
-        if (!Array.isArray(possibleEvents) || possibleEvents.length == 0) {
-          reject(
-            new errors.CommitReceiptEthereumError(
-              `The commitReceipt function for taskId ${taskId} in the Enigma contract didn't emit any result event.`
-            )
+        const filter = { taskId: utils.add0x(taskId) };
+        const receiptVerifiedEvents = await this._parsePastEvents(
+          constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
+          filter,
+          blockNumber
+        );
+        if (receiptVerifiedEvents && Object.keys(receiptVerifiedEvents).length > 0) {
+          resolve(receiptVerifiedEvents);
+        } else {
+          const receiptFailedEvents = await this._parsePastEvents(
+            constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
+            filter,
+            blockNumber
           );
-          return;
+          resolve(receiptFailedEvents);
         }
-
-        const matchingEvents = possibleEvents
-          .map(e => this._parseEvents({ [e.event]: e }))
-          .filter(e => Object.keys(e).length == 1 && e[Object.keys(e)[0]].taskId == taskId);
-
-        if (matchingEvents.length == 0) {
-          reject(
-            new errors.CommitReceiptEthereumError(
-              `The commitReceipt function in the Enigma contract didn't emit a result event for taskId ${taskId}.`
-            )
-          );
-          return;
-        }
-
-        if (matchingEvents.length > 1) {
-          reject(
-            new errors.CommitReceiptEthereumError(
-              `The commitReceipt function in the Enigma contract emitted too many (${
-                matchingEvents.length
-              }: ${JSON.stringify(matchingEvents)}) result events for taskId ${taskId}.`
-            )
-          );
-          return;
-        }
-
-        resolve(matchingEvents[0]);
       };
 
       const signedTransaction = this._web3.eth
@@ -400,7 +374,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let events = await this._parsePastEvents(
+        const events = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
           { taskId: utils.add0x(taskId) },
           blockNumber
@@ -455,7 +429,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let events = await this._parsePastEvents(
+        const events = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
           { taskId: utils.add0x(taskId) },
           blockNumber
