@@ -3,199 +3,55 @@ const MSG_TYPES = constants.P2P_MESSAGES;
 const schemeValidator = require("./schemes/SchemeValidator");
 const EncoderUtil = require("../../common/EncoderUtil");
 const waterfall = require("async/waterfall");
-const EngCid = require("../../common/EngCID");
 
-class SyncMsgBuilder {
+class MsgBuilder {
   /** no validation test */
-  static msgResFromObjNoValidation(msgObj) {
+  static responseMessageFromNetwork(msg) {
+    const msgObj = EncoderUtil.decode(msg);
     if (msgObj.hasOwnProperty("msgType")) {
       switch (msgObj.msgType) {
         case MSG_TYPES.SYNC_STATE_RES:
-          return SyncMsgBuilder.stateResFromObjNoValidation(msgObj);
+          return MsgBuilder.stateResponseMessage(msgObj);
         case MSG_TYPES.SYNC_BCODE_RES:
-          return SyncMsgBuilder.bcodeResFromObjNoValidation(msgObj);
+          return MsgBuilder.bcodeResponseMessage(msgObj);
       }
     }
     return null;
   }
-  static stateResFromObjNoValidation(msgObj) {
+
+  static stateResponseMessage(msgObj) {
     return new SyncStateResMsg(msgObj);
   }
-  static bcodeResFromObjNoValidation(msgObj) {
+
+  static bcodeResponseMessage(msgObj) {
     return new SyncBcodeResMsg(msgObj);
   }
 
-  static msgReqFromObjNoValidation(msgObj) {
+  static requestMessageFromNetwork(msg) {
+    const msgObj = EncoderUtil.decode(msg);
     if (msgObj.hasOwnProperty("msgType")) {
       switch (msgObj.msgType) {
         case MSG_TYPES.SYNC_STATE_REQ:
-          return SyncMsgBuilder.stateReqFromObjNoValidation(msgObj);
+          return MsgBuilder.stateRequestMessage(msgObj);
         case MSG_TYPES.SYNC_BCODE_REQ:
-          return SyncMsgBuilder.bCodeReqFromObjNoValidation(msgObj);
+          return MsgBuilder.bCodeRequestMessage(msgObj);
       }
     }
     return null;
   }
-  static batchStateReqFromObjsNoValidation(msgsObjList) {
+  static batchStateRequest(msgsObjList) {
     return msgsObjList.map(m => {
       m.msgType = MSG_TYPES.SYNC_STATE_REQ;
       return new SyncStateReqMsg(m);
     });
   }
-  static stateReqFromObjNoValidation(msgObj) {
+  static stateRequestMessage(msgObj) {
     msgObj.msgType = MSG_TYPES.SYNC_STATE_REQ;
     return new SyncStateReqMsg(msgObj);
   }
-  static bCodeReqFromObjNoValidation(msgObj) {
+  static bCodeRequestMessage(msgObj) {
     msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
     return new SyncBcodeReqMsg(msgObj);
-  }
-  static stateReqFromNetworkNoValidation(stateReqRaw) {
-    let reqObj = SyncMsgBuilder._parseFromNetwork(stateReqRaw);
-    return SyncMsgBuilder.stateReqFromObjNoValidation(reqObj);
-  }
-  static bCodeFromNetworkNoValidation(stateReqRaw) {
-    let reqObj = SyncMsgBuilder._parseFromNetwork(stateReqRaw);
-    return SyncMsgBuilder.bCodeReqFromObjNoValidation(reqObj);
-  }
-  /** no validation test */
-  /**
-   * from network stream
-   * @param {Array<Integer>} networkMsg , a StateSyncReq msg
-   * @param {Function} callback, (err,SyncStateReqMsg)=>{}
-   * */
-  static stateReqFromNetwork(networkMsg, callback) {
-    const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
-    if (obj) {
-      SyncMsgBuilder.stateReqFromObj(obj, callback);
-    } else {
-      callback("error decoded network msg");
-    }
-  }
-  static stateResFromNetwork(networkMsg, callback) {
-    const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
-    if (obj) {
-      SyncMsgBuilder.stateResFromObj(obj, callback);
-    } else {
-      callback("error decoded network msg");
-    }
-  }
-  static _parseFromNetwork(networkMsg) {
-    const decoded = EncoderUtil.decode(networkMsg);
-    return JSON.parse(decoded);
-  }
-  /**
-   * from regular object in the code (JSON)
-   * @param {Json} msgObj , a StateSyncReq msg
-   * @param {Function} callback, (err,SyncStateReqMsg)=>{}
-   * */
-  static stateReqFromObj(msgObj, callback) {
-    msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
-    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_REQ, msgObj, (err, message) => {
-      callback(err, message);
-    });
-  }
-  static stateResFromObj(msgObj, callback) {
-    msgObj.msgType = MSG_TYPES.SYNC_STATE_RES;
-    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_STATE_RES, msgObj, (err, message) => {
-      callback(err, message);
-    });
-  }
-  static batchStateReqFromObjs(msgsObjList, callback) {
-    if (msgsObjList.length < 1) {
-      return callback("empty msg list");
-    }
-    let jobs = [];
-    // init first jobs
-    jobs.push(cb => {
-      SyncMsgBuilder.stateReqFromObj(msgsObjList[0], (err, msg) => {
-        if (err) {
-          return cb(err);
-        } else {
-          let results = [];
-          results.push(msg);
-          return cb(err, results);
-        }
-      });
-    });
-    // init rest of the jobs
-    for (let i = 1; i < msgsObjList.length; i++) {
-      jobs.push((results, cb) => {
-        SyncMsgBuilder.stateReqFromObj(msgs[i], (err, msg) => {
-          if (err) {
-            return cb(err);
-          } else {
-            results.push(msg);
-            return cb(err, results);
-          }
-        });
-      });
-    }
-    // execute jobs
-    waterfall(jobs, (err, results) => {
-      return callback(err, results);
-    });
-  }
-  static bCodeReqFromNetwork(networkMsg, callback) {
-    const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
-    if (obj) {
-      SyncMsgBuilder.bCodeReqFromObj(obj, callback);
-    } else {
-      callback("error decoded network msg");
-    }
-  }
-  static bCodeReqFromObj(msgObj, callback) {
-    msgObj.msgType = MSG_TYPES.SYNC_BCODE_REQ;
-    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_REQ, msgObj, (err, message) => {
-      if (err) {
-        return callback(err);
-      } else {
-        return callback(null, message);
-      }
-    });
-  }
-  static bCodeResFromNetwork(networkMsg, callback) {
-    const obj = SyncMsgBuilder._parseFromNetwork(networkMsg);
-    if (obj) {
-      SyncMsgBuilder.bCodeResFromObj(obj, callback);
-    } else {
-      callback("error decoded network msg");
-    }
-  }
-  static bCodeResFromObj(msgObj, callback) {
-    msgObj.msgType = MSG_TYPES.SYNC_BCODE_RES;
-    SyncMsgBuilder._buildMsg(MSG_TYPES.SYNC_BCODE_RES, msgObj, (err, message) => {
-      callback(err, message);
-    });
-  }
-  static _isValidScheme(schemeType, testedObj, callback) {
-    schemeValidator.validateScheme(testedObj, schemeType, callback);
-  }
-  static _buildMsg(msgType, msgObj, callback) {
-    SyncMsgBuilder._isValidScheme(msgType, msgObj, (err, isValid) => {
-      if (err) {
-        return callback(err);
-      } else {
-        if (isValid) {
-          switch (msgType) {
-            case MSG_TYPES.SYNC_STATE_REQ:
-              callback(null, new SyncStateReqMsg(msgObj));
-              break;
-            case MSG_TYPES.SYNC_STATE_RES:
-              callback(null, new SyncStateResMsg(msgObj));
-              break;
-            case MSG_TYPES.SYNC_BCODE_REQ:
-              callback(null, new SyncBcodeReqMsg(msgObj));
-              break;
-            case MSG_TYPES.SYNC_BCODE_RES:
-              callback(null, new SyncBcodeResMsg(msgObj));
-              break;
-          }
-        } else {
-          callback("invalid scheme");
-        }
-      }
-    });
   }
 }
 
@@ -213,10 +69,9 @@ class SyncMsg {
     return JSON.stringify(this._rawMsg, null, 2);
   }
   /** before sending to network;
-   * @return {Array<Integer>} encoded and seriallized msgpack array of the msg*/
+   * @return {Array<Integer>} encoded msgpack array of the msg*/
   toNetwork() {
-    const msg = this.toJSON();
-    return EncoderUtil.encode(msg);
+    return EncoderUtil.encode(this._rawMsg);
   }
 }
 
@@ -312,7 +167,8 @@ class SyncBcodeResMsg extends SyncMsg {
 
 module.exports.SyncStateResMsg = SyncStateResMsg;
 module.exports.SyncStateReqMsg = SyncStateReqMsg;
-module.exports.SyncMsgBuilder = SyncMsgBuilder;
+//module.exports.SyncMsgBuilder = SyncMsgBuilder;
+module.exports.MsgBuilder = MsgBuilder;
 module.exports.SyncBcodeReqMsg = SyncBcodeReqMsg;
 module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
 

@@ -1,7 +1,6 @@
 const EventEmitter = require("events").EventEmitter;
 const CIDUtil = require("../../../common/CIDUtil");
 const EngCID = require("../../../common/EngCID");
-const EncoderUtil = require("../../../common/EncoderUtil");
 const parallel = require("async/parallel");
 const Policy = require("../../../policy/policy");
 const FindProviderResult = require("./FindProviderResult");
@@ -10,7 +9,7 @@ const waterfall = require("async/waterfall");
 const constants = require("../../../common/constants");
 const Verifier = require("./StateSyncReqVerifier");
 const SyncMsgMgmgt = require("../../../policy/p2p_messages/sync_messages");
-const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
+const SyncMsgBuilder = SyncMsgMgmgt.MsgBuilder;
 
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -217,13 +216,6 @@ class Receiver extends EventEmitter {
   setRemoteMissingStatesMap(remoteMissingStatesMap) {
     this._remoteMissingStatesMap = remoteMissingStatesMap;
   }
-  /**
-   * get the missing state needed for the sync scenario
-   * @return {Object} remoteMissingStatesMap
-   * */
-  getRemoteMissingStatesMap() {
-    return this._remoteMissingStatesMap;
-  }
 
   _throughDbStream(read) {
     return (end, cb) => {
@@ -263,13 +255,10 @@ class Receiver extends EventEmitter {
     return (end, cb) => {
       read(end, (end, data) => {
         if (data != null) {
-          data = EncoderUtil.decode(data);
-          data = JSON.parse(data);
-          data = SyncMsgBuilder.msgResFromObjNoValidation(data);
+          data = SyncMsgBuilder.responseMessageFromNetwork(data);
           if (data == null) {
             return cb(true, null);
           }
-          // TODO:: placeholder for future ethereum veirfier.
           // verify the data
           Verifier.verify(this._remoteMissingStatesMap, data, (err, isOk) => {
             if (isOk) {

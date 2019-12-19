@@ -4,9 +4,8 @@ const EngCID = require("../../../common/EngCID");
 const parallel = require("async/parallel");
 const pull = require("pull-stream");
 const constants = require("../../../common/constants");
-const EncoderUtil = require("../../../common/EncoderUtil");
 const SyncMsgMgmgt = require("../../../policy/p2p_messages/sync_messages");
-const SyncMsgBuilder = SyncMsgMgmgt.SyncMsgBuilder;
+const SyncMsgBuilder = SyncMsgMgmgt.MsgBuilder;
 
 class Provider extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -110,8 +109,8 @@ class Provider extends EventEmitter {
           } else if (data.type === constants.CORE_REQUESTS.GetContract) {
             data.msgType = constants.P2P_MESSAGES.SYNC_BCODE_RES;
           }
-          data = EncoderUtil.encode(JSON.stringify(data));
-          cb(end, data);
+          const msg = new SyncMsgMgmgt.SyncStateResMsg(data);
+          cb(end, msg.toNetwork());
         } else {
           cb(end, null);
         }
@@ -160,9 +159,7 @@ class Provider extends EventEmitter {
       read(end, (end, data) => {
         if (data != null) {
           // TODO:: validate network input validity
-          data = EncoderUtil.decode(data);
-          let parsedData = JSON.parse(data);
-          parsedData = SyncMsgBuilder.msgReqFromObjNoValidation(parsedData);
+          let parsedData = SyncMsgBuilder.requestMessageFromNetwork(data);
           if (parsedData === null) {
             cb(true, null);
           } else {

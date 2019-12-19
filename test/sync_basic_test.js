@@ -29,7 +29,7 @@ const EnigmaContractAPIBuilder = require(path.join(__dirname, "../src/ethereum/E
 const Verifier = require("../src/worker/state_sync/receiver/StateSyncReqVerifier");
 const Web3 = require("web3");
 
-const SyncMsgBuilder = require("../src/policy/p2p_messages/sync_messages").SyncMsgBuilder;
+const SyncMsgBuilder = require("../src/policy/p2p_messages/sync_messages").MsgBuilder;
 
 const parallel = require("async/parallel");
 
@@ -410,16 +410,20 @@ function createSyncMsgForVerifierTest(type, data) {
   if (type === MsgTypes.SYNC_STATE_RES) {
     rawMsg.type = "GetDeltas";
     rawMsg.result = { deltas: data };
-  } else if (type === MsgTypes.SYNC_BCODE_RES) {
+    return SyncMsgBuilder.stateResponseMessage(rawMsg);
+  }
+  if (type === MsgTypes.SYNC_BCODE_RES) {
     rawMsg.type = "GetContract";
     rawMsg.result = {
       address: data.address,
       bytecode: data.bytecode
     };
-  } else {
-    return SyncMsgBuilder.msgReqFromObjNoValidation(rawMsg);
+    return SyncMsgBuilder.bcodeResponseMessage(rawMsg);
   }
-  return SyncMsgBuilder.msgResFromObjNoValidation(rawMsg);
+  if (type === MsgTypes.SYNC_BCODE_REQ) {
+    return SyncMsgBuilder.bCodeRequestMessage(rawMsg);
+  }
+  return SyncMsgBuilder.stateRequestMessage(rawMsg);
 }
 
 it("#1 should tryAnnounce action from mock-db no-cache", async function() {
@@ -508,6 +512,17 @@ it("#4 Perform a full sync scenario - from mid-with-all-addresses", async functi
   return syncTest(SYNC_SCENARIOS.PARTIAL_DB_WITH_ALL_ADDRESSES);
 });
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * Math.floor(max));
+}
+function generateByteCode(size) {
+  let byteCode = [];
+  for (let i = 0; i < size; ++i) {
+    byteCode.push(getRandomInt(255));
+  }
+  return byteCode;
+}
+
 it("#6 debug bytecode", async function() {
   const tree = TEST_TREE["sync_basic"];
   if (!tree["all"] || !tree["#6"]) {
@@ -515,7 +530,10 @@ it("#6 debug bytecode", async function() {
   }
   return new Promise(async resolve => {
     const contractAddress = Object.keys(PROVIDERS_DB_MAP)[0];
-    const expectedMap = { [contractAddress]: PROVIDERS_DB_MAP[contractAddress] };
+    let expectedMap = { [contractAddress]: PROVIDERS_DB_MAP[contractAddress] };
+
+    let byteCodeArr = generateByteCode(1024 * 1024 * 2.5);
+    expectedMap[contractAddress][-1] = byteCodeArr;
 
     const bootstrapNodes = ["/ip4/0.0.0.0/tcp/" + B2Port + "/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm"];
 
