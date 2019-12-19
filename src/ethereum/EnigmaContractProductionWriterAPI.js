@@ -21,7 +21,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
     minimumConfirmations = constants.MINIMUM_CONFIRMATIONS
   ) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
-    this._privateKey = privateKey;
+    this._privateKey = utils.add0x(privateKey);
     this._stakingAddres = stakingAddress;
     this.minimumConfirmations = minimumConfirmations;
   }

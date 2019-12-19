@@ -60,7 +60,7 @@ class EnigmaContractReaderAPI {
   }
   async getChainId() {
     if (!this._chainId) {
-      this._chainId = await web3.eth.net.getId();
+      this._chainId = await this._web3.eth.net.getId();
     }
     return this._chainId;
   }
