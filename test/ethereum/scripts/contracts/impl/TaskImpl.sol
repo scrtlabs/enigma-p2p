@@ -31,11 +31,12 @@ library TaskImpl {
     event SecretContractDeployed(bytes32 indexed taskId, uint64 gasUsed, address optionalEthereumContractAddress,
         bytes32[4] bytes32s, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress);
     // ReceiptVerified => bytes32s [scAddr, taskId, stateDeltaHash, outputHash]
-    event ReceiptVerified(uint64 gasUsed, address optionalEthereumContractAddress, bytes32[4] bytes32s,
-        uint deltaHashIndex, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress, bytes sig);
+    event ReceiptVerified(bytes32 indexed taskId, uint64 gasUsed, address optionalEthereumContractAddress,
+        bytes32[4] bytes32s, uint deltaHashIndex, uint gasUsedTotal, bytes optionalEthereumData, bytes sig,
+        address workerAddress);
     event ReceiptFailed(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, address workerAddress, bytes sig);
-    event ReceiptFailedETH(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, uint gasUsedTotal, address workerAddress,
-        bytes sig);
+    event ReceiptFailedETH(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, uint gasUsedTotal,
+        address workerAddress, bytes sig);
     event TaskFeeReturned(bytes32 indexed taskId);
 
     function createDeploymentTaskRecordImpl(
@@ -381,8 +382,8 @@ library TaskImpl {
                 uint deltaHashIndex = _bytes32s[2] != bytes32(0) ?
                     secretContract.stateDeltaHashes.push(_bytes32s[2]) - 1 : 0;
                 state.tasks[_bytes32s[1]].outputHash = _bytes32s[3];
-                emit ReceiptVerified(_gasUsed, _optionalEthereumContractAddress, _bytes32s, deltaHashIndex, callbackGasENG,
-                    _optionalEthereumData, msg.sender, _sig);
+                emit ReceiptVerified(_bytes32s[1], _gasUsed, _optionalEthereumContractAddress, _bytes32s,
+                    deltaHashIndex, callbackGasENG, _optionalEthereumData, _sig, msg.sender);
             } else {
                 task.status = EnigmaCommon.TaskStatus.ReceiptFailedETH;
                 emit ReceiptFailedETH(_bytes32s[1], _bytes32s[0], _gasUsed, callbackGasENG, msg.sender, _sig);
@@ -394,8 +395,8 @@ library TaskImpl {
             uint deltaHashIndex = _bytes32s[2] != bytes32(0) ?
                 secretContract.stateDeltaHashes.push(_bytes32s[2]) - 1 : 0;
             state.tasks[_bytes32s[1]].outputHash = _bytes32s[3];
-            emit ReceiptVerified(_gasUsed, _optionalEthereumContractAddress, _bytes32s, deltaHashIndex, _gasUsed,
-                _optionalEthereumData, msg.sender, _sig);
+            emit ReceiptVerified(_bytes32s[1], _gasUsed, _optionalEthereumContractAddress, _bytes32s, deltaHashIndex,
+                _gasUsed, _optionalEthereumData, _sig, msg.sender);
         }
     }
 
