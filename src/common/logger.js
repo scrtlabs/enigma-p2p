@@ -25,8 +25,7 @@ class Logger {
           layout: {
             type: "pattern",
             pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
-              "Z %[%p%] [P2P-%c] - %m"
+              `${format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)))} Z %[%p%] [P2P-%c] - %m`
           }
         },
         err: {
@@ -34,8 +33,7 @@ class Logger {
           layout: {
             type: "pattern",
             pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
-              "Z %[%p%] [P2P-%c] - %m"
+              `${format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)))} Z %[%p%] [P2P-%c] - %m`
           }
         },
         cli: {
@@ -43,7 +41,7 @@ class Logger {
           layout: {
             type: "pattern",
             pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) + "Z [CLI] %m"
+              `${format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)))} Z [CLI] %m`
           }
         }
       },
