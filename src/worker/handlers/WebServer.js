@@ -49,7 +49,7 @@ class WebServer extends EventEmitter {
       notification: constants.NODE_NOTIFICATIONS.HEALTH_CHECK,
       callback: (err, result) => {
         if (result.status) {
-          res.send("OK");
+          res.send(result);
         } else {
           next(WEB_SERVER_CONSTANTS.error_code);
         }
