@@ -31,6 +31,7 @@ class EnigmaContractReaderAPI {
   ) {
     this._enigmaContract = new web3.eth.Contract(enigmaContractABI, enigmaContractAddress);
     this._web3 = web3;
+    this._chainId = null;
     this._enigmaContractAddress = enigmaContractAddress;
     this._activeEventSubscriptions = {};
     this._initEventParsers();
@@ -39,7 +40,7 @@ class EnigmaContractReaderAPI {
     if (logger) {
       this._logger = logger;
     } else {
-      this._logger = new Logger({name: "EnigmaContractReaderAPI"});
+      this._logger = new Logger({ name: "EnigmaContractReaderAPI" });
     }
 
     const conf = JSON.parse(JSON.stringify(config)); // deep copy
@@ -56,6 +57,12 @@ class EnigmaContractReaderAPI {
   }
   w3() {
     return this._web3;
+  }
+  async getChainId() {
+    if (!this._chainId) {
+      this._chainId = await this._web3.eth.net.getId();
+    }
+    return this._chainId;
   }
   logger() {
     return this._logger;

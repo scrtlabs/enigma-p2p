@@ -21,7 +21,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
     minimumConfirmations = constants.MINIMUM_CONFIRMATIONS
   ) {
     super(enigmaContractAddress, enigmaContractABI, web3, logger, workerAddress);
-    this._privateKey = privateKey;
+    this._privateKey = utils.add0x(privateKey);
     this._stakingAddres = stakingAddress;
     this.minimumConfirmations = minimumConfirmations;
   }
@@ -53,7 +53,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             utils.add0x(report),
             utils.add0x(signature)
           )
-          .encodeABI()
+          .encodeABI(),
+        chainId: await this.getChainId()
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
@@ -126,7 +127,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             utils.add0x(optionalEthereumData),
             utils.add0x(signature)
           )
-          .encodeABI()
+          .encodeABI(),
+        chainId: await this.getChainId()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
@@ -182,7 +184,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.login().encodeABI()
+        data: this._enigmaContract.methods.login().encodeABI(),
+        chainId: await this.getChainId()
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
@@ -219,7 +222,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         from: res.transactionOptions.from,
         to: this._enigmaContractAddress,
         gas: res.transactionOptions.gas,
-        data: this._enigmaContract.methods.logout().encodeABI()
+        data: this._enigmaContract.methods.logout().encodeABI(),
+        chainId: await this.getChainId()
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
@@ -296,7 +300,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             utils.add0x(optionalEthereumData),
             utils.add0x(signature)
           )
-          .encodeABI()
+          .encodeABI(),
+        chainId: await this.getChainId()
       };
 
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
@@ -366,7 +371,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
             gasUsed,
             utils.add0x(signature)
           )
-          .encodeABI()
+          .encodeABI(),
+        chainId: await this.getChainId()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
@@ -421,7 +427,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         gas: res.transactionOptions.gas,
         data: this._enigmaContract.methods
           .deploySecretContractFailure(utils.add0x(taskId), utils.add0x(outputHash), gasUsed, utils.add0x(signature))
-          .encodeABI()
+          .encodeABI(),
+        chainId: await this.getChainId()
       };
       const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
