@@ -28,8 +28,8 @@ library TaskImpl {
     event TaskRecordCreated(bytes32 indexed taskId, bytes32 inputsHash, uint64 gasLimit, uint64 gasPx, address sender,
         uint blockNumber);
     // SecretContractDeployed => bytes32s [taskId, preCodeHash, codeHash, initStateDeltaHash]
-    event SecretContractDeployed(uint64 gasUsed, address optionalEthereumContractAddress, bytes32[4] bytes32s,
-        uint gasUsedTotal, bytes optionalEthereumData, address workerAddress);
+    event SecretContractDeployed(bytes32 indexed taskId, uint64 gasUsed, address optionalEthereumContractAddress,
+        bytes32[4] bytes32s, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress);
     // ReceiptVerified => bytes32s [scAddr, taskId, stateDeltaHash, outputHash]
     event ReceiptVerified(uint64 gasUsed, address optionalEthereumContractAddress, bytes32[4] bytes32s,
         uint deltaHashIndex, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress, bytes sig);
@@ -182,8 +182,8 @@ library TaskImpl {
                 secretContract.status = EnigmaCommon.SecretContractStatus.Deployed;
                 secretContract.stateDeltaHashes.push(_bytes32s[3]);
                 state.scAddresses.push(_bytes32s[0]);
-                emit SecretContractDeployed(_gasUsed, _optionalEthereumContractAddress, _bytes32s, callbackGasENG,
-                    _optionalEthereumData, msg.sender);
+                emit SecretContractDeployed(_bytes32s[0], _gasUsed, _optionalEthereumContractAddress, _bytes32s,
+                    callbackGasENG, _optionalEthereumData, msg.sender);
             } else {
                 task.status = EnigmaCommon.TaskStatus.ReceiptFailedETH;
                 emit ReceiptFailedETH(_bytes32s[0], _bytes32s[0], _gasUsed, callbackGasENG, msg.sender, _sig);
@@ -198,7 +198,7 @@ library TaskImpl {
             secretContract.status = EnigmaCommon.SecretContractStatus.Deployed;
             secretContract.stateDeltaHashes.push(_bytes32s[3]);
             state.scAddresses.push(_bytes32s[0]);
-            emit SecretContractDeployed(_gasUsed, _optionalEthereumContractAddress, _bytes32s, _gasUsed,
+            emit SecretContractDeployed(_bytes32s[0], _gasUsed, _optionalEthereumContractAddress, _bytes32s, _gasUsed,
                 _optionalEthereumData, msg.sender);
         }
     }
