@@ -24,28 +24,38 @@ class Logger {
           type: "stdout",
           layout: {
             type: "pattern",
-            pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
-              "Z %[%p%] [P2P-%c] - %m"
-          }
+            pattern: "%x{getTime}Z %[%p%] [P2P-%c] - %m",
+            tokens: {
+              getTime: function(logEvent) {
+                return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
+              },
+            },
+          },
         },
         err: {
           type: "stderr",
           layout: {
             type: "pattern",
-            pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) +
-              "Z %[%p%] [P2P-%c] - %m"
-          }
+            pattern: "%x{getTime}Z %[%p%] [P2P-%c] - %m",
+            tokens: {
+              getTime: function(logEvent) {
+                return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
+              },
+            },
+          },
         },
         cli: {
           type: "stdout",
           layout: {
             type: "pattern",
-            pattern:
-              format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4))) + "Z [CLI] %m"
-          }
-        }
+            pattern: "%x{getTime}Z [CLI] %m",
+            tokens: {
+              getTime: function(logEvent) {
+                return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
+              },
+            },
+          },
+        },
       },
       categories: {
         [logName]: { appenders: ["file", "out"], level: logLevel, enableCallStack: true },
