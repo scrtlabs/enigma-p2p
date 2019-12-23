@@ -58,7 +58,7 @@ it("#1 run init and healthCheck", async function() {
   }
   return new Promise(async resolve => {
     // This creates 8 enigma-p2p nodes - 1 bootstrap, 7 workers
-    let peersNum = 7;
+    let peersNum = 5;
     let { peers, bNode } = await testBuilder.createN(peersNum, noLoggerOpts);
     await testUtils.sleep(4000); // TODO fix
     let bNodeController = bNode.mainController;
@@ -73,7 +73,7 @@ it("#1 run init and healthCheck", async function() {
       ethWorkerAddress: workerAddress,
       ethStakingAddress: stakingAddress
     });
-    await testUtils.sleep(1000);
+    await testUtils.sleep(3000);
 
     const coreServer = testPeer.coreServer;
 
@@ -91,6 +91,7 @@ it("#1 run init and healthCheck", async function() {
     assert.strictEqual(hc.core.status, true);
     assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
     assert.strictEqual(hc.ethereum.status, true);
+    assert.strictEqual(hc.connectivity.status, true);
 
     let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
 

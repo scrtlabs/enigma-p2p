@@ -57,7 +57,7 @@ class HealthCheckAction {
 
           // connectivity
           healthCheckResult.connectivity.connections = this._controller.engNode().getConnectedPeers().length;
-          healthCheckResult.connectivity.status = healthCheckResult.connectivity.connections > 1;
+          healthCheckResult.connectivity.status = healthCheckResult.connectivity.connections >= 1;
 
           //
 

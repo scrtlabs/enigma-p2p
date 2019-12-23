@@ -7,10 +7,10 @@ const constants = require("../src/common/constants");
 
 const noLoggerOpts = {
   bOpts: {
-    withLogger: false
+    withLogger: true
   },
   pOpts: {
-    withLogger: false
+    withLogger: true
   }
 };
 
@@ -32,7 +32,7 @@ it("#1 Perform healthCheck", async function() {
     this.skip();
   }
   return new Promise(async resolve => {
-    const peersNum = 7;
+    const peersNum = 5;
     const hcPort = 9898;
     const hcUrl = "/hc";
     // init nodes
@@ -45,25 +45,28 @@ it("#1 Perform healthCheck", async function() {
       withEth: true,
       webserver: { healthCheck: { port: hcPort, url: hcUrl } }
     });
-    await testUtils.sleep(1000);
-
-    // request the health check straight forward
-
-    let hc = await testPeer.mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.HEALTH_CHECK, {});
-    assert.strictEqual(hc.core.status, true);
-    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
-    assert.strictEqual(hc.ethereum.status, true);
-
-    // assert.strictEqual(Object.keys(hc.state.missing).length, 0);
-    // assert.strictEqual(hc.state.status, true);
+    await testUtils.sleep(12000);
 
     // request the check using the web server
     http.get({ hostname: "localhost", port: hcPort, path: hcUrl }, async res => {
-      assert.strictEqual(res.statusMessage, "OK");
+      //assert.strictEqual(res.statusMessage, "OK");
       assert.strictEqual(res.statusCode, 200);
-      // STOP EVERYTHING
-      peers.push(testPeer);
-      await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
+      res.setEncoding("utf8");
+      let rawData = "";
+      res.on("data", chunk => {
+        rawData += chunk;
+      });
+      res.on("end", async () => {
+        const healthCheckResult = JSON.parse(rawData);
+        assert.strictEqual(healthCheckResult.core.status, true);
+        assert.strictEqual(healthCheckResult.core.registrationParams.signKey.length, 42);
+        assert.strictEqual(healthCheckResult.ethereum.status, true);
+        assert.strictEqual(healthCheckResult.connectivity.status, true);
+        assert.strictEqual(healthCheckResult.connectivity.connections, peersNum + 1);
+        // STOP EVERYTHING
+        peers.push(testPeer);
+        await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
+      });
     });
   });
 });
