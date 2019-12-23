@@ -136,14 +136,6 @@ class EnigmaContractDataError extends Error {
   }
 }
 
-class CommitReceiptEthereumError extends Error {
-  constructor(message) {
-    super(message);
-    Error.captureStackTrace(this, this.constructor);
-    this.name = this.constructor.name;
-  }
-}
-
 module.exports.SyncReceiverErr = SyncReceiverErr;
 module.exports.TypeErr = TypeErr;
 module.exports.InitPipelinesErr = InitPipelinesErr;
@@ -161,4 +153,3 @@ module.exports.InputErr = InputErr;
 module.exports.TaskTimeoutErr = TaskTimeoutErr;
 module.exports.TaskCancelledErr = TaskCancelledErr;
 module.exports.TaskEthereumFailureErr = TaskEthereumFailureErr;
-module.exports.CommitReceiptEthereumError = CommitReceiptEthereumError;
