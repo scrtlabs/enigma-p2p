@@ -549,7 +549,7 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: event => {
         return {
-          secretContractAddress: nodeUtils.remove0x(event.returnValues.bytes32s[0]),
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.taskId),
           codeHash: event.returnValues.bytes32s[2],
           stateDeltaHash: event.returnValues.bytes32s[3]
         };
