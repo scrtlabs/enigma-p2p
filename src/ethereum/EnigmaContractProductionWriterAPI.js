@@ -134,23 +134,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        const filter = { taskId: utils.add0x(taskId) };
-
-        const deployedEvents = await this._parsePastEvents(
-          constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-          filter,
-          blockNumber
-        );
-        if (deployedEvents && Object.keys(deployedEvents).length > 0) {
-          resolve(deployedEvents);
-        } else {
-          const failedEvents = await this._parsePastEvents(
-            constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
-            filter,
-            blockNumber
-          );
-          resolve(failedEvents);
-        }
+        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        resolve(events);
       };
 
       const signedTransaction = this._web3.eth
@@ -310,22 +295,8 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        const filter = { taskId: utils.add0x(taskId) };
-        const receiptVerifiedEvents = await this._parsePastEvents(
-          constants.RAW_ETHEREUM_EVENTS.ReceiptVerified,
-          filter,
-          blockNumber
-        );
-        if (receiptVerifiedEvents && Object.keys(receiptVerifiedEvents).length > 0) {
-          resolve(receiptVerifiedEvents);
-        } else {
-          const receiptFailedEvents = await this._parsePastEvents(
-            constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
-            filter,
-            blockNumber
-          );
-          resolve(receiptFailedEvents);
-        }
+        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        resolve(events);
       };
 
       const signedTransaction = this._web3.eth
