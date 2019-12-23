@@ -134,9 +134,11 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
+        const filter = { taskId: utils.add0x(taskId) };
+
         const deployedEvents = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-          { taskId: utils.add0x(taskId) },
+          filter,
           blockNumber
         );
         if (deployedEvents && Object.keys(deployedEvents).length > 0) {
@@ -144,7 +146,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
         } else {
           const failedEvents = await this._parsePastEvents(
             constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
-            { taskId: utils.add0x(taskId) },
+            filter,
             blockNumber
           );
           resolve(failedEvents);
