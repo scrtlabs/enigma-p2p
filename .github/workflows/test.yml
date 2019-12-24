@@ -1,0 +1,17 @@
+name: Unit Tests
+
+on: [push]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1.1.0
+        with:
+          node-version: 10.15.2
+      - run: npm install
+      - run: npm run test-tree
+      - run: npm test
+      - run: npm run report-coverage
