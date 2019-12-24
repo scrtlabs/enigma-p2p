@@ -5,12 +5,14 @@ on: [push]
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: node:10.15-alpine
+
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1.1.0
+        with:
+          node-version: 10.15.3
       - run: npm install
       - run: npm run test-tree
       - run: npm test
-      - env:
+      - run: npm run report-coverage
+        env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: npm run report-coverage
