@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     container: node:10.15-alpine
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
       - run: npm install
       - run: npm run test-tree
       - run: npm test
