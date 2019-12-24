@@ -452,7 +452,7 @@ class EnigmaContractProductionWriterAPI extends EnigmaContractWriterAPI {
       );
     }
 
-    return this._parseEvents({ [eventName]: rawEvents[0] });
+    return this._parseEvents({ [rawEvents[0].event]: rawEvents[0] });
   }
 }
 
