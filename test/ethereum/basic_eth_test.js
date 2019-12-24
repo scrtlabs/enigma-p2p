@@ -67,6 +67,14 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     signature = api.w3().utils.randomHex(32);
   }
 
+  it("A tests that always fails", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"]) {
+      this.skip();
+    }
+    assert.strictEqual(true, false);
+  });
+
   it("check default minConfirmation is set", async function() {
     const tree = TEST_TREE.ethereum;
     if (!tree["all"] || !tree["#1"]) {
