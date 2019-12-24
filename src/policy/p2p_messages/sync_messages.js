@@ -1,8 +1,6 @@
 const constants = require("../../common/constants");
 const MSG_TYPES = constants.P2P_MESSAGES;
-const schemeValidator = require("./schemes/SchemeValidator");
 const EncoderUtil = require("../../common/EncoderUtil");
-const waterfall = require("async/waterfall");
 
 class MsgBuilder {
   /** no validation test */
@@ -167,7 +165,6 @@ class SyncBcodeResMsg extends SyncMsg {
 
 module.exports.SyncStateResMsg = SyncStateResMsg;
 module.exports.SyncStateReqMsg = SyncStateReqMsg;
-//module.exports.SyncMsgBuilder = SyncMsgBuilder;
 module.exports.MsgBuilder = MsgBuilder;
 module.exports.SyncBcodeReqMsg = SyncBcodeReqMsg;
 module.exports.SyncBcodeResMsg = SyncBcodeResMsg;
