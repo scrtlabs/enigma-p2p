@@ -4,6 +4,7 @@ on: [push]
 
 jobs:
   test:
+    runs-on: ubuntu-latest
     container: node:10.15-alpine
     steps:
       - run: npm install
