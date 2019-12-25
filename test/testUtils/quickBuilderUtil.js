@@ -34,7 +34,7 @@ const getDefault = () => {
     withTasksDb: true, // with tasks database
     taskDbPath: null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
     principalUri: null,
-    stateful: false,
+    coreDb: null,
     webserver: null // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
   };
 };
@@ -158,7 +158,7 @@ const _createNode = async options => {
     }
     const uri = "tcp://127.0.0.1:" + port;
     coreServer = new CoreServer();
-    coreServer.runServer(uri, options.stateful);
+    coreServer.runServer(uri, options.coreDb);
     builder.setIpcConfig({ uri: uri });
   }
   if (options.withProxy) {

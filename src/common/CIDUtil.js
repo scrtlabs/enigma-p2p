@@ -24,7 +24,7 @@ class CIDUtil {
       const h = CIDUtil.parseHashStr(ethHash);
       const buffHash = Buffer.from(h, "hex");
       const mh = multihash.encode(buffHash, "keccak-256");
-      return new CID(1, "eth-block", mh);
+      return new CID(1, "eth-block", mh, "base58btc");
     } catch (err) {
       // console.log('[-] err creating cid {%s}', err);
       return null;

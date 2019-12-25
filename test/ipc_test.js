@@ -6,9 +6,10 @@ const CoreServer = require("../src/core/core_server_mock/core_server");
 const Envelop = require("../src/main_controller/channels/Envelop");
 const Channel = require("../src/main_controller/channels/Channel");
 const constants = require("../src/common/constants");
-const nodeUtils = require("../src/common/utils");
 const EnvironmentBuilder = require("../src/main_controller/EnvironmentBuilder");
 const expect = require("expect");
+const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
+const DbUtils = require("../src/common/DbUtils");
 
 it("#1 send acks to each other", async function() {
   const tree = TEST_TREE["ipc"];
@@ -110,9 +111,9 @@ it("#3 GetAllTips - mock server", async function() {
     mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates) => {
       expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
       expect(missingStates.length).toBe(3);
-      expect(missingStates[0].key).toBe(10);
-      expect(missingStates[1].key).toBe(34);
-      expect(missingStates[2].key).toBe(0);
+      expect(missingStates[0].key).toBe(2);
+      expect(missingStates[1].key).toBe(0);
+      expect(missingStates[2].key).toBe(1);
       await mainController.getNode().stop();
       mainController.getIpcClient().disconnect();
       coreServer.disconnect();
@@ -203,7 +204,7 @@ it("#6 GetTips - mock server", async function() {
   }
   return new Promise(async resolve => {
     // start the server
-    const uri = "tcp://127.0.0.1:77896";
+    const uri = "tcp://127.0.0.1:77897";
     const coreServer = new CoreServer();
     coreServer.runServer(uri);
     // start the client
@@ -212,7 +213,7 @@ it("#6 GetTips - mock server", async function() {
     const c2 = channels.channel2;
     const coreRuntime = new CoreRuntime({ uri: uri });
     coreRuntime.setChannel(c2);
-    const input = ["0x98456a", "0xdeadbeaf"];
+    const input = [DbUtils.toHexString(DB_PROVIDER[0].address), DbUtils.toHexString(DB_PROVIDER[2].address)];
     const reqEnv = new Envelop(
       true,
       { type: constants.CORE_REQUESTS.GetTips, input: input },
