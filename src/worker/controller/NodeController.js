@@ -30,6 +30,7 @@ const NewTaskEncryptionKeyAction = require("./actions/NewTaskEncryptionKeyAction
 const SubscribeSelfSignKeyTopicPipelineAction = require("./actions/SubscribeSelfSignKeyTopicPipelineAction");
 const GetStateKeysAction = require("./actions/GetStateKeysAction");
 const HealthCheckAction = require("./actions/HealthCheckAction");
+const GetStatusAction = require("./actions/GetStatusAction");
 // connectivity
 const BootstrapDiscoveredAction = require("./actions/connectivity/BootstrapDiscoveredAction");
 const NewPeerAction = require("./actions/connectivity/NewPeerAction");
@@ -110,6 +111,7 @@ class NodeController {
       [NOTIFICATION.SELF_KEY_SUBSCRIBE]: new SubscribeSelfSignKeyTopicPipelineAction(this), // the responder worker from the gateway request on startup of a worker for jsonrpc topic
       [NOTIFICATION.GET_STATE_KEYS]: new GetStateKeysAction(this), // Make the PTT process
       [NOTIFICATION.HEALTH_CHECK]: new HealthCheckAction(this),
+      [NOTIFICATION.GET_WORKER_STATUS]: new GetStatusAction(this),
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
@@ -346,6 +348,10 @@ class NodeController {
     return this._workerInitialzied;
   }
 
+  isWorkerInitInProgress() {
+    return this._workerInitInProgress;
+  }
+
   isAutoInit() {
     return this._extraConfig.init;
   }
@@ -514,10 +520,6 @@ class NodeController {
 
   getConnectedPeers() {
     return this.engNode().getConnectedPeers();
-  }
-
-  getSelfPeerBookIds() {
-    return this.engNode().getSelfPeerBookIds();
   }
 
   /**

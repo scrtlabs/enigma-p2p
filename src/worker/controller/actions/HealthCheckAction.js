@@ -59,8 +59,6 @@ class HealthCheckAction {
           healthCheckResult.connectivity.connections = this._controller.engNode().getConnectedPeers().length;
           healthCheckResult.connectivity.status = healthCheckResult.connectivity.connections >= 1;
 
-          //
-
           healthCheckResult.status =
             healthCheckResult.core.status && healthCheckResult.ethereum.status && healthCheckResult.connectivity.status; // && healthCheckResult.state.status;
           callback(null, healthCheckResult);

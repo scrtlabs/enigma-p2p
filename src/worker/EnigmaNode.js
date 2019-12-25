@@ -300,12 +300,6 @@ class EnigmaNode extends EventEmitter {
   getAllPeersIds() {
     return this.node.stats.peers();
   }
-  /** Get PeerBook
-   * @return {Array} ,the list of all the PeerInfo are in the peerBook of the current EnigmaNode
-   */
-  getSelfPeerBookIds() {
-    return this.node.peerBook.getAllArray();
-  }
   /** TODO: update once libp2p version is upgraded !!!!!!!!
    * @return {Array}, the current connected peers
    */
