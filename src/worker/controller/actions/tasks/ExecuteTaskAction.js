@@ -27,7 +27,7 @@ class ExecuteTaskAction {
       } catch (e) {
         return this._controller
           .logger()
-          .error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${e}`);
+          .error(`received an error while trying to GET_STATE_KEYS for ${task.getTaskId()}: ${JSON.stringify(e)}`);
       }
     }
 

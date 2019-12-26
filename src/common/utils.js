@@ -352,3 +352,22 @@ module.exports.getEthereumBlockNumber = web3 => {
     web3.eth.getBlockNumber((error, data) => (error ? reject(error) : resolve(data)));
   });
 };
+
+/**
+ * Transform a list of states to a corresponding map.
+ * @param {Array<Object>} statesList - list of states in the format {address, key, data}
+ * @return {Object} a map whose keys are addresses and each object is a map of states (key=>data)
+ * */
+module.exports.transformStatesListToMap = statesList => {
+  const statesMap = {};
+  for (let i = 0; i < statesList.length; ++i) {
+    const address = JSON.stringify(statesList[i].address);
+    if (!(address in statesMap)) {
+      statesMap[address] = {};
+    }
+    const key = statesList[i].key;
+    const delta = statesList[i].data;
+    statesMap[address][key] = delta;
+  }
+  return statesMap;
+};
