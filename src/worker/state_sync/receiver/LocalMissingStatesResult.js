@@ -3,8 +3,7 @@
  * it contains all the information about WHAT needs to be received from other peers
  * in the network.
  * */
-const EngCid = require("../../../common/EngCID");
-const SyncMsgBuilder = require("../../../policy/p2p_messages/sync_messages").SyncMsgBuilder;
+const SyncMsgBuilder = require("../../../policy/p2p_messages/sync_messages").MsgBuilder;
 const constants = require("../../../common/constants");
 
 // TODO:: come to conclusion that this function is unnesceary and delete it.
@@ -84,9 +83,9 @@ function parseStateReqMsgs(contractData) {
 function buildP2ReqPMsgsOneContract(contractData) {
   const result = {};
   const reqMsgs = parseStateReqMsgs(contractData);
-  result.deltasReq = SyncMsgBuilder.batchStateReqFromObjsNoValidation(reqMsgs);
+  result.deltasReq = SyncMsgBuilder.batchStateRequest(reqMsgs);
   if (isBCodeRequest(contractData)) {
-    result.bcodeReq = SyncMsgBuilder.bCodeReqFromObjNoValidation({
+    result.bcodeReq = SyncMsgBuilder.bCodeRequestMessage({
       contractAddress: contractData.address
     });
   }
