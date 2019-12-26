@@ -1,12 +1,12 @@
 module.exports.TEST_TREE = {
   basic: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true
   },
   ipc: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -15,11 +15,11 @@ module.exports.TEST_TREE = {
     "#6": true
   },
   cache: {
-    all: false,
+    all: true,
     "#1": true
   },
   ethereum: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -39,14 +39,14 @@ module.exports.TEST_TREE = {
     "#17": true
   },
   ethereum_advanced: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
     "#4": true
   },
   task_manager: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -55,14 +55,14 @@ module.exports.TEST_TREE = {
     "#6": true
   },
   task_flow: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
     "#4": true
   },
   sync_basic: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -70,11 +70,11 @@ module.exports.TEST_TREE = {
     "#5": true
   },
   sync_network: {
-    all: false,
+    all: true,
     "#1": true
   },
   jsonrpc_basic: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -83,26 +83,26 @@ module.exports.TEST_TREE = {
     "#6": true
   },
   jsonrpc_advanced: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
     "#4": true
   },
   actions_tests: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true
   },
   principal: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true
   },
   verifier: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -152,7 +152,7 @@ module.exports.TEST_TREE = {
     "#47": true
   },
   ethereum_integration: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true,
     "#3": true,
@@ -163,16 +163,16 @@ module.exports.TEST_TREE = {
     "#8": true
   },
   single_config: {
-    all: false,
+    all: true,
     "#1": true,
     "#2": true
   },
   healthcheck: {
-    all: false,
+    all: true,
     "#1": true
   },
   init_worker: {
-    all: false,
+    all: true,
     "#1": true
   }
 };
