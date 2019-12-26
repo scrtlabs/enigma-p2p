@@ -16,7 +16,7 @@ const web3Utils = require("web3-utils");
 
 describe("Eth verifier tests", function() {
   async function init(isDeploy, taskCreation) {
-    const builder = await ControllerBuilder.createNode();
+    const builder = await ControllerBuilder.createNode({ isBootstrap: true });
     const controller = builder.mainController;
 
     let {

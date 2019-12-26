@@ -2,8 +2,12 @@ const tree = require("./test_tree").TEST_TREE.init_worker;
 const assert = require("assert");
 const testBuilder = require("./testUtils/quickBuilderUtil");
 const testUtils = require("./testUtils/utils");
+const utils = require("../src/common/utils");
 const ethTestUtils = require("./ethereum/utils");
 const constants = require("../src/common/constants");
+
+const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
+const PROVIDERS_DB_MAP = utils.transformStatesListToMap(DB_PROVIDER);
 
 const noLoggerOpts = {
   bOpts: {
@@ -45,7 +49,7 @@ async function prepareEthData(controller) {
     from: workerAddress
   });
   await api.login({ from: workerAddress });
-  await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1]);
+  await ethTestUtils.setEthereumState(api, api.w3(), workerAddress, accounts[1], PROVIDERS_DB_MAP);
 
   return { workerAddress, stakingAddress };
 }
@@ -71,16 +75,11 @@ it("#1 run init and healthCheck", async function() {
     const testPeer = await testBuilder.createNode({
       withEth: true,
       ethWorkerAddress: workerAddress,
-      ethStakingAddress: stakingAddress
+      ethStakingAddress: stakingAddress,
+      coreDb: {}
     });
     await testUtils.sleep(1000);
-
-    const coreServer = testPeer.coreServer;
-
-    let noTipsReceiver = [];
-    bNodeCoreServer.setProvider(true);
     await bNodeController.getNode().asynctryAnnounce();
-    coreServer.setReceiverTips(noTipsReceiver);
 
     await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
 
