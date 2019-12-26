@@ -278,7 +278,7 @@ module.exports.WEB_SERVER_CONSTANTS = {
  * Enigma Contract worker status
  * */
 module.exports.WORKER_STATUS = {
-  INITIALIZING: "initialized",
+  INITIALIZING: "initializing",
   UNREGISTERED: "unregistered",
   REGISTERED: "registered",
   LOGGEDIN: "logged-in"
