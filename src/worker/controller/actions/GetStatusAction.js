@@ -17,10 +17,8 @@ class GetStatusAction {
     if (this._controller.isWorkerInitInProgress()) {
       status = constants.WORKER_STATUS.INITIALIZING;
     } else {
-      let workerParams;
-
       try {
-        workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
+        const workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
         switch (workerParams.status) {
           case constants.ETHEREUM_WORKER_STATUS.UNREGISTERED:
             status = constants.WORKER_STATUS.UNREGISTERED;

@@ -1,9 +1,9 @@
-const tree = require("./test_tree").TEST_TREE.healthcheck;
 const assert = require("assert");
-const http = require("http");
+const axios = require("axios");
 const testBuilder = require("./testUtils/quickBuilderUtil");
 const testUtils = require("./testUtils/utils");
 const constants = require("../src/common/constants");
+const tree = require("./test_tree").TEST_TREE.healthcheck;
 
 const noLoggerOpts = {
   bOpts: {
@@ -15,15 +15,19 @@ const noLoggerOpts = {
 };
 
 const stopTest = async (peers, bNodeController, bNodeCoreServer, resolve) => {
-  let pPaths = peers.map(p => {
+  const pPaths = peers.map(p => {
     return p.tasksDbPath;
   });
-  for (let i = 0; i < pPaths.length; ++i) {
-    await peers[i].mainController.shutdownSystem();
-    peers[i].coreServer.disconnect();
+  try {
+    for (let i = 0; i < pPaths.length; ++i) {
+      await peers[i].mainController.shutdownSystem();
+      peers[i].coreServer.disconnect();
+    }
+    await bNodeController.shutdownSystem();
+    bNodeCoreServer.disconnect();
+  } catch (e) {
+    console.log("ERROR while trying to stop the nodes=" + JSON.stringify(e));
   }
-  await bNodeController.shutdownSystem();
-  bNodeCoreServer.disconnect();
   resolve();
 };
 
@@ -37,50 +41,46 @@ it("#1 Query healthCheck + status", async function() {
     const hcUrl = "/hc";
     const statusUrl = "/st";
     // init nodes
-    let { peers, bNode } = await testBuilder.createN(peersNum, noLoggerOpts);
+    const { peers, bNode } = await testBuilder.createN(peersNum, noLoggerOpts);
     await testUtils.sleep(4000);
-    let bNodeController = bNode.mainController;
-    let bNodeCoreServer = bNode.coreServer;
+    const bNodeController = bNode.mainController;
+    const bNodeCoreServer = bNode.coreServer;
     // start the tested node
     const testPeer = await testBuilder.createNode({
       withEth: true,
       ethWorkerAddress: "0xb9A219631Aed55eBC3D998f17C3840B7eC39C0cc",
       webserver: { port: port, healthCheck: { url: hcUrl }, status: { url: statusUrl } }
     });
-    await testUtils.sleep(12000);
 
-    // request health check
-    http.get({ hostname: "localhost", port: port, path: hcUrl }, res => {
-      assert.strictEqual(res.statusCode, 200);
-      res.setEncoding("utf8");
-      let rawData = "";
-      res.on("data", chunk => {
-        rawData += chunk;
-      });
-      res.on("end", async () => {
-        const healthCheckResult = JSON.parse(rawData);
-        assert.strictEqual(healthCheckResult.core.status, true);
-        assert.strictEqual(healthCheckResult.core.registrationParams.signKey.length, 42);
-        assert.strictEqual(healthCheckResult.ethereum.status, true);
-        assert.strictEqual(healthCheckResult.connectivity.status, true);
-        assert.strictEqual(healthCheckResult.connectivity.connections, peersNum + 1);
+    let connectedPeers = 0;
+    testPeer.mainController
+      .getNode()
+      .engNode()
+      .node.on(constants.PROTOCOLS.PEER_CONNECT, async peer => {
+        connectedPeers += 1;
 
-        // request status
-        http.get({ hostname: "localhost", port: port, path: statusUrl }, async res => {
-          assert.strictEqual(res.statusCode, 200);
-          res.setEncoding("utf8");
-          rawData = "";
-          res.on("data", chunk => {
-            rawData += chunk;
-          });
-          res.on("end", async () => {
-            assert.strictEqual(rawData, constants.WORKER_STATUS.UNREGISTERED);
-            // STOP EVERYTHING
-            peers.push(testPeer);
-            await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
-          });
-        });
+        // start test only after all connections established
+        if (connectedPeers === peersNum + 1) {
+          // request health check
+          let url = "http://localhost:" + port + hcUrl;
+          let response = await axios.get(url);
+          assert.strictEqual(response.status, 200);
+          assert.strictEqual(response.data.core.status, true);
+          assert.strictEqual(response.data.core.registrationParams.signKey.length, 42);
+          assert.strictEqual(response.data.ethereum.status, true);
+          assert.strictEqual(response.data.connectivity.status, true);
+          assert.strictEqual(response.data.connectivity.connections, peersNum + 1);
+
+          // request status
+          url = "http://localhost:" + port + statusUrl;
+          response = await axios.get(url);
+          assert.strictEqual(response.status, 200);
+          assert.strictEqual(response.data, constants.WORKER_STATUS.UNREGISTERED);
+
+          // STOP EVERYTHING
+          peers.push(testPeer);
+          await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
+        }
       });
-    });
   });
 });

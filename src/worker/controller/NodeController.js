@@ -408,9 +408,9 @@ class NodeController {
   /** Get the cache object for the state tips and contracts that are stored locally.
    * @return {PersistentStateCache}
    * */
-  cache() {
-    return this._cache;
-  }
+  //cache() {
+  //  return this._cache;
+  //}
 
   principal() {
     return this._principal;
