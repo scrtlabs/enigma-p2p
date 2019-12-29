@@ -34,7 +34,7 @@ class SubscribeSelfSignKeyTopicPipelineAction {
               return;
             }
             const type = data.type;
-            this._controller.logger().info("[WORK_TOPIC_PUBLISH] " + type);
+            this._controller.logger().info("Received request " + type + " on worker topic");
             const request = data.request;
             let targetTopic = null;
             switch (type) {
