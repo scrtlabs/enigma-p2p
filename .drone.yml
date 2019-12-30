@@ -8,7 +8,6 @@ steps:
       - name: sock
         path: /var/run/docker.sock
     commands:
-      - exit 1
       - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_DOCKER="$(git ls-remote --heads https://github.com/enigmampc/docker-environment.git ${DRONE_BRANCH} | wc -l)"
@@ -60,8 +59,9 @@ steps:
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
-      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client && sleep 240 && docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
-      - if [ $RESULT -ne 0 ]; then exit 1; fi
+      - SGX_MODE=HW docker-compose -d -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client
+      - sleep 240
+      - docker-compose exec -T client make test
       - export NEW_NODE_NUMBER=$(($NODES + 1))
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NEW_NODE_NUMBER
       - timeout 60 /bin/bash -c 'SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml logs -f | grep -m 1 -F "success syncing pipeline"'
