@@ -8,6 +8,7 @@ steps:
       - name: sock
         path: /var/run/docker.sock
     commands:
+      - exit 1
       - export MATCHING_BRANCH_CORE="$(git ls-remote --heads https://github.com/enigmampc/enigma-core.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_CONTRACT="$(git ls-remote --heads https://github.com/enigmampc/enigma-contract.git ${DRONE_BRANCH} | wc -l)"
       - export MATCHING_BRANCH_DOCKER="$(git ls-remote --heads https://github.com/enigmampc/docker-environment.git ${DRONE_BRANCH} | wc -l)"
@@ -110,6 +111,7 @@ steps:
         - success
         - failure
     commands:
+      - cd docker-environment
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all
 
 volumes:
