@@ -362,7 +362,6 @@ class CLI {
       const uri = "tcp://" + this._coreAddressPort;
       if (this._mockCore) {
         const coreServer = new CoreServer();
-        coreServer.setProvider(true);
         coreServer.runServer(uri);
       }
       builder.setIpcConfig({ uri: uri });
