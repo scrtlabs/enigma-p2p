@@ -106,6 +106,8 @@ steps:
     volumes:
       - name: sock
         path: /var/run/docker.sock
+    depends_on:
+      - integration
     when:
       status:
         - success
