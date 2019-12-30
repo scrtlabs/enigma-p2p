@@ -414,7 +414,7 @@ describe("Ethereum advanced", function() {
     return new Promise(async function(resolve) {
       await start();
       let ethereumApi = new EthereumAPI(new Logger({ cli: true }));
-      await ethereumApi.init({ enigmaContractAddress: enigmaContractAddress });
+      await ethereumApi.init({ enigmaContractAddress: enigmaContractAddress, minConfirmations: 0 });
 
       // sunny day
       let data = await ethereumApi.healthCheck();
