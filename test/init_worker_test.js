@@ -11,15 +11,19 @@ const DB_PROVIDER = require("../src/core/core_server_mock/data/provider_db");
 const PROVIDERS_DB_MAP = utils.transformStatesListToMap(DB_PROVIDER);
 
 const stopTest = async (peers, bNodeController, bNodeCoreServer, resolve) => {
-  let pPaths = peers.map(p => {
+  const pPaths = peers.map(p => {
     return p.tasksDbPath;
   });
-  for (let i = 0; i < pPaths.length; ++i) {
-    await peers[i].mainController.shutdownSystem();
-    peers[i].coreServer.disconnect();
+  try {
+    for (let i = 0; i < pPaths.length; ++i) {
+      await peers[i].mainController.shutdownSystem();
+      peers[i].coreServer.disconnect();
+    }
+    await bNodeController.shutdownSystem();
+    bNodeCoreServer.disconnect();
+  } catch (e) {
+    console.log("ERROR while trying to stop the nodes=" + JSON.stringify(e));
   }
-  await bNodeController.shutdownSystem();
-  bNodeCoreServer.disconnect();
   resolve();
 };
 
@@ -101,25 +105,30 @@ it("#1 run init and healthCheck", async function() {
       ethWorkerPrivateKey: peerAccount.privateKey,
       coreDb: {}
     });
-    await testUtils.sleep(1000);
-    await bNodeController.getNode().asynctryAnnounce();
+    testPeer.mainController
+      .getNode()
+      .engNode()
+      .node.on(constants.PROTOCOLS.PEER_CONNECT, async peer => {
+        await bNodeController.getNode().asynctryAnnounce();
 
-    await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
+        await testPeer.mainController.getNode().asyncInitializeWorkerProcess({ amount: 50000 });
 
-    // request the check straight forward
-    let hc = await testPeer.mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.HEALTH_CHECK, {});
-    // assertion checks
-    assert.strictEqual(hc.status, true);
-    assert.strictEqual(hc.core.status, true);
-    assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
-    assert.strictEqual(hc.ethereum.status, true);
+        // request the check straight forward
+        let hc = await testPeer.mainController.getNode().asyncExecCmd(constants.NODE_NOTIFICATIONS.HEALTH_CHECK, {});
+        // assertion checks
+        assert.strictEqual(hc.status, true);
+        assert.strictEqual(hc.core.status, true);
+        assert.strictEqual(hc.core.registrationParams.signKey.length, 42);
+        assert.strictEqual(hc.ethereum.status, true);
+        assert.strictEqual(hc.connectivity.status, true);
 
-    let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
+        let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
 
-    assert.strictEqual(Object.keys(missingStates["missingStatesMap"]).length, 0);
+        assert.strictEqual(Object.keys(missingStates["missingStatesMap"]).length, 0);
 
-    // STOP EVERYTHING
-    peers.push(testPeer);
-    await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
+        // STOP EVERYTHING
+        peers.push(testPeer);
+        await stopTest(peers, bNodeController, bNodeCoreServer, resolve);
+      });
   });
 });
