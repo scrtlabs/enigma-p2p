@@ -65,7 +65,6 @@ steps:
       - export NEW_NODE_NUMBER=$(($NODES + 1))
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NEW_NODE_NUMBER
       - timeout 60 /bin/bash -c 'SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml logs -f | grep -m 1 -F "success syncing pipeline"'
-      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
 
   - name: deploy
     image: enigmampc/docker-client
@@ -99,6 +98,19 @@ steps:
       - docker push enigmampc/key_management_sw:$DOCKER_TAG
       - docker push enigmampc/worker_hw:$DOCKER_TAG
       - docker push enigmampc/key_management_hw:$DOCKER_TAG
+
+  - name: cleanup
+    image: enigmampc/docker-client
+    privileged: true
+    volumes:
+      - name: sock
+        path: /var/run/docker.sock
+    when:
+      status:
+        - success
+        - failure
+    commands:
+      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all
 
 volumes:
   - name: sock
