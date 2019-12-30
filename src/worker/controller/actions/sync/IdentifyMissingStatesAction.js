@@ -24,7 +24,7 @@ class IdentifyMissingStatesAction {
 
   execute(params) {
     const useCache = params.cache;
-    const finalCallback = params.onResponse;
+    const callback = params.onResponse;
     if (useCache) {
       this._controller.cache().getAllTips((err, tipsList) => {
         // TODO:: implement cache logic
@@ -40,16 +40,16 @@ class IdentifyMissingStatesAction {
             if (!this._controller.hasEthereum()) {
               error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
             }
-            return finalCallback(error);
+            return callback(error);
           }
           return IdentifyMissingStatesAction._buildMissingStatesResult(
             this._controller.ethereum().api(),
             localTips,
             (err, res) => {
               if (err) {
-                return finalCallback(err);
+                return callback(err);
               }
-              return finalCallback(null, res);
+              return callback(null, res);
             }
           );
         }
@@ -57,14 +57,11 @@ class IdentifyMissingStatesAction {
     }
   }
 
-  static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
+  async static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
     // TODO:: method not static and get StateSync from this._controller.ethereum()....
-    StateSync.getRemoteMissingStates(enigmaContractApi, localTips, (err, missingList) => {
+    try {
+      const {missingList, excessList} = await StateSync.compareLocalStateToRemote(enigmaContractApi, localTips);
       const res = { missingStatesMap: {}, missingStatesMsgsMap: {} };
-
-      if (err) {
-        return cb(err);
-      }
 
       const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
       const finalOutput = {};
@@ -78,7 +75,11 @@ class IdentifyMissingStatesAction {
       res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(missingList);
       res.missingStatesMsgsMap = finalOutput;
       return cb(null, res);
-    });
+    }
+    catch (err) {
+      return cb(err);
+    }
+
   }
   static _transformMissingStatesListToMap(missingStatesList) {
     const missingStatesMap = {};

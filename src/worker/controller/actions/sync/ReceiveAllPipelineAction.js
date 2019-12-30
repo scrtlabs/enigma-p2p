@@ -49,7 +49,7 @@ class ReceiveAllPipelineAction {
           tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
           ecids.push(ecid);
         } else {
-          err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
+          err = new errs.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
         }
       }
       return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
