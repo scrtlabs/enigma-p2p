@@ -22,7 +22,6 @@ steps:
           git clone --single-branch --branch develop https://github.com/enigmampc/docker-environment.git
         fi
       - cd docker-environment && cp .env.template .env
-      - exit 1
       - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_p2p_${DRONE_BUILD_NUMBER}/" .env
       - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
       - |
