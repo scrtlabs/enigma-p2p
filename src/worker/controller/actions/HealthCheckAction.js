@@ -24,6 +24,10 @@ class HealthCheckAction {
         status: false,
         uri: null,
         contract_addr: null
+      },
+      connectivity: {
+        status: false,
+        connections: null
       }
       // TODO: consider adding a periodic, once there
       /*state: {
@@ -35,8 +39,11 @@ class HealthCheckAction {
     this._controller.execCmd(C.REGISTRATION_PARAMS, {
       onResponse: async (err, regParams) => {
         if (!err) {
+          // core
           healthCheckResult.core.registrationParams.signKey = regParams.result.signingKey;
           healthCheckResult.core.status = healthCheckResult.core.registrationParams.signKey != null;
+
+          // ethereum
           if (this._controller.hasEthereum()) {
             try {
               let eth = await this._controller.ethereum().healthCheck();
@@ -47,7 +54,13 @@ class HealthCheckAction {
               healthCheckResult.ethereum.status = false;
             }
           }
-          healthCheckResult.status = healthCheckResult.core.status && healthCheckResult.ethereum.status; // && healthCheckResult.state.status;
+
+          // connectivity
+          healthCheckResult.connectivity.connections = this._controller.engNode().getConnectedPeers().length;
+          healthCheckResult.connectivity.status = healthCheckResult.connectivity.connections >= 1;
+
+          healthCheckResult.status =
+            healthCheckResult.core.status && healthCheckResult.ethereum.status && healthCheckResult.connectivity.status; // && healthCheckResult.state.status;
           callback(null, healthCheckResult);
         }
       }

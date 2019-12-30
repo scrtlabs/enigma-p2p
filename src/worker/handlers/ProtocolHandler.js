@@ -19,27 +19,21 @@ class ProtocolHandler extends EventEmitter {
     } else {
       this._logger = new Logger({
         level: "debug",
-        name: "ProtocolHandler",
+        name: "ProtocolHandler"
       });
     }
 
-    this._protocols = [
-      PROTOCOLS["HEARTBEAT"],
-      PROTOCOLS["GROUP_DIAL"],
-      PROTOCOLS["FIND_PEERS"],
-      PROTOCOLS.STATE_SYNC,
-      PROTOCOLS.LOCAL_STATE_EXCHAGNE
-    ];
+    this._protocols = [PROTOCOLS.HEARTBEAT, PROTOCOLS.FIND_PEERS, PROTOCOLS.STATE_SYNC, PROTOCOLS.LOCAL_STATE_EXCHAGNE];
 
     // this._state = state;
     this.fallback = this.tempFallback;
     this.policy = new Policy();
     this.handlers = {};
-    this.handlers[PROTOCOLS["PEER_DISCOVERY"]] = this.onPeerDiscovery.bind(this);
-    this.handlers[PROTOCOLS["PEER_CONNECT"]] = this.onPeerConnect.bind(this);
-    this.handlers[PROTOCOLS["PEER_DISCONNECT"]] = this.onPeerDisconnect.bind(this);
-    this.handlers[PROTOCOLS["HEARTBEAT"]] = this.onHeartBeat.bind(this);
-    this.handlers[PROTOCOLS["FIND_PEERS"]] = this.onFindPeers.bind(this);
+    this.handlers[PROTOCOLS.PEER_DISCOVERY] = this.onPeerDiscovery.bind(this);
+    this.handlers[PROTOCOLS.PEER_CONNECT] = this.onPeerConnect.bind(this);
+    this.handlers[PROTOCOLS.PEER_DISCONNECT] = this.onPeerDisconnect.bind(this);
+    this.handlers[PROTOCOLS.HEARTBEAT] = this.onHeartBeat.bind(this);
+    this.handlers[PROTOCOLS.FIND_PEERS] = this.onFindPeers.bind(this);
     this.handlers[PROTOCOLS.STATE_SYNC] = this.onStateSync.bind(this);
     this.handlers[PROTOCOLS.LOCAL_STATE_EXCHAGNE] = this.onLocalStateExchange.bind(this);
     // list of active subscriptions pubsub
@@ -185,7 +179,7 @@ class ProtocolHandler extends EventEmitter {
    */
   onPeerConnect(nodeBundle, params) {
     this._logger.debug(
-      "[Connection with " + nodeBundle.peerInfo.id.toB58String() + "] new peer : " + params.peer.id.toB58String()
+      nodeBundle.peerInfo.id.toB58String() + " connection with a new peer : " + params.peer.id.toB58String()
     );
     this.notify({
       notification: NOTIFICATION.NEW_PEER_CONNECTED,
