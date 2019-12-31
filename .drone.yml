@@ -24,7 +24,7 @@ steps:
       - cd docker-environment
       - cp .env.template .env
       - sed -i "s/COMPOSE_PROJECT_NAME=.*/COMPOSE_PROJECT_NAME=enigma_p2p_${DRONE_BUILD_NUMBER}/" .env
-      - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env;
+      - sed -i "s/DOCKER_TAG=latest/DOCKER_TAG=${DOCKER_TAG}/" .env
       - |
         /bin/bash -c '
         declare -a PROJECTS=(contract client)
@@ -70,6 +70,7 @@ steps:
         path: /var/run/docker.sock
     commands:
       - cd docker-environment
+      - echo .env
       - export NODES=3
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NODES
       - sleep 240
