@@ -114,7 +114,7 @@ steps:
         - failure
     commands:
       - cd docker-environment
-      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all
+      - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all --remove-orphans
 
 volumes:
   - name: sock
