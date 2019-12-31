@@ -116,6 +116,7 @@ steps:
       - cd docker-environment
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all --remove-orphans
       - docker container prune -f
+      - docker image prune -f
 
 volumes:
   - name: sock
