@@ -1,7 +1,7 @@
 kind: pipeline
 name: default
 steps:
-  - name: build-integration-tests
+  - name: integration
     image: enigmampc/docker-client
     privileged: true
     volumes:
@@ -59,18 +59,6 @@ steps:
         fi
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
-
-  - name: run-integration-tests
-    image: enigmampc/docker-client
-    depends_on:
-      - build-integration-tests
-    privileged: true
-    volumes:
-      - name: sock
-        path: /var/run/docker.sock
-    commands:
-      - cd docker-environment
-      - echo .env
       - export NODES=3
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NODES
       - sleep 240
@@ -79,10 +67,10 @@ steps:
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker="$NEW_NODE_NUMBER"
       - timeout 180 /bin/bash -c 'SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml logs -f | grep -m 1 -F "success syncing pipeline"'
 
-  - name: deploy-to-docker-hub
+  - name: deploy
     image: enigmampc/docker-client
     depends_on:
-      - run-integration-tests
+      - integration
     when:
       branch:
         - develop
@@ -119,7 +107,7 @@ steps:
       - name: sock
         path: /var/run/docker.sock
     depends_on:
-      - deploy-to-docker-hub
+      - deploy
     when:
       status:
         - success
