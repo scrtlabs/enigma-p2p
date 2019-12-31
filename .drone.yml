@@ -69,6 +69,7 @@ steps:
       - name: sock
         path: /var/run/docker.sock
     commands:
+      - cd docker-environment
       - export NODES=3
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NODES
       - sleep 240
