@@ -29,11 +29,13 @@ class ReceiveAllPipelineAction {
     this._running = true;
 
     try {
+      // Compare between the local state and Ethereum
       const { missingList, excessList } = await this._controller.asyncExecCmd(
         NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE,
         { cache: cache }
       );
 
+      // Build messages for sync
       const missingStatesMsgsMap = buildMissingStatesResult(missingList);
 
       let ecids = [];
@@ -48,15 +50,15 @@ class ReceiveAllPipelineAction {
           return onEnd(new errs.SyncReceiverErr(`error creating EngCid from ${addrKey}`));
         }
       }
-
+      // Search for content providers
       const findProviderResult = await this._controller.asyncExecCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
         descriptorsList: ecids,
         isEngCid: true
       });
-
       if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
         return new errs.SyncReceiverErr("some error finding providers !");
       }
+
       // parse to 1 object: cid => {providers, msgs} -> simple :)
       const allReceiveData = [];
       ecids.forEach(ecid => {
@@ -66,16 +68,38 @@ class ReceiveAllPipelineAction {
         });
       });
 
-      const missingStatesMap = transformMissingStatesListToMap(missingList);
+      // Sync
       const allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
         allMissingDataList: allReceiveData,
-        remoteMissingStatesMap: missingStatesMap
+        remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
       });
 
+      // Revert local state
+      for (const contract of excessList) {
+        let coreMsg = null;
+        if (contract.remoteTip === -1) {
+          // meaning the entire contract should be removed
+          coreMsg = {
+            address: contract.address,
+            type: constants.CORE_REQUESTS.RemoveContract
+          };
+          this._controller.logger().info(`[SYNC] deleting contract ${contract.address}`);
+        } else {
+          coreMsg = {
+            input: [{ address: contract.address, from: contract.remoteTip + 1, to: contract.localTip }],
+            type: constants.CORE_REQUESTS.RemoveDeltas
+          };
+          this._controller
+            .logger()
+            .info(`[SYNC] reverting deltas ${coreMsg.input.from}-${coreMsg.input.to} of contract ${contract.address}`);
+        }
+        await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
+      }
       this._running = false;
       onEnd(null, allResults);
     } catch (err) {
       this._running = false;
+      this._controller.logger().error(`[SYNC] error= ${err}`);
       onEnd(err);
     }
   }

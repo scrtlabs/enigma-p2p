@@ -242,6 +242,8 @@ describe("Ethereum advanced", function() {
         { address: secretContractAddress1, key: 3 },
         { address: secretContractAddress2, key: 1 }
       ]);
+      assert.strictEqual(results.excessList.length, 0);
+      assert.strictEqual(results.missingList.length, 0);
 
       // Test excessive deltas local tips
       results = await StateSync.compareLocalStateToRemote(api, [
@@ -254,6 +256,7 @@ describe("Ethereum advanced", function() {
 
       assert.strictEqual(results.excessList[0].address, secretContractAddress1);
       assert.strictEqual(results.excessList[0].remoteTip, 3);
+      assert.strictEqual(results.excessList[0].localTip, 5);
 
       // Test excessive deltas local tips 2
       results = await StateSync.compareLocalStateToRemote(api, [
@@ -267,10 +270,13 @@ describe("Ethereum advanced", function() {
 
       assert.strictEqual(results.excessList[0].address, secretContractAddress1);
       assert.strictEqual(results.excessList[0].remoteTip, 3);
+      assert.strictEqual(results.excessList[0].localTip, 5);
       assert.strictEqual(results.excessList[1].address, secretContractAddress2);
       assert.strictEqual(results.excessList[1].remoteTip, 1);
+      assert.strictEqual(results.excessList[1].localTip, 6);
       assert.strictEqual(results.excessList[2].address, secretContractAddress3);
       assert.strictEqual(results.excessList[2].remoteTip, -1);
+      assert.strictEqual(results.excessList[2].localTip, 7);
 
       api.unsubscribeAll();
       await res.environment.destroy();

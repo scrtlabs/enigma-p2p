@@ -12,9 +12,11 @@ const NODE_NOTIY = constants.NODE_NOTIFICATIONS;
  * - parse them into a format class "MissingStatesMap"
  * - and return the result to the caller.
  * @return {JSON} res:
- * { missingStatesMap - a map of the missing states, indexed by the address - address : {deltas: {index: deltaHash}, bytecodeHash},
- *   missingStatesMsgsMap -  a map of the messages requesting the missing states, indexed by the address - address : [Array<SyncResMsg>]
- * }
+ *       missingList - missing states [{address, deltas : [deltaHash, index]}].
+ *                     In case the entire contract is missing, the bytecodeHash is returned as well:
+ *                     [{address, bytecodeHash , deltas : [deltaHash, index]}]
+ *       excessList - excessive states [{address, remoteTip].
+ *                    In case the entire contract is excessive, the remoteTip field is set to -1
  * */
 class IdentifyMissingStatesAction {
   constructor(controller) {

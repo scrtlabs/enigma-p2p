@@ -7,7 +7,7 @@ const DbUtils = require("../common/DbUtils");
  * @return {Promise} returning a JSON: missingList - missing states [{address, deltas : [deltaHash, index]}].
  *                                                  In case the entire contract is missing, the bytecodeHash is returned as well:
  *                                                  [{address, bytecodeHash , deltas : [deltaHash, index]}]
- *                                    excessList - excessive states [{address, remoteTip].
+ *                                     excessList - excessive states [{address, remoteTip, localTip].
  *                                                  In case the entire contract is excessive, the remoteTip field is set to -1
  * */
 
@@ -49,7 +49,11 @@ async function compareLocalStateToRemote(api, localTips) {
         }
         // check if the local state has left over deltas
         if (firstMissingIndex > contractData.deltaHashes.length) {
-          excessList.push({ address: secretContractAddress, remoteTip: contractData.deltaHashes.length - 1 });
+          excessList.push({
+            address: secretContractAddress,
+            remoteTip: contractData.deltaHashes.length - 1,
+            localTip: firstMissingIndex - 1
+          });
         }
         for (let i = firstMissingIndex; i < contractData.deltaHashes.length; i++) {
           missingDeltas.push({
@@ -74,7 +78,7 @@ async function compareLocalStateToRemote(api, localTips) {
       }
       // Now check that there are no excessive contracts locally
       for (let secretContractAddress of Object.keys(tipsMap)) {
-        excessList.push({ address: secretContractAddress, remoteTip: -1 });
+        excessList.push({ address: secretContractAddress, remoteTip: -1, localTip: tipsMap[secretContractAddress] });
       }
     } catch (err) {
       return reject(err);
