@@ -289,11 +289,13 @@ describe("Ethereum advanced", function() {
       await start();
       await res.environment.destroy();
 
-      StateSync.getRemoteMissingStates(api, [], async (err, results) => {
+      try {
+        await StateSync.compareLocalStateToRemote(api, []);
+      } catch (err) {
         assert.notStrictEqual(err, null);
         await stop();
         resolve();
-      });
+      }
     });
   });
 

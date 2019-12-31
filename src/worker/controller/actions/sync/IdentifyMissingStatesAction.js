@@ -1,4 +1,3 @@
-const LocalMissingStateResult = require("../../../state_sync/receiver/LocalMissingStatesResult");
 const StateSync = require("../../../../ethereum/StateSync");
 const constants = require("../../../../common/constants");
 const errs = require("../../../../common/errors");
@@ -21,7 +20,6 @@ class IdentifyMissingStatesAction {
   constructor(controller) {
     this._controller = controller;
   }
-
   execute(params) {
     const useCache = params.cache;
     const callback = params.onResponse;
@@ -42,64 +40,27 @@ class IdentifyMissingStatesAction {
             }
             return callback(error);
           }
-          return IdentifyMissingStatesAction._buildMissingStatesResult(
-            this._controller.ethereum().api(),
-            localTips,
-            (err, res) => {
-              if (err) {
-                return callback(err);
-              }
-              return callback(null, res);
-            }
-          );
+          StateSync.compareLocalStateToRemote(this._controller.ethereum().api(), localTips)
+            .then(res => {
+              callback(null, res);
+            })
+            .catch(err => callback(err));
         }
       });
     }
   }
-
-  async static _buildMissingStatesResult(enigmaContractApi, localTips, cb) {
-    // TODO:: method not static and get StateSync from this._controller.ethereum()....
-    try {
-      const {missingList, excessList} = await StateSync.compareLocalStateToRemote(enigmaContractApi, localTips);
-      const res = { missingStatesMap: {}, missingStatesMsgsMap: {} };
-
-      const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
-      const finalOutput = {};
-      for (const addrKey in result) {
-        const obj = result[addrKey];
-        if (obj.bcodeReq) {
-          obj.deltasReq.push(obj.bcodeReq);
-        }
-        finalOutput[addrKey] = obj.deltasReq;
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      if (!params) {
+        params = {};
       }
-      res.missingStatesMap = IdentifyMissingStatesAction._transformMissingStatesListToMap(missingList);
-      res.missingStatesMsgsMap = finalOutput;
-      return cb(null, res);
-    }
-    catch (err) {
-      return cb(err);
-    }
-
-  }
-  static _transformMissingStatesListToMap(missingStatesList) {
-    const missingStatesMap = {};
-    for (let i = 0; i < missingStatesList.length; ++i) {
-      const deltasMap = {};
-      for (let j = 0; j < missingStatesList[i].deltas.length; j++) {
-        const index = missingStatesList[i].deltas[j].index;
-        const deltaHash = missingStatesList[i].deltas[j].deltaHash;
-        deltasMap[index] = deltaHash;
-      }
-      if ("bytecodeHash" in missingStatesList[i]) {
-        missingStatesMap[missingStatesList[i].address] = {
-          deltas: deltasMap,
-          bytecodeHash: missingStatesList[i].bytecodeHash
-        };
-      } else {
-        missingStatesMap[missingStatesList[i].address] = { deltas: deltasMap };
-      }
-    }
-    return missingStatesMap;
+      params.onResponse = function(err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      };
+      action.execute(params);
+    });
   }
 }
 module.exports = IdentifyMissingStatesAction;

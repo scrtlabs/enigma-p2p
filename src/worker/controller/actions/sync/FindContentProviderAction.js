@@ -1,7 +1,3 @@
-const constants = require("../../../../common/constants");
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
-
 /**
  * Find content providers to provide data
  * Takes list of hashes -> turns them into cid's
@@ -17,7 +13,20 @@ class FindContentProviderAction {
     const isEngCid = params.isEngCid;
     this._controller.receiver().findProvidersBatch(descriptorsList, isEngCid, findProviderResult => {
       // TODO:: add error param to the callback.
-      next(findProviderResult);
+      next(null, findProviderResult);
+    });
+  }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      if (!params) {
+        params = {};
+      }
+      params.next = function(err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      };
+      action.execute(params);
     });
   }
 }
