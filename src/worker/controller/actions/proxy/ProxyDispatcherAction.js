@@ -64,9 +64,13 @@ class ProxyDispatcherAction {
       result = await this._controller.asyncExecCmd(type, {
         taskId: requestEnvelop.content().taskId
       });
-      result = JSON.parse(result.toDbJson());
+      if (result) {
+        result = JSON.parse(result.toDbJson());
+      } else {
+        this._controller.logger().info(`[PROXY_DISPATCH] received an empty result`);
+      }
     } catch (e) {
-      this._controller.logger().info(`[PROXY_DISPATCH] error getting result ${e}`);
+      this._controller.logger().info(`[PROXY_DISPATCH] problem in getting result ${e}`);
     } finally {
       const responseEnvelop = new Envelop(requestEnvelop.id(), { result: result }, requestEnvelop.type());
       this._controller.communicator().send(responseEnvelop);

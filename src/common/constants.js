@@ -55,7 +55,8 @@ module.exports.NODE_NOTIFICATIONS = {
   LOGIN: "login", // login to Enigma contract
   LOGOUT: "logout", // logout from Enigma contract
   GET_ETH_WORKER_PARAM: "getworkparams", // get worker params set in Enigma contract
-  HEALTH_CHECK: "healthcheck"
+  HEALTH_CHECK: "healthcheck",
+  GET_WORKER_STATUS: "getworkstatus"
 };
 /** DO NOT CHANGE THE VALUES */
 module.exports.PROTOCOLS = {
@@ -264,10 +265,13 @@ module.exports.PTT_END_EVENT = "PTT";
 module.exports.MINIMUM_CONFIRMATIONS = 12;
 
 module.exports.WEB_SERVER_CONSTANTS = {
-  HEALTH_CHECK: {
-    port: 12345,
-    url: "/healthcheck",
-    error_code: 500,
+  port: 12345,
+  error_code: 500,
+  health: {
+    url: "/healthcheck"
+  },
+  status: {
+    url: "/status"
   },
   MGMT: {
     port: 23456,
@@ -276,11 +280,12 @@ module.exports.WEB_SERVER_CONSTANTS = {
   }
 };
 
-module.exports.STATUS_FILE_PATH = "/root/.enigma/status";
 /**
- * Ethereum Enigma contract events, defined by the different services exposed by the EthereumServices
+ * Enigma Contract worker status
  * */
-module.exports.STATUS = {
-  Registered: "Registered",
-  LoggedIn: "Logged In",
+module.exports.WORKER_STATUS = {
+  INITIALIZING: "initializing",
+  UNREGISTERED: "unregistered",
+  REGISTERED: "registered",
+  LOGGEDIN: "logged-in"
 };

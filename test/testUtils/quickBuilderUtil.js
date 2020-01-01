@@ -9,6 +9,7 @@ const _B2Port = "10301";
 const _B1Addr = "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
 const _B2Addr = "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP";
 const tempdir = require("tempdir");
+
 /**
  * public
  * */
@@ -34,7 +35,7 @@ const getDefault = () => {
     withTasksDb: true, // with tasks database
     taskDbPath: null, // optional if set, then use specific  task dbpath location for tasks (withtasksDb should be set true)
     principalUri: null,
-    stateful: false,
+    coreDb: null,
     webserver: null // optional, true if a local DB is needed for testing- stores data in a hashMap on memory
   };
 };
@@ -158,7 +159,7 @@ const _createNode = async options => {
     }
     const uri = "tcp://127.0.0.1:" + port;
     coreServer = new CoreServer();
-    coreServer.runServer(uri, options.stateful);
+    coreServer.runServer(uri, options.coreDb);
     builder.setIpcConfig({ uri: uri });
   }
   if (options.withProxy) {
@@ -179,7 +180,8 @@ const _createNode = async options => {
       ethereumWebsocketProvider: options.ethWS,
       enigmaContractAddress: options.ethExistingAddr,
       operationalAddress: options.ethWorkerAddress,
-      stakingAddress: options.ethStakingAddress
+      stakingAddress: options.ethStakingAddress,
+      operationalKey: options.ethWorkerPrivateKey
     });
   }
   let dbPath = null;

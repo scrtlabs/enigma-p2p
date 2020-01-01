@@ -1,6 +1,5 @@
 const EnigmaContractReaderAPI = require("./EnigmaContractReaderAPI");
 const EnigmaContractWriterAPI = require("./EnigmaContractWriterAPI");
-const EnigmaContractProductionWriterAPI = require("./EnigmaContractProductionWriterAPI");
 const Logger = require("../common/logger");
 const path = require("path");
 const { exec, spawn } = require("child_process");
@@ -162,27 +161,16 @@ class EnigmaContractAPIBuilder {
     }
 
     if (this.apiWriterFlag) {
-      if (this.operationalKey) {
-        this.api = await new EnigmaContractProductionWriterAPI(
-          this.enigmaContractAddress,
-          this.enigmaContractABI,
-          this.web3,
-          this.logger(),
-          this.operationalAddress,
-          this.operationalKey,
-          this.stakingAddress,
-          this.minimunConfirmations
-        );
-      } else {
-        this.api = await new EnigmaContractWriterAPI(
-          this.enigmaContractAddress,
-          this.enigmaContractABI,
-          this.web3,
-          this.logger(),
-          this.operationalAddress,
-          this.stakingAddress
-        );
-      }
+      this.api = await new EnigmaContractWriterAPI(
+        this.enigmaContractAddress,
+        this.enigmaContractABI,
+        this.web3,
+        this.logger(),
+        this.operationalAddress,
+        this.operationalKey,
+        this.stakingAddress,
+        this.minimunConfirmations
+      );
     } else {
       this.api = await new EnigmaContractReaderAPI(
         this.enigmaContractAddress,
