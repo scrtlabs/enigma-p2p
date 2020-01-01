@@ -1,4 +1,3 @@
-const fs = require("fs");
 const constants = require("../../../../common/constants");
 
 class RegisterAction {
@@ -16,14 +15,12 @@ class RegisterAction {
           const signerAddress = regParams.result.signingKey;
           const report = regParams.result.report;
           const signature = regParams.result.signature;
-          fs.writeFile(constants.STATUS_FILE_PATH, "Registering...", "utf8", () => {});
           try {
             await this._controller
                 .ethereum()
                 .api()
                 .register(signerAddress, report, signature);
             this._controller.logger().info("[REGISTER] successful registration");
-            fs.writeFile(constants.STATUS_FILE_PATH, constants.STATUS.Registered, "utf8", () => {});
             success = true;
           } catch (e) {
             this._controller.logger().error(`[REGISTER] error=  ${e}`);

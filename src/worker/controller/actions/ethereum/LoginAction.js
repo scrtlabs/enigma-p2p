@@ -1,6 +1,3 @@
-const fs = require("fs");
-const constants = require("../../../../common/constants");
-
 class LoginAction {
   constructor(controller) {
     this._controller = controller;
@@ -9,14 +6,12 @@ class LoginAction {
     const onResult = params.onResponse;
     let loginSuccess = false;
     let err = null;
-    fs.writeFile(constants.STATUS_FILE_PATH, "Logging in...", "utf8", () => {});
     try {
       await this._controller
         .ethereum()
         .api()
         .login();
       this._controller.logger().info(`[LOGIN] successful login`);
-      fs.writeFile(constants.STATUS_FILE_PATH, "Running", "utf8", () => {});
       loginSuccess = true;
     } catch (e) {
       this._controller.logger().error(`[LOGIN] error in login error=  ${e}`);
