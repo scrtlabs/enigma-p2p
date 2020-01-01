@@ -37,7 +37,7 @@ class VerifyAndStoreResultAction {
 
     this._controller
       .logger()
-      .debug("[RECEIVED_RESULT] taskId {" + resultObj.taskId + "} \nstatus {" + resultObj.status + "}");
+      .info("[RECEIVED_RESULT] taskId {" + resultObj.taskId + "} \nstatus {" + resultObj.status + "}");
 
     let { taskResult, err } = this._buildTaskResult(type, resultObj);
     if (!err) {
@@ -96,7 +96,7 @@ class VerifyAndStoreResultAction {
 
       this._controller
         .logger()
-        .debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId}: is_err ?  ${error}`);
+        .info(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId}: is_err ?  ${error}`);
       if (optionalCallback) {
         optionalCallback(error);
       }
@@ -104,7 +104,7 @@ class VerifyAndStoreResultAction {
       // if (err)
       this._controller
         .logger()
-        .debug(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId} with an error:  ${err}`);
+        .info(`[VERIFY_AND_STORE_RESULT] finished for task ${resultObj.taskId} with an error:  ${err}`);
       if (optionalCallback) {
         optionalCallback(err);
       }

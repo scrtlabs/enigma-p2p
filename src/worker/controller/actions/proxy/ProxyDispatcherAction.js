@@ -70,7 +70,7 @@ class ProxyDispatcherAction {
         this._controller.logger().info(`[PROXY_DISPATCH] received an empty result`);
       }
     } catch (e) {
-      this._controller.logger().info(`[PROXY_DISPATCH] error getting result ${e}`);
+      this._controller.logger().info(`[PROXY_DISPATCH] problem in getting result ${e}`);
     } finally {
       const responseEnvelop = new Envelop(requestEnvelop.id(), { result: result }, requestEnvelop.type());
       this._controller.communicator().send(responseEnvelop);
