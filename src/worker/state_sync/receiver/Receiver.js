@@ -1,14 +1,15 @@
 const EventEmitter = require("events").EventEmitter;
 const CIDUtil = require("../../../common/CIDUtil");
 const EngCID = require("../../../common/EngCID");
-const EncoderUtil = require("../../../common/EncoderUtil");
 const parallel = require("async/parallel");
 const Policy = require("../../../policy/policy");
 const FindProviderResult = require("./FindProviderResult");
 const pull = require("pull-stream");
-const streams = require("../streams");
 const waterfall = require("async/waterfall");
 const constants = require("../../../common/constants");
+const Verifier = require("./StateSyncReqVerifier");
+const SyncMsgMgmgt = require("../../../policy/p2p_messages/sync_messages");
+const SyncMsgBuilder = SyncMsgMgmgt.MsgBuilder;
 
 class Receiver extends EventEmitter {
   constructor(enigmaNode, logger) {
@@ -18,7 +19,6 @@ class Receiver extends EventEmitter {
     this._engNode = enigmaNode;
     this._logger = logger;
     this._remoteMissingStatesMap = null;
-    streams.setGlobalState({ logger: this._logger, receiverContext: this });
   }
 
   /**
@@ -111,10 +111,10 @@ class Receiver extends EventEmitter {
       }
       pull(
         pull.values(stateSyncReqMsgs),
-        streams.toNetworkSyncReqParser,
+        this._toNetworkSyncReqParser.bind(this),
         connectionStream,
-        streams.verificationStream,
-        streams.throughDbStream,
+        this._verificationStream.bind(this),
+        this._throughDbStream.bind(this),
         pull.map(data => {
           const status = {};
           status.ipcType = data.status.type;
@@ -216,12 +216,62 @@ class Receiver extends EventEmitter {
   setRemoteMissingStatesMap(remoteMissingStatesMap) {
     this._remoteMissingStatesMap = remoteMissingStatesMap;
   }
-  /**
-   * get the missing state needed for the sync scenario
-   * @return {Object} remoteMissingStatesMap
-   * */
-  getRemoteMissingStatesMap() {
-    return this._remoteMissingStatesMap;
+
+  _throughDbStream(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          this.dbWrite({
+            data: data,
+            callback: (err, status) => {
+              if (!status || err) {
+                this._logger.error(`an error received while trying to save to DB`);
+                throw end;
+              } else {
+                cb(end, { status: status, data: data });
+              }
+            }
+          });
+        } else {
+          cb(end, null);
+        }
+      });
+    };
+  }
+
+  _toNetworkSyncReqParser(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          cb(end, data.toNetwork());
+        } else {
+          cb(end, null);
+        }
+      });
+    };
+  }
+
+  _verificationStream(read) {
+    return (end, cb) => {
+      read(end, (end, data) => {
+        if (data != null) {
+          data = SyncMsgBuilder.responseMessageFromNetwork(data);
+          if (data == null) {
+            return cb(true, null);
+          }
+          // verify the data
+          Verifier.verify(this._remoteMissingStatesMap, data, (err, isOk) => {
+            if (isOk) {
+              return cb(end, data);
+            } else {
+              return cb("Error in verification with Ethereum: " + err, null);
+            }
+          });
+        } else {
+          return cb(end, null);
+        }
+      });
+    };
   }
 }
 module.exports = Receiver;

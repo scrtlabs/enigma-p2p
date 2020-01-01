@@ -242,7 +242,7 @@ typings/
 coverage.lcov
 
 # Contracts build products
-test/ethereum/scripts/build/contracts/*
+test/ethereum/scripts/build/
 
 # db created from task manager
 test/*.deletedb

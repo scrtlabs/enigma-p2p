@@ -137,21 +137,21 @@ class EnigmaNode extends EventEmitter {
     if (!this.started) {
       throw Error("not all protocols are satisfied, check constants.js for more info.");
     }
-    this.node.on(PROTOCOLS["PEER_DISCOVERY"], peer => {
-      this._handler.handle(PROTOCOLS["PEER_DISCOVERY"], this.node, {
+    this.node.on(PROTOCOLS.PEER_DISCOVERY, peer => {
+      this._handler.handle(PROTOCOLS.PEER_DISCOVERY, this.node, {
         peer: peer,
         worker: this
       });
     });
 
-    this.node.on(PROTOCOLS["PEER_CONNECT"], peer => {
-      this._handler.handle(PROTOCOLS["PEER_CONNECT"], this.node, {
+    this.node.on(PROTOCOLS.PEER_CONNECT, peer => {
+      this._handler.handle(PROTOCOLS.PEER_CONNECT, this.node, {
         peer: peer,
         worker: this
       });
     });
-    this.node.on(PROTOCOLS["PEER_DISCONNECT"], peer => {
-      this._handler.handle(PROTOCOLS["PEER_DISCONNECT"], this.node, {
+    this.node.on(PROTOCOLS.PEER_DISCONNECT, peer => {
+      this._handler.handle(PROTOCOLS.PEER_DISCONNECT, this.node, {
         peer: peer,
         worker: this
       });
@@ -299,12 +299,6 @@ class EnigmaNode extends EventEmitter {
    */
   getAllPeersIds() {
     return this.node.stats.peers();
-  }
-  /** Get PeerBook
-   * @return {Array} ,the list of all the PeerInfo are in the peerBook of the current EnigmaNode
-   */
-  getSelfPeerBookIds() {
-    return this.node.peerBook.getAllArray();
   }
   /** TODO: update once libp2p version is upgraded !!!!!!!!
    * @return {Array}, the current connected peers

@@ -261,10 +261,6 @@ A [class](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647b
 
 A [class](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/provider/Provider.js#L9) that responsible for the content providing logic.
 
-**Streams**
-
-All the streams are in [one place](https://github.com/enigmampc/enigma-p2p/blob/6dddeb5e1e3f7d20e0c9c647be8bad7140bc1285/src/worker/state_sync/streams.js). If a stream needs a stateful reference, for example the ability to query the database, it should be initialized in the `setGlobalState()` method.
-
 **Related Actions**
 
 The [Actions](https://github.com/enigmampc/enigma-p2p/tree/mexico_branch/src/worker/controller/actions/sync) with the operational logic inside `NodeController`.
@@ -465,7 +461,6 @@ It's not over yet, if we look deeper, in the above diagram there is a state that
 
 - [Provider](https://github.com/enigmampc/enigma-p2p/tree/develop/src/worker/state_sync/provider)
 - [Receiver](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/receiver/Receiver.js)
-- [streams implementation](https://github.com/enigmampc/enigma-p2p/blob/develop/src/worker/state_sync/streams.js)
 
 A `Receiver` can request either a bytecode or deltas (limited up to 500 deltas per request). To handle backpressure and DOS attacks each request is handled once the previous is done, i.e the `Receiver` will send another reuqest to the `Provider` only after verifying and storing the current request.
 

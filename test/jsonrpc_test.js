@@ -95,7 +95,6 @@ describe("JsonRPC tests", () => {
           cb => {
             // start the mock server first
             coreServer = new CoreServer();
-            coreServer.setProvider(true);
             coreServer.runServer(workerCoreUri);
             cb(null);
           },

@@ -28,9 +28,9 @@ class Logger {
             tokens: {
               getTime: function(logEvent) {
                 return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
-              },
-            },
-          },
+              }
+            }
+          }
         },
         err: {
           type: "stderr",
@@ -40,9 +40,9 @@ class Logger {
             tokens: {
               getTime: function(logEvent) {
                 return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
-              },
-            },
-          },
+              }
+            }
+          }
         },
         cli: {
           type: "stdout",
@@ -52,10 +52,10 @@ class Logger {
             tokens: {
               getTime: function(logEvent) {
                 return format.asString("yyyy-MM-ddThh:mm:ss", new Date(new Date().toUTCString().slice(0, -4)));
-              },
-            },
-          },
-        },
+              }
+            }
+          }
+        }
       },
       categories: {
         [logName]: { appenders: ["file", "out"], level: logLevel, enableCallStack: true },
@@ -74,7 +74,7 @@ class Logger {
   error(content) {
     this.logger.error(content);
   }
-  warn(content) {
+  warning(content) {
     this.logger.warn(content);
   }
   fatal(content) {
