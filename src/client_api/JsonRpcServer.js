@@ -34,7 +34,7 @@ class JsonRpcServer extends EventEmitter {
         },
         getWorkerEncryptionKey: async (args, callback) => {
           if (args.userPubKey && args.workerAddress) {
-            this._logger.info("[+] JsonRpc: getWorkerEncryptionKey");
+            this._logger.info("JSON RPC: getWorkerEncryptionKey request");
             const workerSignKey = args.workerAddress;
             const userPubKey = args.userPubKey;
             const content = {
@@ -59,7 +59,7 @@ class JsonRpcServer extends EventEmitter {
         },
         deploySecretContract: async (args, callback) => {
           if (this._shouldRouteMessage(args)) {
-            this._logger.info("[+] JsonRpc: deploySecretContract");
+            this._logger.info("JSON RPC: deploySecretContract request. Task-Id=" + args.contractAddress);
             let expected = ["workerAddress", "preCode", "encryptedArgs", "encryptedFn", "userDHKey", "contractAddress"];
             this._routeTask(constants.CORE_REQUESTS.DeploySecretContract, expected, args, callback);
           } else {
@@ -68,7 +68,7 @@ class JsonRpcServer extends EventEmitter {
         },
         sendTaskInput: async (args, callback) => {
           if (this._shouldRouteMessage(args)) {
-            this._logger.info("[+] JsonRpc: sendTaskInput");
+            this._logger.info("JSON RPC: sendTaskInput request. Task-Id=" + args.taskId);
             let expected = ["taskId", "workerAddress", "encryptedArgs", "encryptedFn", "userDHKey", "contractAddress"];
             this._routeTask(constants.CORE_REQUESTS.ComputeTask, expected, args, callback);
           } else {
@@ -77,7 +77,7 @@ class JsonRpcServer extends EventEmitter {
         },
         getTaskStatus: async (args, callback) => {
           if (args.workerAddress && args.taskId) {
-            this._logger.info("[+] JsonRpc: getTaskStatus");
+            this._logger.info("JSON RPC: getTaskStatus request. Task-Id=" + args.taskId);
             let coreRes = await this._routeNext({
               taskId: args.taskId,
               workerAddress: args.workerAddress,
@@ -103,7 +103,7 @@ class JsonRpcServer extends EventEmitter {
         },
         getTaskResult: async (args, callback) => {
           if (args.taskId) {
-            this._logger.info("[+] JsonRpc: getTaskResult");
+            this._logger.info("JSON RPC: getTaskResult request. Task-Id=" + args.taskId);
             let coreRes = await this._routeNext({
               taskId: args.taskId,
               type: constants.NODE_NOTIFICATIONS.GET_TASK_RESULT
@@ -135,7 +135,7 @@ class JsonRpcServer extends EventEmitter {
       let result = resEnv.content();
       return result;
     } catch (e) {
-      this._logger.error("[-] JsonRpc ERR: " + e);
+      this._logger.error("JSON RPC ERR: " + e);
       return null;
     }
   }
@@ -146,7 +146,6 @@ class JsonRpcServer extends EventEmitter {
     if (isMissing) {
       return callback({ code: this._INVALID_PARAM, message: "Invalid params" });
     }
-    this._logger.info("[+] JsonRpc: " + type);
     let coreRes = await this._routeNext({
       type: type,
       request: args
