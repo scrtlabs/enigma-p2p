@@ -44,6 +44,7 @@ class CLI {
     this._logLevel = "info";
     this._healthCheckPort = null;
     this._healthCheckUrl = null;
+    this._statusUrl = null;
 
     this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
     this._B1Port = "10300";
@@ -315,11 +316,14 @@ class CLI {
       .option("--lonely-node", "is it the only node in a system", () => {
         this._isLonelyNode = true;
       })
-      .option("--health [value]", "start a service for health check queries", port => {
+      .option("--health [value]", "start a service for health check and status queries", port => {
         this._healthCheckPort = port;
       })
       .option("--health-url [value]", "define the health check queries url", url => {
         this._healthCheckUrl = url;
+      })
+      .option("--status-url [value]", "define the status queries url", url => {
+        this._statusUrl = url;
       })
       .option("--logout-and-exit", "Log out and then exit", () => {
         this._logoutExit = true;
@@ -358,7 +362,6 @@ class CLI {
       const uri = "tcp://" + this._coreAddressPort;
       if (this._mockCore) {
         const coreServer = new CoreServer();
-        coreServer.setProvider(true);
         coreServer.runServer(uri);
       }
       builder.setIpcConfig({ uri: uri });
@@ -419,8 +422,12 @@ class CLI {
     if (this._autoInit) {
       nodeConfig.extraConfig.init = { autoInit: true };
     }
-    if (this._healthCheckPort || this._healthCheckUrl) {
-      nodeConfig.extraConfig.webserver = { healthCheck: { port: this._healthCheckPort, url: this._healthCheckUrl } };
+    if (this._healthCheckPort || this._healthCheckUrl || this._statusUrl) {
+      nodeConfig.extraConfig.webserver = {
+        port: this._healthCheckPort,
+        healthCheck: { url: this._healthCheckUrl },
+        status: { url: this._statusUrl }
+      };
     }
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();

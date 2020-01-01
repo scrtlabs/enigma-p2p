@@ -141,8 +141,8 @@ class InitWorkerAction {
           this._controller.logger().error("error InitWorkerAction " + err);
         } else {
           this._controller.logger().info("success InitWorkerAction");
-          this._controller.initWorkerDone();
         }
+        this._controller.initWorkerDone();
         if (callback) {
           callback(err);
         }

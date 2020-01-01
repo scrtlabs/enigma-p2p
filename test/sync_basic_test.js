@@ -69,7 +69,8 @@ async function initEthereumStuff() {
     enigmaContractApi: enigmaContractApi,
     web3: web3,
     workerEnclaveSigningAddress: workerEnclaveSigningAddress,
-    workerAddress: workerAddress,
+    workerAccount: workerAccount,
+    stakingAccount: stakingAccount,
     environment: res.environment
   };
 }
@@ -205,7 +206,7 @@ function syncTest(scenario) {
     const api = ethereumInfo.enigmaContractApi;
     const web3 = ethereumInfo.web3;
     const workerEnclaveSigningAddress = ethereumInfo.workerEnclaveSigningAddress;
-    const workerAddress = ethereumInfo.workerAddress;
+    const workerAddress = ethereumInfo.workerAccount.address;
     const enigmaContractAddress = ethereumInfo.enigmaContractAddress;
 
     // start the dns
@@ -215,14 +216,19 @@ function syncTest(scenario) {
       .setIpcConfig({ uri: dnsMockUri })
       .build();
 
-    // start the dns
+    // start the dns (with the same ethereum accounts)
     const peerBuilder = new EnvironmentBuilder();
     const peerController = await peerBuilder
       .setNodeConfig(peerConfig)
       .setIpcConfig({ uri: peerMockUri })
-      .setEthereumConfig({ enigmaContractAddress: enigmaContractAddress })
+      .setEthereumConfig({
+        enigmaContractAddress: enigmaContractAddress,
+        operationalAddress: workerAddress,
+        operationalKey: ethereumInfo.workerAccount.privateKey,
+        minConfirmations: 0,
+        stakingAddress: ethereumInfo.stakingAccount.address
+      })
       .build();
-
     // write all states to ethereum
     await ethTestUtils.setEthereumState(api, web3, workerAddress, workerEnclaveSigningAddress, providerDB);
     await testUtils.sleep(8000);
