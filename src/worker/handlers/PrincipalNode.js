@@ -61,7 +61,8 @@ class PrincipalNode extends EventEmitter {
                 response.error.code === PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE)) &&
             operation.retry(true)
           ) {
-            this._logger.debug("Error received from KM, will retry..");
+            const error = err || PRINCIPAL_CONSTANTS.EPOCH_STATE_TRANSITION_ERROR_CODE;
+            this._logger.debug("Error received from KM, will retry. Error code =" + error);
             return;
           }
 
