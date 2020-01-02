@@ -52,11 +52,11 @@ steps:
         if [[ "$MATCHING_BRANCH_CORE" -eq 1 ]]; then
           make clone-core BRANCH=${DRONE_BRANCH}
           make clone-km BRANCH=${DRONE_BRANCH}
+          make build-km DOCKER_TAG=$DOCKER_TAG
         else
           make clone-core BRANCH=develop
-          make clone-km BRANCH=develop
+          docker tag "enigmampc/key_management_hw:develop" "enigmampc/key_management_hw:$DOCKER_TAG"
         fi
-      - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=1
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES &
