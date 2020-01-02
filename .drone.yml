@@ -86,7 +86,6 @@ steps:
       - echo $PASSWORD | docker login -u $USERNAME --password-stdin
       - if [[ ${DRONE_BRANCH} == "master" ]]; then export DOCKER_TAG=latest; else export DOCKER_TAG=develop; fi
       - make clone-core BRANCH=${DRONE_BRANCH}
-
       - make clone-p2p BRANCH=${DRONE_BRANCH}
       - make clone-km BRANCH=${DRONE_BRANCH}
       - make build-core BRANCH=$DOCKER_TAG SGX_MODE=SW 
@@ -95,8 +94,10 @@ steps:
       - make build-core BRANCH=$DOCKER_TAG 
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
+      - docker push enigmampc/enigmampc/core-artifact-sw:$DOCKER_TAG
       - docker push enigmampc/worker_sw:$DOCKER_TAG
       - docker push enigmampc/key_management_sw:$DOCKER_TAG
+      - docker push enigmampc/enigmampc/core-artifact-hw:$DOCKER_TAG
       - docker push enigmampc/worker_hw:$DOCKER_TAG
       - docker push enigmampc/key_management_hw:$DOCKER_TAG
 
