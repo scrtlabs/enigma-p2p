@@ -56,7 +56,9 @@ steps:
           make clone-km BRANCH=${DRONE_BRANCH}
           make build-km DOCKER_TAG=$DOCKER_TAG
         else
+          docker pull enigmampc/key_management_hw:develop
           docker tag "enigmampc/key_management_hw:develop" "enigmampc/key_management_hw:$DOCKER_TAG"
+          docker pull enigmampc/core-artifact-hw:develop
           docker tag "enigmampc/core-artifact-hw:develop" "enigmampc/core-artifact-hw:$DOCKER_TAG"
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
