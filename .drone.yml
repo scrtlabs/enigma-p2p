@@ -57,6 +57,7 @@ steps:
           make build-km DOCKER_TAG=$DOCKER_TAG
         else
           docker tag "enigmampc/key_management_hw:develop" "enigmampc/key_management_hw:$DOCKER_TAG"
+          docker tag "enigmampc/core-artifact-hw:develop" "enigmampc/core-artifact-hw:$DOCKER_TAG"
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
