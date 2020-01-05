@@ -1,6 +1,7 @@
 kind: pipeline
 name: default
 steps:
+
   - name: integration
     image: enigmampc/docker-client
     privileged: true
@@ -65,11 +66,8 @@ steps:
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client &
       - sleep 240
       - docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
-      - if [ $RESULT -ne 0 ]; then exit 1; fi
-      - export NEW_NODE_NUMBER=$(($NODES + 1))
-      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NEW_NODE_NUMBER
-      - timeout 60 /bin/bash -c 'SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml logs -f | grep -m 1 -F "success syncing pipeline"'
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
+      - if [ $RESULT -ne 0 ]; then exit 1; fi
 
   - name: deploy
     image: enigmampc/docker-client
@@ -95,10 +93,10 @@ steps:
       - make clone-core BRANCH=${DRONE_BRANCH}
       - make clone-p2p BRANCH=${DRONE_BRANCH}
       - make clone-km BRANCH=${DRONE_BRANCH}
-      - make build-core SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
+      - make build-core SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG 
       - make build-km SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
       - make build-worker SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
-      - make build-core DOCKER_TAG=$DOCKER_TAG
+      - make build-core DOCKER_TAG=$DOCKER_TAG 
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - docker push enigmampc/enigmampc/core-artifact-sw:$DOCKER_TAG
