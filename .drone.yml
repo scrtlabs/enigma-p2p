@@ -51,15 +51,18 @@ steps:
       - |
         if [[ "$MATCHING_BRANCH_CORE" -eq 1 ]]; then
           make clone-core BRANCH=${DRONE_BRANCH}
+          make build-core DOCKER_TAG=$DOCKER_TAG
           make clone-km BRANCH=${DRONE_BRANCH}
           make build-km DOCKER_TAG=$DOCKER_TAG
         else
-          make clone-core BRANCH=develop
+          docker pull enigmampc/key_management_hw:develop
           docker tag "enigmampc/key_management_hw:develop" "enigmampc/key_management_hw:$DOCKER_TAG"
+          docker pull enigmampc/core-artifact-hw:develop
+          docker tag "enigmampc/core-artifact-hw:develop" "enigmampc/core-artifact-hw:$DOCKER_TAG"
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
-      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES &
+      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client &
       - sleep 240
       - docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
       - if [ $RESULT -ne 0 ]; then exit 1; fi
@@ -92,12 +95,16 @@ steps:
       - make clone-core BRANCH=${DRONE_BRANCH}
       - make clone-p2p BRANCH=${DRONE_BRANCH}
       - make clone-km BRANCH=${DRONE_BRANCH}
+      - make build-core SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
       - make build-km SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
       - make build-worker SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
+      - make build-core DOCKER_TAG=$DOCKER_TAG
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
+      - docker push enigmampc/enigmampc/core-artifact-sw:$DOCKER_TAG
       - docker push enigmampc/worker_sw:$DOCKER_TAG
       - docker push enigmampc/key_management_sw:$DOCKER_TAG
+      - docker push enigmampc/enigmampc/core-artifact-hw:$DOCKER_TAG
       - docker push enigmampc/worker_hw:$DOCKER_TAG
       - docker push enigmampc/key_management_hw:$DOCKER_TAG
 
