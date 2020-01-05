@@ -6,7 +6,7 @@ const format = require("date-format");
 class Logger {
   constructor(options = {}) {
     const logName = options.hasOwnProperty("name") ? options.name : "Logger";
-    const logLevel = LOG_CONFIG.level; //options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
+    const logLevel = options.hasOwnProperty("level") ? options.level : LOG_CONFIG.level;
 
     log4js.configure({
       appenders: {
