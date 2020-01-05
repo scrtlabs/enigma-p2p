@@ -22,7 +22,7 @@ class IdentifyMissingStatesAction {
   constructor(controller) {
     this._controller = controller;
   }
-  execute(params) {
+  async execute(params) {
     const useCache = params.cache;
     const callback = params.onResponse;
     if (useCache) {
@@ -31,26 +31,24 @@ class IdentifyMissingStatesAction {
         // TODO:: if cache empty still query core since maybe it was deleted or first time
       });
     } else {
-      this._controller.execCmd(NODE_NOTIY.GET_ALL_TIPS, {
-        cache: useCache,
-        onResponse: (err, localTips) => {
-          // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
-          if (err || !this._controller.hasEthereum()) {
-            let error = err;
-            if (!this._controller.hasEthereum()) {
-              error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
-            }
-            return callback(error);
-          }
-          StateSync.compareLocalStateToRemote(this._controller.ethereum().api(), localTips)
-            .then(res => {
-              callback(null, res);
-            })
-            .catch(err => callback(err));
+      try {
+        // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
+        const localTips = await this._controller.asyncExecCmd(NODE_NOTIY.GET_ALL_TIPS, { cache: useCache });
+        if (!this._controller.hasEthereum()) {
+          const error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
+          return callback(error);
         }
-      });
+        StateSync.compareLocalStateToRemote(this._controller.ethereum().api(), localTips)
+          .then(res => {
+            callback(null, res);
+          })
+          .catch(err => callback(err));
+      } catch (err) {
+        return callback(err);
+      }
     }
   }
+
   async asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
