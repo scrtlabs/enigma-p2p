@@ -58,7 +58,7 @@ steps:
           docker tag "enigmampc/key_management_hw:develop" "enigmampc/key_management_hw:$DOCKER_TAG"
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
-      - export NODES=1
+      - export NODES=3
       - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES &
       - sleep 240
       - docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
