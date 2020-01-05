@@ -60,7 +60,7 @@ steps:
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
-      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up -d --scale worker=$NODES
+      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES &
       - sleep 240
       - docker-compose exec -T client make test
       - export NEW_NODE_NUMBER=$(($NODES + 1))
