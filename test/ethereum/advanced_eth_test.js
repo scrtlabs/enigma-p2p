@@ -62,7 +62,7 @@ describe("Ethereum advanced", function() {
     await res.environment.destroy();
   }
 
-  it("empty local tips, partial local tips, partial local tips 2, full local tips", async function() {
+  it("test compareLocalStateToRemote", async function() {
     const tree = TEST_TREE.ethereum_advanced;
     if (!tree["all"] || !tree["#1"]) {
       this.skip();
@@ -72,8 +72,9 @@ describe("Ethereum advanced", function() {
       await start();
       const web3 = api.w3();
 
-      const secretContractAddress1 = utils.remove0x(web3.utils.randomHex(32)); // accounts[5];
-      const secretContractAddress2 = utils.remove0x(web3.utils.randomHex(32)); // accounts[4];
+      const secretContractAddress1 = utils.remove0x(web3.utils.randomHex(32));
+      const secretContractAddress2 = utils.remove0x(web3.utils.randomHex(32));
+      const secretContractAddress3 = utils.remove0x(web3.utils.randomHex(32));
       const codeHash = api.w3().utils.sha3(JSON.stringify(testParameters.bytecode));
       const codeHash2 = api.w3().utils.sha3(web3.utils.randomHex(32));
       const initStateDeltaHash = api.w3().utils.randomHex(32);
@@ -171,84 +172,116 @@ describe("Ethereum advanced", function() {
         { from: workerAddress }
       );
 
-      StateSync.getRemoteMissingStates(api, [], (err, results) => {
-        // DONE results == [{address, deltas : [deltaHash, index]}]
-        assert.strictEqual(results.length, 2);
+      // Test empty local tips
+      let results = await StateSync.compareLocalStateToRemote(api, []);
+      // DONE results == [{address, deltas : [deltaHash, index]}]
+      assert.strictEqual(results.excessList.length, 0);
+      assert.strictEqual(results.missingList.length, 2);
 
-        assert.strictEqual(results[0].address, secretContractAddress1);
-        assert.strictEqual(results[0].deltas[0].index, 0);
-        assert.strictEqual(results[0].deltas[0].deltaHash, initStateDeltaHash);
-        assert.strictEqual(results[0].deltas[1].index, 1);
-        assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash1);
-        assert.strictEqual(results[0].deltas[2].index, 2);
-        assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash2);
-        assert.strictEqual(results[0].deltas[3].index, 3);
-        assert.strictEqual(results[0].deltas[3].deltaHash, stateDeltaHash3);
-        assert.strictEqual(results[0].deltas.length, 4);
-        assert.strictEqual(results[0].bytecodeHash, codeHash, "the bytecode is not equal to the codeHash");
+      assert.strictEqual(results.missingList[0].address, secretContractAddress1);
+      assert.strictEqual(results.missingList[0].deltas[0].index, 0);
+      assert.strictEqual(results.missingList[0].deltas[0].deltaHash, initStateDeltaHash);
+      assert.strictEqual(results.missingList[0].deltas[1].index, 1);
+      assert.strictEqual(results.missingList[0].deltas[1].deltaHash, stateDeltaHash1);
+      assert.strictEqual(results.missingList[0].deltas[2].index, 2);
+      assert.strictEqual(results.missingList[0].deltas[2].deltaHash, stateDeltaHash2);
+      assert.strictEqual(results.missingList[0].deltas[3].index, 3);
+      assert.strictEqual(results.missingList[0].deltas[3].deltaHash, stateDeltaHash3);
+      assert.strictEqual(results.missingList[0].deltas.length, 4);
+      assert.strictEqual(results.missingList[0].bytecodeHash, codeHash, "the bytecode is not equal to the codeHash");
 
-        assert.strictEqual(results[1].address, secretContractAddress2);
-        assert.strictEqual(results[1].deltas[0].index, 0);
-        assert.strictEqual(results[1].deltas[0].deltaHash, initStateDeltaHash);
-        assert.strictEqual(results[1].deltas[1].index, 1);
-        assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
-        assert.strictEqual(results[1].deltas.length, 2);
-        assert.strictEqual(results[1].bytecodeHash, codeHash2);
+      assert.strictEqual(results.missingList[1].address, secretContractAddress2);
+      assert.strictEqual(results.missingList[1].deltas[0].index, 0);
+      assert.strictEqual(results.missingList[1].deltas[0].deltaHash, initStateDeltaHash);
+      assert.strictEqual(results.missingList[1].deltas[1].index, 1);
+      assert.strictEqual(results.missingList[1].deltas[1].deltaHash, stateDeltaHash4);
+      assert.strictEqual(results.missingList[1].deltas.length, 2);
+      assert.strictEqual(results.missingList[1].bytecodeHash, codeHash2);
 
-        StateSync.getRemoteMissingStates(api, [{ address: secretContractAddress1, key: 0 }], (err, results) => {
-          // DONE results == [{address, deltas : [deltaHash, index]}]
-          assert.strictEqual(results.length, 2);
+      // Test partial local tips
+      results = await StateSync.compareLocalStateToRemote(api, [{ address: secretContractAddress1, key: 0 }]);
+      assert.strictEqual(results.excessList.length, 0);
+      assert.strictEqual(results.missingList.length, 2);
 
-          assert.strictEqual(results[0].address, secretContractAddress1);
-          assert.strictEqual(results[0].deltas[0].index, 1);
-          assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash1);
-          assert.strictEqual(results[0].deltas[1].index, 2);
-          assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash2);
-          assert.strictEqual(results[0].deltas[2].index, 3);
-          assert.strictEqual(results[0].deltas[2].deltaHash, stateDeltaHash3);
-          assert.strictEqual(results[0].deltas.length, 3);
-          assert.strictEqual("bytecodeHash" in results[0], false);
+      assert.strictEqual(results.missingList[0].address, secretContractAddress1);
+      assert.strictEqual(results.missingList[0].deltas[0].index, 1);
+      assert.strictEqual(results.missingList[0].deltas[0].deltaHash, stateDeltaHash1);
+      assert.strictEqual(results.missingList[0].deltas[1].index, 2);
+      assert.strictEqual(results.missingList[0].deltas[1].deltaHash, stateDeltaHash2);
+      assert.strictEqual(results.missingList[0].deltas[2].index, 3);
+      assert.strictEqual(results.missingList[0].deltas[2].deltaHash, stateDeltaHash3);
+      assert.strictEqual(results.missingList[0].deltas.length, 3);
+      assert.strictEqual("bytecodeHash" in results.missingList[0], false);
 
-          assert.strictEqual(results[1].address, secretContractAddress2);
-          assert.strictEqual(results[1].deltas[0].index, 0);
-          assert.strictEqual(results[1].deltas[0].deltaHash, initStateDeltaHash);
-          assert.strictEqual(results[1].deltas[1].index, 1);
-          assert.strictEqual(results[1].deltas[1].deltaHash, stateDeltaHash4);
-          assert.strictEqual(results[1].deltas.length, 2);
-          assert.strictEqual(results[1].bytecodeHash, codeHash2);
+      assert.strictEqual(results.missingList[1].address, secretContractAddress2);
+      assert.strictEqual(results.missingList[1].deltas[0].index, 0);
+      assert.strictEqual(results.missingList[1].deltas[0].deltaHash, initStateDeltaHash);
+      assert.strictEqual(results.missingList[1].deltas[1].index, 1);
+      assert.strictEqual(results.missingList[1].deltas[1].deltaHash, stateDeltaHash4);
+      assert.strictEqual(results.missingList[1].deltas.length, 2);
+      assert.strictEqual(results.missingList[1].bytecodeHash, codeHash2);
 
-          StateSync.getRemoteMissingStates(
-            api,
-            [{ address: secretContractAddress1, key: 1 }, { address: secretContractAddress2, key: 1 }],
-            (err, results) => {
-              // DONE results == [{address, deltas : [deltaHash, index]}]
-              assert.strictEqual(results.length, 1);
+      // Test partial local tips 2
+      results = await StateSync.compareLocalStateToRemote(api, [
+        { address: secretContractAddress1, key: 1 },
+        { address: secretContractAddress2, key: 1 }
+      ]);
+      assert.strictEqual(results.excessList.length, 0);
+      assert.strictEqual(results.missingList.length, 1);
 
-              assert.strictEqual(results[0].address, secretContractAddress1);
-              assert.strictEqual(results[0].deltas[0].index, 2);
-              assert.strictEqual(results[0].deltas[0].deltaHash, stateDeltaHash2);
-              assert.strictEqual(results[0].deltas[1].index, 3);
-              assert.strictEqual(results[0].deltas[1].deltaHash, stateDeltaHash3);
-              assert.strictEqual(results[0].deltas.length, 2);
-              assert.strictEqual("bytecodeHash" in results[0], false);
+      assert.strictEqual(results.missingList[0].address, secretContractAddress1);
+      assert.strictEqual(results.missingList[0].deltas[0].index, 2);
+      assert.strictEqual(results.missingList[0].deltas[0].deltaHash, stateDeltaHash2);
+      assert.strictEqual(results.missingList[0].deltas[1].index, 3);
+      assert.strictEqual(results.missingList[0].deltas[1].deltaHash, stateDeltaHash3);
+      assert.strictEqual(results.missingList[0].deltas.length, 2);
+      assert.strictEqual("bytecodeHash" in results.missingList[0], false);
 
-              StateSync.getRemoteMissingStates(
-                api,
-                [{ address: secretContractAddress1, key: 3 }, { address: secretContractAddress2, key: 1 }],
-                async (err, results) => {
-                  // DONE results == [{address, deltas : [deltaHash, index]}]
-                  assert.strictEqual(results.length, 0);
+      // Test full local tips
+      results = await StateSync.compareLocalStateToRemote(api, [
+        { address: secretContractAddress1, key: 3 },
+        { address: secretContractAddress2, key: 1 }
+      ]);
+      assert.strictEqual(results.excessList.length, 0);
+      assert.strictEqual(results.missingList.length, 0);
 
-                  api.unsubscribeAll();
-                  await res.environment.destroy();
-                  await stop();
-                  resolve();
-                }
-              );
-            }
-          );
-        });
-      });
+      // Test excessive deltas local tips
+      results = await StateSync.compareLocalStateToRemote(api, [
+        { address: secretContractAddress1, key: 5 },
+        { address: secretContractAddress2, key: 1 }
+      ]);
+
+      assert.strictEqual(results.excessList.length, 1);
+      assert.strictEqual(results.missingList.length, 0);
+
+      assert.strictEqual(results.excessList[0].address, secretContractAddress1);
+      assert.strictEqual(results.excessList[0].remoteTip, 3);
+      assert.strictEqual(results.excessList[0].localTip, 5);
+
+      // Test excessive deltas local tips 2
+      results = await StateSync.compareLocalStateToRemote(api, [
+        { address: secretContractAddress1, key: 5 },
+        { address: secretContractAddress2, key: 6 },
+        { address: secretContractAddress3, key: 7 }
+      ]);
+
+      assert.strictEqual(results.excessList.length, 3);
+      assert.strictEqual(results.missingList.length, 0);
+
+      assert.strictEqual(results.excessList[0].address, secretContractAddress1);
+      assert.strictEqual(results.excessList[0].remoteTip, 3);
+      assert.strictEqual(results.excessList[0].localTip, 5);
+      assert.strictEqual(results.excessList[1].address, secretContractAddress2);
+      assert.strictEqual(results.excessList[1].remoteTip, 1);
+      assert.strictEqual(results.excessList[1].localTip, 6);
+      assert.strictEqual(results.excessList[2].address, secretContractAddress3);
+      assert.strictEqual(results.excessList[2].remoteTip, -1);
+      assert.strictEqual(results.excessList[2].localTip, 7);
+
+      api.unsubscribeAll();
+      await res.environment.destroy();
+      await stop();
+      resolve();
     });
   });
 
@@ -262,11 +295,13 @@ describe("Ethereum advanced", function() {
       await start();
       await res.environment.destroy();
 
-      StateSync.getRemoteMissingStates(api, [], async (err, results) => {
+      try {
+        await StateSync.compareLocalStateToRemote(api, []);
+      } catch (err) {
         assert.notStrictEqual(err, null);
         await stop();
         resolve();
-      });
+      }
     });
   });
 
@@ -377,6 +412,7 @@ describe("Ethereum advanced", function() {
       resolve();
     });
   });
+
   it("Test health check ", async function() {
     const tree = TEST_TREE.ethereum_advanced;
     if (!tree["all"] || !tree["#4"]) {

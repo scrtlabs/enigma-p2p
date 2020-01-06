@@ -72,5 +72,18 @@ class TryReceiveAllAction {
       onFinish(err, allResults);
     });
   }
+  async asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      if (!params) {
+        params = {};
+      }
+      params.onFinish = function(err, data) {
+        if (err) reject(err);
+        else resolve(data);
+      };
+      action.execute(params);
+    });
+  }
 }
 module.exports = TryReceiveAllAction;
