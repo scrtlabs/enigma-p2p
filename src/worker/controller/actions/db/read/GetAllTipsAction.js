@@ -21,7 +21,7 @@ class GetAllTipsAction {
         dbQueryType: constants.CORE_REQUESTS.GetAllTips,
         onResponse: (err, result) => {
           let tips;
-          if (result.result.tips) {
+          if (result && result.result && result.result.tips) {
             tips = result.result.tips;
           } else {
             tips = [];

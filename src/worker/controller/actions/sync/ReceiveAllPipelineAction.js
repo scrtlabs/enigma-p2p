@@ -3,8 +3,7 @@ const errs = require("../../../../common/errors");
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
 const waterfall = require("async/waterfall");
 const EngCid = require("../../../../common/EngCID");
-
-const util = require("util");
+const LocalMissingStateResult = require("../../../state_sync/receiver/LocalMissingStatesResult");
 
 /**
  * RECEIVER SIDE
@@ -19,7 +18,8 @@ class ReceiveAllPipelineAction {
     this._controller = controller;
     this._running = false;
   }
-  execute(params) {
+
+  async execute(params) {
     const cache = params.cache;
     const onEnd = params.onEnd;
 
@@ -27,21 +27,19 @@ class ReceiveAllPipelineAction {
       return onEnd(new errs.SyncReceiverErr("already running"));
     }
     this._running = true;
-    const getMissingStates = cb => {
-      this._controller.execCmd(NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, {
-        cache: cache,
-        onResponse: (err, res) => {
-          if (err) {
-            return cb(err);
-          }
-          return cb(null, res.missingStatesMsgsMap, res.missingStatesMap);
-        }
-      });
-    };
-    const parseResults = (missingStatesMsgsMap, remoteMissingStatesMap, cb) => {
-      let err = null;
-      const ecids = [];
-      // TODO:: should work completley without tempEcidToAddrMap -> delete it from all over the code here.
+
+    try {
+      // Compare between the local state and Ethereum
+      const { missingList, excessList } = await this._controller.asyncExecCmd(
+        NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE,
+        { cache: cache }
+      );
+
+      // Build messages for sync
+      const missingStatesMsgsMap = buildMissingStatesResult(missingList);
+
+      let ecids = [];
+      // TODO:: should work completely without tempEcidToAddrMap -> delete it from all over the code here.
       const tempEcidToAddrMap = {};
       for (const addrKey in missingStatesMsgsMap) {
         const ecid = EngCid.createFromSCAddress(addrKey);
@@ -49,54 +47,95 @@ class ReceiveAllPipelineAction {
           tempEcidToAddrMap[ecid.getKeccack256()] = addrKey;
           ecids.push(ecid);
         } else {
-          err = new err.SyncReceiverErr(`error creating EngCid from ${addrKey}`);
+          return onEnd(new errs.SyncReceiverErr(`error creating EngCid from ${addrKey}`));
         }
       }
-      return cb(err, ecids, missingStatesMsgsMap, tempEcidToAddrMap, remoteMissingStatesMap);
-    };
-    const findPRovider = (ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap, cb) => {
-      this._controller.execCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
-        descriptorsList: ecidList,
-        isEngCid: true,
-        next: findProviderResult => {
-          return cb(null, findProviderResult, ecidList, missingStatesMap, tempEcidToAddrMap, remoteMissingStatesMap);
-        }
+      // Search for content providers
+      const findProviderResult = await this._controller.asyncExecCmd(NODE_NOTIFY.FIND_CONTENT_PROVIDER, {
+        descriptorsList: ecids,
+        isEngCid: true
       });
-    };
-    const parseProviders = (
-      findProviderResult,
-      ecids,
-      missingStatesMap,
-      tempEcidToAddrMap,
-      remoteMissingStatesMap,
-      cb
-    ) => {
       if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
-        cb(new errs.SyncReceiverErr("[-] some error finding providers !"));
+        return new errs.SyncReceiverErr("some error finding providers !");
       }
+
       // parse to 1 object: cid => {providers, msgs} -> simple :)
       const allReceiveData = [];
       ecids.forEach(ecid => {
         allReceiveData.push({
-          requestMessages: missingStatesMap[ecid.getScAddress()],
+          requestMessages: missingStatesMsgsMap[ecid.getScAddress()],
           providers: findProviderResult.getProvidersFor(ecid)
         });
       });
-      return cb(null, allReceiveData, remoteMissingStatesMap);
-    };
-    const receiveAll = (allReceiveData, remoteMissingStatesMap, cb) => {
-      this._controller.execCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
+
+      // Sync
+      const allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
         allMissingDataList: allReceiveData,
-        remoteMissingStatesMap: remoteMissingStatesMap,
-        onFinish: (err, allResults) => {
-          cb(err, allResults);
-        }
+        remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
       });
-    };
-    waterfall([getMissingStates, parseResults, findPRovider, parseProviders, receiveAll], (err, result) => {
+
+      // Revert local state
+      for (const contract of excessList) {
+        let coreMsg = null;
+        if (contract.remoteTip === -1) {
+          // meaning the entire contract should be removed
+          coreMsg = {
+            address: contract.address,
+            type: constants.CORE_REQUESTS.RemoveContract
+          };
+          this._controller.logger().info(`[SYNC] deleting contract ${contract.address}`);
+        } else {
+          coreMsg = {
+            input: [{ address: contract.address, from: contract.remoteTip + 1, to: contract.localTip }],
+            type: constants.CORE_REQUESTS.RemoveDeltas
+          };
+          this._controller
+            .logger()
+            .info(`[SYNC] reverting deltas ${coreMsg.input.from}-${coreMsg.input.to} of contract ${contract.address}`);
+        }
+        await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
+      }
       this._running = false;
-      onEnd(err, result);
-    });
+      onEnd(null, allResults);
+    } catch (err) {
+      this._running = false;
+      this._controller.logger().error(`[SYNC] error= ${err}`);
+      onEnd(err);
+    }
   }
 }
+
+function buildMissingStatesResult(missingList) {
+  const result = LocalMissingStateResult.createP2PReqMsgsMap(missingList);
+  const missingStatesMsgsMap = {};
+  for (const addrKey in result) {
+    const obj = result[addrKey];
+    if (obj.bcodeReq) {
+      obj.deltasReq.push(obj.bcodeReq);
+    }
+    missingStatesMsgsMap[addrKey] = obj.deltasReq;
+  }
+  return missingStatesMsgsMap;
+}
+function transformMissingStatesListToMap(missingStatesList) {
+  const missingStatesMap = {};
+  for (let i = 0; i < missingStatesList.length; ++i) {
+    const deltasMap = {};
+    for (let j = 0; j < missingStatesList[i].deltas.length; j++) {
+      const index = missingStatesList[i].deltas[j].index;
+      const deltaHash = missingStatesList[i].deltas[j].deltaHash;
+      deltasMap[index] = deltaHash;
+    }
+    if ("bytecodeHash" in missingStatesList[i]) {
+      missingStatesMap[missingStatesList[i].address] = {
+        deltas: deltasMap,
+        bytecodeHash: missingStatesList[i].bytecodeHash
+      };
+    } else {
+      missingStatesMap[missingStatesList[i].address] = { deltas: deltasMap };
+    }
+  }
+  return missingStatesMap;
+}
+
 module.exports = ReceiveAllPipelineAction;

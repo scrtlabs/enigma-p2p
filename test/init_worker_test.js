@@ -122,9 +122,12 @@ it("#1 run init and healthCheck", async function() {
         assert.strictEqual(hc.ethereum.status, true);
         assert.strictEqual(hc.connectivity.status, true);
 
-        let missingStates = await testPeer.mainController.getNode().asyncIdentifyMissingStates();
+        const { missingList, excessList } = await testPeer.mainController
+          .getNode()
+          .asyncExecCmd(constants.NODE_NOTIFICATIONS.IDENTIFY_MISSING_STATES_FROM_REMOTE);
 
-        assert.strictEqual(Object.keys(missingStates["missingStatesMap"]).length, 0);
+        assert.strictEqual(missingList.length, 0);
+        assert.strictEqual(excessList.length, 0);
 
         // STOP EVERYTHING
         peers.push(testPeer);
