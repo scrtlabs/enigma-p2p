@@ -675,44 +675,6 @@ class NodeController {
     });
   }
 
-  /**
-   * identify and print to log the missing states
-   * @{Function} callback , optional (err,missingStates)=>{}
-   * */
-  identifyMissingStates(callback) {
-    this._actions[NOTIFICATION.IDENTIFY_MISSING_STATES_FROM_REMOTE].execute({
-      cache: false,
-      onResponse: (err, missingStatesMsgsMap) => {
-        if (callback) {
-          return callback(err, missingStatesMsgsMap);
-        }
-        if (err) {
-          return this._logger.error(" error identifying missing states : " + err);
-        }
-        for (const ecidHash in missingStatesMsgsMap) {
-          this._logger.debug("----------- contract --------------");
-          const contractMsgs = missingStatesMsgsMap[ecidHash];
-          for (let i = 0; i < contractMsgs.length; ++i) {
-            console.log("---- msg ----- ");
-            console.log(contractMsgs[i].toPrettyJSON());
-          }
-        }
-      }
-    });
-  }
-
-  async asyncIdentifyMissingStates() {
-    return new Promise((resolve, reject) => {
-      this.identifyMissingStates((err, missingStatesMsgsMap) => {
-        if (err) {
-          return reject(err);
-        } else {
-          resolve(missingStatesMsgsMap);
-        }
-      });
-    });
-  }
-
   // TODO make it usable to execute this pipeline
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
@@ -769,7 +731,7 @@ class NodeController {
     this._actions[NOTIFICATION.FIND_CONTENT_PROVIDER].execute({
       descriptorsList: ecids,
       isEngCid: true,
-      next: findProvidersResult => {
+      next: (err, findProvidersResult) => {
         callback(findProvidersResult);
       }
     });

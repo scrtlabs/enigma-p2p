@@ -132,9 +132,6 @@ class CLI {
       announce: () => {
         this._node.tryAnnounce();
       },
-      identify: () => {
-        this._node.identifyMissingStates();
-      },
       sync: () => {
         this._node.syncReceiverPipeline();
       },
