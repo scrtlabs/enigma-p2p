@@ -183,7 +183,7 @@ class CommitReceiptAction {
         address: task.getContractAddr(),
         type: constants.CORE_REQUESTS.RemoveContract
       };
-      this._controller.logger().debug(`[COMMIT_RECEIPT] reverting contract ${task.getContractAddr()}`);
+      this._controller.logger().info(`[COMMIT_RECEIPT] reverting contract ${task.getContractAddr()}`);
     } else {
       let deltaKey = task.getResult().getDelta().key;
       coreMsg = {
@@ -192,7 +192,7 @@ class CommitReceiptAction {
       };
       this._controller
         .logger()
-        .debug(`[COMMIT_RECEIPT] reverting delta ${deltaKey} of contract ${task.getContractAddr()}`);
+        .info(`[COMMIT_RECEIPT] reverting delta ${deltaKey} of contract ${task.getContractAddr()}`);
     }
     try {
       await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
