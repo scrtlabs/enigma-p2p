@@ -494,7 +494,7 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.ReceiptVerified]: event => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.bytes32s[1]),
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
           stateDeltaHash: event.returnValues.bytes32s[2],
           stateDeltaHashIndex: parseInt(event.returnValues.deltaHashIndex),
           outputHash: event.returnValues.bytes32s[3]
@@ -547,7 +547,7 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed]: event => {
         return {
-          secretContractAddress: nodeUtils.remove0x(event.returnValues.bytes32s[0]),
+          secretContractAddress: nodeUtils.remove0x(event.returnValues.taskId),
           codeHash: event.returnValues.bytes32s[2],
           stateDeltaHash: event.returnValues.bytes32s[3]
         };
