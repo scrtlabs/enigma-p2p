@@ -501,21 +501,19 @@ class EnigmaContractReaderAPI {
         };
       },
       /**
-       * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
+       * @return {JSON}: {string>} taskId , {string} ethCall
        * */
       [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed]: event => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.taskId),
-          signature: event.returnValues.sig
+          taskId: nodeUtils.remove0x(event.returnValues.taskId)
         };
       },
       /**
-       * @return {JSON}: {string>} taskId , {string} ethCall, {string} signature
+       * @return {JSON}: {string>} taskId , {string} ethCall
        * */
       [constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH]: event => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.taskId),
-          signature: event.returnValues.sig
+          taskId: nodeUtils.remove0x(event.returnValues.taskId)
         };
       },
       /**
