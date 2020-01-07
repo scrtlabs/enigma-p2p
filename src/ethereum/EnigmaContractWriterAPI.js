@@ -134,21 +134,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let deployedEvents = await this._parsePastEvents(
-          constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
-          { scAddr: utils.add0x(taskId) },
-          blockNumber
-        );
-        if (deployedEvents && Object.keys(deployedEvents).length > 0) {
-          resolve(deployedEvents);
-        } else {
-          let failedEvents = await this._parsePastEvents(
-            constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH,
-            { taskId: utils.add0x(taskId) },
-            blockNumber
-          );
-          resolve(failedEvents);
-        }
+        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        resolve(events);
       };
 
       const signedTransaction = this._web3.eth
@@ -308,20 +295,8 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let rawEvents = await this._enigmaContract.getPastEvents("allEvents", {
-          fromBlock: blockNumber,
-          filter: { taskId: utils.add0x(taskId) }
-        });
-        if (Array.isArray(rawEvents) && rawEvents.length > 0) {
-          rawEvents.forEach(event => {
-            if (
-              event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH ||
-              event.event === constants.RAW_ETHEREUM_EVENTS.ReceiptVerified
-            ) {
-              resolve(this._parseEvents({ [event.event]: event }));
-            }
-          });
-        }
+        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        resolve(events);
       };
 
       const signedTransaction = this._web3.eth
@@ -378,7 +353,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let events = await this._parsePastEvents(
+        const events = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
           { taskId: utils.add0x(taskId) },
           blockNumber
@@ -434,7 +409,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        let events = await this._parsePastEvents(
+        const events = await this._parsePastEvents(
           constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
           { taskId: utils.add0x(taskId) },
           blockNumber
@@ -460,24 +435,24 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         });
     });
   }
+
   async _parsePastEvents(eventName, filter, blockNumber) {
-    const rawEvents = await this._enigmaContract.getPastEvents(eventName, {
-      fromBlock: blockNumber,
-      filter: filter
-    });
-    let events = {};
-    if (Array.isArray(rawEvents) && rawEvents.length > 0) {
-      if (rawEvents.length > 1) {
-        this._logger.info(
-          `Received am unexpected number of events for ${eventName} with the current filter ${JSON.stringify(
-            filter
-          )}.. taking the first`
-        );
-      }
-      events[eventName] = rawEvents[0];
-      events = this._parseEvents(events);
+    const rawEvents = await this._enigmaContract.getPastEvents(eventName, { fromBlock: blockNumber, filter: filter });
+
+    if (!Array.isArray(rawEvents) || rawEvents.length === 0) {
+      return {};
     }
-    return events;
+
+    if (rawEvents.length > 1) {
+      this._logger.info(
+        `Received an unexpected number of events for ${eventName} with the filter ${JSON.stringify({
+          fromBlock: blockNumber,
+          filter: filter
+        })}. Taking the first one.`
+      );
+    }
+
+    return this._parseEvents({ [rawEvents[0].event]: rawEvents[0] });
   }
   getTransactionOptions(txParams) {
     let transactionOptions = this._defaultTrxOptions;
