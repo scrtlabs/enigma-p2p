@@ -18,7 +18,6 @@
  * should be done manually, no point automating this. get the info with $getRegistration cli cmd.
  * */
 
-const errors = require("../../../common/errors");
 const constants = require("../../../common/constants");
 const waterfall = require("async/waterfall");
 
@@ -50,12 +49,6 @@ class InitWorkerAction {
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         cache: false,
         onEnd: (err, statusResult) => {
-          if (!err || err instanceof errors.SyncReceiverNoMissingDataErr) {
-            this._controller.logger().info("success syncing pipeline");
-            err = null;
-          } else {
-            this._controller.logger().error("error receiving pipeline! " + err);
-          }
           cb(err);
         }
       });
