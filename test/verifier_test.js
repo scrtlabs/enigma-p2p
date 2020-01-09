@@ -107,7 +107,7 @@ describe("Verifier tests", function() {
     if (isComputeTask) {
       apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     } else {
-      apiMock.setTaskParams(taskId, blockNumber, status, null, null, null);
+      apiMock.setTaskParams(taskId, blockNumber, status, null, null, outputHash);
     }
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, false);
@@ -117,6 +117,12 @@ describe("Verifier tests", function() {
     res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
     assert.strictEqual(res.isVerified, true);
     assert.strictEqual(res.error, null);
+
+    // wrong output of failed task
+    task = new FailedResult(taskId, constants.TASK_STATUS.FAILED, web3Utils.randomHex(32), 5, "signature");
+    res = await verifier.verifyTaskSubmission(task, 0, contractAddress, null);
+    assert.strictEqual(res.isVerified, false);
+    assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
 
     // Wrong key in deploy
     if (!isComputeTask) {

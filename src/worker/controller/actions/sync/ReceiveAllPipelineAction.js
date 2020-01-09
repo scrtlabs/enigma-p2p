@@ -1,7 +1,6 @@
 const constants = require("../../../../common/constants");
 const errs = require("../../../../common/errors");
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
-const waterfall = require("async/waterfall");
 const EngCid = require("../../../../common/EngCID");
 const LocalMissingStateResult = require("../../../state_sync/receiver/LocalMissingStatesResult");
 
