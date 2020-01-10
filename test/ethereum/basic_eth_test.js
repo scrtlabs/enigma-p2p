@@ -339,7 +339,6 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     ethTestUtils.advanceXConfirmations(api.w3());
     const events = await deployFailurePromise;
 
-    assert.strictEqual(events.ReceiptFailed.signature, signature);
     assert.strictEqual(events.ReceiptFailed.taskId, taskId1);
 
     const countSCsAfter = await api.countSecretContracts();
@@ -376,7 +375,6 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
         {},
         getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async event => {
-          assert.strictEqual(event.signature, signature);
           assert.strictEqual(event.taskId, taskId1);
 
           const countSCsAfter = await api.countSecretContracts();
@@ -626,7 +624,6 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     ethTestUtils.advanceXConfirmations(api.w3());
     const receipt = await taskFailurePromise;
 
-    assert.strictEqual(receipt.ReceiptFailed.signature, signature);
     assert.strictEqual(receipt.ReceiptFailed.taskId, taskId);
     await stop();
   });
@@ -676,7 +673,6 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         constants.RAW_ETHEREUM_EVENTS.ReceiptFailed,
         {},
         getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async receipt => {
-          assert.strictEqual(receipt.signature, signature);
           assert.strictEqual(receipt.taskId, taskId);
           await stop();
           resolve();
