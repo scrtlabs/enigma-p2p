@@ -9,6 +9,7 @@ const ISVSVN = "0x0000";
 const MRSIGNER = "0x83d719e77deaca1470f6baf62a4d774303c899db69020f9c70ee1dfc08c7ce9e";
 const EPOCH_SIZE = 10;
 const TIMEOUT_THRESHOLD = 2;
+const DEBUG = false;
 
 const Enigma = artifacts.require("Enigma.sol");
 const WorkersImpl = artifacts.require("./impl/WorkersImpl.sol");
@@ -49,6 +50,7 @@ async function deployProtocol(deployer) {
     ExchangeRate.address,
     EPOCH_SIZE,
     TIMEOUT_THRESHOLD,
+    DEBUG,
     MRSIGNER,
     ISVSVN
   );
