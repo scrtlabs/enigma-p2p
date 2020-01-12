@@ -17,9 +17,9 @@ class RegisterAction {
           const signature = regParams.result.signature;
           try {
             await this._controller
-                .ethereum()
-                .api()
-                .register(signerAddress, report, signature);
+              .ethereum()
+              .api()
+              .register(signerAddress, report, signature);
             this._controller.logger().info("[REGISTER] successful registration");
             success = true;
           } catch (e) {
@@ -30,7 +30,7 @@ class RegisterAction {
         if (onResult) {
           onResult(err, success);
         }
-      },
+      }
     });
   }
   async asyncExecute(params) {

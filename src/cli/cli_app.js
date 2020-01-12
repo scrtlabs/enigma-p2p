@@ -436,7 +436,7 @@ class CLI {
     }
     if (!this._mgmtDisable) {
       nodeConfig.extraConfig.mgmt = { mgmtBase: {} };
-      this._mgmtPort ? nodeConfig.extraConfig.mgmt.mgmtBase.port = this._mgmtPort : null;
+      this._mgmtPort ? (nodeConfig.extraConfig.mgmt.mgmtBase.port = this._mgmtPort) : null;
     }
 
     this._mainController = await builder.setNodeConfig(nodeConfig).build();

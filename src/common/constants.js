@@ -276,7 +276,7 @@ module.exports.WEB_SERVER_CONSTANTS = {
   MGMT: {
     port: 23456,
     url: "/mgmt",
-    errorCode: 500,
+    errorCode: 500
   }
 };
 
