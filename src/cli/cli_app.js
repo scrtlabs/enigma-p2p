@@ -44,6 +44,8 @@ class CLI {
     this._logLevel = "info";
     this._healthCheckPort = null;
     this._healthCheckUrl = null;
+    this._mgmtPort = null;
+    this._mgmtDisable = false;
     this._statusUrl = null;
 
     this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
@@ -316,6 +318,12 @@ class CLI {
       .option("--health [value]", "start a service for health check and status queries", port => {
         this._healthCheckPort = port;
       })
+      .option("--no-management-server", "Define port number for internal management API", port => {
+        this._mgmtDisable = true;
+      })
+      .option("--management-port [value]", "Define port number for internal management API", port => {
+        this._mgmtPort = port;
+      })
       .option("--health-url [value]", "define the health check queries url", url => {
         this._healthCheckUrl = url;
       })
@@ -426,8 +434,10 @@ class CLI {
         status: { url: this._statusUrl }
       };
     }
-
-    nodeConfig.extraConfig.mgmt = { mgmtBase: { } };
+    if (!this._mgmtDisable) {
+      nodeConfig.extraConfig.mgmt = { mgmtBase: {} };
+      this._mgmtPort ? nodeConfig.extraConfig.mgmt.mgmtBase.port = this._mgmtPort : null;
+    }
 
     this._mainController = await builder.setNodeConfig(nodeConfig).build();
     this._node = this._mainController.getNode();

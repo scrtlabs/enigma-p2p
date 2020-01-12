@@ -1,5 +1,3 @@
-const constants = require("../../../../common/constants");
-
 class GetPeersAction {
   constructor(controller) {
     this._controller = controller;
@@ -15,9 +13,6 @@ class GetPeersAction {
       error = err;
     }
     callback(error, length);
-    //this._controller.execCmd(constants.NODE_NOTIFICATIONS.GET_PEERS, {
-    //  callback: callback(error, length),
-    //});
   }
 }
 module.exports = GetPeersAction;
