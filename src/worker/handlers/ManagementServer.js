@@ -8,7 +8,7 @@ const GET_PEERS_CONST = constants.NODE_NOTIFICATIONS.GET_PEERS;
 const mgmtActions = [
   constants.NODE_NOTIFICATIONS.REGISTER,
   constants.NODE_NOTIFICATIONS.LOGIN,
-  constants.NODE_NOTIFICATIONS.LOGOUT,
+  constants.NODE_NOTIFICATIONS.LOGOUT
 ];
 
 class ManagementServer extends EventEmitter {
@@ -17,8 +17,12 @@ class ManagementServer extends EventEmitter {
     if (!config.hasOwnProperty("mgmtBase")) {
       throw new Error("Webserver config doesn't contain 'mgmtBase' option required");
     }
-    this._mgmtPort = Object.prototype.hasOwnProperty.call(config["mgmtBase"], "port") ? config["mgmtBase"].port : WEB_SERVER_CONSTANTS.MGMT.port;
-    this._mgmtUrl= Object.prototype.hasOwnProperty.call(config["mgmtBase"], "url") ? config["mgmtBase"].url : WEB_SERVER_CONSTANTS.MGMT.url;
+    this._mgmtPort = Object.prototype.hasOwnProperty.call(config["mgmtBase"], "port")
+      ? config["mgmtBase"].port
+      : WEB_SERVER_CONSTANTS.MGMT.port;
+    this._mgmtUrl = Object.prototype.hasOwnProperty.call(config["mgmtBase"], "url")
+      ? config["mgmtBase"].url
+      : WEB_SERVER_CONSTANTS.MGMT.url;
 
     this._logger = logger;
     this._app = express();
@@ -28,9 +32,9 @@ class ManagementServer extends EventEmitter {
   start() {
     this._server = http.createServer(this._app);
     this._server.listen(this._mgmtPort);
-    mgmtActions.forEach( (item) => {
+    mgmtActions.forEach(item => {
       this._app.get(`${this._mgmtUrl}/${item}`, this.performAction.bind(this, item));
-    } );
+    });
     this._app.get(`${this._mgmtUrl}/connections`, this.getPeers.bind(this));
     this._logger.debug(`listening on port ${this._mgmtPort} for management on URL ${this._mgmtUrl}`);
   }
@@ -45,7 +49,7 @@ class ManagementServer extends EventEmitter {
    * @param {JSON} params, MUST CONTAIN notification field
    */
   notify(params) {
-    this.emit('notify', params);
+    this.emit("notify", params);
   }
   async getPeers(req, res, next) {
     this.notify({
