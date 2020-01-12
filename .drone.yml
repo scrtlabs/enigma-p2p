@@ -1,7 +1,6 @@
 kind: pipeline
 name: default
 steps:
-
   - name: integration
     image: enigmampc/docker-client
     privileged: true
@@ -63,7 +62,9 @@ steps:
         fi
       - make build-worker DOCKER_TAG=$DOCKER_TAG
       - export NODES=3
-      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client & sleep 240 && docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
+      - SGX_MODE=HW docker-compose -f docker-compose.yml -f docker-compose.hw.yml up --scale worker=$NODES --exit-code-from client &
+      - sleep 240
+      - docker-compose exec -T client make test && export RESULT=$? || export RESULT=$?
       - docker-compose -f docker-compose.yml -f docker-compose.hw.yml down -v --rmi all || true
       - if [ $RESULT -ne 0 ]; then exit 1; fi
 
@@ -91,16 +92,16 @@ steps:
       - make clone-core BRANCH=${DRONE_BRANCH}
       - make clone-p2p BRANCH=${DRONE_BRANCH}
       - make clone-km BRANCH=${DRONE_BRANCH}
-      - make build-core SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG 
+      - make build-core SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
       - make build-km SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
       - make build-worker SGX_MODE=SW DOCKER_TAG=$DOCKER_TAG
-      - make build-core DOCKER_TAG=$DOCKER_TAG 
+      - make build-core DOCKER_TAG=$DOCKER_TAG
       - make build-km DOCKER_TAG=$DOCKER_TAG
       - make build-worker DOCKER_TAG=$DOCKER_TAG
-      - docker push enigmampc/enigmampc/core-artifact-sw:$DOCKER_TAG
+      - docker push enigmampc/core-artifact-sw:$DOCKER_TAG
       - docker push enigmampc/worker_sw:$DOCKER_TAG
       - docker push enigmampc/key_management_sw:$DOCKER_TAG
-      - docker push enigmampc/enigmampc/core-artifact-hw:$DOCKER_TAG
+      - docker push enigmampc/core-artifact-hw:$DOCKER_TAG
       - docker push enigmampc/worker_hw:$DOCKER_TAG
       - docker push enigmampc/key_management_hw:$DOCKER_TAG
 

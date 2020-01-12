@@ -49,6 +49,7 @@ class JsonRpcServer extends EventEmitter {
                 message: "Server error"
               });
             }
+            this._logger.debug("JSON RPC: got getWorkerEncryptionKey response");
             return callback(null, coreRes);
           } else {
             return callback({
