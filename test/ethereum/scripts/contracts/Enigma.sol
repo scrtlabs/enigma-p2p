@@ -26,7 +26,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
     // ========================================== Constructor ==========================================
 
     constructor(address _tokenAddress, address _principal, address _exchangeRate, uint _epochSize,
-        uint _timeoutThreshold, bytes memory _mrSigner, bytes memory _isvSvn) public {
+        uint _timeoutThreshold, bool _debug, bytes memory _mrSigner, bytes memory _isvSvn) public {
         state.engToken = ERC20(_tokenAddress);
         state.epochSize = _epochSize;
         state.taskTimeoutSize = _timeoutThreshold * state.epochSize;
@@ -35,6 +35,7 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
         state.updatedEnigmaContractAddress = address(this);
         state.stakingThreshold = 1;
         state.workerGroupSize = 1;
+        state.debug = _debug;
         state.mrSigner = _mrSigner;
         state.isvSvn = _isvSvn;
     }
@@ -254,9 +255,9 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
     }
 
     /**
-    * Deposits ENG stake into contract from worker. Worker must be registered to do so.
+    * Deposits ENG stake into contract from staking address. Staking address' operating address must be registered.
     *
-    * @param _custodian The worker's ETH address
+    * @param _custodian The staking address to deposit from
     * @param _amount The amount of ENG, in grains format (10 ** 8), to deposit
     */
     function deposit(address _custodian, uint _amount)
@@ -268,9 +269,9 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
     }
 
     /**
-    * Withdraws ENG stake from contract back to worker. Worker must be registered to do so.
+    * Withdraws ENG stake from contract back to staking address. Staking address' operating address must be registered.
     *
-    * @param _amount The amount of ENG, in grains format (10 ** 8), to deposit
+    * @param _amount The amount of ENG, in grains format (10 ** 8), to withdraw
     */
     function withdraw(uint _amount)
     public
@@ -440,8 +441,8 @@ contract Enigma is EnigmaStorage, EnigmaEvents, Getters, Ownable {
     workerLoggedIn
     contractDeployed(_bytes32s[0])
     {
-        TaskImpl.commitReceiptImpl(state, _gasUsed, _optionalEthereumContractAddress,
-            _bytes32s, _optionalEthereumData, _sig);
+        TaskImpl.commitReceiptImpl(state, _sig, _gasUsed, _optionalEthereumContractAddress,
+            _bytes32s, _optionalEthereumData);
     }
 
     /**
