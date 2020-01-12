@@ -45,7 +45,7 @@ class ManagementServer extends EventEmitter {
    * @param {JSON} params, MUST CONTAIN notification field
    */
   notify(params) {
-    this.emit("notify", params);
+    this.emit('notify', params);
   }
   async getPeers(req, res, next) {
     this.notify({
