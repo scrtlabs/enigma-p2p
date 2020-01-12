@@ -9,6 +9,7 @@ pragma experimental ABIEncoderV2;
  */
 contract EnigmaEvents {
     event Registered(address custodian, address signer);
+    event Unregistered(address custodian);
     event WorkersParameterized(uint seed, uint256 firstBlockNumber, uint256 inclusionBlockNumber, address[] workers,
         uint[] stakes, uint nonce);
     event TaskRecordCreated(bytes32 indexed taskId, bytes32 inputsHash, uint64 gasLimit, uint64 gasPx, address sender,

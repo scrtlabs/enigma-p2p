@@ -66,6 +66,7 @@ const RouteRpcNonBlockingAction = require("./actions/proxy/RouteRpcNonBlockingAc
 const GetStatusProxyAction = require("./actions/proxy/GetStatusProxyAction");
 // ethereum
 const RegisterAction = require("./actions/ethereum/RegisterAction");
+const UnregisterAction = require("./actions/ethereum/UnregisterAction");
 const LoginAction = require("./actions/ethereum/LoginAction");
 const LogoutAction = require("./actions/ethereum/LogoutAction");
 const CommitReceiptAction = require("./actions/ethereum/CommitReceiptAction");
@@ -148,6 +149,7 @@ class NodeController {
       [NOTIFICATION.DISPATCH_STATUS_REQ_RPC]: new GetStatusProxyAction(this), // dispatch get status request
       // ethereum
       [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
+      [NOTIFICATION.UNREGISTER]: new UnregisterAction(this), // unregister from enigma contract
       [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
@@ -745,6 +747,13 @@ class NodeController {
    * */
   register() {
     return this._actions[NOTIFICATION.REGISTER].asyncExecute();
+  }
+
+  /** Unregister from Enigma contract
+   * @return {Promise} returning boolean indicating a successful registration
+   * */
+  unregister() {
+    return this._actions[NOTIFICATION.UNREGISTER].asyncExecute();
   }
 }
 
