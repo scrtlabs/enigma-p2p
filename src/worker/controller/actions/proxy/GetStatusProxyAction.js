@@ -23,9 +23,7 @@ class GetStatusProxyAction {
       );
       this._controller.communicator().send(responseEnvelop);
     } catch (e) {
-      console.log("-------------------------------------");
       this._controller.logger().error(e);
-      console.log("-------------------------------------");
       this._controller.execCmd(constants.NODE_NOTIFICATIONS.ROUTE_BLOCKING_RPC, requestEnvelop);
     }
   }

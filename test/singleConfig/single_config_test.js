@@ -6,7 +6,7 @@ const assert = require("assert");
 const MainController = require("../../src/main_controller/FacadeController");
 const testUtils = require("../testUtils/utils");
 const path = require("path");
-const ID_B_PATH = path.join(__dirname, "./id-l");
+const ID_B_PATH = path.join(__dirname, "./id-l.json");
 const jayson = require("jayson");
 
 function getRpcClient(port) {

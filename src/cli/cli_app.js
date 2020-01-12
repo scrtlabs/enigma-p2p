@@ -46,9 +46,9 @@ class CLI {
     this._healthCheckUrl = null;
     this._statusUrl = null;
 
-    this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
+    this._B1Path = path.join(__dirname, "../../test/testUtils/id-l.json");
     this._B1Port = "10300";
-    this._B2Path = path.join(__dirname, "../../test/testUtils/id-d");
+    this._B2Path = path.join(__dirname, "../../test/testUtils/id-d.json");
     this._B2Port = "10301";
     this._B1Addr = "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
     this._B2Addr = "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP";
