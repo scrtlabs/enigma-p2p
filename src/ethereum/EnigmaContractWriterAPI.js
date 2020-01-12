@@ -134,7 +134,16 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        const filter = { taskId: utils.add0x(taskId) };
+        let events = await this._parsePastEvents(
+          constants.RAW_ETHEREUM_EVENTS.SecretContractDeployed,
+          filter,
+          blockNumber
+        );
+        if (events && Object.keys(events).length) {
+          return resolve(events);
+        }
+        events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH, filter, blockNumber);
         resolve(events);
       };
 
@@ -295,7 +304,12 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
       const blockNumber = await utils.getEthereumBlockNumber(this.w3());
 
       const resolveLogic = async () => {
-        const events = await this._parsePastEvents("allEvents", { taskId: utils.add0x(taskId) }, blockNumber);
+        const filter = { taskId: utils.add0x(taskId) };
+        let events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptVerified, filter, blockNumber);
+        if (events && Object.keys(events).length) {
+          return resolve(events);
+        }
+        events = await this._parsePastEvents(constants.RAW_ETHEREUM_EVENTS.ReceiptFailedETH, filter, blockNumber);
         resolve(events);
       };
 
@@ -448,7 +462,7 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
         `Received an unexpected number of events for ${eventName} with the filter ${JSON.stringify({
           fromBlock: blockNumber,
           filter: filter
-        })}. Taking the first one.`
+        })}. Taking the first one. RAW EVENTS= ${JSON.stringify(rawEvents)}`
       );
     }
 
