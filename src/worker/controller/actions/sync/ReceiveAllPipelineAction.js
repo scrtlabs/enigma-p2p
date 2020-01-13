@@ -20,7 +20,6 @@ class ReceiveAllPipelineAction {
   }
 
   async execute(params) {
-    const cache = params.cache;
     const onEnd = params.onEnd;
 
     if (this._running) {
@@ -32,7 +31,7 @@ class ReceiveAllPipelineAction {
       // Compare between the local state and Ethereum
       const { missingList, excessList } = await this._controller.asyncExecCmd(
         NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE,
-        { cache: cache }
+        {}
       );
 
       // Build messages for sync

@@ -48,7 +48,6 @@ class InitWorkerAction {
         return cb(null);
       }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
-        cache: false,
         onEnd: (err, statusResult) => {
           if (!err || err instanceof errors.SyncReceiverNoMissingDataErr) {
             this._controller.logger().info("success syncing pipeline");
@@ -62,7 +61,6 @@ class InitWorkerAction {
     };
     const announceState = cb => {
       this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
-        cache: false,
         onResponse: (error, content) => {
           if (error) {
             this._controller.logger().error("failed announcing " + error);

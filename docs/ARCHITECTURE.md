@@ -424,8 +424,6 @@ This is a diagram demonstrating the use of the action [IdentifyMissingStatesActi
 <img src="./IdentifySyncDiagram.png"
      alt="identify 2" />
 
-**TODO::** from cache is currently not integrated but definitely implemented with [tests](https://github.com/enigmampc/enigma-p2p/blob/develop/test/db_cache_test.js) to support it.
-
 ### Find Content Providers
 
 Ok, so we know **what** is missing, now we need to find **who** can provide it. There is a list for each CID since peers might go offline or be malicioous etc.
