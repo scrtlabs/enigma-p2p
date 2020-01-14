@@ -683,4 +683,55 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
       ethTestUtils.advanceXConfirmations(api.w3());
     });
   });
+
+  it("worker unregister", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#18"]) {
+      this.skip();
+    }
+    await start();
+    const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, { from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3());
+    await registerPromise;
+
+    const unregisterPromise = api.unregister({ from: workerAddress });
+    ethTestUtils.advanceXConfirmations(api.w3());
+    await unregisterPromise;
+
+    const worker = await api.getWorker(workerAddress);
+    assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.UNREGISTERED);
+    await stop();
+  });
+
+  it("worker unregister event", async function() {
+    const tree = TEST_TREE.ethereum;
+    if (!tree["all"] || !tree["#19"]) {
+      this.skip();
+    }
+    return new Promise(async resolve => {
+      await start();
+      const registerPromise = api.register(workerEnclaveSigningAddress, workerReport, signature, {
+        from: workerAddress
+      });
+      ethTestUtils.advanceXConfirmations(api.w3());
+      await registerPromise;
+
+      eventSubscribe(
+        api,
+        constants.RAW_ETHEREUM_EVENTS.Unregistered,
+        {},
+        getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.Unregistered, async result => {
+          assert.strictEqual(result.address, workerAddress);
+
+          const worker = await api.getWorker(workerAddress);
+          assert.strictEqual(worker.status, constants.ETHEREUM_WORKER_STATUS.UNREGISTERED);
+          await stop();
+          resolve();
+        })
+      );
+
+      api.unregister({ from: workerAddress });
+      ethTestUtils.advanceXConfirmations(api.w3());
+    });
+  });
 });
