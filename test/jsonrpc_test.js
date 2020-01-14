@@ -14,9 +14,8 @@ const assert = require("assert");
 const nodeUtils = require("../src/common/utils");
 const constants = require("../src/common/constants");
 const utils = require("../src/common/utils");
-const jayson = require("jayson");
 
-const B2Path = "../../test/testUtils/id-d";
+const B2Path = "test/testUtils/id-d.json";
 const B2Port = "10301";
 const bootstrapNodes = ["/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1a" + "vvxfyYQwk8R3UnFrQ6aP"];
 const proxyConfig = {
@@ -85,8 +84,6 @@ describe("JsonRPC tests", () => {
     };
 
     JsonRpcClient = jaysonBrowserClient(callServer, {});
-
-    // JsonRpcClient = jayson.client.http('http://localhost:'+JsonRpcPort);
 
     return new Promise(async resolve => {
       const workerCoreUri = "tcp://127.0.0.1:8978";

@@ -243,9 +243,7 @@ class ProtocolHandler extends EventEmitter {
     const data = message.data.toString();
     // const topicIDs = message.topicIDs;
     const out = JSON.stringify({ from: from, data: data }, null, 2);
-    console.log("----------------------------------------------------");
     this._logger.info(out);
-    console.log("----------------------------------------------------");
   }
 
   onTaskResultPublish(params, message) {
