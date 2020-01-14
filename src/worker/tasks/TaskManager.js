@@ -14,17 +14,15 @@ const Result = require("./Result");
 class TaskManager extends EventEmitter {
   constructor(dbPath, logger) {
     super();
+    this._logger = logger;
     if (dbPath) {
       this._dbPath = dbPath;
     } else {
       this._dbPath = path.join(__dirname, "/tasks_db");
     }
     this._DB_MAPPER = "mapper";
-    this._db = new DbApi(this._dbPath);
+    this._db = new DbApi(this._dbPath, logger);
     this._db.open();
-    if (logger) {
-      this._logger = logger;
-    }
     /**
      * Map of unverified tasks in memory
      * taskId => {time:unixTimestam,task:Task} (unverified status)
