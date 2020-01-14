@@ -51,6 +51,7 @@ module.exports.NODE_NOTIFICATIONS = {
   // ethereum related
   COMMIT_RECEIPT: "creceipt", // commit computation result on chain
   REGISTER: "register", // register to Enigma contract
+  UNREGISTER: "unregister", // unregister from Enigma contract
   LOGIN: "login", // login to Enigma contract
   LOGOUT: "logout", // logout from Enigma contract
   GET_ETH_WORKER_PARAM: "getworkparams", // get worker params set in Enigma contract
@@ -210,7 +211,8 @@ module.exports.RAW_ETHEREUM_EVENTS = {
   DepositSuccessful: "DepositSuccessful",
   WithdrawSuccessful: "WithdrawSuccessful",
   LoggedIn: "LoggedIn",
-  LoggedOut: "LoggedOut"
+  LoggedOut: "LoggedOut",
+  Unregistered: "Unregistered"
 };
 
 /**

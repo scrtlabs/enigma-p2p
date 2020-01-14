@@ -207,6 +207,9 @@ class CLI {
       register: async () => {
         await this._node.register();
       },
+      unregister: async () => {
+        await this._node.unregister();
+      },
       login: async () => {
         await this._node.login();
       },
@@ -234,6 +237,7 @@ class CLI {
         );
         logger.info("publish <topic> <str msg> : publish <str msg> on topic <topic> to the network");
         logger.info("register : register to Enigma contract");
+        logger.info("unregister : unregister from Enigma contract");
         logger.info("remoteTips <b58 address> : look up the tips of some remote peer");
         logger.info("selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)");
         logger.info("sync : sync the worker from the network and get all the missing states");
