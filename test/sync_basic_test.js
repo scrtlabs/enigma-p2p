@@ -9,7 +9,7 @@ const ethTestUtils = require("./ethereum/utils");
 const utils = require("../src/common/utils");
 const crypto = require("../src/common/cryptography");
 
-const B2Path = path.join(__dirname, "./testUtils/id-l.json");
+const B2Path = path.join(__dirname, "testUtils", "id-l.json");
 const B2Port = "10301";
 
 const constants = require("../src/common/constants");

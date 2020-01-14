@@ -5,7 +5,7 @@ const TEST_TREE = require("./test_tree").TEST_TREE;
 const WorkerBuilder = require("../src/worker/builder/WorkerBuilder");
 const NodeController = require("../src/worker/controller/NodeController");
 
-const B1Path = path.join(__dirname, "testUtils/id-l.json");
+const B1Path = path.join(__dirname, "testUtils", "id-l.json");
 const B1Port = "10300";
 
 it("#1 Should test the worker builder", async function() {
