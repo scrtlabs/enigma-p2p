@@ -29,7 +29,7 @@ class JsonRpcServer extends EventEmitter {
     this._server = jayson.server(
       {
         getInfo: (args, callback) => {
-          console.log("getInfo request...");
+          this._logger.info("JSON RPC: getInfo request...");
           callback(null, { peerId: this._peerId, status: "ok" });
         },
         getWorkerEncryptionKey: async (args, callback) => {

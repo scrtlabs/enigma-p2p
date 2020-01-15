@@ -37,9 +37,9 @@ class RegisterAction {
     const action = this;
     return new Promise((res, rej) => {
       if (!params) params = {};
-      params.onResponse = function(err, verificationResult) {
+      params.onResponse = function(err, result) {
         if (err) rej(err);
-        else res(verificationResult);
+        else res(result);
       };
       action.execute(params);
     });

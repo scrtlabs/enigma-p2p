@@ -48,9 +48,9 @@ class CLI {
     this._mgmtDisable = false;
     this._statusUrl = null;
 
-    this._B1Path = path.join(__dirname, "../../test/testUtils/id-l");
+    this._B1Path = path.join(__dirname, "../../test/testUtils/id-l.json");
     this._B1Port = "10300";
-    this._B2Path = path.join(__dirname, "../../test/testUtils/id-d");
+    this._B2Path = path.join(__dirname, "../../test/testUtils/id-d.json");
     this._B2Port = "10301";
     this._B1Addr = "/ip4/0.0.0.0/tcp/10300/ipfs/QmcrQZ6RJdpYuGvZqD5QEHAv6qX4BrQLJLQPQUrTrzdcgm";
     this._B2Addr = "/ip4/0.0.0.0/tcp/10301/ipfs/Qma3GsJmB47xYuyahPZPSadh1avvxfyYQwk8R3UnFrQ6aP";
@@ -209,6 +209,9 @@ class CLI {
       register: async () => {
         await this._node.register();
       },
+      unregister: async () => {
+        await this._node.unregister();
+      },
       login: async () => {
         await this._node.login();
       },
@@ -236,6 +239,7 @@ class CLI {
         );
         logger.info("publish <topic> <str msg> : publish <str msg> on topic <topic> to the network");
         logger.info("register : register to Enigma contract");
+        logger.info("unregister : unregister from Enigma contract");
         logger.info("remoteTips <b58 address> : look up the tips of some remote peer");
         logger.info("selfSubscribe : subscribe to self sign key, listen to publish events on that topic (for jsonrpc)");
         logger.info("sync : sync the worker from the network and get all the missing states");
