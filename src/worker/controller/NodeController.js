@@ -21,6 +21,7 @@ const PersistentStateCache = require("../../db/StateCache");
 const TaskManager = require("../tasks/TaskManager");
 const PrincipalNode = require("../handlers/PrincipalNode");
 const WebServer = require("../handlers/WebServer");
+const ManagementServer = require("../handlers/ManagementServer");
 // actions
 const InitWorkerAction = require("./actions/InitWorkerAction");
 const PubsubPublishAction = require("./actions/PubsubPublishAction");
@@ -33,6 +34,7 @@ const HealthCheckAction = require("./actions/HealthCheckAction");
 const GetStatusAction = require("./actions/GetStatusAction");
 // connectivity
 const BootstrapDiscoveredAction = require("./actions/connectivity/BootstrapDiscoveredAction");
+const GetPeersAction = require("./actions/connectivity/GetPeers");
 const NewPeerAction = require("./actions/connectivity/NewPeerAction");
 //tasks
 const GetResultAction = require("./actions/tasks/GetResultAction");
@@ -115,6 +117,7 @@ class NodeController {
       [NOTIFICATION.GET_WORKER_STATUS]: new GetStatusAction(this),
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
+      [NOTIFICATION.GET_PEERS]: new GetPeersAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
@@ -195,6 +198,7 @@ class NodeController {
     this._initContentReceiver();
     this._initTaskManager();
     this._initWebServer();
+    this._initManagementServer();
     // this._initCache();
   }
 
@@ -230,6 +234,22 @@ class NodeController {
     this._principal.on(constants.PTT_END_EVENT, () => {
       this._logger.info("Finished PTT");
     });
+  }
+
+  _initManagementServer() {
+    let conf = {};
+    if (this._extraConfig && this._extraConfig.mgmt) {
+      conf = this._extraConfig.mgmt;
+      this._mgmt = new ManagementServer(conf, this.logger());
+      this._mgmt.start();
+      this._mgmt.on("notify", params => {
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if (action !== undefined) {
+          this._actions[notification].execute(params);
+        }
+      });
+    }
   }
 
   _initWebServer() {

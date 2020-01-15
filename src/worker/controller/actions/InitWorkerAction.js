@@ -17,7 +17,6 @@
  * Register to Enigma.sol
  * should be done manually, no point automating this. get the info with $getRegistration cli cmd.
  * */
-
 const errors = require("../../../common/errors");
 const constants = require("../../../common/constants");
 const waterfall = require("async/waterfall");

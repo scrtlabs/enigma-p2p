@@ -9,6 +9,7 @@ module.exports.LOG_CONFIG = {
 module.exports.NODE_NOTIFICATIONS = {
   INIT_WORKER: "iw", // init https://github.com/enigmampc/enigma-p2p#overview-on-start
   DISCOVERED: "discovered", // announcing that libp2p build a new PeerInfo from given address
+  GET_PEERS: "get_peers", // get number of connected peers
   NEW_PEER_CONNECTED: "connected", // announcing a new peer has connected
   // (ready to be discovered) -> 'peer:discovery' event.
   PUBSUB_PUB: "publish", // publish notification that activates a publish action
@@ -273,6 +274,11 @@ module.exports.WEB_SERVER_CONSTANTS = {
   },
   status: {
     url: "/status"
+  },
+  MGMT: {
+    port: 23456,
+    url: "/mgmt",
+    errorCode: 500
   }
 };
 

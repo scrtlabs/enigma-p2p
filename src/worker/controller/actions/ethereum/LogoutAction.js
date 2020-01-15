@@ -10,7 +10,6 @@ class LogoutAction {
     let err = null;
 
     const api = this._controller.ethereum().api();
-
     try {
       const workerAddress = api.getWorkerAddress();
       const { status } = await api.getWorker(workerAddress);
@@ -20,7 +19,6 @@ class LogoutAction {
         await api.logout();
         this._controller.logger().info(`[LOGOUT] successful logout`);
       }
-
       logoutSuccess = true;
     } catch (e) {
       this._controller.logger().error(`[LOGOUT] error in logout error=  ${e}`);

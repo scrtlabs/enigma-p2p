@@ -1,5 +1,3 @@
-const constants = require("../../../../common/constants");
-
 class LoginAction {
   constructor(controller) {
     this._controller = controller;
@@ -8,7 +6,6 @@ class LoginAction {
     const onResult = params.onResponse;
     let loginSuccess = false;
     let err = null;
-
     try {
       await this._controller
         .ethereum()
