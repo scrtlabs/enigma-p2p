@@ -322,7 +322,7 @@ class CLI {
       .option("--health [value]", "start a service for health check and status queries", port => {
         this._healthCheckPort = port;
       })
-      .option("--no-management-server", "Define port number for internal management API", port => {
+      .option("--no-management-server", "Disable internal management API", port => {
         this._mgmtDisable = true;
       })
       .option("--management-port [value]", "Define port number for internal management API", port => {

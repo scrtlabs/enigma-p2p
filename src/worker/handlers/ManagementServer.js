@@ -8,7 +8,8 @@ const GET_PEERS_CONST = constants.NODE_NOTIFICATIONS.GET_PEERS;
 const mgmtActions = [
   constants.NODE_NOTIFICATIONS.REGISTER,
   constants.NODE_NOTIFICATIONS.LOGIN,
-  constants.NODE_NOTIFICATIONS.LOGOUT
+  constants.NODE_NOTIFICATIONS.LOGOUT,
+  constants.NODE_NOTIFICATIONS.UNREGISTER
 ];
 
 class ManagementServer extends EventEmitter {
