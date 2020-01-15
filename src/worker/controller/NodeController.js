@@ -21,6 +21,7 @@ const PersistentStateCache = require("../../db/StateCache");
 const TaskManager = require("../tasks/TaskManager");
 const PrincipalNode = require("../handlers/PrincipalNode");
 const WebServer = require("../handlers/WebServer");
+const ManagementServer = require("../handlers/ManagementServer");
 // actions
 const InitWorkerAction = require("./actions/InitWorkerAction");
 const PubsubPublishAction = require("./actions/PubsubPublishAction");
@@ -33,6 +34,7 @@ const HealthCheckAction = require("./actions/HealthCheckAction");
 const GetStatusAction = require("./actions/GetStatusAction");
 // connectivity
 const BootstrapDiscoveredAction = require("./actions/connectivity/BootstrapDiscoveredAction");
+const GetPeersAction = require("./actions/connectivity/GetPeers");
 const NewPeerAction = require("./actions/connectivity/NewPeerAction");
 //tasks
 const GetResultAction = require("./actions/tasks/GetResultAction");
@@ -66,6 +68,7 @@ const RouteRpcNonBlockingAction = require("./actions/proxy/RouteRpcNonBlockingAc
 const GetStatusProxyAction = require("./actions/proxy/GetStatusProxyAction");
 // ethereum
 const RegisterAction = require("./actions/ethereum/RegisterAction");
+const UnregisterAction = require("./actions/ethereum/UnregisterAction");
 const LoginAction = require("./actions/ethereum/LoginAction");
 const LogoutAction = require("./actions/ethereum/LogoutAction");
 const CommitReceiptAction = require("./actions/ethereum/CommitReceiptAction");
@@ -114,6 +117,7 @@ class NodeController {
       [NOTIFICATION.GET_WORKER_STATUS]: new GetStatusAction(this),
       // connectivity
       [NOTIFICATION.DISCOVERED]: new BootstrapDiscoveredAction(this),
+      [NOTIFICATION.GET_PEERS]: new GetPeersAction(this),
       [NOTIFICATION.NEW_PEER_CONNECTED]: new NewPeerAction(this),
       // tasks
       [NOTIFICATION.NEW_TASK_INPUT_ENC_KEY]: new NewTaskEncryptionKeyAction(this), // new encryption key from core jsonrpc response
@@ -148,6 +152,7 @@ class NodeController {
       [NOTIFICATION.DISPATCH_STATUS_REQ_RPC]: new GetStatusProxyAction(this), // dispatch get status request
       // ethereum
       [NOTIFICATION.REGISTER]: new RegisterAction(this), // register to enigma contract
+      [NOTIFICATION.UNREGISTER]: new UnregisterAction(this), // unregister from enigma contract
       [NOTIFICATION.LOGIN]: new LoginAction(this), // login to enigma contract
       [NOTIFICATION.LOGOUT]: new LogoutAction(this), // logout from enigma contract
       [NOTIFICATION.COMMIT_RECEIPT]: new CommitReceiptAction(this), // commit a result back to ethereum
@@ -193,6 +198,7 @@ class NodeController {
     this._initContentReceiver();
     this._initTaskManager();
     this._initWebServer();
+    this._initManagementServer();
     // this._initCache();
   }
 
@@ -228,6 +234,22 @@ class NodeController {
     this._principal.on(constants.PTT_END_EVENT, () => {
       this._logger.info("Finished PTT");
     });
+  }
+
+  _initManagementServer() {
+    let conf = {};
+    if (this._extraConfig && this._extraConfig.mgmt) {
+      conf = this._extraConfig.mgmt;
+      this._mgmt = new ManagementServer(conf, this.logger());
+      this._mgmt.start();
+      this._mgmt.on("notify", params => {
+        const notification = params.notification;
+        const action = this._actions[notification];
+        if (action !== undefined) {
+          this._actions[notification].execute(params);
+        }
+      });
+    }
   }
 
   _initWebServer() {
@@ -745,6 +767,13 @@ class NodeController {
    * */
   register() {
     return this._actions[NOTIFICATION.REGISTER].asyncExecute();
+  }
+
+  /** Unregister from Enigma contract
+   * @return {Promise} returning boolean indicating a successful registration
+   * */
+  unregister() {
+    return this._actions[NOTIFICATION.UNREGISTER].asyncExecute();
   }
 }
 

@@ -77,6 +77,46 @@ class EnigmaContractWriterAPI extends EnigmaContractReaderAPI {
     });
   }
   /**
+   * Unregister the worker.
+   * @param {JSON} txParams
+   * @return {Promise} in success: null, in failure: error
+   * */
+  unregister(txParams = null) {
+    return new Promise(async (resolve, reject) => {
+      const res = this.getTransactionOptions(txParams);
+      if (res.error) {
+        reject(res.error);
+        return;
+      }
+      const tx = {
+        from: res.transactionOptions.from,
+        to: this._enigmaContractAddress,
+        gas: res.transactionOptions.gas,
+        // this encodes the ABI of the method and th
+        data: this._enigmaContract.methods.unregister().encodeABI(),
+        chainId: await this.getChainId()
+      };
+
+      const signedTx = await this._web3.eth.accounts.signTransaction(tx, this._privateKey);
+      const signedTransaction = this._web3.eth
+        .sendSignedTransaction(signedTx.rawTransaction)
+        .on(ETHEREUM_ERROR_EVENT, (error, receipt) => {
+          reject(error);
+        })
+        .on(ETHEREUM_RECEIPT_EVENT, async receipt => {
+          if (this.minimumConfirmations === 0 || !Number.isInteger(this.minimumConfirmations)) {
+            resolve(null);
+          }
+        })
+        .on(ETHEREUM_CONFIRMATION_EVENT, async (confNumber, receipt) => {
+          if (confNumber >= this.minimumConfirmations) {
+            signedTransaction.off(ETHEREUM_CONFIRMATION_EVENT);
+            resolve(null);
+          }
+        });
+    });
+  }
+  /**
    * deploy a secret contract by a worker
    * @param {string} taskId
    * @param {string} preCodeHash
