@@ -1,31 +1,33 @@
 const constants = require("../../../../common/constants");
 
-class LogoutAction {
+class UnregisterAction {
   constructor(controller) {
     this._controller = controller;
   }
   async execute(params) {
     const onResult = params.onResponse;
-    let logoutSuccess = false;
+    let success = false;
     let err = null;
 
     const api = this._controller.ethereum().api();
+
     try {
       const workerAddress = api.getWorkerAddress();
       const { status } = await api.getWorker(workerAddress);
-      if (status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
-        this._controller.logger().info(`[LOGOUT] already logged out`);
+      if (status === constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
+        this._controller.logger().info(`[UNREGISTER] already unregistered`);
       } else {
-        await api.logout();
-        this._controller.logger().info(`[LOGOUT] successful logout`);
+        await api.unregister();
+        this._controller.logger().info(`[UNREGISTER] successful unregister`);
       }
-      logoutSuccess = true;
+
+      success = true;
     } catch (e) {
-      this._controller.logger().error(`[LOGOUT] error in logout error=  ${e}`);
+      this._controller.logger().error(`[UNREGISTER] error in unregister error=  ${e}`);
       err = e;
     }
     if (onResult) {
-      onResult(err, logoutSuccess);
+      onResult(err, success);
     }
   }
   async asyncExecute(params) {
@@ -40,4 +42,4 @@ class LogoutAction {
     });
   }
 }
-module.exports = LogoutAction;
+module.exports = UnregisterAction;
