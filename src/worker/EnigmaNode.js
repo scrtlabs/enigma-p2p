@@ -1,4 +1,5 @@
 const EventEmitter = require("events").EventEmitter;
+const fs = require("fs");
 const waterfall = require("async/waterfall");
 const PeerId = require("peer-id");
 const PeerInfo = require("peer-info");
@@ -54,25 +55,29 @@ class EnigmaNode extends EventEmitter {
    * @param {Function} callback - empty callback with no params
    */
   loadNode(path, callback) {
-    PeerId.createFromJSON(require(path), (err, idListener) => {
-      if (err) throw err;
+    fs.readFile(path, (err, data) => {
+      if (err) callback(err);
 
-      const peerInfo = new PeerInfo(idListener);
-      this.multiAddrs.forEach(addr => {
-        peerInfo.multiaddrs.add(addr);
-      });
-      this.node = new PeerBundle({
-        peerInfo,
-        config: {
-          peerDiscovery: {
-            bootstrap: {
-              enabled: this.isDiscover,
-              list: this.dnsNodes
+      PeerId.createFromJSON(JSON.parse(data), (err, idListener) => {
+        if (err) callback(err);
+
+        const peerInfo = new PeerInfo(idListener);
+        this.multiAddrs.forEach(addr => {
+          peerInfo.multiaddrs.add(addr);
+        });
+        this.node = new PeerBundle({
+          peerInfo,
+          config: {
+            peerDiscovery: {
+              bootstrap: {
+                enabled: this.isDiscover,
+                list: this.dnsNodes
+              }
             }
           }
-        }
+        });
+        setTimeout(callback, 100);
       });
-      setTimeout(callback, 100);
     });
   }
   /**
@@ -445,7 +450,6 @@ class EnigmaNode extends EventEmitter {
             pull.values([reqMsg]),
             connection,
             pull.collect((err, responseMsg) => {
-              console.log(responseMsg);
               if (err) {
                 return reject(err);
               }
