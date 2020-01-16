@@ -154,21 +154,23 @@ class LevelDbApi {
   _readFromDB(options, callback) {
     const info = [];
 
-    this._db
+    const stream = this._db
       .createReadStream(options)
       .on("data", data => {
         info.push(data);
       })
       .on("error", err => {
         this._logger.error(`received an error from the read-stream while trying to read from DB: ${err}`);
+        stream.destroy();
         callback(err);
       })
       .on("close", () => {
         const err = "the read-stream closed unexpectedly while trying to read from DB";
-        this._logger.error(err);
+        this._logger.debug(err);
         callback(err);
       })
       .on("end", function() {
+        stream.destroy();
         callback(null, info);
       });
   }
