@@ -151,7 +151,8 @@ module.exports.TEST_TREE = {
     "#44": true,
     "#45": true,
     "#46": true,
-    "#47": true
+    "#47": true,
+    "#48": true
   },
   ethereum_integration: {
     all: true,

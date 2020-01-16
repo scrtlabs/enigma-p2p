@@ -446,7 +446,7 @@ describe("Verifier tests", function() {
         resolve();
       });
 
-      const event = { taskId: a.taskId };
+      const event = { taskId: a.taskId, outputHash: a.outputHash };
       a.apiMock.triggerEvent("ReceiptFailed", event);
     });
   });
@@ -1983,6 +1983,29 @@ describe("Verifier tests", function() {
         nonce: 10
       };
       a.apiMock.triggerEvent("WorkersParameterized", event);
+    });
+  });
+
+  it("Wrong output hash of failed task submission pre-mined", async function() {
+    const tree = TEST_TREE.verifier;
+    if (!tree["all"] || !tree["#48"]) {
+      this.skip();
+    }
+
+    return new Promise(async function(resolve) {
+      let a = await initStuffForTaskSubmission();
+      let task = new FailedResult(a.taskId, constants.TASK_STATUS.FAILED, a.output, 5, "signature");
+      let status = constants.ETHEREUM_TASK_STATUS.RECORD_CREATED;
+
+      a.apiMock.setTaskParams(a.taskId, a.blockNumber, status);
+      a.verifier.verifyTaskSubmission(task, a.blockNumber, a.taskId, null).then(res => {
+        assert.strictEqual(res.isVerified, false);
+        assert.strictEqual(res.error instanceof errors.TaskVerificationErr, true);
+        resolve();
+      });
+
+      const event = { taskId: a.taskId, outputHash: web3Utils.randomHex(32) };
+      a.apiMock.triggerEvent("ReceiptFailed", event);
     });
   });
 });

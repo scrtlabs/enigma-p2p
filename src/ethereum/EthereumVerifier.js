@@ -237,7 +237,13 @@ class EthereumVerifier {
       // Verify the case of a FailedResult
       else if (task instanceof FailedResult) {
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
-          resolve({ error: null, isVerified: true });
+          let error = null;
+          let isVerified = true;
+          if (!EthereumVerifier._verifyHash(event.outputHash, task.getOutput())) {
+            error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
+            isVerified = false;
+          }
+          resolve({ error: error, isVerified: isVerified });
         } else {
           const err = new errors.TaskValidityErr("Task " + taskId + " did not fail");
           resolve({ error: err, isVerified: false });
