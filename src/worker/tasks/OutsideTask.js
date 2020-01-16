@@ -1,6 +1,5 @@
 const Task = require("./Task");
 const Result = require("./Result").Result;
-const nodeUtils = require("../../common/utils");
 
 class OutsideTask extends Task {
   constructor(taskId, type, result) {
@@ -23,13 +22,10 @@ class OutsideTask extends Task {
       taskId: this.getTaskId(),
       result: this.getResult().toDbJson()
     };
-    return JSON.stringify(output);
+    return output;
   }
   static fromDbJson(taskObj) {
     if (taskObj.status) {
-      if (taskObj.result && nodeUtils.isString(taskObj.result)) {
-        taskObj.result = JSON.parse(taskObj.result);
-      }
       const task = OutsideTask.buildTask(taskObj.type, taskObj.result);
       return task;
     }

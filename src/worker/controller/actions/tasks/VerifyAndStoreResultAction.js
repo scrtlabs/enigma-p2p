@@ -30,7 +30,7 @@ class VerifyAndStoreResultAction {
     const from = message.from; // b58 id
     const data = message.data;
     const msgObj = JSON.parse(data.toString());
-    const resultObj = JSON.parse(msgObj.result);
+    const resultObj = msgObj.result;
     const contractAddress = msgObj.contractAddress;
     const type = msgObj.type;
     let error = null;

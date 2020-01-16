@@ -8,7 +8,6 @@ const nodeUtils = require("../../common/utils");
 const DeployTask = require("./DeployTask");
 const ComputeTask = require("./ComputeTask");
 const OutsideTask = require("./OutsideTask");
-const parallel = require("async/parallel");
 const Result = require("./Result");
 
 class TaskManager extends EventEmitter {
@@ -20,7 +19,6 @@ class TaskManager extends EventEmitter {
     } else {
       this._dbPath = path.join(__dirname, "/tasks_db");
     }
-    this._DB_MAPPER = "mapper";
     this._db = new DbApi(this._dbPath, logger);
     this._db.open();
     /**
@@ -60,7 +58,7 @@ class TaskManager extends EventEmitter {
   addOutsideResult(type, outsideTask) {
     return new Promise((res, rej) => {
       if (outsideTask instanceof OutsideTask) {
-        this._db.put(outsideTask.getTaskId(), outsideTask.toDbJson(), err => {
+        this._db.put(outsideTask.getTaskId(), this._serializeTask(outsideTask), err => {
           if (err) {
             return rej(err);
           }
@@ -77,22 +75,8 @@ class TaskManager extends EventEmitter {
    * @param {Function} callback (err)=>{}
    * */
   _storeTask(task, callback) {
-    this._db.get(this._DB_MAPPER, (err, potentialIdsList) => {
-      // append the task id to list
-      let idsList = [];
-      if (!err) {
-        idsList = potentialIdsList;
-      }
-      idsList.push(task.getTaskId());
-      // store back
-      this._db.put(this._DB_MAPPER, JSON.stringify(idsList), err => {
-        if (err) {
-          return callback(err);
-        }
-        // store the new task
-        this._db.put(task.getTaskId(), task.toDbJson(), callback);
-      });
-    });
+    // store the new task
+    this._db.put(task.getTaskId(), this._serializeTask(task), callback);
   }
   /**
    * Promise based removeTask
@@ -115,9 +99,9 @@ class TaskManager extends EventEmitter {
       delete this._unverifiedPool[taskId];
       this._logger.debug("[UNVERIFIED-DELETE] task " + taskId + "deleted");
     }
-    this._readAndDelete(taskId, err => {
+    this._deleteTask(taskId, err => {
       if (err) {
-        this._logger.error("[_readAndDelete]: " + err);
+        this._logger.error("[_delete]: " + err);
       }
       callback(err);
     });
@@ -303,24 +287,29 @@ class TaskManager extends EventEmitter {
       return callback(err);
     }
     const id = taskResult.getTaskId();
-    this._readAndDelete(id, (err, task) => {
+    this._readTask(id, (err, task) => {
       if (err) {
         return callback(err);
       }
-      // attach a result
-      task.setResult(taskResult);
-      // save the task again with the result attached
-      this._storeTask(task, err => {
+      this._deleteTask(id, err => {
         if (err) {
           return callback(err);
         }
-        this._logger.info("[TASK_FINISHED] status = [" + taskResult.getStatus() + "] id: " + task.getTaskId());
-        // notify about the task change
-        this.notify({
-          notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED,
-          task: task
+        // attach a result
+        task.setResult(taskResult);
+        // save the task again with the result attached
+        this._storeTask(task, err => {
+          if (err) {
+            return callback(err);
+          }
+          this._logger.info("[TASK_FINISHED] status = [" + taskResult.getStatus() + "] id: " + task.getTaskId());
+          // notify about the task change
+          this.notify({
+            notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED,
+            task: task
+          });
+          return callback(null);
         });
-        return callback();
       });
     });
   }
@@ -422,6 +411,13 @@ class TaskManager extends EventEmitter {
     });
   }
   /**
+   * Notify observer (Some controller subscribed)
+   * @param {Json} params, MUTS CONTAINT notification field
+   */
+  notify(params) {
+    this.emit("notify", params);
+  }
+  /**
    * Load a task from the db
    * @param {string} taskId
    * @param {Function} callback (err,Task)=>{}
@@ -429,17 +425,7 @@ class TaskManager extends EventEmitter {
   _readTask(taskId, callback) {
     this._db.get(taskId, (err, res) => {
       if (err) return callback(err);
-      let task = null;
-      //OutsideTask result received from outside node
-      if (res.outsideTask) {
-        task = OutsideTask.fromDbJson(res);
-      }
-      // deploy task
-      else if (res.preCode) {
-        task = DeployTask.fromDbJson(res);
-      } else {
-        task = ComputeTask.fromDbJson(res);
-      }
+      let task = this._deserializeTask(res);
       if (task) {
         callback(null, task);
       } else {
@@ -451,80 +437,26 @@ class TaskManager extends EventEmitter {
   /**
    * read and delete task from db
    * @param {string} taskId
-   * @param {Function} callback (err,Task)=>{}
+   * @param {Function} callback (err)=>{}
    * */
-  _readAndDelete(taskId, callback) {
-    this._readTask(taskId, (err, task) => {
-      if (err) {
-        if (err instanceof Error && err.type === "NotFoundError") {
-          callback(null);
-        } else {
-          this._logger.error("error reading task " + err);
-          return callback(err);
-        }
-      }
-      this._db.get(this._DB_MAPPER, (err, idsList) => {
-        if (err) return callback(err);
-        const idx = idsList.indexOf(taskId);
-        if (idx > -1) {
-          const deletedId = idsList.splice(idx, 1);
-          this._db.put(this._DB_MAPPER, JSON.stringify(idsList), err => {
-            if (err) return callback(err);
-            // delete the task object
-            this._db.delete(taskId, err => {
-              return callback(err, task);
-            });
-          });
-        } else {
-          this._logger.debug("[ERROR] cant find taskId,skipping");
-        }
-      });
-    });
-  }
-  /** promise based get all stored ids */
-  async _asyncGetAllStoredIds() {
-    return new Promise((resolve, reject) => {
-      this._getAllStoredIds((err, ids) => {
-        if (err) reject(err);
-        else resolve(ids);
-      });
+  _deleteTask(taskId, callback) {
+    // delete the task object
+    this._db.delete(taskId, err => {
+      return callback(err);
     });
   }
 
-  /** get all stored task ids
-   * @param {Function} callback(err,Array<string>)=>{}
-   * */
-  _getAllStoredIds(callback) {
-    this._db.get(this._DB_MAPPER, (err, idsList) => {
-      callback(err, idsList);
-    });
-  }
   /** get all the tasks from db
    * @{Function} callback(err,Array<Task>)=>{}
    * */
   _getAllDbTasks(callback) {
-    this._getAllStoredIds((err, idsList) => {
+    this._db.getAll((err, taskMap) => {
       if (err) return callback(err);
-      this._getDbTasksFromList(idsList, (err, allTasks) => {
-        callback(err, allTasks);
-      });
-    });
-  }
-  /**
-   * get tasks from db given some list
-   * @{Function} callback(err,Array<Task>)=>{}
-   * */
-  _getDbTasksFromList(idsList, callback) {
-    const jobs = [];
-    idsList.forEach(id => {
-      jobs.push(cb => {
-        this._readTask(id, (err, task) => {
-          cb(err, task);
-        });
-      });
-    });
-    parallel(jobs, (err, tasks) => {
-      callback(err, tasks);
+      const taskList = [];
+      for (const id in taskMap) {
+        taskList.push(this._deserializeTask(taskMap[id]));
+      }
+      callback(null, taskList);
     });
   }
   /**
@@ -537,12 +469,23 @@ class TaskManager extends EventEmitter {
   _isOkToAdd(unverifiedTask) {
     return unverifiedTask instanceof Task && !this.isUnverifiedInPool(unverifiedTask.getTaskId());
   }
-  /**
-   * Notify observer (Some controller subscribed)
-   * @param {Json} params, MUTS CONTAINT notification field
-   */
-  notify(params) {
-    this.emit("notify", params);
+  _serializeTask(task) {
+    return JSON.stringify(task.toDbJson());
+  }
+  _deserializeTask(string) {
+    const taskJson = JSON.parse(string);
+    let task = null;
+    //OutsideTask result received from outside node
+    if (taskJson.outsideTask) {
+      task = OutsideTask.fromDbJson(taskJson);
+    }
+    // deploy task
+    else if (taskJson.preCode) {
+      task = DeployTask.fromDbJson(taskJson);
+    } else {
+      task = ComputeTask.fromDbJson(taskJson);
+    }
+    return task;
   }
 }
 
