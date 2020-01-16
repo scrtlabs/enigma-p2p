@@ -567,6 +567,14 @@ class EnigmaContractReaderAPI {
         return {
           workerAddress: event.returnValues.workerAddress
         };
+      },
+      /**
+       * @return {JSON}: {string} address
+       * */
+      [constants.RAW_ETHEREUM_EVENTS.Unregistered]: event => {
+        return {
+          address: event.returnValues.custodian
+        };
       }
     };
   }
