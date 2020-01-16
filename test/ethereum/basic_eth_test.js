@@ -340,6 +340,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const events = await deployFailurePromise;
 
     assert.strictEqual(events.ReceiptFailed.taskId, taskId1);
+    assert.strictEqual(events.ReceiptFailed.outputHash, codeHash);
 
     const countSCsAfter = await api.countSecretContracts();
     assert.strictEqual(countSCsAfter, 0);
@@ -376,7 +377,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         {},
         getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async event => {
           assert.strictEqual(event.taskId, taskId1);
-
+          assert.strictEqual(event.outputHash, codeHash);
           const countSCsAfter = await api.countSecretContracts();
           assert.strictEqual(countSCsAfter, 0);
           await stop();
@@ -625,6 +626,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
     const receipt = await taskFailurePromise;
 
     assert.strictEqual(receipt.ReceiptFailed.taskId, taskId);
+    assert.strictEqual(receipt.ReceiptFailed.outputHash, outputHash);
     await stop();
   });
 
@@ -674,6 +676,7 @@ describe("Ethereum API tests (TODO: use enigmejs instead)", function() {
         {},
         getEventRecievedFunc(constants.RAW_ETHEREUM_EVENTS.ReceiptFailed, async receipt => {
           assert.strictEqual(receipt.taskId, taskId);
+          assert.strictEqual(receipt.outputHash, outputHash);
           await stop();
           resolve();
         })
