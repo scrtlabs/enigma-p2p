@@ -306,7 +306,7 @@ class TaskManager extends EventEmitter {
           // notify about the task change
           this.notify({
             notification: constants.NODE_NOTIFICATIONS.TASK_FINISHED,
-            task: task
+            task
           });
           return callback(null);
         });
