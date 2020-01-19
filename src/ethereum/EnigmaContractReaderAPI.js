@@ -505,7 +505,8 @@ class EnigmaContractReaderAPI {
        * */
       [constants.RAW_ETHEREUM_EVENTS.ReceiptFailed]: event => {
         return {
-          taskId: nodeUtils.remove0x(event.returnValues.taskId)
+          taskId: nodeUtils.remove0x(event.returnValues.taskId),
+          outputHash: event.returnValues.outputHash
         };
       },
       /**
