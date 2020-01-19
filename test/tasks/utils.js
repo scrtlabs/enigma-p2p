@@ -11,9 +11,9 @@ function generateTasks(num, type) {
   const taskType = type === "deploy" ? DeployTask : ComputeTask;
   const taskList = type === "deploy" ? deployTasks : computeTasks;
   for (let i = 0; i < num; i++) {
-    const taskJson = taskType.fromDbJson(taskList[i]);
-    taskJson._taskId = testUtils.randLenStr(64);
-    tasks.push(taskJson);
+    const task = taskList[i];
+    task.taskId = testUtils.randLenStr(64);
+    tasks.push(taskType.fromDbJson(task));
   }
   return tasks;
 }

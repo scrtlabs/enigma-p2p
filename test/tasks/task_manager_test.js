@@ -9,6 +9,7 @@ const TaskManager = require("../../src/worker/tasks/TaskManager");
 const tempdir = require("tempdir");
 const TEST_TREE = require("../test_tree").TEST_TREE;
 const utils = require("./utils");
+const testUtils = require("../testUtils/utils");
 
 let tree = TEST_TREE.task_manager;
 
@@ -217,102 +218,109 @@ describe("TaskManager isolated tests", () => {
       this.skip();
     }
     this.timeout(10000);
-    return new Promise(async resolve => {
-      dbPath = tempdir.sync();
-      let unFinishedDeployNum = 250,
-        unFinishedComputeNum = 250,
-        finishedSuccess = 400,
-        finishedFail = 100;
-      // create task manager
-      let taskManager = new TaskManager(dbPath, logger);
+    return new Promise(async (resolve, reject) => {
+      try {
+        dbPath = tempdir.sync();
+        let unFinishedDeployNum = 250,
+          unFinishedComputeNum = 250,
+          finishedSuccess = 400,
+          finishedFail = 100;
+        // create task manager
+        let taskManager = new TaskManager(dbPath, logger);
 
-      let allTasksLen = unFinishedDeployNum + unFinishedComputeNum + finishedSuccess + finishedFail;
-      // generate 250 unfinished deploy tasks
-      let unDeployTasks = utils.generateDeployTasks(unFinishedDeployNum);
-      // // generate 250 unfinished compute tasks
+        let allTasksLen = unFinishedDeployNum + unFinishedComputeNum + finishedSuccess + finishedFail;
+        // generate 250 unfinished deploy tasks
+        let unDeployTasks = utils.generateDeployTasks(unFinishedDeployNum);
+        // // generate 250 unfinished compute tasks
 
-      let unComputeTasks = utils.generateComputeTasks(unFinishedComputeNum);
-      // // generate 400 finished + success
+        let unComputeTasks = utils.generateComputeTasks(unFinishedComputeNum);
+        // // generate 400 finished + success
 
-      let successBundle = utils.generateDeployBundle(finishedSuccess, true);
-      // generate 100 failed
+        let successBundle = utils.generateDeployBundle(finishedSuccess, true);
+        // generate 100 failed
 
-      let failedBundle = utils.generateDeployBundle(finishedFail, false);
+        let failedBundle = utils.generateDeployBundle(finishedFail, false);
 
-      // add all tasks
-      unComputeTasks.forEach(task => taskManager.addTaskUnverified(task));
-      unDeployTasks.forEach(task => taskManager.addTaskUnverified(task));
-      successBundle.forEach(task => taskManager.addTaskUnverified(task.task));
-      failedBundle.forEach(task => taskManager.addTaskUnverified(task.task));
-      // verify 1000 tasks
-      let allTasks = await taskManager.asyncGetAllTasks();
-      assert.strictEqual(allTasksLen, allTasks.length, "not 1000 len, => " + allTasks.length);
-      // verify 1000 unverified tasks
-      assert.strictEqual(
-        allTasksLen,
-        taskManager.getUnverifiedTasks().length,
-        `All tasks should be ${allTasksLen} but is actually ${taskManager.getUnverifiedTasks().length}`
-      );
+        // add all tasks
+        unComputeTasks.forEach(task => taskManager.addTaskUnverified(task));
+        unDeployTasks.forEach(task => taskManager.addTaskUnverified(task));
+        successBundle.forEach(task => taskManager.addTaskUnverified(task.task));
+        failedBundle.forEach(task => taskManager.addTaskUnverified(task.task));
+        // verify 1000 tasks
+        let allTasks = await taskManager.asyncGetAllTasks();
+        assert.strictEqual(allTasksLen, allTasks.length, `Task manager has mismatched number of tasks`);
+        // verify 1000 unverified tasks
+        assert.strictEqual(
+          allTasksLen,
+          taskManager.getUnverifiedTasks().length,
+          `All tasks should be ${allTasksLen} but is actually ${taskManager.getUnverifiedTasks().length}`
+        );
 
-      // verify 750 tasks
-      await Promise.all([
-        ...unDeployTasks.map(task => taskManager.asyncOnVerifyTask(task.getTaskId(), true)),
-        ...successBundle.map(task => taskManager.asyncOnVerifyTask(task.task.getTaskId(), true)),
-        ...failedBundle.map(task => taskManager.asyncOnVerifyTask(task.task.getTaskId(), true))
-      ]);
-      let expectedVerifiedAmount = unFinishedDeployNum + finishedSuccess + finishedFail;
-      let verifiedTasks = await taskManager.asyncGetVerifiedTasks();
-      assert.strictEqual(
-        expectedVerifiedAmount,
-        verifiedTasks.length,
-        `verified tasks is not ${expectedVerifiedAmount}actual = ${verifiedTasks.length}`
-      );
+        // verify 750 tasks
+        await Promise.all([
+          ...unDeployTasks.map(task => taskManager.asyncOnVerifyTask(task.getTaskId(), true)),
+          ...successBundle.map(task => taskManager.asyncOnVerifyTask(task.task.getTaskId(), true)),
+          ...failedBundle.map(task => taskManager.asyncOnVerifyTask(task.task.getTaskId(), true))
+        ]);
+        let expectedVerifiedAmount = unFinishedDeployNum + finishedSuccess + finishedFail;
+        let verifiedTasks = await taskManager.asyncGetVerifiedTasks();
+        assert.strictEqual(
+          expectedVerifiedAmount,
+          verifiedTasks.length,
+          `verified tasks is not ${expectedVerifiedAmount}actual = ${verifiedTasks.length}`
+        );
 
-      // verify the other 250
-      let expectedUnverifiedAmount = allTasks.length - expectedVerifiedAmount;
-      let tested = taskManager.getUnverifiedTasks().length;
-      assert.strictEqual(
-        expectedUnverifiedAmount,
-        tested,
-        `expectedUnverifiedAmount is not ${expectedUnverifiedAmount} actual = ${tested}`
-      );
-      await Promise.all(unComputeTasks.map(task => taskManager.asyncOnVerifyTask(task.getTaskId(), true)));
+        // verify the other 250
+        let expectedUnverifiedAmount = allTasks.length - expectedVerifiedAmount;
+        let tested = taskManager.getUnverifiedTasks().length;
+        assert.strictEqual(
+          expectedUnverifiedAmount,
+          tested,
+          `expectedUnverifiedAmount is not ${expectedUnverifiedAmount} actual = ${tested}`
+        );
+        await Promise.all(unComputeTasks.map(task => taskManager.asyncOnVerifyTask(task.getTaskId(), true)));
 
-      await Promise.all(successBundle.map(task => taskManager.asyncOnFinishTask(task.result)));
-      let finishedTasks = await taskManager.asyncGetFinishedTasks();
-      assert.strictEqual(
-        finishedSuccess,
-        finishedTasks.length,
-        `not ${finishedSuccess} finished, actual = ${finishedTasks.length}`
-      );
+        await Promise.all(successBundle.map(task => taskManager.asyncOnFinishTask(task.result)));
+        await testUtils.sleep(100);
+        let finishedTasks = await taskManager.asyncGetFinishedTasks();
+        assert.strictEqual(
+          finishedSuccess,
+          finishedTasks.length,
+          `not ${finishedSuccess} finished, actual = ${finishedTasks.length}`
+        );
 
-      let successTasks = await taskManager.asyncGetSuccessfullTasks();
-      assert.strictEqual(
-        finishedSuccess,
-        successTasks.length,
-        `not ${finishedSuccess} success, actual = ${successTasks.length}`
-      );
-      // verify taskId's check if all ids equal in success bundle and storage
-      let noneId = successBundle.some(b => {
-        let t = b.task;
-        let existInStore = successTasks.some(st => {
-          return t.getTaskId() === st.getTaskId();
+        let successTasks = await taskManager.asyncGetSuccessfullTasks();
+        assert.strictEqual(
+          finishedSuccess,
+          successTasks.length,
+          `not ${finishedSuccess} success, actual = ${successTasks.length}`
+        );
+        // verify taskId's check if all ids equal in success bundle and storage
+        let noneId = successBundle.some(b => {
+          let t = b.task;
+          let existInStore = successTasks.some(st => {
+            return t.getTaskId() === st.getTaskId();
+          });
+          return !existInStore;
         });
-        return !existInStore;
-      });
-      assert.strictEqual(false, noneId, "some id don't appear");
+        assert.strictEqual(false, noneId, "some id don't appear");
 
-      // finish with fail result
-      await Promise.all(failedBundle.map(task => taskManager.asyncOnFinishTask(task.result)));
-      let failedTasks = await taskManager.asyncGetFailedTasks();
-      assert.strictEqual(
-        finishedFail,
-        failedTasks.length,
-        `not ${finishedFail} failed, actual = ${failedTasks.length}`
-      );
-      // end test
-      await taskManager.asyncStop();
-      destroyDb(dbPath, resolve);
+        // finish with fail result
+        await Promise.all(failedBundle.map(task => taskManager.asyncOnFinishTask(task.result)));
+        await testUtils.sleep(100);
+        let failedTasks = await taskManager.asyncGetFailedTasks();
+        assert.strictEqual(
+          finishedFail,
+          failedTasks.length,
+          `not ${finishedFail} failed, actual = ${failedTasks.length}`
+        );
+        // end test
+        await taskManager.asyncStop();
+        destroyDb(dbPath, resolve);
+      } catch (err) {
+        console.log(err);
+        reject(err);
+      }
     });
   });
   it("#6 Should addOutsideResult()", async function() {
