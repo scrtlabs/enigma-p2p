@@ -112,7 +112,7 @@ class InitWorkerAction {
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN ||
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
         ) {
-          this._controller.logger().info("InitWorkerAction- worker is already logged-in");
+          this._controller.logger().info("InitWorkerAction- worker is already registered");
           return;
         }
         try {
