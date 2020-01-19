@@ -18,18 +18,15 @@ class AnnounceLocalStateAction {
         /**
          * do the announcement
          * */
-        const parsedEngCids = allAddrsResponse.result.addresses
-          .map(addr => {
-            const ecid = EngCid.createFromSCAddress(addr);
-            if (ecid) {
-              return ecid;
-            } else {
-              this._controller.logger().error("[-] err converting bytearray->hex->EngCid !");
-            }
-          })
-          .filter(ecid => {
-            return ecid !== undefined && ecid !== null;
-          });
+        let parsedEngCids = [];
+        for (const address of allAddrsResponse.result.addresses) {
+          const ecid = EngCid.createFromSCAddress(address);
+          if (ecid) {
+            parsedEngCids.push(ecid);
+          } else {
+            this._controller.logger().error(`error converting address ${address} to ecid !`);
+          }
+        }
         isEngCid = true;
         this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid, (err, failedCids) => {
           if (err) {
