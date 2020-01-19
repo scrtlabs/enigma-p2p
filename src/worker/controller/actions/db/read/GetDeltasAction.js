@@ -1,8 +1,7 @@
 const constants = require("../../../../../common/constants");
 
 /**
- This action returns all the requested deltas.
- either from cache or directly from core.
+ This action returns all the requested deltas from core.
  * */
 class GetDeltasAction {
   constructor(controller) {

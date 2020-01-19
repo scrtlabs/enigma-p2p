@@ -6,7 +6,7 @@ const NODE_NOTIY = constants.NODE_NOTIFICATIONS;
 /**
  * This action is the first step to sync
  * this identifies the missing state the worker needs.
- * - it will use the cache or go directly to core.
+ * - it will read from core.
  * - get the local tips
  * - get remote tips
  * - parse them into a format class "MissingStatesMap"
@@ -23,29 +23,21 @@ class IdentifyMissingStatesAction {
     this._controller = controller;
   }
   async execute(params) {
-    const useCache = params.cache;
     const callback = params.onResponse;
-    if (useCache) {
-      this._controller.cache().getAllTips((err, tipsList) => {
-        // TODO:: implement cache logic
-        // TODO:: if cache empty still query core since maybe it was deleted or first time
-      });
-    } else {
-      try {
-        // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
-        const localTips = await this._controller.asyncExecCmd(NODE_NOTIY.GET_ALL_TIPS, { cache: useCache });
-        if (!this._controller.hasEthereum()) {
-          const error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
-          return callback(error);
-        }
-        StateSync.compareLocalStateToRemote(this._controller.ethereum().api(), localTips)
-          .then(res => {
-            callback(null, res);
-          })
-          .catch(err => callback(err));
-      } catch (err) {
-        return callback(err);
+    try {
+      // LOCAL TIPS : {type,id,tips: [{address,key,delta},...]}
+      const localTips = await this._controller.asyncExecCmd(NODE_NOTIY.GET_ALL_TIPS, {});
+      if (!this._controller.hasEthereum()) {
+        const error = new errs.EthereumErr(`[IDENTIFY_MISSING_STATES] failure, no ethereum!`);
+        return callback(error);
       }
+      StateSync.compareLocalStateToRemote(this._controller.ethereum().api(), localTips)
+        .then(res => {
+          callback(null, res);
+        })
+        .catch(err => callback(err));
+    } catch (err) {
+      return callback(err);
     }
   }
 

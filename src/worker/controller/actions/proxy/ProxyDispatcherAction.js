@@ -65,7 +65,7 @@ class ProxyDispatcherAction {
         taskId: requestEnvelop.content().taskId
       });
       if (result) {
-        result = JSON.parse(result.toDbJson());
+        result = result.toDbJson();
       } else {
         this._controller.logger().info(`[PROXY_DISPATCH] received an empty result`);
       }

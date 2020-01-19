@@ -1,7 +1,6 @@
 const Task = require("./Task");
 const Result = require("./Result");
 const constants = require("../../common/constants");
-const nodeUtils = require("../../common/utils");
 class DeployTask extends Task {
   /**
    * @param {JSON} deployReqMsg , all fields specified in the `expected` list in the func
@@ -71,7 +70,7 @@ class DeployTask extends Task {
     if (this.isFinished()) {
       output.result = this._result.toDbJson();
     }
-    return JSON.stringify(output);
+    return output;
   }
   toCoreJson() {
     return {
@@ -87,9 +86,6 @@ class DeployTask extends Task {
     if (taskObj.status) {
       const task = DeployTask.buildTask(taskObj);
       task._setStatus(taskObj.status);
-      if (taskObj.result && nodeUtils.isString(taskObj.result)) {
-        taskObj.result = JSON.parse(taskObj.result);
-      }
       if (taskObj.result && taskObj.result.status !== constants.TASK_STATUS.FAILED) {
         // here is string
         const result = Result.DeployResult.buildDeployResult(taskObj.result);
