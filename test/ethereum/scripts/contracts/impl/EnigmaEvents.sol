@@ -17,7 +17,8 @@ contract EnigmaEvents {
     // ReceiptVerified => bytes32s [scAddr, taskId, stateDeltaHash, outputHash]
     event ReceiptVerified(bytes32 indexed taskId, uint64 gasUsed, address optionalEthereumContractAddress,
         bytes32[4] bytes32s, uint deltaHashIndex, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress);
-    event ReceiptFailed(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, address workerAddress);
+    event ReceiptFailed(bytes32 indexed taskId, bytes32 scAddr, bytes32 outputHash,
+        uint gasUsed, address workerAddress);
     event ReceiptFailedETH(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, uint gasUsedTotal,
         address workerAddress);
     event TaskFeeReturned(bytes32 indexed taskId);

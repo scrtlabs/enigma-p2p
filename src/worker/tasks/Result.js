@@ -95,10 +95,7 @@ class ComputeResult extends Result {
     return this._delta;
   }
   hasDelta() {
-    if (this._delta && this._delta.data) {
-      return true;
-    }
-    return false;
+    return this._delta && this._delta.data;
   }
   getEthPayload() {
     return this._ethereumPayload;
@@ -110,7 +107,7 @@ class ComputeResult extends Result {
     return this._signature;
   }
   toDbJson() {
-    return JSON.stringify({
+    return {
       taskId: this.getTaskId(),
       status: this.getStatus(),
       output: this.getOutput(),
@@ -119,7 +116,7 @@ class ComputeResult extends Result {
       ethereumPayload: this.getEthPayload(),
       ethereumAddress: this.getEthAddr(),
       signature: this.getSignature()
-    });
+    };
   }
 }
 
@@ -163,7 +160,7 @@ class DeployResult extends ComputeResult {
     return this._preCodeHash;
   }
   toDbJson() {
-    return JSON.stringify({
+    return {
       taskId: this.getTaskId(),
       status: this.getStatus(),
       preCodeHash: this.getPreCodeHash(),
@@ -173,7 +170,7 @@ class DeployResult extends ComputeResult {
       ethereumPayload: this.getEthPayload(),
       ethereumAddress: this.getEthAddr(),
       signature: this.getSignature()
-    });
+    };
   }
 }
 
@@ -211,13 +208,13 @@ class FailedResult extends Result {
     return this._signature;
   }
   toDbJson() {
-    return JSON.stringify({
+    return {
       taskId: this.getTaskId(),
       status: this.getStatus(),
       output: this.getOutput(),
       usedGas: this.getUsedGas(),
       signature: this.getSignature()
-    });
+    };
   }
 }
 module.exports.Result = Result;

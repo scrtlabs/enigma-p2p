@@ -47,7 +47,6 @@ class InitWorkerAction {
         return cb(null);
       }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
-        cache: false,
         onEnd: (err, statusResult) => {
           cb(err);
         }
@@ -55,7 +54,6 @@ class InitWorkerAction {
     };
     const announceState = cb => {
       this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
-        cache: false,
         onResponse: (error, content) => {
           if (error) {
             this._controller.logger().error("failed announcing " + error);
@@ -108,7 +106,7 @@ class InitWorkerAction {
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN ||
           workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
         ) {
-          this._controller.logger().info("InitWorkerAction- worker is already logged-in");
+          this._controller.logger().info("InitWorkerAction- worker is already registered");
           return;
         }
         try {

@@ -30,7 +30,7 @@ class VerifyAndStoreResultAction {
     const from = message.from; // b58 id
     const data = message.data;
     const msgObj = JSON.parse(data.toString());
-    const resultObj = JSON.parse(msgObj.result);
+    const resultObj = msgObj.result;
     const contractAddress = msgObj.contractAddress;
     const type = msgObj.type;
     let error = null;
@@ -154,8 +154,7 @@ class VerifyAndStoreResultAction {
       if (result instanceof ComputeResult && !result.hasDelta()) {
         try {
           let tips = await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.GET_TIPS, {
-            contractAddresses: contractAddress,
-            useCache: false
+            contractAddresses: contractAddress
           });
           if (!Array.isArray(tips) || tips.length === 0 || !tips[0].address || tips[0].address !== contractAddress) {
             error = `[VERIFY_TASK_RESULT] error in reading ${contractAddress} local tip`;

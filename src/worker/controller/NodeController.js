@@ -17,7 +17,6 @@ const Provider = require("../../worker/state_sync/provider/Provider");
 const Receiver = require("../../worker/state_sync/receiver/Receiver");
 const Logger = require("../../common/logger");
 const Policy = require("../../policy/policy");
-const PersistentStateCache = require("../../db/StateCache");
 const TaskManager = require("../tasks/TaskManager");
 const PrincipalNode = require("../handlers/PrincipalNode");
 const WebServer = require("../handlers/WebServer");
@@ -82,9 +81,6 @@ class NodeController {
     // initialize logger
     this._logger = logger;
     this._communicator = null;
-    // init persistent cache
-    // TODO:: currently it's ignored and not initialized _initStateCache()
-    // this._cache = new PersistentStateCache('./some_db_name');
 
     this._engNode = enigmaNode;
     this._protocolHandler = protocolHandler;
@@ -131,7 +127,7 @@ class NodeController {
       // db
       [NOTIFICATION.DB_REQUEST]: new DbRequestAction(this), // all the db requests to core should go through here.
       [NOTIFICATION.GET_ALL_TIPS]: new GetAllTipsAction(this),
-      [NOTIFICATION.GET_ALL_ADDRS]: new GetAllAddrsAction(this), // get all the addresses from core or from cache
+      [NOTIFICATION.GET_ALL_ADDRS]: new GetAllAddrsAction(this), // get all the addresses from core
       [NOTIFICATION.GET_TIPS]: new GetTipsAction(this),
       [NOTIFICATION.GET_DELTAS]: new GetDeltasAction(this), // get deltas from core
       [NOTIFICATION.GET_CONTRACT_BCODE]: new GetContractCodeAction(this), // get bytecode
@@ -199,7 +195,6 @@ class NodeController {
     this._initTaskManager();
     this._initWebServer();
     this._initManagementServer();
-    // this._initCache();
   }
 
   /**
@@ -218,11 +213,6 @@ class NodeController {
         }
       });
     }
-  }
-
-  _initCache() {
-    // TODO:: start the cache service
-    // this._cache.start()
   }
 
   _initPrincipalNode() {
@@ -427,13 +417,6 @@ class NodeController {
     return this._communicator;
   }
 
-  /** Get the cache object for the state tips and contracts that are stored locally.
-   * @return {PersistentStateCache}
-   * */
-  //cache() {
-  //  return this._cache;
-  //}
-
   principal() {
     return this._principal;
   }
@@ -537,7 +520,7 @@ class NodeController {
   }
 
   getLocalTips() {
-    return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, { useCache: false });
+    return this.asyncExecCmd(NOTIFICATION.GET_ALL_TIPS, {});
   }
 
   getConnectedPeers() {
@@ -547,7 +530,7 @@ class NodeController {
   /**
    * unsubscribe form a topic
    * @param {string} topic
-   * @param {Function} reference to the topic_handler (MUST)
+   * @param {Function} handler - reference to the topic_handler (MUST)
    *
    * */
   unsubscribeTopic(topic, handler) {
@@ -642,14 +625,12 @@ class NodeController {
   /** TODO:: add this as cli api + in the cli dump it into a file.;
    * TODO:: good for manual testing
    * returns the current local tips
-   * @param {Boolean} fromCache , if true => use cache , false=> directly from core
    * @param {Function} onResponse , (missingStates) =>{}
    * */
-  getAllLocalTips(fromCache, onResponse) {
+  getAllLocalTips(onResponse) {
     this._actions[NOTIFICATION.GET_ALL_TIPS].execute({
       dbQueryType: constants.CORE_REQUESTS.GetAllTips,
-      onResponse: onResponse,
-      cache: fromCache
+      onResponse: onResponse
     });
   }
 
@@ -680,7 +661,6 @@ class NodeController {
   // TODO make it usable to execute this pipeline
   syncReceiverPipeline(callback) {
     this._actions[NOTIFICATION.SYNC_RECEIVER_PIPELINE].execute({
-      cache: false,
       onEnd: (err, statusResult) => {
         if (callback) {
           return callback(err, statusResult);
@@ -698,7 +678,6 @@ class NodeController {
     // test_real_announce
     // AnnounceLocalStateAction
     this._actions[NOTIFICATION.ANNOUNCE_LOCAL_STATE].execute({
-      cache: false,
       onResponse: (error, content) => {
         if (callback) {
           return callback(error, content);

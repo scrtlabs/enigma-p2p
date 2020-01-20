@@ -24,9 +24,9 @@ module.exports.NODE_NOTIFICATIONS = {
   ANNOUNCE_LOCAL_STATE: "alc", // announce local state (after being synced)
   DB_REQUEST: "dbreq", // some db request to core
   GET_REMOTE_TIPS: "gremotetipslocal", // get the local tips of some remote peer
-  GET_ALL_TIPS: "getat", // get all tips from cache/core
-  GET_TIPS: "gett", // get tips from cache/core
-  GET_ALL_ADDRS: "getaa", // get all addrs from cache/core
+  GET_ALL_TIPS: "getat", // get all tips from core
+  GET_TIPS: "gett", // get tips from core
+  GET_ALL_ADDRS: "getaa", // get all addrs from core
   GET_DELTAS: "getds", // get deltas request from core
   GET_CONTRACT_BCODE: "getcbc", // get the bytecode of some contract
   SYNC_RECEIVER_PIPELINE: "srpl", // full sync pipeline from identify to actually try sync all action, encapsulate all actions flow
