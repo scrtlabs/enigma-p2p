@@ -211,7 +211,7 @@ class CommitReceiptAction {
 
   async _resync() {
     try {
-      await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.SYNC_RECEIVER_PIPELINE, { cache: false });
+      await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.SYNC_RECEIVER_PIPELINE, {});
     } catch (error) {
       this._controller.logger().error(`[COMMIT_RECEIPT] received an error while trying to rerun sync ${error}`);
     }
