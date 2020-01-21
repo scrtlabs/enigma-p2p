@@ -1,10 +1,7 @@
 const constants = require("../../../../../common/constants");
-const STAT_TYPES = constants.STAT_TYPES;
-const STATUS = constants.MSG_STATUS;
-const Envelop = require("../../../../../main_controller/channels/Envelop");
+
 /**
- This action returns all the requested deltas.
- either from cache or directly from core.
+ This action returns all the requested deltas from core.
  * */
 class GetDeltasAction {
   constructor(controller) {

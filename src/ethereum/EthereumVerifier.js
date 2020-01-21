@@ -237,7 +237,13 @@ class EthereumVerifier {
       // Verify the case of a FailedResult
       else if (task instanceof FailedResult) {
         if (event.type === constants.ETHEREUM_EVENTS.TaskFailureSubmission) {
-          resolve({ error: null, isVerified: true });
+          let error = null;
+          let isVerified = true;
+          if (!EthereumVerifier._verifyHash(event.outputHash, task.getOutput())) {
+            error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
+            isVerified = false;
+          }
+          resolve({ error: error, isVerified: isVerified });
         } else {
           const err = new errors.TaskValidityErr("Task " + taskId + " did not fail");
           resolve({ error: err, isVerified: false });
@@ -382,10 +388,15 @@ class EthereumVerifier {
           }
         } else if (taskParams.status === constants.ETHEREUM_TASK_STATUS.RECEIPT_FAILED) {
           res.canBeVerified = true;
-
+          let isVerified = true;
+          let error = null;
           if (task instanceof FailedResult) {
-            res.isVerified = true;
-            res.error = null;
+            if (!EthereumVerifier._verifyHash(taskParams.outputHash, task.getOutput())) {
+              error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
+              isVerified = false;
+            }
+            res.isVerified = isVerified;
+            res.error = error;
           } else {
             res.isVerified = false;
             res.error = new errors.TaskFailedErr(`Task ${taskId} has failed`);
@@ -476,8 +487,7 @@ class EthereumVerifier {
     }
     // All fine by now...
     if (!error) {
-      let output = task.getOutput();
-      if (!EthereumVerifier._verifyHash(taskParams.outputHash, output)) {
+      if (!EthereumVerifier._verifyHash(taskParams.outputHash, task.getOutput())) {
         error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       } else {
         isVerified = true;
@@ -513,8 +523,7 @@ class EthereumVerifier {
     }
     // All fine by now...
     if (!error) {
-      let output = task.getOutput();
-      if (!EthereumVerifier._verifyHash(outputHash, output)) {
+      if (!EthereumVerifier._verifyHash(outputHash, task.getOutput())) {
         error = new errors.TaskVerificationErr("Mismatch in output hash in task result " + task.getTaskId());
       } else {
         isVerified = true;
@@ -539,10 +548,9 @@ class EthereumVerifier {
     let selectedWorker = EthereumVerifier.selectWorkerGroup(secretContractAddress, params, 1)[0];
     selectedWorker = nodeUtils.remove0x(selectedWorker.toLowerCase());
     if (selectedWorker !== workerAddress) {
-      const err = new errors.WorkerSelectionVerificationErr(
+      result.error = new errors.WorkerSelectionVerificationErr(
         "Not the selected worker for the " + secretContractAddress + " task"
       );
-      result.error = err;
       result.isVerified = false;
     }
     return result;
@@ -551,7 +559,7 @@ class EthereumVerifier {
   /**
    * Select the workers weighted-randomly based on the staked token amount that will run the computation task
    *
-   * @param {string} scAddr - Secret contract address
+   * @param {string} secretContractAddress - Secret contract address
    * @param {Object} params - Worker params
    * @param {number} workerGroupSize - Number of workers to be selected for task
    * @return {Array} An array of selected workers where each selected worker is chosen with probability equal to
@@ -721,8 +729,7 @@ class EthereumVerifier {
 
   /**
    * Verify task creation
-   * @param {string} deltaHash - from remote
-   * @param {string} outputHash - from remote
+   * @param {string} inputsHash - from remote
    * @param {Task} task to verify
    * @return {JSON} error
    *                isVerified - true/false

@@ -107,8 +107,7 @@ it("#3 GetAllTips - mock server", async function() {
       .setNodeConfig(peerConfig)
       .setIpcConfig({ uri: uri })
       .build();
-    const fromCache = false;
-    mainController.getNode().getAllLocalTips(fromCache, async (err, missingStates) => {
+    mainController.getNode().getAllLocalTips(async (err, missingStates) => {
       expect(err).not.toEqual(expect.anything()); // This should match against null/undefined
       expect(missingStates.length).toBe(3);
       expect(missingStates[0].key).toBe(2);

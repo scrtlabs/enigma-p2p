@@ -33,7 +33,8 @@ library TaskImpl {
     // ReceiptVerified => bytes32s [scAddr, taskId, stateDeltaHash, outputHash]
     event ReceiptVerified(bytes32 indexed taskId, uint64 gasUsed, address optionalEthereumContractAddress,
         bytes32[4] bytes32s, uint deltaHashIndex, uint gasUsedTotal, bytes optionalEthereumData, address workerAddress);
-    event ReceiptFailed(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, address workerAddress);
+    event ReceiptFailed(bytes32 indexed taskId, bytes32 scAddr, bytes32 outputHash,
+        uint gasUsed, address workerAddress);
     event ReceiptFailedETH(bytes32 indexed taskId, bytes32 scAddr, uint gasUsed, uint gasUsedTotal,
         address workerAddress);
     event TaskFeeReturned(bytes32 indexed taskId);
@@ -117,7 +118,7 @@ library TaskImpl {
         // MOCK
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
-        emit ReceiptFailed(_taskId, _taskId, _gasUsed, msg.sender);
+        emit ReceiptFailed(_taskId, _taskId, _codeHash, _gasUsed, msg.sender);
     }
 
     function verifyDeployReceipt(EnigmaState.State storage state, bytes32 _taskId, bytes32 _codeHash,
@@ -299,7 +300,7 @@ library TaskImpl {
         // MOCK
         //require(msgHash.recover(_sig) == state.workers[msg.sender].signer, "Invalid signature");
 
-        emit ReceiptFailed(_taskId, _scAddr, _gasUsed, msg.sender);
+        emit ReceiptFailed(_taskId, _scAddr, _outputHash, _gasUsed, msg.sender);
     }
 
     function validateReceipt(EnigmaState.State storage state, uint64 _gasUsed, bytes32 _scAddr, bytes32 _taskId)

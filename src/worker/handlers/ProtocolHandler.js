@@ -210,7 +210,6 @@ class ProtocolHandler extends EventEmitter {
     this._logger.debug("[LOCAL_STATE] got local state request from remote peer.");
     this.notify({
       notification: NOTIFICATION.GET_ALL_TIPS,
-      useCaches: false,
       onResponse: (err, tips) => {
         if (err) {
           this._logger.debug(`[ERROR] get local tips ${err}.`);

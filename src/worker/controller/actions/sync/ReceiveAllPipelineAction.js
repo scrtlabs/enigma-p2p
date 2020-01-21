@@ -1,7 +1,6 @@
 const constants = require("../../../../common/constants");
 const errs = require("../../../../common/errors");
 const NODE_NOTIFY = constants.NODE_NOTIFICATIONS;
-const waterfall = require("async/waterfall");
 const EngCid = require("../../../../common/EngCID");
 const LocalMissingStateResult = require("../../../state_sync/receiver/LocalMissingStatesResult");
 
@@ -20,7 +19,6 @@ class ReceiveAllPipelineAction {
   }
 
   async execute(params) {
-    const cache = params.cache;
     const onEnd = params.onEnd;
 
     if (this._running) {
@@ -30,10 +28,10 @@ class ReceiveAllPipelineAction {
 
     try {
       // Compare between the local state and Ethereum
-      const {
-        missingList,
-        excessList
-      } = await this._controller.asyncExecCmd(NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE, { cache: cache });
+      const { missingList, excessList } = await this._controller.asyncExecCmd(
+        NODE_NOTIFY.IDENTIFY_MISSING_STATES_FROM_REMOTE,
+        {}
+      );
 
       // Build messages for sync
       const missingStatesMsgsMap = buildMissingStatesResult(missingList);

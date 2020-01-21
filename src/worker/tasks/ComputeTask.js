@@ -1,7 +1,6 @@
 const Task = require("./Task");
 const Result = require("./Result");
 const constants = require("../../common/constants");
-const nodeUtils = require("../../common/utils");
 class ComputeTask extends Task {
   /**
    * @param {JSON} computeReqMsg , all fields specified in the `expected` list in the func
@@ -64,7 +63,7 @@ class ComputeTask extends Task {
     if (this.isFinished()) {
       output.result = this._result.toDbJson();
     }
-    return JSON.stringify(output);
+    return output;
   }
   toCoreJson() {
     return {
@@ -79,9 +78,6 @@ class ComputeTask extends Task {
     if (taskObj.status) {
       const task = ComputeTask.buildTask(taskObj);
       task._setStatus(taskObj.status);
-      if (taskObj.result && nodeUtils.isString(taskObj.result)) {
-        taskObj.result = JSON.parse(taskObj.result);
-      }
       if (taskObj.result && taskObj.result.status === constants.TASK_STATUS.SUCCESS) {
         const result = Result.ComputeResult.buildComputeResult(taskObj.result);
         task.setResult(result);
