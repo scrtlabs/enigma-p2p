@@ -77,7 +77,7 @@ class ReceiveAllPipelineAction {
           remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
         });
       } catch (err) {
-        if (!(err instanceof errors.SyncReceiverNoMissingDataErr)) {
+        if (!(err instanceof errs.SyncReceiverNoMissingDataErr)) {
           onEnd(err);
         }
       }
