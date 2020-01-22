@@ -94,12 +94,27 @@ class ReceiveAllPipelineAction {
         await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.UPDATE_DB, { data: coreMsg });
       }
       this._running = false;
+      this._controller.logger().info(`[SYNC] finished successfully`);
       onEnd(null, allResults);
     } catch (err) {
       this._running = false;
       this._controller.logger().error(`[SYNC] error= ${err}`);
       onEnd(err);
     }
+  }
+
+  asyncExecute(params) {
+    const action = this;
+    return new Promise((resolve, reject) => {
+      params.callback = function(err, results) {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(results);
+        }
+      };
+      action.execute(params);
+    });
   }
 }
 
