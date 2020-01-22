@@ -103,7 +103,7 @@ class ReceiveAllPipelineAction {
     }
   }
 
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
       params.callback = function(err, results) {

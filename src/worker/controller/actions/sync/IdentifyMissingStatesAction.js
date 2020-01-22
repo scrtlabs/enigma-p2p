@@ -41,7 +41,7 @@ class IdentifyMissingStatesAction {
     }
   }
 
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
       if (!params) {

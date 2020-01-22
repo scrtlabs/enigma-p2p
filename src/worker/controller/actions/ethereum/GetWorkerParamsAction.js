@@ -20,7 +20,7 @@ class GetWorkerParamsAction {
       onResult(err, workerParams);
     }
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((res, rej) => {
       if (!params) params = {};

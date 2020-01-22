@@ -29,7 +29,7 @@ class AnnounceContentAction {
       this._controller.logger().error(`[AnnounceContent] can't announce message: ${e}`);
     }
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((res, rej) => {
       params.onResponse = function(err, failedCids) {
