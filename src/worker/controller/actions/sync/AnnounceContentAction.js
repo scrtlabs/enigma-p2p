@@ -14,7 +14,7 @@ class AnnounceContentAction {
     }
     try {
       let failedCids = await this._controller.provider().asyncProvideContentsBatch(engCids);
-      if (failedCids && failedCids.length) {
+      if (Array.isArray(failedCids) && failedCids.length) {
         if (failedCids.length === engCids.length) {
           const error = `[AnnounceContent] content announce failed`;
           this._controller.logger().error(error);
