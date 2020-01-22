@@ -71,8 +71,9 @@ class ReceiveAllPipelineAction {
       });
 
       // Sync
+      let allResults = null;
       try {
-        const allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
+        allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
           allMissingDataList: allReceiveData,
           remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
         });
