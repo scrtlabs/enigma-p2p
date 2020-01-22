@@ -136,14 +136,20 @@ class CommitReceiptAction {
             .info(`[COMMIT_RECEIPT] received ReceiptFailedETH event after committing compute task ${task.getTaskId()}`);
           revertRequired = true;
         }
-      } catch (e) {
+      } catch (error) {
         this._controller
           .logger()
           .info(
             `[COMMIT_RECEIPT] received an error while trying to commit compute task ${task.getTaskId()} error=${e}`
           );
         revertRequired = true;
-        err = e;
+        err = error;
+        if (error.message.includes(constants.ETHEREUM_REVERT_INVALID_SIG)) {
+          this._controller
+            .logger()
+            .info(`[COMMIT_RECEIPT] a failure due to an invalid signature for ${task.getTaskId()} triggers SYNC`);
+          await this._resync();
+        }
       }
       if (revertRequired && isDelta) {
         this._controller.logger().info(`[COMMIT_RECEIPT] reverting state`);
@@ -201,6 +207,14 @@ class CommitReceiptAction {
       err = e;
     }
     return { error: err };
+  }
+
+  async _resync() {
+    try {
+      await this._controller.asyncExecCmd(constants.NODE_NOTIFICATIONS.SYNC_RECEIVER_PIPELINE, {});
+    } catch (error) {
+      this._controller.logger().error(`[COMMIT_RECEIPT] received an error while trying to rerun sync ${error}`);
+    }
   }
 }
 

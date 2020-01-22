@@ -262,6 +262,9 @@ module.exports.PRINCIPAL_NODE = {
   EPOCH_STATE_TRANSITION_ERROR_CODE: -32002
 };
 
+module.exports.ETHEREUM_REVERT_INVALID_SIG =
+  "Returned error: VM Exception while processing transaction: revert Invalid signature";
+
 module.exports.PTT_END_EVENT = "PTT";
 
 module.exports.MINIMUM_CONFIRMATIONS = 12;

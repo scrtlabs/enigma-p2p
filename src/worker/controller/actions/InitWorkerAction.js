@@ -17,7 +17,7 @@
  * Register to Enigma.sol
  * should be done manually, no point automating this. get the info with $getRegistration cli cmd.
  * */
-const errors = require("../../../common/errors");
+
 const constants = require("../../../common/constants");
 const waterfall = require("async/waterfall");
 
@@ -48,12 +48,6 @@ class InitWorkerAction {
       }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         onEnd: (err, statusResult) => {
-          if (!err || err instanceof errors.SyncReceiverNoMissingDataErr) {
-            this._controller.logger().info("success syncing pipeline");
-            err = null;
-          } else {
-            this._controller.logger().error("error receiving pipeline! " + err);
-          }
           cb(err);
         }
       });
@@ -147,7 +141,7 @@ class InitWorkerAction {
     );
   }
 
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
       params.callback = function(err) {
