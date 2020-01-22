@@ -33,10 +33,6 @@ class ReceiveAllPipelineAction {
         {}
       );
 
-      this._controller
-        .logger()
-        .info(`MISSING LIST=${JSON.stringify(missingList)} EXCESS LIST=${JSON.stringify(excessList)} `);
-
       // Build messages for sync
       const missingStatesMsgsMap = buildMissingStatesResult(missingList);
 
