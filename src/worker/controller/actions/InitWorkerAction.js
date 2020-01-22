@@ -48,7 +48,7 @@ class InitWorkerAction {
       }
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         onEnd: (err, statusResult) => {
-          if (!err || err instanceof errors.SyncReceiverNoMissingDataErr) {
+          if (!err) {
             this._controller.logger().info("success syncing pipeline");
             err = null;
           } else {
