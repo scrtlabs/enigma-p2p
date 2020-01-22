@@ -22,7 +22,7 @@ class GetTipsAction {
       }
     });
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((res, rej) => {
       params.onResponse = function(err, tips) {
