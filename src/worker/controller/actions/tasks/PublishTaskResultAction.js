@@ -53,7 +53,9 @@ class PublishTaskResultAction {
           this._controller.logger().debug(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid ${e}`);
         }
       } else {
-        this._controller.logger().error(`[PUBLISH_ANNOUNCE_TASK] cant publish  ecid null ${task.getContractAddr()}`);
+        this._controller
+          .logger()
+          .error(`[PUBLISH_ANNOUNCE_TASK] cant publish ${task.getContractAddr()} - ecid is null`);
       }
     }
   }

@@ -1,5 +1,5 @@
 const errors = require("../../../../common/errors");
-const EngCid = require("../../../../common/EngCID");
+
 class AnnounceContentAction {
   constructor(controller) {
     this._controller = controller;
@@ -9,24 +9,27 @@ class AnnounceContentAction {
     let engCids = params.engCids;
     if (!engCids || !engCids.length) {
       const msg = `[AnnounceContent] ${engCids} is not list of EngCid's`;
-      if (onResponse) {
-        return onResponse(new errors.TypeErr(msg));
-      }
-      return this._controller.logger().error(msg);
+      this._controller.logger().error(msg);
+      return onResponse(new errors.TypeErr(msg));
     }
-    // extra safety, extra O(n)
-    engCids = engCids.filter(ecid => {
-      return ecid instanceof EngCid;
-    });
     try {
       let failedCids = await this._controller.provider().asyncProvideContentsBatch(engCids);
-      this._controller.logger().debug(`[+] success announcing content, failedCids # =  ${failedCids.length}`);
+      if (Array.isArray(failedCids) && failedCids.length) {
+        if (failedCids.length === engCids.length) {
+          const error = `[AnnounceContent] content announce failed`;
+          this._controller.logger().error(error);
+          return onResponse(error);
+        }
+        this._controller
+          .logger()
+          .debug(`[AnnounceContent] announced = ${engCids.length - failedCids.length} out of ${engCids.length}`);
+      } else {
+        this._controller.logger().debug(`[AnnounceContent] success announcing content`);
+      }
       return onResponse(null, failedCids);
     } catch (e) {
-      if (onResponse) {
-        return onResponse(e);
-      }
-      this._controller.logger().error(`[AnnounceContent] can't announce message: ${e}`);
+      this._controller.logger().error(`[AnnounceContent] can't announce: ${e}`);
+      return onResponse(e);
     }
   }
   asyncExecute(params) {
