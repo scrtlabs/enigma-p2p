@@ -37,7 +37,7 @@ class StartTaskExecutionAction {
       onResponse(null);
     }
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((res, rej) => {
       params.onResponse = function(err, verificationResult) {

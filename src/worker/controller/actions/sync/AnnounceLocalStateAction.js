@@ -28,25 +28,14 @@ class AnnounceLocalStateAction {
           }
         }
         isEngCid = true;
-        this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid, (err, failedCids) => {
-          if (err) {
-            // TODO:: this is completley incorrect.
-            // TODO:: it shows like there was some total error, but there will be errrors in the case where 1 peer logged out
-            // TODO:: it will try to reconnect to him in the DHT and will throw an error
-            // TODO:: this is ok accestable behaviour.
-            // TODO:: the log below is missleading it says that there was a general error but that's no true, everything still works/
-            // TODO:: Bottom line im not processing the errors in the correct way.
-            return onResponse(err, parsedEngCids);
-          } else {
-            this._controller.logger().debug("[+] success providing cids.");
-            return onResponse(null, parsedEngCids);
-          }
+        this._controller.provider().provideContentsBatch(parsedEngCids, isEngCid, failedCids => {
+          return onResponse(null, parsedEngCids);
         });
       }
     });
   }
 
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
       params.callback = function(status, result) {
