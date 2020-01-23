@@ -33,30 +33,28 @@ class Provider extends EventEmitter {
     engCIDs.forEach(ecid => {
       jobs.push(cb => {
         this._enigmaNode.provideContent(ecid, (err, ecid) => {
+          if (err) {
+            this._logger.debug(`received an error while trying to provide ${ecid} = ${err}`);
+          }
           cb(null, { error: err, ecid: ecid });
         });
       });
     });
 
     parallel(jobs, (err, results) => {
-      let isError = false;
       const failedCids = [];
       results.map(r => {
         if (r.error) {
-          isError = true;
           failedCids.push(r.ecid);
         }
       });
-      callback(isError, failedCids);
+      callback(failedCids);
     });
   }
   /** async version of provideContentsBatch */
   asyncProvideContentsBatch(engCids) {
     return new Promise((resolve, reject) => {
-      this.provideContentsBatch(engCids, true, (err, failedCids) => {
-        if (err) {
-          return reject(err);
-        }
+      this.provideContentsBatch(engCids, true, failedCids => {
         resolve(failedCids);
       });
     });
