@@ -75,7 +75,7 @@ class LevelDbApi {
     if (this._isOpen()) {
       this._db.get(key, (err, value) => {
         if (err) {
-          this._logger.error(`received an error while trying to read ${key} from DB: ${err}`);
+          this._logger.info(`received an error while trying to read ${key} from DB: ${err}`);
           callback(err);
         } else {
           callback(null, value);
