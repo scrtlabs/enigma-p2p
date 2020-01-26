@@ -30,7 +30,7 @@ class UnregisterAction {
       onResult(err, success);
     }
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((res, rej) => {
       if (!params) params = {};

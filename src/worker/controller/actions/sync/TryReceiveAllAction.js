@@ -25,7 +25,8 @@ class TryReceiveAllAction {
     const receiver = this._controller.receiver();
 
     if (allMissingDataList.length === 0) {
-      return onFinish(new errors.SyncReceiverNoMissingDataErr("No missing data"));
+      this._controller.logger().info(`[TRY_RECEIVE_ALL] No missing data`);
+      return onFinish(null);
     }
 
     const jobs = [];
@@ -72,7 +73,7 @@ class TryReceiveAllAction {
       onFinish(err, allResults);
     });
   }
-  async asyncExecute(params) {
+  asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
       if (!params) {

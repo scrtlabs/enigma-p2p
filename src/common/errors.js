@@ -26,14 +26,6 @@ class SyncReceiverErr extends Error {
   }
 }
 
-class SyncReceiverNoMissingDataErr extends Error {
-  constructor(message) {
-    super(message);
-    Error.captureStackTrace(this, this.constructor);
-    this.name = this.constructor.name;
-  }
-}
-
 class TypeErr extends Error {
   constructor(message) {
     super(message);
@@ -148,7 +140,6 @@ module.exports.TaskVerificationErr = TaskVerificationErr;
 module.exports.WorkerSelectionVerificationErr = WorkerSelectionVerificationErr;
 module.exports.EnigmaContractDataError = EnigmaContractDataError;
 module.exports.MissingFieldsErr = MissingFieldsErr;
-module.exports.SyncReceiverNoMissingDataErr = SyncReceiverNoMissingDataErr;
 module.exports.InputErr = InputErr;
 module.exports.TaskTimeoutErr = TaskTimeoutErr;
 module.exports.TaskCancelledErr = TaskCancelledErr;
