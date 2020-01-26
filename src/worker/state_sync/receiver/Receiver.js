@@ -29,6 +29,9 @@ class Receiver extends EventEmitter {
    * */
   _findProvider(engCid, timeout, callback) {
     this._engNode.findContentProvider(engCid, timeout, (err, providers) => {
+      providers.filter(provider => {
+        return !(provider.id.toB58String() === this._engNode.getSelfIdB58Str());
+      });
       callback(err, providers);
     });
   }
