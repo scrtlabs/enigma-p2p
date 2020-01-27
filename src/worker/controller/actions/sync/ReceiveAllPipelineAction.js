@@ -54,7 +54,7 @@ class ReceiveAllPipelineAction {
         isEngCid: true
       });
       if (findProviderResult.isCompleteError() || findProviderResult.isErrors()) {
-        return new errs.SyncReceiverErr("some error finding providers !");
+        return onEnd(new errs.SyncReceiverErr("some error finding providers !"));
       }
 
       // parse to 1 object: cid => {providers, msgs} -> simple :)
@@ -67,10 +67,17 @@ class ReceiveAllPipelineAction {
       });
 
       // Sync
-      const allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
-        allMissingDataList: allReceiveData,
-        remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
-      });
+      let allResults = null;
+      try {
+        allResults = await this._controller.asyncExecCmd(NODE_NOTIFY.TRY_RECEIVE_ALL, {
+          allMissingDataList: allReceiveData,
+          remoteMissingStatesMap: transformMissingStatesListToMap(missingList)
+        });
+      } catch (err) {
+        if (!(err instanceof errs.SyncReceiverNoMissingDataErr)) {
+          onEnd(err);
+        }
+      }
 
       // Revert local state
       for (const contract of excessList) {
