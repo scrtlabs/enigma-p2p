@@ -87,6 +87,24 @@ class InitWorkerAction {
       // subscribe to self (for responding to rpc requests of other workers)
       this._controller.execCmd(C.SELF_KEY_SUBSCRIBE, {});
       // log finish this stage
+      setInterval(() => {
+        this._controller.logger().info("Starting periodic local state announcement");
+        waterfall(
+          [
+            // Sync State
+            syncState,
+            // Announce State:
+            announceState
+          ],
+          err => {
+            if (err) {
+              this._controller.logger().error(`error in periodic local state announcement: ${err}`);
+            } else {
+              this._controller.logger().info(`periodic local state announcement finished successfully`);
+            }
+          }
+        );
+      }, constants.PERIODIC_ANNOUNCEMENT_INTERVAL_MILI);
       this._controller.logger().debug("started background services");
       cb(null);
     };
