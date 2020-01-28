@@ -92,8 +92,11 @@ class NodeController {
     // TODO:: taskManager see this._initTaskManager()
     this._taskManager = null;
 
-    // // init ethereum api
+    // init ethereum api
     this._ethereumApi = null;
+
+    // a list of system scheduled timers
+    this._scheduledTimers = [];
 
     // TODO: consider a more cleaner approach
     this._workerInitialzied = false;
@@ -381,6 +384,9 @@ class NodeController {
     if (this._webserver) {
       this._webserver.stop();
     }
+    for (const timer of this._scheduledTimers) {
+      timer.unref();
+    }
   }
 
   /**
@@ -469,6 +475,13 @@ class NodeController {
         reject(new errors.ActionNameErr(`undefined asyncExecute for ${cmd}`));
       }
     });
+  }
+
+  /** Add a timer to the scheduled timers list
+   * @param {Timer} timer
+   * */
+  addTimer(timer) {
+    this._scheduledTimers.push(timer);
   }
 
   addPeer(maStr) {

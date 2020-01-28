@@ -67,6 +67,8 @@ class InitWorkerAction {
       });
     };
     const backgroundServices = cb => {
+      // TODO:: everything that runs in an infinite loop in the program should be started here.
+      // TODO:: for example we could start here a process to always ping enigma-core and check if ok
       if (this._controller.hasEthereum()) {
         this._controller
           .ethereum()
@@ -82,12 +84,11 @@ class InitWorkerAction {
             }.bind(this)
           );
       }
-      // TODO:: everything that runs in an infinite loop in the program should be started here.
-      // TODO:: for example we could start here a process to always ping enigma-core and check if ok
       // subscribe to self (for responding to rpc requests of other workers)
       this._controller.execCmd(C.SELF_KEY_SUBSCRIBE, {});
-      // log finish this stage
-      setInterval(() => {
+
+      // add timer for checking synchronization status and announcing local state
+      const timer = setInterval(() => {
         this._controller.logger().info("Starting periodic local state announcement");
         waterfall(
           [
@@ -105,6 +106,8 @@ class InitWorkerAction {
           }
         );
       }, constants.PERIODIC_ANNOUNCEMENT_INTERVAL_MILI);
+      this._controller.addTimer(timer);
+      // log finish this stage
       this._controller.logger().debug("started background services");
       cb(null);
     };
