@@ -34,7 +34,7 @@ class GetStateKeysAction {
       this._controller.logger().error(err);
       return onResponse(err);
     }
-
+    this._controller.logger().info(`Starting PTT`);
     const onPTTRequestResponse = async (err, coreResponse) => {
       if (err || coreResponse.type === "Error") {
         if (coreResponse && coreResponse.type === "Error") {

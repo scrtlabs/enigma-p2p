@@ -46,20 +46,23 @@ class InitWorkerAction {
       if (!this._controller.hasEthereum()) {
         return cb(null);
       }
+      this._controller.logger().debug("Starting sync");
       this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
         onEnd: (err, statusResult) => {
+          this._controller.logger().debug("Finished sync");
           cb(err);
         }
       });
     };
     const announceState = cb => {
+      this._controller.logger().debug("Starting announcing local state");
       this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
         onResponse: (error, content) => {
           if (error) {
             this._controller.logger().error("failed announcing " + error);
           } else {
             content.forEach(ecid => {
-              this._controller.logger().debug("providing : " + ecid.getKeccack256());
+              this._controller.logger().debug("providing: " + ecid.getKeccack256());
             });
           }
           cb(error);
