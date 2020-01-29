@@ -41,6 +41,7 @@ class ExecuteTaskAction {
     );
     let responseEnvelop = null;
     try {
+      this._controller.logger().debug(`sending task ${task.getTaskId()} to core`);
       responseEnvelop = await this._controller.communicator().sendAndReceive(requestEnv);
     } catch (e) {
       return this._controller.logger().error(e);
@@ -59,12 +60,12 @@ class ExecuteTaskAction {
       case taskTypes.FailedTask:
         response.result.status = constants.TASK_STATUS.FAILED;
         result = Result.FailedResult.buildFailedResult(response.result);
-        this._controller.logger().debug("received failed result");
+        this._controller.logger().debug(`received failed result of task ${task.getTaskId()}`);
         break;
       case taskTypes.DeploySecretContract:
         response.result.status = constants.TASK_STATUS.SUCCESS;
         result = Result.DeployResult.buildDeployResult(response.result);
-        this._controller.logger().debug("received deploy result");
+        this._controller.logger().debug(`received deploy result of task ${task.getTaskId()}`);
         break;
       case taskTypes.ComputeTask:
         response.result.status = constants.TASK_STATUS.SUCCESS;
@@ -73,12 +74,14 @@ class ExecuteTaskAction {
           this._controller
             .logger()
             .debug(
-              "received compute result for contract:" + task.getContractAddr() + " delta-key:" + result.getDelta().key
+              `received compute result of task ${task.getTaskId()} for contract ${task.getContractAddr()}, delta-key= ${
+                result.getDelta().key
+              }`
             );
         } else {
           this._controller
             .logger()
-            .debug("received compute result for contract:" + task.getContractAddr() + " ,no delta");
+            .debug(`received compute result task ${task.getTaskId()} for contract ${task.getContractAddr()}. no delta`);
         }
         break;
     }
