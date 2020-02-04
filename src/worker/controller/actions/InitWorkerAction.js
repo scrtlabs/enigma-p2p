@@ -31,6 +31,7 @@ class InitWorkerAction {
   execute(params) {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
+    let statusReason = null;
 
     if (this._controller.isWorkerInitialized()) {
       this._controller.logger().debug("Worker was already initialized.. Skipping");
@@ -95,26 +96,10 @@ class InitWorkerAction {
     };
     const registerWorker = async () => {
       if (this._controller.hasEthereum()) {
-        let workerParams = null;
-
-        try {
-          workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
-        } catch (err) {
-          return this._controller
-            .logger()
-            .error("error InitWorkerAction- Reading worker params from ethereum failed" + err);
-        }
-        // If the worker is already logged-in, nothing to do
-        if (
-          workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN ||
-          workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-        ) {
-          this._controller.logger().info("InitWorkerAction- worker is already registered");
-          return;
-        }
         try {
           await this._controller.asyncExecCmd(C.REGISTER);
         } catch (err) {
+          statusReason = "register-failed";
           return this._controller.logger().error("error InitWorkerAction- Register to ethereum failed" + err);
         }
       }
@@ -136,7 +121,7 @@ class InitWorkerAction {
         } else {
           this._controller.logger().info("success InitWorkerAction");
         }
-        this._controller.initWorkerDone();
+        this._controller.initWorkerDone(statusReason);
         if (callback) {
           callback(err);
         }

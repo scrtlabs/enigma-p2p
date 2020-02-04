@@ -75,7 +75,8 @@ it("#1 Query healthCheck + status", async function() {
           url = "http://localhost:" + port + statusUrl;
           response = await axios.get(url);
           assert.strictEqual(response.status, 200);
-          assert.strictEqual(response.data, constants.WORKER_STATUS.UNREGISTERED);
+          assert.strictEqual(response.data.status, constants.WORKER_STATUS.UNREGISTERED);
+          assert.strictEqual(response.data.statusReason, null);
 
           // STOP EVERYTHING
           peers.push(testPeer);

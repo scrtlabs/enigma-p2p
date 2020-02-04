@@ -13,6 +13,7 @@ class GetStatusAction {
     const C = constants.NODE_NOTIFICATIONS;
     let status = null;
     let error = null;
+    let statusReason = null;
 
     if (this._controller.isWorkerInitInProgress()) {
       status = constants.WORKER_STATUS.INITIALIZING;
@@ -22,6 +23,9 @@ class GetStatusAction {
         switch (workerParams.status) {
           case constants.ETHEREUM_WORKER_STATUS.UNREGISTERED:
             status = constants.WORKER_STATUS.UNREGISTERED;
+            if (this._controller.isWorkerInitialized()) {
+              statusReason = this._controller.getInitStatus();
+            }
             break;
           case constants.ETHEREUM_WORKER_STATUS.LOGGEDIN:
             status = constants.WORKER_STATUS.LOGGEDIN;
@@ -35,7 +39,7 @@ class GetStatusAction {
         error = err;
       }
     }
-    callback(error, status);
+    callback(error, { status, statusReason });
   }
 
   asyncExecute(params) {
