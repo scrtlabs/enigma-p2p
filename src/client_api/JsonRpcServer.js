@@ -5,6 +5,7 @@
  * */
 const EventEmitter = require("events").EventEmitter;
 const constants = require("../common/constants");
+const utils = require("../common/utils");
 const jayson = require("jayson");
 const cors = require("cors");
 const connect = require("connect");
@@ -34,7 +35,8 @@ class JsonRpcServer extends EventEmitter {
         },
         getWorkerEncryptionKey: async (args, callback) => {
           if (args.userPubKey && args.workerAddress) {
-            this._logger.info("JSON RPC: getWorkerEncryptionKey request");
+            const requestID = utils.randId();
+            this._logger.info(`JSON RPC: getWorkerEncryptionKey request ${requestID}`);
             const workerSignKey = args.workerAddress;
             const userPubKey = args.userPubKey;
             const content = {
@@ -49,7 +51,7 @@ class JsonRpcServer extends EventEmitter {
                 message: "Server error"
               });
             }
-            this._logger.debug("JSON RPC: got getWorkerEncryptionKey response");
+            this._logger.debug(`JSON RPC: got getWorkerEncryptionKey response ${requestID}`);
             return callback(null, coreRes);
           } else {
             return callback({
