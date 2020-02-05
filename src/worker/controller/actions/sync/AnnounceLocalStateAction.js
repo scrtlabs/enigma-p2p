@@ -38,7 +38,7 @@ class AnnounceLocalStateAction {
   asyncExecute(params) {
     const action = this;
     return new Promise((resolve, reject) => {
-      params.callback = function(status, result) {
+      params.onResponse = function(status, result) {
         resolve({ status: status, result: result });
       };
       action.execute(params);
