@@ -1,6 +1,6 @@
 {
   "name": "enigma-p2p",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Enigma P2P library based on libp2p-js ",
   "main": "src/index.js",
   "bin": {
