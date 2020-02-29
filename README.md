@@ -37,8 +37,11 @@ The P2P implementation of the Enigma Worker. This implementation is part of the 
 - [Optional - Docker](https://www.docker.com/)
 
 ## Installing
+For using the released version (corresponding to the `main` branch of this repository) download it from npm:
 
-Until this module is not in npmjs.com:
+`npm i enigma-p2p`
+
+For installing a different branch of the repository:
 
 `git clone` this repository
 
@@ -69,26 +72,22 @@ Incase of missing modules such as `connect` and `tempdir` install them in the sa
 
 # Running the Node
 
-Currently the node is started based on a command line interface.
-The node can be start from a single configuration file:
+Currently the node is started based on a command line interface (CLI).
+The node can be started from a single configuration file or with default configuration and CLI flags.
 
-`some/path/enigma-p2p/configs/template1.js`
+For usage example of a single configuration file see [unit-test](https://github.com/enigmampc/enigma-p2p/blob/7825e490e789d4e52b441f390997f9b262b9cfbc/test/singleConfig/single_config_test.js#L39).
 
-For usage example of single-config see [unit-test](https://github.com/enigmampc/enigma-p2p/blob/7825e490e789d4e52b441f390997f9b262b9cfbc/test/singleConfig/single_config_test.js#L39).
+To launch the node using the CLI:
 
-Or with default configuration and CLI flags.
-
-First:
+First enter the relevant directory:
 
 `cd ./src/cli`
 
-For help and list of flags:
+For help type:
 
 `$node cli_app.js -h`
 
-For the run-time commands the node can do:
-
-**While already running type** `help` to see a list of all the available commands.
+For interactive options help type `help` while running.
 
 Example:
 
@@ -114,9 +113,9 @@ In this example:
 
 `--core <ip>:<port>` enigma-core uri. In this example we will be using a core simulation.
 
-`--mock-core <ip>:<port>` launch a core simulation.
+`--mock-core` launch a core simulation.
 
-`--proxy <port>` will start up the JSONrpc server as well.
+`--proxy <port>` will start up the JSON-RPC server as well.
 
 `--random-db` is a must to generate a temporary database for the task management during testing.
 
@@ -163,7 +162,7 @@ node cli_app.js -b B1 --core 127.0.0.1:6000 --mock-core --random-db
      alt="streams flow " />
      
 ## Node health check
-The node health check currently consists from the following checks:
+The node health check currently consists of the following checks:
 - The ability to interact with core
 - The ability to interact with Ethereum
 
@@ -171,7 +170,7 @@ To enable the health check, start the node with `--health` parameter. For exampl
 ```
 node cli_app.js -i B1 -p B1 --core 127.0.0.1:1543 --mock-core --health 12345
 ```
-To query node's state, `curl` can be used:
+To query node status, `curl` can be used:
 ```
 curl http://localhost:12345/healthcheck
 ```
