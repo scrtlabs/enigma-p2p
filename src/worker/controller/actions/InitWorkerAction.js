@@ -19,7 +19,6 @@
  * */
 
 const constants = require("../../../common/constants");
-const waterfall = require("async/waterfall");
 
 class InitWorkerAction {
   constructor(controller) {
@@ -28,12 +27,13 @@ class InitWorkerAction {
   /**
    * @param {Function} optional callback (err)=>{}
    * */
-  execute(params) {
+  async execute(params) {
     const callback = params.callback;
     const C = constants.NODE_NOTIFICATIONS;
+    let error = null;
 
     if (this._controller.isWorkerInitialized()) {
-      this._controller.logger().debug("Worker was already initialized.. Skipping");
+      this._controller.logger().debug("worker was already initialized.. Skipping");
       if (callback) {
         callback(null);
       }
@@ -41,36 +41,23 @@ class InitWorkerAction {
     }
 
     this._controller.startInitWorker();
-    // methods
-    const syncState = cb => {
-      if (!this._controller.hasEthereum()) {
-        return cb(null);
-      }
-      this._controller.logger().debug("Starting sync");
-      this._controller.execCmd(C.SYNC_RECEIVER_PIPELINE, {
-        onEnd: (err, statusResult) => {
-          this._controller.logger().debug("Finished sync");
-          cb(err);
-        }
-      });
-    };
-    const announceState = cb => {
-      this._controller.logger().debug("Starting announcing local state");
-      this._controller.execCmd(C.ANNOUNCE_LOCAL_STATE, {
-        onResponse: (error, content) => {
-          if (error) {
-            this._controller.logger().error("failed announcing " + error);
-          } else {
-            content.forEach(ecid => {
-              this._controller.logger().debug("providing: " + ecid.getKeccack256());
-            });
-          }
-          cb(error);
-        }
-      });
-    };
-    const backgroundServices = cb => {
+    try {
       if (this._controller.hasEthereum()) {
+        this._controller.logger().debug("starting sync");
+        await this._controller.asyncExecCmd(C.SYNC_RECEIVER_PIPELINE, {});
+      }
+
+      this._controller.logger().debug("starting announcing local state");
+      const content = await this._controller.asyncExecCmd(C.ANNOUNCE_LOCAL_STATE, {});
+      content.result.forEach(ecid => {
+        this._controller.logger().debug("providing: " + ecid.getKeccack256());
+      });
+
+      // TODO:: everything that runs in an infinite loop in the program should be started here.
+      // TODO:: for example we could start here a process to always ping enigma-core and check if ok
+      this._controller.logger().debug("starting background services");
+      if (this._controller.hasEthereum()) {
+        // subscribe to new epoch events
         this._controller
           .ethereum()
           .services()
@@ -85,63 +72,38 @@ class InitWorkerAction {
             }.bind(this)
           );
       }
-      // TODO:: everything that runs in an infinite loop in the program should be started here.
-      // TODO:: for example we could start here a process to always ping enigma-core and check if ok
       // subscribe to self (for responding to rpc requests of other workers)
       this._controller.execCmd(C.SELF_KEY_SUBSCRIBE, {});
-      // log finish this stage
-      this._controller.logger().debug("started background services");
-      cb(null);
-    };
-    const registerWorker = async () => {
-      if (this._controller.hasEthereum()) {
-        let workerParams = null;
 
+      // add timer for checking synchronization status and announcing local state
+      const timer = setInterval(async () => {
+        this._controller.logger().info("starting periodic local state announcement");
         try {
-          workerParams = await this._controller.asyncExecCmd(C.GET_ETH_WORKER_PARAM);
+          this._controller.logger().debug("starting sync");
+          await this._controller.asyncExecute(C.SYNC_RECEIVER_PIPELINE, {});
+          this._controller.logger().debug("starting announcing local state");
+          const content = this._controller.asyncExecCmd(C.ANNOUNCE_LOCAL_STATE, {});
+          content.result.forEach(ecid => {
+            this._controller.logger().debug("providing: " + ecid.getKeccack256());
+          });
+          this._controller.logger().info(`periodic local state announcement finished successfully`);
         } catch (err) {
-          return this._controller
-            .logger()
-            .error("error InitWorkerAction- Reading worker params from ethereum failed" + err);
+          this._controller.logger().error(`error in periodic local state announcement: ${err}`);
         }
-        // If the worker is already logged-in, nothing to do
-        if (
-          workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDIN ||
-          workerParams.status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT
-        ) {
-          this._controller.logger().info("InitWorkerAction- worker is already registered");
-          return;
-        }
-        try {
-          await this._controller.asyncExecCmd(C.REGISTER);
-        } catch (err) {
-          return this._controller.logger().error("error InitWorkerAction- Register to ethereum failed" + err);
-        }
-      }
-    };
-    waterfall(
-      [
-        // Sync State
-        syncState,
-        // Announce State:
-        announceState,
-        // Background Services:
-        backgroundServices,
-        // register and login worker
-        registerWorker
-      ],
-      err => {
-        if (err) {
-          this._controller.logger().error("error InitWorkerAction " + err);
-        } else {
-          this._controller.logger().info("success InitWorkerAction");
-        }
-        this._controller.initWorkerDone();
-        if (callback) {
-          callback(err);
-        }
-      }
-    );
+      }, constants.PERIODIC_ANNOUNCEMENT_INTERVAL_MILI);
+      this._controller.addTimer(timer);
+
+      // register worker
+      await this._controller.asyncExecCmd(C.REGISTER);
+      this._controller.logger().info("success InitWorkerAction");
+    } catch (err) {
+      this._controller.logger().error("error InitWorkerAction " + err);
+      error = err;
+    }
+    this._controller.initWorkerDone();
+    if (callback) {
+      callback(error);
+    }
   }
 
   asyncExecute(params) {

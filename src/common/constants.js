@@ -294,3 +294,5 @@ module.exports.WORKER_STATUS = {
   REGISTERED: "registered",
   LOGGEDIN: "logged-in"
 };
+
+module.exports.PERIODIC_ANNOUNCEMENT_INTERVAL_MILI = 12 * 60 * 60 * 1000; // 12 hours
