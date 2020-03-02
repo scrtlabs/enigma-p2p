@@ -98,6 +98,7 @@ class NodeController {
     // TODO: consider a more cleaner approach
     this._workerInitialzied = false;
     this._workerInitInProgress = false;
+    this._initStatus = null;
 
     // init logic
     this._initController();
@@ -345,11 +346,13 @@ class NodeController {
 
   startInitWorker() {
     this._workerInitInProgress = true;
+    this._initStatus = null;
   }
 
-  initWorkerDone() {
+  initWorkerDone(status) {
     this._workerInitialzied = true;
     this._workerInitInProgress = false;
+    this._initStatus = status;
   }
 
   canInitWorker() {
@@ -366,6 +369,10 @@ class NodeController {
 
   isAutoInit() {
     return this._extraConfig.init;
+  }
+
+  getInitStatus() {
+    return this._initStatus;
   }
 
   /** * stop the node */

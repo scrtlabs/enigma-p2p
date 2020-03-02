@@ -15,6 +15,8 @@ class LogoutAction {
       const { status } = await api.getWorker(workerAddress);
       if (status === constants.ETHEREUM_WORKER_STATUS.LOGGEDOUT) {
         this._controller.logger().info(`[LOGOUT] already logged out`);
+      } else if (status === constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
+        this._controller.logger().error(`[LOGOUT] cannot logout, the worker is not registered`);
       } else {
         await api.logout();
         this._controller.logger().info(`[LOGOUT] successful logout`);

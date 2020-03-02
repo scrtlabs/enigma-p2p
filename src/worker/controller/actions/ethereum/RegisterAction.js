@@ -6,6 +6,18 @@ class RegisterAction {
   }
   async execute(params) {
     const onResult = params.onResponse;
+    const api = this._controller.ethereum().api();
+    try {
+      const { status } = await api.getWorker(api.getWorkerAddress());
+      if (status !== constants.ETHEREUM_WORKER_STATUS.UNREGISTERED) {
+        this._controller.logger().info(`[LOGIN] already registered`);
+        onResult(null, true);
+        return;
+      }
+    } catch (e) {
+      this._controller.logger().error(`[LOGIN] error in reading worker params error=  ${e}`);
+      // if the read failed, we will still try to register, as it was merely an optimization
+    }
     this._controller.execCmd(constants.NODE_NOTIFICATIONS.REGISTRATION_PARAMS, {
       onResponse: async (err, regParams) => {
         let success = false;
@@ -16,10 +28,7 @@ class RegisterAction {
           const report = regParams.result.report;
           const signature = regParams.result.signature;
           try {
-            await this._controller
-              .ethereum()
-              .api()
-              .register(signerAddress, report, signature);
+            await api().register(signerAddress, report, signature);
             this._controller.logger().info("[REGISTER] successful registration");
             success = true;
           } catch (e) {
@@ -27,9 +36,7 @@ class RegisterAction {
             err = e;
           }
         }
-        if (onResult) {
-          onResult(err, success);
-        }
+        onResult(err, success);
       }
     });
   }
